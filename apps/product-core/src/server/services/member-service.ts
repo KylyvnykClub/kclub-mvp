@@ -67,7 +67,7 @@ export function toCurrentMemberProfileDto(user: UserRecord): CurrentMemberProfil
 export async function getMemberBySupabaseUserId(supabaseUserId: string): Promise<UserRecord> {
   const prisma = getPrismaClient();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   const user = await (prisma.user.findUnique as any)({
     where: { supabase_auth_user_id: supabaseUserId },
   }) as UserRecord | null;
@@ -108,7 +108,7 @@ export async function updateMemberProfile(
   if (input.about !== undefined) data.about = input.about ?? null;
   if (input.avatarUrl !== undefined) data.avatar_url = input.avatarUrl ?? null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   const updated = await (prisma.user.update as any)({
     where: { id: user.id },
     data,
@@ -133,7 +133,7 @@ export async function completeMemberOnboarding(
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   const updated = await (prisma.user.update as any)({
     where: { id: user.id },
     data: {

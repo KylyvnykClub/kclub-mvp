@@ -20,7 +20,7 @@ export function AppSidebar({ className, staffRole }: AppSidebarProps) {
   return (
     <aside className={cn('bg-card flex min-h-screen w-64 flex-col border-r', className)}>
       <div className="flex items-center border-b px-4 py-3">
-        <p className="text-sm font-semibold">KCLUB Admin</p>
+        <p className="text-sm font-semibold">KCLUB Admin Dashboard</p>
       </div>
       <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
         {visibleItems.map((item) => {

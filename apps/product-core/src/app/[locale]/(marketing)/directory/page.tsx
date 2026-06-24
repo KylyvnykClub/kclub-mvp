@@ -1,5 +1,3 @@
-export const revalidate = 60;
-
 import { ArrowRight, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';

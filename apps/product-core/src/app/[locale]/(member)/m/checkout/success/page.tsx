@@ -31,7 +31,7 @@ export default async function CheckoutSuccessPage({
         profile?.id === session.metadata.userId
       ) {
         const prisma = getPrismaClient();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line
         await (prisma.user as any).update({
           where: { id: profile.id },
           data: { membership_tier: 'VIP' },

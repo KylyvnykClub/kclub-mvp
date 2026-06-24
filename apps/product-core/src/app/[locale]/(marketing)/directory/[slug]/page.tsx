@@ -12,10 +12,14 @@ import { getCachedPublicBusinessBySlug } from '@/server/cache/business-cache';
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  const { getPublicBusinesses } = await import('@/server/services/business-service');
-  const businesses = await getPublicBusinesses();
-  const locales = ['en', 'ru', 'uk'];
-  return locales.flatMap((locale) => businesses.map((b) => ({ locale, slug: b.slug })));
+  try {
+    const { getPublicBusinesses } = await import('@/server/services/business-service');
+    const businesses = await getPublicBusinesses();
+    const locales = ['en', 'ru', 'uk'];
+    return locales.flatMap((locale) => businesses.map((b) => ({ locale, slug: b.slug })));
+  } catch {
+    return [];
+  }
 }
 
 type Params = {

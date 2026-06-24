@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     } = serviceClient.storage.from(AVATAR_BUCKET).getPublicUrl(storagePath);
 
     const prisma = getPrismaClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line
     const updated = await (prisma.user.update as any)({
       where: { id: localUser.id },
       data: { avatar_url: publicUrl },

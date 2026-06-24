@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -24,6 +25,16 @@ export default async function LocaleLayout(props: {
 
   return (
     <html lang={params.locale} suppressHydrationWarning>
+      <head>
+        {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
+          <Script
+            defer
+            data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+            src="https://plausible.io/js/script.js"
+            strategy="afterInteractive"
+          />
+        )}
+      </head>
       <body
         className={cn(
           titilliumWeb.variable,

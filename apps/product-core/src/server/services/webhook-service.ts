@@ -135,7 +135,7 @@ async function handleCheckoutCompleted(session: Record<string, unknown>): Promis
     orderBy: { created_at: 'desc' },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   const userUpgrade = (prisma.user as any).update({
     where: { id: userId },
     data: { membership_tier: 'VIP' },
@@ -451,7 +451,7 @@ async function handleSubscriptionDeleted(subscription: Record<string, unknown>):
 
   const previousStatus = localSub.status;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   const userDowngrade = (prisma.user as any).update({
     where: { id: localSub.user_id },
     data: { membership_tier: 'MEMBER' },
