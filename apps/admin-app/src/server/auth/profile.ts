@@ -3,6 +3,7 @@ import type { ApiResponse, StaffProfileDto, StaffRole } from '@kclub/contracts';
 
 export type StaffProfile = {
   id: string;
+  phone: string;
   name: string;
   role: StaffRole;
   initials: string;
@@ -48,6 +49,7 @@ export async function readStaffProfile(): Promise<StaffProfile | null> {
 
   return {
     id: profile.id,
+    phone: profile.phone,
     name,
     role: profile.role as StaffRole,
     initials,

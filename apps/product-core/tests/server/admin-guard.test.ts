@@ -11,29 +11,26 @@ describe('requireStaffPermission', () => {
   test('throws AppError when permission is not granted', async () => {
     const { requireStaffPermission } = await import('../../src/server/admin-guard');
 
-    const supportProfile: StaffProfileDto = {
+    const moderatorProfile: StaffProfileDto = {
       id: 'staff-1',
       phone: '+15551234567',
-      displayName: 'Support Agent',
-      role: 'SUPPORT',
+      displayName: 'Moderator',
+      role: 'MODERATOR',
       totpVerified: true,
     };
 
-    expect(() => requireStaffPermission(supportProfile, STAFF_PERMISSIONS.USERS_BLOCK)).toThrow();
-    expect(() => requireStaffPermission(supportProfile, STAFF_PERMISSIONS.USERS_READ)).toThrow();
+    expect(() => requireStaffPermission(moderatorProfile, STAFF_PERMISSIONS.USERS_BLOCK)).toThrow();
+    expect(() => requireStaffPermission(moderatorProfile, STAFF_PERMISSIONS.USERS_READ)).toThrow();
 
     expect(() =>
-      requireStaffPermission(supportProfile, STAFF_PERMISSIONS.DASHBOARD_METRICS_READ),
+      requireStaffPermission(moderatorProfile, STAFF_PERMISSIONS.DASHBOARD_METRICS_READ),
     ).not.toThrow();
     expect(() =>
-      requireStaffPermission(supportProfile, STAFF_PERMISSIONS.AUDIT_READ),
-    ).not.toThrow();
-    expect(() =>
-      requireStaffPermission(supportProfile, STAFF_PERMISSIONS.SUBSCRIPTIONS_READ),
+      requireStaffPermission(moderatorProfile, STAFF_PERMISSIONS.BUSINESSES_MODERATE),
     ).not.toThrow();
   });
 
-  test('allows ADMIN with USERS_READ permission', async () => {
+  test('allows ADMIN with USERS_READ and STAFF_MANAGE permissions', async () => {
     const { requireStaffPermission } = await import('../../src/server/admin-guard');
 
     const adminProfile: StaffProfileDto = {
@@ -50,9 +47,11 @@ describe('requireStaffPermission', () => {
       requireStaffPermission(adminProfile, STAFF_PERMISSIONS.CARDS_REVOKE),
     ).not.toThrow();
     expect(() =>
+      requireStaffPermission(adminProfile, STAFF_PERMISSIONS.STAFF_MANAGE),
+    ).not.toThrow();
+    expect(() =>
       requireStaffPermission(adminProfile, STAFF_PERMISSIONS.STRIPE_PRICES_MANAGE),
     ).toThrow();
-    expect(() => requireStaffPermission(adminProfile, STAFF_PERMISSIONS.STAFF_MANAGE)).toThrow();
   });
 
   test('allows OWNER with all permissions', async () => {
@@ -72,56 +71,6 @@ describe('requireStaffPermission', () => {
     expect(() =>
       requireStaffPermission(ownerProfile, STAFF_PERMISSIONS.STAFF_MANAGE),
     ).not.toThrow();
-  });
-});
-
-describe('enforceSupportReadOnly', () => {
-  test('blocks POST/PUT/DELETE/PATCH for SUPPORT role', async () => {
-    const { enforceSupportReadOnly } = await import('../../src/server/admin-guard');
-
-    const supportProfile: StaffProfileDto = {
-      id: 'staff-1',
-      phone: '+15551234567',
-      displayName: 'Support',
-      role: 'SUPPORT',
-      totpVerified: true,
-    };
-
-    expect(() => enforceSupportReadOnly(supportProfile, 'POST')).toThrow();
-    expect(() => enforceSupportReadOnly(supportProfile, 'PUT')).toThrow();
-    expect(() => enforceSupportReadOnly(supportProfile, 'DELETE')).toThrow();
-    expect(() => enforceSupportReadOnly(supportProfile, 'PATCH')).toThrow();
-  });
-
-  test('allows GET and HEAD for SUPPORT role', async () => {
-    const { enforceSupportReadOnly } = await import('../../src/server/admin-guard');
-
-    const supportProfile: StaffProfileDto = {
-      id: 'staff-1',
-      phone: '+15551234567',
-      displayName: 'Support',
-      role: 'SUPPORT',
-      totpVerified: true,
-    };
-
-    expect(() => enforceSupportReadOnly(supportProfile, 'GET')).not.toThrow();
-    expect(() => enforceSupportReadOnly(supportProfile, 'HEAD')).not.toThrow();
-  });
-
-  test('allows all methods for non-SUPPORT roles', async () => {
-    const { enforceSupportReadOnly } = await import('../../src/server/admin-guard');
-
-    const adminProfile: StaffProfileDto = {
-      id: 'staff-2',
-      phone: '+15559876543',
-      displayName: 'Admin',
-      role: 'ADMIN',
-      totpVerified: true,
-    };
-
-    expect(() => enforceSupportReadOnly(adminProfile, 'POST')).not.toThrow();
-    expect(() => enforceSupportReadOnly(adminProfile, 'DELETE')).not.toThrow();
-    expect(() => enforceSupportReadOnly(adminProfile, 'GET')).not.toThrow();
   });
 });
 
@@ -181,29 +130,6 @@ describe('ADMIN_API_ROUTES contract stability', () => {
     expect(ADMIN_API_ROUTES.AUDIT).toBe('/api/admin/v1/audit');
     expect(ADMIN_API_ROUTES.STAFF_AUTH_TOTP_SETUP).toBe('/api/admin/v1/staff-auth/totp/setup');
     expect(ADMIN_API_ROUTES.STAFF_AUTH_LOGOUT).toBe('/api/admin/v1/staff-auth/logout');
-  });
-});
-
-describe('SUPPORT permission fixture is strictly read-only', () => {
-  test('STAFF_PERMISSIONS reflects read-only nature', async () => {
-    const { STAFF_ROLE_PERMISSIONS, STAFF_PERMISSIONS } = await import('@kclub/contracts');
-
-    const supportPerms = STAFF_ROLE_PERMISSIONS.SUPPORT;
-    expect(supportPerms).toContain(STAFF_PERMISSIONS.DASHBOARD_METRICS_READ);
-    expect(supportPerms).toContain(STAFF_PERMISSIONS.SUBSCRIPTIONS_READ);
-    expect(supportPerms).toContain(STAFF_PERMISSIONS.AUDIT_READ);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.INTERNAL_NOTES_CREATE);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.USERS_READ);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.USERS_BLOCK);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.CARDS_READ);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.BUSINESSES_MODERATE);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.INTRODUCTIONS_MODERATE);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.TAXONOMY_MANAGE);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.FEATURED_BUSINESSES_MANAGE);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.STRIPE_PRICES_MANAGE);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.STAFF_MANAGE);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.CARDS_REVOKE);
-    expect(supportPerms).not.toContain(STAFF_PERMISSIONS.CARDS_REISSUE);
   });
 });
 

@@ -90,7 +90,7 @@ export const adminConfigUpdateSchema = z.object({
 });
 
 export const staffRoleUpdateSchema = z.object({
-  role: z.enum(['OWNER', 'ADMIN', 'MODERATOR', 'SUPPORT']),
+  role: z.enum(['OWNER', 'ADMIN', 'MODERATOR']),
 });
 
 export const adminUserListSchema = z.object({

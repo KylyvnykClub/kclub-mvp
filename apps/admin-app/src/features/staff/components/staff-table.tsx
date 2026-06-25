@@ -76,7 +76,6 @@ function RoleUpdateDialog({
             <option value="OWNER">OWNER</option>
             <option value="ADMIN">ADMIN</option>
             <option value="MODERATOR">MODERATOR</option>
-            <option value="SUPPORT">SUPPORT</option>
           </select>
         </div>
         <DialogFooter>

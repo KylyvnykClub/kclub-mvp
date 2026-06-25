@@ -1,19 +1,5 @@
-import { PageShell } from '@/components/page-shell';
-import { requireStaffProfile } from '@/server/auth/profile';
-import { fetchStripePrices } from '@/features/stripe-prices/api';
-import { StripePricesForm } from '@/features/stripe-prices/components/stripe-prices-form';
+import { redirect } from 'next/navigation';
 
-export default async function StripePricesPage() {
-  await requireStaffProfile();
-  const prices = await fetchStripePrices();
-
-  return (
-    <PageShell
-      title="Stripe Prices"
-      description="Owner-only Price ID configuration and visibility."
-      roleScope="OWNER"
-    >
-      <StripePricesForm prices={prices ?? []} />
-    </PageShell>
-  );
+export default function StripePricesPage() {
+  redirect('/dashboard/billing?section=stripe-prices');
 }

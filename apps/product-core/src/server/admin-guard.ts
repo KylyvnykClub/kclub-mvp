@@ -87,28 +87,12 @@ export function enrichStaffContext(profile: StaffProfileDto, request: Request): 
   });
 }
 
-export function enforceSupportReadOnly(profile: StaffProfileDto, method: string): void {
-  if (profile.role === 'SUPPORT' && method !== 'GET' && method !== 'HEAD') {
-    const log = createLogger();
-    log.auth('Support role attempted write', {
-      staffId: profile.id,
-      method,
-    });
-
-    throw new AppError({
-      code: ERROR_CODES.PERMISSION_DENIED,
-      message: 'SUPPORT role is strictly read-only',
-      status: 403,
-    });
-  }
-}
 
 export async function adminGuard(
   request: Request,
   permission: StaffPermission,
 ): Promise<{ profile: StaffProfileDto; context: RequestContext }> {
   const { profile } = await authenticateStaff(request);
-  enforceSupportReadOnly(profile, request.method);
   requireStaffPermission(profile, permission);
   const context = enrichStaffContext(profile, request);
   return { profile, context };

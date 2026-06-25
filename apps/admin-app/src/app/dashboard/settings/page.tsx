@@ -1,24 +1,53 @@
-import { PageShell } from '@/components/page-shell';
 import { requireStaffProfile } from '@/server/auth/profile';
-import { fetchStripePrices } from '@/features/stripe-prices/api';
-import { StripePricesForm } from '@/features/stripe-prices/components/stripe-prices-form';
+import { fetchStaffList } from '@/features/staff/api';
+import { fetchAuditLogs } from '@/features/audit/api';
+import { fetchCategories } from '@/features/categories/api';
+import { SettingsPageClient } from '@/features/settings/components/settings-page-client';
 
-export default async function SettingsPage() {
-  await requireStaffProfile();
-  const prices = await fetchStripePrices();
+type SettingsPageProps = {
+  searchParams: Promise<{
+    section?: string;
+    page?: string;
+    limit?: string;
+    action?: string;
+    actorRole?: string;
+    entityType?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }>;
+};
+
+export default async function SettingsPage({ searchParams }: SettingsPageProps) {
+  const profile = await requireStaffProfile();
+  const sp = await searchParams;
+
+  const auditPage = Number(sp.page) || 1;
+  const auditLimit = Math.min(Number(sp.limit) || 20, 100);
+  const auditFilters = {
+    action: sp.action,
+    actorRole: sp.actorRole,
+    entityType: sp.entityType,
+    dateFrom: sp.dateFrom,
+    dateTo: sp.dateTo,
+  };
+
+  const [staff, auditResult, categories] = await Promise.all([
+    fetchStaffList(),
+    fetchAuditLogs({ ...auditFilters, page: auditPage, limit: auditLimit }),
+    fetchCategories(),
+  ]);
 
   return (
-    <PageShell
-      title="Settings"
-      description="Owner-managed platform-level configuration."
-      roleScope="OWNER"
-    >
-      <div className="space-y-6">
-        <div>
-          <h3 className="mb-2 text-lg font-medium">Stripe Price IDs</h3>
-          <StripePricesForm prices={prices ?? []} />
-        </div>
-      </div>
-    </PageShell>
+    <SettingsPageClient
+      staffRole={profile.role}
+      initialSection={sp.section}
+      staff={staff ?? []}
+      auditLogs={auditResult?.logs ?? []}
+      auditTotal={auditResult?.total ?? 0}
+      auditPage={auditResult?.page ?? auditPage}
+      auditLimit={auditResult?.limit ?? auditLimit}
+      auditFilters={auditFilters}
+      categories={categories ?? []}
+    />
   );
 }

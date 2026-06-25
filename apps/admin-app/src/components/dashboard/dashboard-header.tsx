@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { LogOut, Menu, User } from 'lucide-react';
 
 import { logoutAction } from '@/server/auth/actions';
@@ -82,6 +83,10 @@ export function DashboardHeader({ staffName, staffRole, staffInitials }: Dashboa
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem render={<Link href="/dashboard/account" />}>
+                <User className="h-4 w-4" />
+                My Account
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => logoutAction()}>
                 <LogOut className="h-4 w-4" />
                 Sign out
