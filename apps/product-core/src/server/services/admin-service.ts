@@ -72,6 +72,18 @@ import { revokeCard, reissueCard, toMemberCardDto } from './card-service';
 
 const auditService = createDbAuditService();
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function assertValidUuid(id: string, entityName: string): void {
+  if (!UUID_REGEX.test(id)) {
+    throw new AppError({
+      code: ERROR_CODES.VALIDATION_INVALID_INPUT,
+      message: `Invalid ${entityName} ID format`,
+      status: 400,
+    });
+  }
+}
+
 // ── Dashboard Metrics ──
 
 export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
@@ -1511,6 +1523,7 @@ export async function listStaff(context: RequestContext): Promise<AdminStaffList
 }
 
 export async function getStaffDetail(staffId: string): Promise<AdminStaffListItemDto> {
+  assertValidUuid(staffId, 'staff');
   const prisma = getPrismaClient();
   const staff = await prisma.adminUser.findUnique({ where: { id: staffId } });
   if (!staff) {
@@ -1528,6 +1541,7 @@ export async function updateStaffRole(
   input: StaffRoleUpdateInput,
   context: RequestContext,
 ): Promise<AdminStaffListItemDto> {
+  assertValidUuid(staffId, 'staff');
   const prisma = getPrismaClient();
   const staff = await prisma.adminUser.findUnique({ where: { id: staffId } });
   if (!staff) {
@@ -1562,6 +1576,7 @@ export async function deactivateStaff(
   input: StaffDeactivateInput,
   context: RequestContext,
 ): Promise<AdminStaffListItemDto> {
+  assertValidUuid(staffId, 'staff');
   const prisma = getPrismaClient();
   const staff = await prisma.adminUser.findUnique({ where: { id: staffId } });
   if (!staff) {

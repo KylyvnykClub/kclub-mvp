@@ -30,10 +30,11 @@ export function AppSidebar({ className, staffRole }: AppSidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               className={cn(
-                'flex min-h-[44px] items-center gap-2 rounded-md px-3 py-2.5 text-sm transition-colors',
+                'flex min-h-[44px] w-full items-center gap-2 rounded-md px-3 py-2.5 text-sm transition-colors',
                 active
-                  ? 'bg-primary font-medium text-primary-foreground'
+                  ? ' font-medium text-primary'
                   : 'text-muted-foreground hover:bg-muted hover:text-zinc-950',
               )}
             >

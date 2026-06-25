@@ -127,7 +127,7 @@ describe('contract assertions', () => {
 describe('permission fixtures', () => {
   test('derive the staff permission matrix from domain policy helpers', () => {
     expect(STAFF_PERMISSION_MATRIX_FIXTURE.OWNER.STRIPE_PRICES_MANAGE).toBe(true);
-    expect(STAFF_PERMISSION_MATRIX_FIXTURE.SUPPORT.BUSINESSES_MODERATE).toBe(false);
+    expect(STAFF_PERMISSION_MATRIX_FIXTURE.MODERATOR.STAFF_MANAGE).toBe(false);
 
     for (const [role, permissions] of Object.entries(STAFF_PERMISSION_MATRIX_FIXTURE)) {
       for (const [permission, allowed] of Object.entries(permissions)) {
@@ -143,14 +143,13 @@ describe('permission fixtures', () => {
 
   test('exposes member capability fixtures and stable dashboard tabs', () => {
     expect(MEMBER_PERMISSION_FIXTURES.MEMBER.visibleTabs).toEqual([
-      'account',
-      'catalog',
+      'details',
+      'card',
       'subscription',
       'settings',
     ]);
     expect(MEMBER_PERMISSION_FIXTURES.VIP.capabilities).toContain('BUSINESS_SUBMIT');
-    expect(MEMBER_PERMISSION_FIXTURES.HAS_BUSINESS.visibleTabs).toContain('business');
-    expect(MEMBER_PERMISSION_FIXTURES.HAS_BUSINESS.visibleTabs).not.toContain('introductions');
+    expect(MEMBER_PERMISSION_FIXTURES.HAS_BUSINESS.visibleTabs).toContain('introductions');
     expect(ALL_MEMBER_DASHBOARD_TABS_FIXTURE).toContain('settings');
   });
 });

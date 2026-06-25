@@ -22,7 +22,7 @@ export function hasStaffPermission(role: StaffRole, permission: StaffPermission)
 
 export function isStaffRoleAtLeast(
   role: StaffRole,
-  minimumRole: Exclude<StaffRole, 'SUPPORT'>,
+  minimumRole: StaffRole,
 ): boolean {
   return STAFF_ROLE_RANK[role] >= STAFF_ROLE_RANK[minimumRole];
 }

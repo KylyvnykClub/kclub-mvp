@@ -6,6 +6,7 @@ export type AuditLogSearchParams = {
   limit?: number;
   action?: string;
   actorRole?: string;
+  actorStaffId?: string;
   entityType?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -26,6 +27,7 @@ export async function fetchAuditLogs(
   if (params.limit) searchParams.set('limit', String(params.limit));
   if (params.action) searchParams.set('action', params.action);
   if (params.actorRole) searchParams.set('actorRole', params.actorRole);
+  if (params.actorStaffId) searchParams.set('actorStaffId', params.actorStaffId);
   if (params.entityType) searchParams.set('entityType', params.entityType);
   if (params.dateFrom) searchParams.set('dateFrom', params.dateFrom);
   if (params.dateTo) searchParams.set('dateTo', params.dateTo);

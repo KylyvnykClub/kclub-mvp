@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { LogOut, Menu, User } from 'lucide-react';
 
 import { logoutAction } from '@/server/auth/actions';
@@ -10,6 +11,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -75,13 +77,22 @@ export function DashboardHeader({ staffName, staffRole, staffInitials }: Dashboa
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium">{staffName}</span>
-                  <span className="text-xs font-normal text-muted-foreground">{staffRole}</span>
-                </div>
-              </DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium">{staffName}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{staffRole}</span>
+                  </div>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
+              <Link
+                href="/dashboard/account"
+                className="relative flex cursor-default select-none items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+              >
+                <User className="h-4 w-4" />
+                My Account
+              </Link>
               <DropdownMenuItem onClick={() => logoutAction()}>
                 <LogOut className="h-4 w-4" />
                 Sign out

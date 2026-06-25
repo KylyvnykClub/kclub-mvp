@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   Calendar,
@@ -54,39 +53,11 @@ type UserDetailClientProps = {
 };
 
 export function UserDetailClient({ user, staffRole }: UserDetailClientProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const requestedTab = parseUserDetailTab(searchParams.get('tab'));
-  const activeTab = requestedTab;
+  const [activeTab, setActiveTab] = useState<UserDetailTab>('overview');
 
   function handleTabChange(value: string): void {
-    const nextTab = parseUserDetailTab(value);
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (nextTab === 'overview') {
-      params.delete('tab');
-    } else {
-      params.set('tab', nextTab);
-    }
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    setActiveTab(parseUserDetailTab(value));
   }
-
-  useEffect(() => {
-    if (requestedTab === activeTab) return;
-
-    const params = new URLSearchParams(searchParams.toString());
-    if (activeTab === 'overview') {
-      params.delete('tab');
-    } else {
-      params.set('tab', activeTab);
-    }
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  }, [activeTab, pathname, requestedTab, router, searchParams]);
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">

@@ -7,11 +7,11 @@ export default function Loading() {
     <PageShellSkeleton>
       <div className="space-y-6">
         <div className="flex gap-1">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 w-24 rounded-full" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-28 rounded-full" />
           ))}
         </div>
-        <TableSkeleton rows={8} columns={6} />
+        <TableSkeleton rows={6} columns={5} />
       </div>
     </PageShellSkeleton>
   );

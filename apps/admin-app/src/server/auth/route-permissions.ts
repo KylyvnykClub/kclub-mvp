@@ -1,21 +1,14 @@
 import type { StaffRole } from '@kclub/contracts';
 
 const DASHBOARD_ROUTE_ROLES: Record<string, StaffRole[]> = {
-  '/dashboard': ['OWNER', 'ADMIN', 'MODERATOR', 'SUPPORT'],
+  '/dashboard': ['OWNER', 'ADMIN', 'MODERATOR'],
   '/dashboard/users': ['OWNER', 'ADMIN'],
   '/dashboard/cards': ['OWNER', 'ADMIN'],
   '/dashboard/businesses': ['OWNER', 'ADMIN', 'MODERATOR'],
   '/dashboard/introductions': ['OWNER', 'ADMIN', 'MODERATOR'],
-  '/dashboard/catalog': ['OWNER', 'ADMIN', 'MODERATOR'],
-  '/dashboard/categories': ['OWNER', 'ADMIN', 'MODERATOR'],
-  '/dashboard/countries': ['OWNER', 'ADMIN', 'MODERATOR'],
-  '/dashboard/cities': ['OWNER', 'ADMIN', 'MODERATOR'],
-  '/dashboard/subscriptions': ['OWNER', 'ADMIN'],
-  '/dashboard/memberships': ['OWNER', 'ADMIN'],
-  '/dashboard/stripe-prices': ['OWNER'],
-  '/dashboard/staff': ['OWNER'],
-  '/dashboard/audit': ['OWNER', 'ADMIN', 'SUPPORT'],
-  '/dashboard/settings': ['OWNER'],
+  '/dashboard/billing': ['OWNER', 'ADMIN'],
+  '/dashboard/settings': ['OWNER', 'ADMIN'],
+  '/dashboard/account': ['OWNER', 'ADMIN', 'MODERATOR'],
 };
 
 export function getRequiredRoles(pathname: string): StaffRole[] | null {

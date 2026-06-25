@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Building2,
@@ -143,40 +143,14 @@ type BusinessDetailClientProps = {
 
 export function BusinessDetailClient({ business, staffRole }: BusinessDetailClientProps) {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const action = canSeeAction(business.status, staffRole);
   const canEdit = canMutateBusiness(staffRole);
-  const requestedTab = parseBusinessDetailTab(searchParams.get('tab'));
-  const activeTab = requestedTab === 'edit' && !canEdit ? 'overview' : requestedTab;
+  const [activeTab, setActiveTab] = useState<BusinessDetailTab>('overview');
 
   function handleTabChange(value: string): void {
     const nextTab = parseBusinessDetailTab(value);
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (nextTab === 'overview') {
-      params.delete('tab');
-    } else {
-      params.set('tab', nextTab);
-    }
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    setActiveTab(nextTab === 'edit' && !canEdit ? 'overview' : nextTab);
   }
-
-  useEffect(() => {
-    if (requestedTab === activeTab) return;
-
-    const params = new URLSearchParams(searchParams.toString());
-    if (activeTab === 'overview') {
-      params.delete('tab');
-    } else {
-      params.set('tab', activeTab);
-    }
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  }, [activeTab, pathname, requestedTab, router, searchParams]);
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">

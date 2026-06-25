@@ -72,7 +72,7 @@ describe('staff permission matrix', () => {
       TAXONOMY_MANAGE: true,
       FEATURED_BUSINESSES_MANAGE: true,
       STRIPE_PRICES_MANAGE: false,
-      STAFF_MANAGE: false,
+      STAFF_MANAGE: true,
       AUDIT_READ: true,
       INTERNAL_NOTES_CREATE: true,
     },
@@ -94,24 +94,6 @@ describe('staff permission matrix', () => {
       AUDIT_READ: false,
       INTERNAL_NOTES_CREATE: true,
     },
-    SUPPORT: {
-      DASHBOARD_METRICS_READ: true,
-      USERS_READ: false,
-      USERS_BLOCK: false,
-      CARDS_READ: false,
-      CARDS_REISSUE: false,
-      CARDS_REVOKE: false,
-      SUBSCRIPTIONS_READ: true,
-      SUBSCRIPTIONS_CANCEL_ADMIN: false,
-      BUSINESSES_MODERATE: false,
-      INTRODUCTIONS_MODERATE: false,
-      TAXONOMY_MANAGE: false,
-      FEATURED_BUSINESSES_MANAGE: false,
-      STRIPE_PRICES_MANAGE: false,
-      STAFF_MANAGE: false,
-      AUDIT_READ: true,
-      INTERNAL_NOTES_CREATE: false,
-    },
   };
 
   for (const role of STAFF_ROLES) {
@@ -129,7 +111,6 @@ describe('staff permission matrix', () => {
     expect(isStaffRoleAtLeast('OWNER', 'ADMIN')).toBe(true);
     expect(isStaffRoleAtLeast('ADMIN', 'MODERATOR')).toBe(true);
     expect(isStaffRoleAtLeast('MODERATOR', 'ADMIN')).toBe(false);
-    expect(isStaffRoleAtLeast('SUPPORT', 'MODERATOR')).toBe(false);
   });
 });
 
