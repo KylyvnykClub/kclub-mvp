@@ -27,6 +27,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AdminList,
+  AdminListFilters,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import type { CountryDto } from '@kclub/contracts';
 
 type CountriesTableProps = {
@@ -207,51 +214,91 @@ export function CountriesTable({ countries }: CountriesTableProps) {
   const router = useRouter();
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
+    <AdminList>
+      <AdminListFilters className="justify-end">
         <CountryFormDialog mode="create" onAction={() => router.refresh()} />
-      </div>
-      {countries.length === 0 ? (
-        <p className="py-8 text-center text-muted-foreground">No countries found</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>ISO 2</TableHead>
-              <TableHead>ISO 3</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {countries.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="font-medium">{c.name}</TableCell>
-                <TableCell>{c.code2}</TableCell>
-                <TableCell>{c.code3 ?? '—'}</TableCell>
-                <TableCell className="text-muted-foreground">{c.slug}</TableCell>
-                <TableCell>
+      </AdminListFilters>
+
+      <AdminTableCard>
+        <AdminTableDesktop>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>ISO 2</TableHead>
+                <TableHead>ISO 3</TableHead>
+                <TableHead>Slug</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {countries.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                    No countries found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                countries.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell>{c.code2}</TableCell>
+                    <TableCell>{c.code3 ?? '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{c.slug}</TableCell>
+                    <TableCell>
+                      <Badge variant={c.isActive ? 'default' : 'secondary'}>
+                        {c.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <CountryFormDialog mode="edit" country={c} onAction={() => router.refresh()} />
+                        <DeleteCountryDialog
+                          id={c.id}
+                          name={c.name}
+                          onAction={() => router.refresh()}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </AdminTableDesktop>
+
+        <AdminTableMobile>
+          {countries.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              No countries found
+            </div>
+          ) : (
+            countries.map((c) => (
+              <div key={c.id} className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{c.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {c.code2} {c.code3 ? `/ ${c.code3}` : ''}
+                    </p>
+                  </div>
                   <Badge variant={c.isActive ? 'default' : 'secondary'}>
                     {c.isActive ? 'Active' : 'Inactive'}
                   </Badge>
-                </TableCell>
-                <TableCell>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{c.slug}</span>
                   <div className="flex items-center gap-1">
                     <CountryFormDialog mode="edit" country={c} onAction={() => router.refresh()} />
-                    <DeleteCountryDialog
-                      id={c.id}
-                      name={c.name}
-                      onAction={() => router.refresh()}
-                    />
+                    <DeleteCountryDialog id={c.id} name={c.name} onAction={() => router.refresh()} />
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </div>
+                </div>
+              </div>
+            ))
+          )}
+        </AdminTableMobile>
+      </AdminTableCard>
+    </AdminList>
   );
 }

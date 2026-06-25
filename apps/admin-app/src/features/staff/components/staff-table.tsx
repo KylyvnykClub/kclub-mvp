@@ -25,6 +25,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AdminList,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import type { AdminStaffListItemDto } from '@kclub/contracts';
 
 type StaffTableProps = {
@@ -112,47 +118,86 @@ export function StaffTable({ staff }: StaffTableProps) {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Phone</TableHead>
-          <TableHead>Display Name</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>TOTP</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {staff.map((s) => (
-          <TableRow key={s.id}>
-            <TableCell>{s.phone}</TableCell>
-            <TableCell>{s.displayName ?? '—'}</TableCell>
-            <TableCell>
-              <Badge variant="outline">{s.role}</Badge>
-            </TableCell>
-            <TableCell>
-              <Badge variant={s.isActive ? 'default' : 'secondary'}>
-                {s.isActive ? 'Active' : 'Inactive'}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Badge variant={s.totpVerified ? 'default' : 'secondary'}>
-                {s.totpVerified ? 'Verified' : 'Not set'}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              {s.isActive && (
-                <RoleUpdateDialog
-                  id={s.id}
-                  currentRole={s.role}
-                  onAction={() => router.refresh()}
-                />
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <AdminList>
+      <AdminTableCard>
+        <AdminTableDesktop>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Phone</TableHead>
+                <TableHead>Display Name</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>TOTP</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {staff.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell>{s.phone}</TableCell>
+                  <TableCell>{s.displayName ?? '—'}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{s.role}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={s.isActive ? 'default' : 'secondary'}>
+                      {s.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={s.totpVerified ? 'default' : 'secondary'}>
+                      {s.totpVerified ? 'Verified' : 'Not set'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {s.isActive && (
+                      <RoleUpdateDialog
+                        id={s.id}
+                        currentRole={s.role}
+                        onAction={() => router.refresh()}
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </AdminTableDesktop>
+
+        <AdminTableMobile>
+          {staff.map((s) => (
+            <div key={s.id} className="space-y-3 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{s.displayName ?? '—'}</p>
+                  <p className="font-mono text-xs text-muted-foreground">{s.phone}</p>
+                </div>
+                <Badge variant={s.isActive ? 'default' : 'secondary'}>
+                  {s.isActive ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{s.role}</Badge>
+                  <Badge variant={s.totpVerified ? 'default' : 'secondary'}>
+                    {s.totpVerified ? 'TOTP' : 'No TOTP'}
+                  </Badge>
+                </div>
+                <div>
+                  {s.isActive && (
+                    <RoleUpdateDialog
+                      id={s.id}
+                      currentRole={s.role}
+                      onAction={() => router.refresh()}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </AdminTableMobile>
+      </AdminTableCard>
+    </AdminList>
   );
 }

@@ -92,22 +92,32 @@ export function BusinessSubmitWizard({
     setStep((s) => Math.max(s - 1, 1));
   };
 
+  const normalizeUrl = (url: string): string => {
+    const trimmed = url.trim();
+    if (!trimmed) return trimmed;
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  };
+
   const handleSubmit = async (): Promise<void> => {
     setIsSubmitting(true);
     setError(null);
 
     try {
+      const websiteUrl = normalizeUrl(data.websiteUrl);
+      const socialUrl = normalizeUrl(data.socialUrl);
+
       const body: Record<string, unknown> = {
         name: data.name,
         representativeName: data.representativeName,
-        representativeEmail: data.representativeEmail,
+        representativeEmail: data.representativeEmail.trim(),
         representativePhone: data.representativePhone,
         countryId: data.countryId,
         cityId: data.cityId,
         categoryId: data.categoryId,
       };
-      if (data.websiteUrl) body.websiteUrl = data.websiteUrl;
-      if (data.socialUrl) body.socialUrl = data.socialUrl;
+      if (websiteUrl) body.websiteUrl = websiteUrl;
+      if (socialUrl) body.socialUrl = socialUrl;
       if (data.briefDescription) body.briefDescription = data.briefDescription;
 
       const response = await fetch(MEMBER_API_ROUTES.BUSINESSES, {
@@ -462,12 +472,14 @@ function SummaryRow({
   );
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function canAdvance(step: number, data: WizardData): boolean {
   if (step === 1) return !!data.name.trim() && !!data.categoryId;
   if (step === 2) {
     return (
       !!data.representativeName.trim() &&
-      !!data.representativeEmail.trim() &&
+      EMAIL_RE.test(data.representativeEmail.trim()) &&
       !!data.representativePhone.trim()
     );
   }

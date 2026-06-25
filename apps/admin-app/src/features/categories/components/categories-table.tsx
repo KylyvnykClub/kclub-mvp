@@ -27,6 +27,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AdminList,
+  AdminListFilters,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import type { CategoryDto } from '@kclub/contracts';
 
 type CategoriesTableProps = {
@@ -194,37 +201,89 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
   const router = useRouter();
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
+    <AdminList>
+      <AdminListFilters className="justify-end">
         <CategoryFormDialog mode="create" onAction={() => router.refresh()} />
-      </div>
-      {categories.length === 0 ? (
-        <p className="py-8 text-center text-muted-foreground">No categories found</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Risk</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {categories.map((cat) => (
-              <TableRow key={cat.id}>
-                <TableCell className="font-medium">{cat.name}</TableCell>
-                <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
-                <TableCell>
-                  {cat.isHighRisk && <Badge variant="destructive">High Risk</Badge>}
-                </TableCell>
-                <TableCell>
+      </AdminListFilters>
+
+      <AdminTableCard>
+        <AdminTableDesktop>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Slug</TableHead>
+                <TableHead>Risk</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {categories.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                    No categories found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                categories.map((cat) => (
+                  <TableRow key={cat.id}>
+                    <TableCell className="font-medium">{cat.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
+                    <TableCell>
+                      {cat.isHighRisk ? (
+                        <Badge variant="destructive">High Risk</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={cat.isActive ? 'default' : 'secondary'}>
+                        {cat.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <CategoryFormDialog
+                          mode="edit"
+                          category={cat}
+                          onAction={() => router.refresh()}
+                        />
+                        <DeleteCategoryDialog
+                          id={cat.id}
+                          name={cat.name}
+                          onAction={() => router.refresh()}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </AdminTableDesktop>
+
+        <AdminTableMobile>
+          {categories.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              No categories found
+            </div>
+          ) : (
+            categories.map((cat) => (
+              <div key={cat.id} className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{cat.name}</p>
+                    <p className="text-xs text-muted-foreground">{cat.slug}</p>
+                  </div>
                   <Badge variant={cat.isActive ? 'default' : 'secondary'}>
                     {cat.isActive ? 'Active' : 'Inactive'}
                   </Badge>
-                </TableCell>
-                <TableCell>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div>
+                    {cat.isHighRisk && <Badge variant="destructive">High Risk</Badge>}
+                  </div>
                   <div className="flex items-center gap-1">
                     <CategoryFormDialog
                       mode="edit"
@@ -237,12 +296,12 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
                       onAction={() => router.refresh()}
                     />
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </div>
+                </div>
+              </div>
+            ))
+          )}
+        </AdminTableMobile>
+      </AdminTableCard>
+    </AdminList>
   );
 }

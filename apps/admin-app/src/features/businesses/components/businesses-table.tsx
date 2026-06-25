@@ -17,6 +17,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { AdminPagination } from '@/components/admin-pagination';
+import {
+  AdminList,
+  AdminListFilters,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import type { AdminBusinessListItemDto, StaffRole } from '@kclub/contracts';
 
 const BUSINESS_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'PUBLISHED', 'REJECTED', 'HIDDEN'] as const;
@@ -39,25 +47,24 @@ export function BusinessesTable({
 }: BusinessesTableProps) {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState(initialStatus);
-  const totalPages = Math.ceil(total / limit);
 
   function navigate(toPage: number) {
     const params = new URLSearchParams();
     if (toPage > 1) params.set('page', String(toPage));
     if (limit !== 20) params.set('limit', String(limit));
     if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
-    router.push(`/dashboard/businesses${params.toString() ? `?${params.toString()}` : ''}`);
+    router.push(`/dashboard/businesses${params.toString() ? '?' + params.toString() : ''}`);
   }
 
   function handleFilterChange() {
     const params = new URLSearchParams();
     if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
-    router.push(`/dashboard/businesses${params.toString() ? `?${params.toString()}` : ''}`);
+    router.push(`/dashboard/businesses${params.toString() ? '?' + params.toString() : ''}`);
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+    <AdminList>
+      <AdminListFilters>
         <select
           className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           value={statusFilter}
@@ -72,13 +79,13 @@ export function BusinessesTable({
             </option>
           ))}
         </select>
-        <Button type="submit" size="sm" onClick={handleFilterChange}>
+        <Button size="sm" onClick={handleFilterChange}>
           Filter
         </Button>
-      </div>
+      </AdminListFilters>
 
-      <div className="rounded-md border">
-        <div className="hidden md:block">
+      <AdminTableCard>
+        <AdminTableDesktop>
           <Table>
             <TableHeader>
               <TableRow>
@@ -142,9 +149,9 @@ export function BusinessesTable({
               )}
             </TableBody>
           </Table>
-        </div>
+        </AdminTableDesktop>
 
-        <div className="divide-y md:hidden">
+        <AdminTableMobile>
           {businesses.length === 0 ? (
             <div className="py-8 text-center text-sm text-muted-foreground">
               No businesses found
@@ -176,34 +183,10 @@ export function BusinessesTable({
               </div>
             ))
           )}
-        </div>
-      </div>
+        </AdminTableMobile>
+      </AdminTableCard>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            Page {page} of {totalPages} ({total} total)
-          </span>
-          <div className="flex gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => navigate(page - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              onClick={() => navigate(page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+      <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
+    </AdminList>
   );
 }

@@ -24,6 +24,11 @@ a {
   outline: none;
 }
 
+
+.container {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10;
+}
+
 @layer base {
   *:focus:not(:focus-visible) {
     outline: none;
@@ -35,7 +40,7 @@ a {
 
 @layer utilities {
   .kclub-shell {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10;
+    @apply mx-auto w-full  lg:px-10;
   }
 
   .kclub-page-band {

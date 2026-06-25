@@ -81,8 +81,8 @@ test.describe('Member journey', () => {
     expect(visibleTabs).toContain('details');
     expect(visibleTabs).toContain('card');
     expect(visibleTabs).toContain('subscription');
-    expect(visibleTabs).toContain('audit');
-    expect(visibleTabs).toContain('permissions');
     expect(visibleTabs).toContain('settings');
+    expect(visibleTabs).not.toContain('audit');
+    expect(visibleTabs).not.toContain('permissions');
   });
 });

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Ban, ExternalLink } from 'lucide-react';
+import { Ban } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { StatusBadge } from '@/components/status-badge';
@@ -25,6 +25,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AdminList,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import type { AdminSubscriptionListItemDto, StaffRole } from '@kclub/contracts';
 
 async function cancelSubscription(id: string) {
@@ -95,61 +101,118 @@ export function SubscriptionsTable({ subscriptions, staffRole }: SubscriptionsTa
   const router = useRouter();
   const showCancel = canCancel(staffRole);
 
-  if (!subscriptions.length) {
-    return <p className="py-8 text-center text-muted-foreground">No subscriptions found</p>;
-  }
-
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Type</TableHead>
-          <TableHead>User</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Period Start</TableHead>
-          <TableHead>Period End</TableHead>
-          <TableHead>Cancel at End</TableHead>
-          {showCancel && <TableHead>Actions</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {subscriptions.map((sub) => (
-          <TableRow key={sub.id}>
-            <TableCell>
-              <Badge variant="outline">
-                {sub.kind === 'VIP_MEMBERSHIP' ? 'VIP' : 'Business Placement'}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <div className="text-sm font-medium">{sub.user?.displayName ?? 'N/A'}</div>
-              <div className="text-xs text-muted-foreground">{sub.user?.phone ?? '—'}</div>
-            </TableCell>
-            <TableCell>
-              <StatusBadge status={sub.status} />
-            </TableCell>
-            <TableCell className="text-sm text-muted-foreground">
-              {sub.currentPeriodStart ? new Date(sub.currentPeriodStart).toLocaleDateString() : '—'}
-            </TableCell>
-            <TableCell className="text-sm text-muted-foreground">
-              {sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toLocaleDateString() : '—'}
-            </TableCell>
-            <TableCell>
-              {sub.cancelAtPeriodEnd ? (
-                <Badge variant="destructive">Yes</Badge>
+    <AdminList>
+      <AdminTableCard>
+        <AdminTableDesktop>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Type</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Period Start</TableHead>
+                <TableHead>Period End</TableHead>
+                <TableHead>Cancel at End</TableHead>
+                {showCancel && <TableHead className="text-right">Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {subscriptions.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={showCancel ? 7 : 6}
+                    className="py-8 text-center text-muted-foreground"
+                  >
+                    No subscriptions found
+                  </TableCell>
+                </TableRow>
               ) : (
-                <Badge variant="secondary">No</Badge>
+                subscriptions.map((sub) => (
+                  <TableRow key={sub.id}>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {sub.kind === 'VIP_MEMBERSHIP' ? 'VIP' : 'Business Placement'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium">{sub.user?.displayName ?? 'N/A'}</div>
+                      <div className="text-xs text-muted-foreground">{sub.user?.phone ?? '—'}</div>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={sub.status} />
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {sub.currentPeriodStart
+                        ? new Date(sub.currentPeriodStart).toLocaleDateString()
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {sub.currentPeriodEnd
+                        ? new Date(sub.currentPeriodEnd).toLocaleDateString()
+                        : '—'}
+                    </TableCell>
+                    <TableCell>
+                      {sub.cancelAtPeriodEnd ? (
+                        <Badge variant="destructive">Yes</Badge>
+                      ) : (
+                        <Badge variant="secondary">No</Badge>
+                      )}
+                    </TableCell>
+                    {showCancel && (
+                      <TableCell className="text-right">
+                        {!sub.cancelAtPeriodEnd && sub.status === 'ACTIVE' && (
+                          <CancelDialog id={sub.id} onAction={() => router.refresh()} />
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
               )}
-            </TableCell>
-            {showCancel && (
-              <TableCell>
-                {!sub.cancelAtPeriodEnd && sub.status === 'ACTIVE' && (
-                  <CancelDialog id={sub.id} onAction={() => router.refresh()} />
+            </TableBody>
+          </Table>
+        </AdminTableDesktop>
+
+        <AdminTableMobile>
+          {subscriptions.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              No subscriptions found
+            </div>
+          ) : (
+            subscriptions.map((sub) => (
+              <div key={sub.id} className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {sub.user?.displayName ?? 'N/A'}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline">
+                        {sub.kind === 'VIP_MEMBERSHIP' ? 'VIP' : 'Business Placement'}
+                      </Badge>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {sub.user?.phone ?? '—'}
+                      </span>
+                    </div>
+                  </div>
+                  <StatusBadge status={sub.status} />
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <div className="text-muted-foreground">
+                    Ends: {sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toLocaleDateString() : '—'}
+                  </div>
+                  {sub.cancelAtPeriodEnd && <Badge variant="destructive">Canceling</Badge>}
+                </div>
+                {showCancel && !sub.cancelAtPeriodEnd && sub.status === 'ACTIVE' && (
+                  <div className="flex justify-end border-t pt-3 mt-1">
+                    <CancelDialog id={sub.id} onAction={() => router.refresh()} />
+                  </div>
                 )}
-              </TableCell>
-            )}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+              </div>
+            ))
+          )}
+        </AdminTableMobile>
+      </AdminTableCard>
+    </AdminList>
   );
 }

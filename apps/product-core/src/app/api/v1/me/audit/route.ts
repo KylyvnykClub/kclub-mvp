@@ -52,7 +52,7 @@ export async function GET(_request: NextRequest) {
       createdAt: log.created_at?.toISOString() ?? new Date().toISOString(),
     }));
 
-    return jsonSuccess({ data });
+    return jsonSuccess(data);
   } catch (error) {
     return jsonErrorFromUnknown(error);
   }

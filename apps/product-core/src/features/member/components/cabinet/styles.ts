@@ -1,5 +1,5 @@
 export const cabinetRootClasses =
-  'flex min-h-[calc(100vh-5.5rem)] flex-col bg-background text-foreground lg:-mx-10 lg:w-[calc(100%+5rem)]';
+  'flex min-h-[calc(100vh-5.5rem)] flex-col bg-background text-foreground lg:-mx-10 lg:w-[calc(100%+5rem)] lg:flex-row';
 
 export const cabinetUserBarClasses =
   'flex shrink-0 items-center justify-between gap-4 border-b border-border bg-surface px-6 py-3 sm:px-10';

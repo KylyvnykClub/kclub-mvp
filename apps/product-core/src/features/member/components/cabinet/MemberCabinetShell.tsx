@@ -118,19 +118,7 @@ export function MemberCabinetShell({
       </nav>
 
       <aside className={cabinetSidebarClasses}>
-        <Link
-          href={`/${locale}`}
-          className="flex shrink-0 items-center gap-2.5 border-b border-border px-6 py-5"
-        >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-accent text-xs font-bold text-accent-foreground">
-            KC
-          </span>
-          <span className="text-[11px] font-semibold uppercase leading-snug tracking-widest text-foreground">
-            Kylyvnyk
-            <br />
-            Club
-          </span>
-        </Link>
+        
 
         <div className="shrink-0 border-b border-border px-6 py-5">
           <div className="flex items-center gap-3">

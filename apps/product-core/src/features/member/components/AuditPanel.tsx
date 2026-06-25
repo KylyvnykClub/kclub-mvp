@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import type { AuditLogDto } from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
+import { parseAuthResponse } from '@/features/auth/utils/api';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 
 type AuditPanelProps = {
@@ -24,9 +25,13 @@ export function AuditPanel({ locale }: AuditPanelProps) {
     async function load() {
       try {
         const res = await fetch('/api/v1/me/audit');
-        if (!res.ok) throw new Error('fetch failed');
-        const json = (await res.json()) as { data: AuditLogDto[] };
-        if (isMounted) setEntries(json.data ?? []);
+        const result = await parseAuthResponse<AuditLogDto[]>(res);
+        if (!isMounted) return;
+        if (!result.success) {
+          setError(t('error'));
+          return;
+        }
+        setEntries(result.data ?? []);
       } catch {
         if (isMounted) setError(t('error'));
       } finally {

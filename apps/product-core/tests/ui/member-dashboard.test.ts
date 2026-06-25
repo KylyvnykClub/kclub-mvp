@@ -13,10 +13,10 @@ const vipCtx: UserContext = { isVip: true, hasBusiness: false, businessPublished
 const businessCtx: UserContext = { isVip: false, hasBusiness: true, businessPublished: true };
 const vipBusinessCtx: UserContext = { isVip: true, hasBusiness: true, businessPublished: true };
 
-const BASE_TABS = ['details', 'card', 'subscription', 'audit', 'permissions', 'settings'] as const;
+const BASE_TABS = ['details', 'card', 'subscription', 'settings'] as const;
 
 describe('member dashboard tabs', () => {
-  test('plain member sees base 6 tabs', () => {
+  test('plain member sees base 4 tabs', () => {
     expect(getImplementedDashboardTabs(memberCtx)).toEqual(BASE_TABS);
   });
 
@@ -35,8 +35,6 @@ describe('member dashboard tabs', () => {
   test('no tab is locked', () => {
     expect(isDashboardTabLocked(memberCtx, 'details')).toBe(false);
     expect(isDashboardTabLocked(memberCtx, 'card')).toBe(false);
-    expect(isDashboardTabLocked(memberCtx, 'audit')).toBe(false);
-    expect(isDashboardTabLocked(memberCtx, 'permissions')).toBe(false);
   });
 
   test('normalizes invalid tab to first visible tab (details)', () => {
@@ -55,7 +53,12 @@ describe('member dashboard tabs', () => {
     const tabs = getImplementedDashboardTabs(memberCtx);
     expect(normalizeDashboardTab('settings', tabs)).toBe('settings');
     expect(normalizeDashboardTab('card', tabs)).toBe('card');
-    expect(normalizeDashboardTab('audit', tabs)).toBe('audit');
+  });
+
+  test('falls back when legacy audit or permissions tab is requested', () => {
+    const tabs = getImplementedDashboardTabs(memberCtx);
+    expect(normalizeDashboardTab('audit', tabs)).toBe('details');
+    expect(normalizeDashboardTab('permissions', tabs)).toBe('details');
   });
 
   test('builds alias redirect hrefs', () => {

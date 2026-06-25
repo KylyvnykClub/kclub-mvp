@@ -11,12 +11,10 @@ import { CabinetLockedPanel } from '@/features/member/components/cabinet/Cabinet
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 
 import { AccountPanel } from './AccountPanel';
-import { AuditPanel } from './AuditPanel';
 import { BusinessPanel } from './BusinessPanel';
 import { CardPanel } from './CardPanel';
 import { DashboardTabsClient } from './DashboardTabsClient';
 import { IntroductionsPanel } from './IntroductionsPanel';
-import { PermissionsPanel } from './PermissionsPanel';
 import { SettingsPanel } from './SettingsPanel';
 import { SubscriptionUpgradePanel } from './SubscriptionUpgradePanel';
 
@@ -45,8 +43,6 @@ export async function DashboardTabs({
     subscription: t('tabs.subscription'),
     business: t('tabs.business'),
     introductions: t('tabs.introductions'),
-    audit: t('tabs.audit'),
-    permissions: t('tabs.permissions'),
     settings: t('tabs.settings'),
   };
 
@@ -98,10 +94,6 @@ export async function DashboardTabs({
       ) : (
         <BusinessPanel locale={locale} profile={profile} />
       );
-    } else if (tab === 'audit') {
-      panels.audit = <AuditPanel locale={locale} />;
-    } else if (tab === 'permissions') {
-      panels.permissions = <PermissionsPanel locale={locale} userContext={userContext} />;
     } else if (tab === 'settings') {
       panels.settings = <SettingsPanel locale={locale} profile={profile} />;
     }

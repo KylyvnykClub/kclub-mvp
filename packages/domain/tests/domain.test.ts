@@ -166,7 +166,7 @@ describe('member capability policies', () => {
   });
 
   test('dashboard tabs: introductions unlocked by VIP or business; business tab by hasBusiness', () => {
-    const baseTabs = ['details', 'card', 'subscription', 'audit', 'permissions', 'settings'] as const;
+    const baseTabs = ['details', 'card', 'subscription', 'settings'] as const;
     const member = getUserContext({ subscriptionStatus: 'NONE' });
     const vip = getUserContext({ subscriptionStatus: 'ACTIVE' });
     const memberWithBusiness = getUserContext({ subscriptionStatus: 'NONE', businessStatus: 'APPROVED' });

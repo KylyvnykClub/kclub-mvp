@@ -60,10 +60,20 @@ export function jsonErrorFromUnknown(
   const mapped = mapErrorToApiError(error);
 
   const log = createLogger();
-  log.error('API error response', {
-    error: { code: mapped.error.code, message: mapped.error.message },
-    status: mapped.status,
-  });
+
+  if (error instanceof Error) {
+    log.error('API error response', {
+      error: { code: mapped.error.code, message: mapped.error.message },
+      status: mapped.status,
+      originalError: error.message,
+      stack: error.stack,
+    });
+  } else {
+    log.error('API error response', {
+      error: { code: mapped.error.code, message: mapped.error.message },
+      status: mapped.status,
+    });
+  }
 
   return jsonError(mapped.error, meta, { status: mapped.status });
 }

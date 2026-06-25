@@ -98,7 +98,7 @@ export function SignUpForm({ locale }: { locale: Locale }) {
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center">
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center container">
       <section className="hidden lg:block">
         <h1 className="mt-5 text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white">
           {t('title')}

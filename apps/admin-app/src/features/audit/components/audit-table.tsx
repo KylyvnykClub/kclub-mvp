@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Filter, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { AdminPagination } from '@/components/admin-pagination';
+import {
+  AdminList,
+  AdminListFilters,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import type { AuditLogDto } from '@kclub/contracts';
 import { AUDIT_ACTIONS, STAFF_ROLES } from '@kclub/contracts';
 import type { AuditLogSearchParams } from '../api';
@@ -43,9 +51,8 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
     if (entityType) params.set('entityType', entityType);
     if (dateFrom) params.set('dateFrom', dateFrom);
     if (dateTo) params.set('dateTo', dateTo);
-    if (page > 1) params.set('page', String(page));
     const qs = params.toString();
-    router.push(`/dashboard/audit${qs ? `?${qs}` : ''}`);
+    router.push(`/dashboard/audit${qs ? '?' + qs : ''}`);
   }
 
   function goToPage(p: number) {
@@ -57,15 +64,12 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
     if (dateTo) params.set('dateTo', dateTo);
     if (p > 1) params.set('page', String(p));
     const qs = params.toString();
-    router.push(`/dashboard/audit${qs ? `?${qs}` : ''}`);
+    router.push(`/dashboard/audit${qs ? '?' + qs : ''}`);
   }
 
-  const totalPages = Math.ceil(total / limit);
-
   return (
-    <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border p-4">
+    <AdminList>
+      <AdminListFilters>
         <div className="space-y-1">
           <Label htmlFor="action" className="text-xs">
             Action
@@ -74,7 +78,7 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
             id="action"
             value={action}
             onChange={(e) => setAction(e.target.value)}
-            className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors"
           >
             <option value="">All actions</option>
             {AUDIT_ACTIONS.map((a) => (
@@ -92,7 +96,7 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
             id="role"
             value={actorRole}
             onChange={(e) => setActorRole(e.target.value)}
-            className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+            className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors"
           >
             <option value="">All roles</option>
             {STAFF_ROLES.map((r) => (
@@ -138,16 +142,14 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
             className="h-9"
           />
         </div>
-        <Button size="sm" onClick={applyFilters}>
-          <Search className="h-4 w-4" />
+        <Button size="sm" onClick={applyFilters} className="mb-0.5">
+          <Search className="h-4 w-4 mr-1" />
           Apply
         </Button>
-      </div>
+      </AdminListFilters>
 
-      {logs.length === 0 ? (
-        <p className="py-8 text-center text-muted-foreground">No audit logs found</p>
-      ) : (
-        <>
+      <AdminTableCard>
+        <AdminTableDesktop>
           <Table>
             <TableHeader>
               <TableRow>
@@ -159,59 +161,76 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
               </TableRow>
             </TableHeader>
             <TableBody>
-              {logs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell>
-                    <Badge variant="outline">{log.action}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">{log.actorRole ?? '—'}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {log.actorStaffId ? `${log.actorStaffId.slice(0, 8)}...` : 'System'}
-                    </div>
-                  </TableCell>
-                  <TableCell>{log.entityType}</TableCell>
-                  <TableCell
-                    className="max-w-[120px] truncate text-xs text-muted-foreground"
-                    title={log.entityId}
-                  >
-                    {log.entityId.slice(0, 12)}...
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {new Date(log.createdAt).toLocaleString()}
+              {logs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                    No audit logs found
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                logs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>
+                      <Badge variant="outline">{log.action}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">{log.actorRole ?? '—'}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {log.actorStaffId ? `${log.actorStaffId.slice(0, 8)}...` : 'System'}
+                      </div>
+                    </TableCell>
+                    <TableCell>{log.entityType}</TableCell>
+                    <TableCell
+                      className="max-w-[120px] truncate text-xs text-muted-foreground"
+                      title={log.entityId}
+                    >
+                      {log.entityId.slice(0, 12)}...
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(log.createdAt).toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
+        </AdminTableDesktop>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>
-                Page {page} of {totalPages} ({total} total)
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page <= 1}
-                  onClick={() => goToPage(page - 1)}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= totalPages}
-                  onClick={() => goToPage(page + 1)}
-                >
-                  Next
-                </Button>
-              </div>
+        <AdminTableMobile>
+          {logs.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              No audit logs found
             </div>
+          ) : (
+            logs.map((log) => (
+              <div key={log.id} className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{log.entityType}</p>
+                    <p className="font-mono text-xs text-muted-foreground truncate" title={log.entityId}>
+                      {log.entityId}
+                    </p>
+                  </div>
+                  <Badge variant="outline">{log.action}</Badge>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div>
+                    <span>{log.actorRole ?? 'System'}</span>
+                    {log.actorStaffId && (
+                      <span className="ml-1 opacity-70">
+                        ({log.actorStaffId.slice(0, 8)}...)
+                      </span>
+                    )}
+                  </div>
+                  <span>{new Date(log.createdAt).toLocaleString()}</span>
+                </div>
+              </div>
+            ))
           )}
-        </>
-      )}
-    </div>
+        </AdminTableMobile>
+      </AdminTableCard>
+
+      <AdminPagination page={page} total={total} limit={limit} onNavigate={goToPage} />
+    </AdminList>
   );
 }

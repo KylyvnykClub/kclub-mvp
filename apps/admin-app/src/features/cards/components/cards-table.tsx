@@ -26,6 +26,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { AdminPagination } from '@/components/admin-pagination';
+import {
+  AdminList,
+  AdminListFilters,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import type { AdminCardListItemDto, StaffRole } from '@kclub/contracts';
 
 function canMutateCards(role: StaffRole): boolean {
@@ -205,7 +213,6 @@ export function CardsTable({
   const [search, setSearch] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [tierFilter, setTierFilter] = useState(initialTier);
-  const totalPages = Math.ceil(total / limit);
   const canMutate = canMutateCards(staffRole);
 
   function navigate(toPage: number) {
@@ -215,7 +222,7 @@ export function CardsTable({
     if (search) params.set('search', search);
     if (statusFilter) params.set('status', statusFilter);
     if (tierFilter) params.set('membershipTier', tierFilter);
-    router.push(`/dashboard/cards${params.toString() ? `?${params.toString()}` : ''}`);
+    router.push(`/dashboard/cards${params.toString() ? '?' + params.toString() : ''}`);
   }
 
   function handleFilterChange() {
@@ -223,7 +230,7 @@ export function CardsTable({
     if (search) params.set('search', search);
     if (statusFilter) params.set('status', statusFilter);
     if (tierFilter) params.set('membershipTier', tierFilter);
-    router.push(`/dashboard/cards${params.toString() ? `?${params.toString()}` : ''}`);
+    router.push(`/dashboard/cards${params.toString() ? '?' + params.toString() : ''}`);
   }
 
   function handleSearch(e: React.FormEvent) {
@@ -232,9 +239,9 @@ export function CardsTable({
   }
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={handleSearch} className="flex flex-wrap gap-2">
-        <div className="relative max-w-sm flex-1">
+    <AdminList>
+      <AdminListFilters as="form" onSubmit={handleSearch}>
+        <div className="relative max-w-sm flex-1 min-w-[200px]">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             className="pl-8"
@@ -265,10 +272,10 @@ export function CardsTable({
         <Button type="submit" size="sm">
           Search
         </Button>
-      </form>
+      </AdminListFilters>
 
-      <div className="rounded-md border">
-        <div className="hidden md:block">
+      <AdminTableCard>
+        <AdminTableDesktop>
           <Table>
             <TableHeader>
               <TableRow>
@@ -340,9 +347,9 @@ export function CardsTable({
               )}
             </TableBody>
           </Table>
-        </div>
+        </AdminTableDesktop>
 
-        <div className="divide-y md:hidden">
+        <AdminTableMobile>
           {cards.length === 0 ? (
             <div className="py-8 text-center text-sm text-muted-foreground">No cards found</div>
           ) : (
@@ -389,34 +396,10 @@ export function CardsTable({
               </div>
             ))
           )}
-        </div>
-      </div>
+        </AdminTableMobile>
+      </AdminTableCard>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            Page {page} of {totalPages} ({total} total)
-          </span>
-          <div className="flex gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => navigate(page - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              onClick={() => navigate(page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+      <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
+    </AdminList>
   );
 }

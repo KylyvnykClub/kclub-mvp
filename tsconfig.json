@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./apps/admin-app" },
+    { "path": "./apps/product-core" },
+    { "path": "./packages/contracts" },
+    { "path": "./packages/database" },
+    { "path": "./packages/domain" },
+    { "path": "./packages/test-utils" },
+    { "path": "./packages/ui" },
+    { "path": "./packages/validation" }
+  ]
+}

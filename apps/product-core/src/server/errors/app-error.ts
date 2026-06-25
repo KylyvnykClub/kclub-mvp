@@ -1,3 +1,5 @@
+import { ZodError } from 'zod';
+
 import { ERROR_CODES, type ApiError, type ErrorCode } from '@kclub/contracts';
 
 export type AppErrorOptions = {
@@ -35,6 +37,22 @@ export function mapErrorToApiError(error: unknown): ErrorResponseMapping {
         code: error.code,
         message: error.message,
         ...(error.details ? { details: error.details } : {}),
+      },
+    };
+  }
+
+  if (error instanceof ZodError) {
+    const fieldErrors = error.issues.map((issue) => ({
+      path: issue.path.join('.'),
+      message: issue.message,
+    }));
+
+    return {
+      status: 400,
+      error: {
+        code: ERROR_CODES.VALIDATION_INVALID_INPUT,
+        message: 'Validation failed',
+        details: { fields: fieldErrors },
       },
     };
   }

@@ -26,6 +26,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AdminList,
+  AdminListFilters,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import type { CityDto, CountryDto } from '@kclub/contracts';
 
 type CitiesTableProps = {
@@ -204,35 +211,80 @@ export function CitiesTable({ cities, countries }: CitiesTableProps) {
   const router = useRouter();
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
+    <AdminList>
+      <AdminListFilters className="justify-end">
         <CityFormDialog mode="create" countries={countries} onAction={() => router.refresh()} />
-      </div>
-      {cities.length === 0 ? (
-        <p className="py-8 text-center text-muted-foreground">No cities found</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {cities.map((city) => (
-              <TableRow key={city.id}>
-                <TableCell className="font-medium">{city.name}</TableCell>
-                <TableCell>{city.countryName}</TableCell>
-                <TableCell className="text-muted-foreground">{city.slug}</TableCell>
-                <TableCell>
+      </AdminListFilters>
+
+      <AdminTableCard>
+        <AdminTableDesktop>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Country</TableHead>
+                <TableHead>Slug</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {cities.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                    No cities found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                cities.map((city) => (
+                  <TableRow key={city.id}>
+                    <TableCell className="font-medium">{city.name}</TableCell>
+                    <TableCell>{city.countryName}</TableCell>
+                    <TableCell className="text-muted-foreground">{city.slug}</TableCell>
+                    <TableCell>
+                      <Badge variant={city.isActive ? 'default' : 'secondary'}>
+                        {city.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <CityFormDialog
+                          mode="edit"
+                          city={city}
+                          countries={countries}
+                          onAction={() => router.refresh()}
+                        />
+                        <DeleteCityDialog
+                          id={city.id}
+                          name={city.name}
+                          onAction={() => router.refresh()}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </AdminTableDesktop>
+
+        <AdminTableMobile>
+          {cities.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">No cities found</div>
+          ) : (
+            cities.map((city) => (
+              <div key={city.id} className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{city.name}</p>
+                    <p className="text-xs text-muted-foreground">{city.countryName}</p>
+                  </div>
                   <Badge variant={city.isActive ? 'default' : 'secondary'}>
                     {city.isActive ? 'Active' : 'Inactive'}
                   </Badge>
-                </TableCell>
-                <TableCell>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{city.slug}</span>
                   <div className="flex items-center gap-1">
                     <CityFormDialog
                       mode="edit"
@@ -246,12 +298,12 @@ export function CitiesTable({ cities, countries }: CitiesTableProps) {
                       onAction={() => router.refresh()}
                     />
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </div>
+                </div>
+              </div>
+            ))
+          )}
+        </AdminTableMobile>
+      </AdminTableCard>
+    </AdminList>
   );
 }

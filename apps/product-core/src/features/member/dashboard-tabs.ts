@@ -7,8 +7,6 @@ export const IMPLEMENTED_MEMBER_DASHBOARD_TABS = [
   'subscription',
   'business',
   'introductions',
-  'audit',
-  'permissions',
   'settings',
 ] as const satisfies readonly MemberDashboardTab[];
 

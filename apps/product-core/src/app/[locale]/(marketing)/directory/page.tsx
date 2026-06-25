@@ -34,7 +34,7 @@ export default async function DirectoryPage({ params }: { params: Promise<{ loca
   return (
     <div className="kclub-page-band">
       <section className="kclub-page-band bg-white dark:bg-[#09090b]">
-        <div className="kclub-shell py-16 sm:py-20">
+        <div className="container py-16 sm:py-20">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
             <div>
               <p className="kclub-section-label">{t('eyebrow')}</p>
@@ -55,7 +55,7 @@ export default async function DirectoryPage({ params }: { params: Promise<{ loca
         </div>
       </section>
 
-      <div className="kclub-shell py-14 sm:py-20">
+      <div className="container py-14 sm:py-20">
         {businesses.length === 0 ? (
           <EmptyState
             icon={<Building2 aria-hidden="true" size={44} strokeWidth={1.5} />}

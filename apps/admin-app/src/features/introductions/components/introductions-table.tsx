@@ -26,6 +26,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AdminList,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import type { AdminIntroductionListItemDto, StaffRole } from '@kclub/contracts';
 
 async function approveIntroduction(id: string, notes?: string) {
@@ -222,57 +228,117 @@ export function IntroductionsTable({ introductions, staffRole }: IntroductionsTa
 
   const canMutate = staffRole === 'OWNER' || staffRole === 'ADMIN' || staffRole === 'MODERATOR';
 
-  if (!introductions.length) {
-    return <p className="py-8 text-center text-muted-foreground">No introductions found</p>;
-  }
-
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Requester</TableHead>
-          <TableHead>Target Business</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Message</TableHead>
-          <TableHead>Created</TableHead>
-          {canMutate && <TableHead>Actions</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {introductions.map((intro) => (
-          <TableRow key={intro.id}>
-            <TableCell className="max-w-[200px] truncate">
-              <div className="text-sm font-medium">{intro.requesterBusiness.name}</div>
-              <div className="text-xs text-muted-foreground">
-                {intro.requesterUser.displayName ?? intro.requesterUser.phone}
-              </div>
-            </TableCell>
-            <TableCell className="max-w-[200px] truncate">{intro.targetBusiness.name}</TableCell>
-            <TableCell>
-              <StatusBadge status={intro.status} />
-            </TableCell>
-            <TableCell className="max-w-[200px] truncate">{intro.message ?? '—'}</TableCell>
-            <TableCell className="text-sm text-muted-foreground">
-              {new Date(intro.createdAt).toLocaleDateString()}
-            </TableCell>
-            {canMutate && (
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  {(intro.status === 'SUBMITTED' || intro.status === 'IN_REVIEW') && (
-                    <>
-                      <ApproveDialog id={intro.id} onAction={() => router.refresh()} />
-                      <RejectDialog id={intro.id} onAction={() => router.refresh()} />
-                    </>
-                  )}
-                  {intro.status === 'APPROVED' && (
-                    <CompleteDialog id={intro.id} onAction={() => router.refresh()} />
+    <AdminList>
+      <AdminTableCard>
+        <AdminTableDesktop>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Requester</TableHead>
+                <TableHead>Target Business</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Message</TableHead>
+                <TableHead>Created</TableHead>
+                {canMutate && <TableHead className="text-right">Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {introductions.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={canMutate ? 6 : 5}
+                    className="py-8 text-center text-muted-foreground"
+                  >
+                    No introductions found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                introductions.map((intro) => (
+                  <TableRow key={intro.id}>
+                    <TableCell className="max-w-[200px] truncate">
+                      <div className="text-sm font-medium">{intro.requesterBusiness.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {intro.requesterUser.displayName ?? intro.requesterUser.phone}
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {intro.targetBusiness.name}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={intro.status} />
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {intro.message ?? '—'}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(intro.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    {canMutate && (
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {(intro.status === 'SUBMITTED' || intro.status === 'IN_REVIEW') && (
+                            <>
+                              <ApproveDialog id={intro.id} onAction={() => router.refresh()} />
+                              <RejectDialog id={intro.id} onAction={() => router.refresh()} />
+                            </>
+                          )}
+                          {intro.status === 'APPROVED' && (
+                            <CompleteDialog id={intro.id} onAction={() => router.refresh()} />
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </AdminTableDesktop>
+
+        <AdminTableMobile>
+          {introductions.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              No introductions found
+            </div>
+          ) : (
+            introductions.map((intro) => (
+              <div key={intro.id} className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {intro.requesterBusiness.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      → {intro.targetBusiness.name}
+                    </p>
+                  </div>
+                  <StatusBadge status={intro.status} />
+                </div>
+                <div className="text-sm text-muted-foreground truncate">
+                  {intro.message ? `"${intro.message}"` : 'No message'}
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{new Date(intro.createdAt).toLocaleDateString()}</span>
+                  {canMutate && (
+                    <div className="flex items-center gap-1">
+                      {(intro.status === 'SUBMITTED' || intro.status === 'IN_REVIEW') && (
+                        <>
+                          <ApproveDialog id={intro.id} onAction={() => router.refresh()} />
+                          <RejectDialog id={intro.id} onAction={() => router.refresh()} />
+                        </>
+                      )}
+                      {intro.status === 'APPROVED' && (
+                        <CompleteDialog id={intro.id} onAction={() => router.refresh()} />
+                      )}
+                    </div>
                   )}
                 </div>
-              </TableCell>
-            )}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+              </div>
+            ))
+          )}
+        </AdminTableMobile>
+      </AdminTableCard>
+    </AdminList>
   );
 }
