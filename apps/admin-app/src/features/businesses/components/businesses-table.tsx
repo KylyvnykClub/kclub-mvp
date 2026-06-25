@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ExternalLink, Search, Star, ArrowUp } from 'lucide-react';
@@ -68,6 +68,7 @@ export function BusinessesTable({
   staffRole,
 }: BusinessesTableProps) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [businesses, setBusinesses] = useState(initialBusinesses);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -112,18 +113,23 @@ export function BusinessesTable({
     );
   }
 
-  function navigate(toPage: number) {
+  function buildUrl(overrides: { page?: number; status?: string }) {
     const params = new URLSearchParams();
-    if (toPage > 1) params.set('page', String(toPage));
+    const p = overrides.page ?? 1;
+    const st = overrides.status ?? statusFilter;
+    if (p > 1) params.set('page', String(p));
     if (limit !== 20) params.set('limit', String(limit));
-    if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
-    router.push(`/dashboard/businesses${params.toString() ? '?' + params.toString() : ''}`);
+    if (st && st !== 'all') params.set('status', st);
+    return `/dashboard/businesses${params.toString() ? '?' + params.toString() : ''}`;
   }
 
-  function handleFilterChange() {
-    const params = new URLSearchParams();
-    if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
-    router.push(`/dashboard/businesses${params.toString() ? '?' + params.toString() : ''}`);
+  function navigate(toPage: number) {
+    startTransition(() => router.push(buildUrl({ page: toPage })));
+  }
+
+  function handleStatusChange(value: string) {
+    setStatusFilter(value);
+    startTransition(() => router.push(buildUrl({ status: value, page: 1 })));
   }
 
   return (
@@ -132,9 +138,7 @@ export function BusinessesTable({
         <select
           className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-          }}
+          onChange={(e) => handleStatusChange(e.target.value)}
         >
           <option value="all">All statuses</option>
           {BUSINESS_STATUSES.map((s) => (
@@ -143,10 +147,9 @@ export function BusinessesTable({
             </option>
           ))}
         </select>
-        <Button size="sm" onClick={handleFilterChange}>
-          Filter
-        </Button>
       </AdminListFilters>
+
+      <div className={isPending ? 'pointer-events-none opacity-60 transition-opacity' : 'transition-opacity'}>
 
       <AdminTableCard>
         <AdminTableDesktop>
@@ -332,6 +335,7 @@ export function BusinessesTable({
       </AdminTableCard>
 
       <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
+      </div>
     </AdminList>
   );
 }

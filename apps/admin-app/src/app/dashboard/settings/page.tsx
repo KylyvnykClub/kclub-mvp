@@ -3,6 +3,7 @@ import { fetchStaffList } from '@/features/staff/api';
 import { fetchAuditLogs } from '@/features/audit/api';
 import { fetchCategories } from '@/features/categories/api';
 import { SettingsPageClient } from '@/features/settings/components/settings-page-client';
+import type { AdminStaffListItemDto } from '@kclub/contracts';
 
 type SettingsPageProps = {
   searchParams: Promise<{
@@ -31,17 +32,31 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     dateTo: sp.dateTo,
   };
 
-  const [staff, auditResult, categories] = await Promise.all([
+  const [fetchedStaff, auditResult, categories] = await Promise.all([
     fetchStaffList(),
     fetchAuditLogs({ ...auditFilters, page: auditPage, limit: auditLimit }),
     fetchCategories(),
   ]);
 
+  const selfEntry: AdminStaffListItemDto = {
+    id: profile.id,
+    phone: profile.phone,
+    displayName: profile.name,
+    role: profile.role,
+    isActive: true,
+    totpVerified: profile.totpVerified,
+  };
+  const staff = fetchedStaff
+    ? fetchedStaff.some((s) => s.id === profile.id)
+      ? fetchedStaff
+      : [selfEntry, ...fetchedStaff]
+    : [selfEntry];
+
   return (
     <SettingsPageClient
       staffRole={profile.role}
       initialSection={sp.section}
-      staff={staff ?? []}
+      staff={staff}
       auditLogs={auditResult?.logs ?? []}
       auditTotal={auditResult?.total ?? 0}
       auditPage={auditResult?.page ?? auditPage}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Ban, CheckCircle, ExternalLink, Search } from 'lucide-react';
@@ -204,28 +204,43 @@ export function UsersTable({
   staffRole,
 }: UsersTableProps) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [tierFilter, setTierFilter] = useState(initialTier);
   const canMutate = canMutateUsers(staffRole);
 
-  function navigate(toPage: number) {
+  function buildUrl(overrides: { page?: number; search?: string; status?: string; tier?: string }) {
     const params = new URLSearchParams();
-    if (toPage > 1) params.set('page', String(toPage));
+    const p = overrides.page ?? 1;
+    const s = overrides.search ?? search;
+    const st = overrides.status ?? statusFilter;
+    const t = overrides.tier ?? tierFilter;
+    if (p > 1) params.set('page', String(p));
     if (limit !== 20) params.set('limit', String(limit));
-    if (search) params.set('search', search);
-    if (statusFilter) params.set('status', statusFilter);
-    if (tierFilter) params.set('membershipTier', tierFilter);
-    router.push(`/dashboard/users${params.toString() ? '?' + params.toString() : ''}`);
+    if (s) params.set('search', s);
+    if (st && st !== 'all') params.set('status', st);
+    if (t && t !== 'all') params.set('membershipTier', t);
+    return `/dashboard/users${params.toString() ? '?' + params.toString() : ''}`;
+  }
+
+  function navigate(toPage: number) {
+    startTransition(() => router.push(buildUrl({ page: toPage })));
   }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    const params = new URLSearchParams();
-    if (search) params.set('search', search);
-    if (statusFilter) params.set('status', statusFilter);
-    if (tierFilter) params.set('membershipTier', tierFilter);
-    router.push(`/dashboard/users${params.toString() ? '?' + params.toString() : ''}`);
+    startTransition(() => router.push(buildUrl({ page: 1 })));
+  }
+
+  function handleStatusChange(value: string) {
+    setStatusFilter(value);
+    startTransition(() => router.push(buildUrl({ status: value, page: 1 })));
+  }
+
+  function handleTierChange(value: string) {
+    setTierFilter(value);
+    startTransition(() => router.push(buildUrl({ tier: value, page: 1 })));
   }
 
   return (
@@ -243,7 +258,7 @@ export function UsersTable({
         <select
           className="flex h-9 w-[140px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => handleStatusChange(e.target.value)}
         >
           <option value="all">All statuses</option>
           <option value="ACTIVE">Active</option>
@@ -252,16 +267,18 @@ export function UsersTable({
         <select
           className="flex h-9 w-[140px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           value={tierFilter}
-          onChange={(e) => setTierFilter(e.target.value)}
+          onChange={(e) => handleTierChange(e.target.value)}
         >
           <option value="all">All tiers</option>
           <option value="MEMBER">Member</option>
           <option value="VIP">VIP</option>
         </select>
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" disabled={isPending}>
           Search
         </Button>
       </AdminListFilters>
+
+      <div className={isPending ? 'pointer-events-none opacity-60 transition-opacity' : 'transition-opacity'}>
 
       <AdminTableCard>
         <AdminTableDesktop>
@@ -373,6 +390,7 @@ export function UsersTable({
       </AdminTableCard>
 
       <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
+      </div>
     </AdminList>
   );
 }

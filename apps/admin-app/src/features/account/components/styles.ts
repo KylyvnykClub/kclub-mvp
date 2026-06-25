@@ -16,7 +16,7 @@ export const accountNavItemActiveClasses =
 export const accountNavItemInactiveClasses =
   'lg:border-l-2 lg:border-transparent text-muted-foreground hover:text-foreground border-b-2 border-transparent lg:border-b-0';
 
-export const accountContentClasses = 'flex-1 p-6 sm:p-8';
+export const accountContentClasses = 'p-6 sm:p-8';
 
 export const accountPanelClasses = 'rounded-lg border bg-card p-6';
 
