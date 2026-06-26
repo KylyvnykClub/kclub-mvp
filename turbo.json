@@ -6,6 +6,7 @@
       "outputs": [".next/**", "dist/**", "!.next/cache/**"],
       "env": [
         "NODE_ENV",
+        "BUN_VERSION",
         "DATABASE_URL",
         "DATABASE_URL_DIRECT",
         "NEXT_PUBLIC_APP_URL",
