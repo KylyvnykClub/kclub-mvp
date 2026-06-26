@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/client/index.js';
+import { PrismaClient } from '@prisma/client';
 import {
   ADMIN_BOOTSTRAP_PLAN,
   CATEGORY_SEED_PLAN,
