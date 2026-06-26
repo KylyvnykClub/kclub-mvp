@@ -36,8 +36,7 @@
         "EMAIL_PROVIDER_API_KEY",
         "EMAIL_FROM_ADDRESS",
         "LOG_LEVEL",
-        "AUTH_DEV_PHONE_BYPASS_ENABLED",
-        "AUTH_DEV_2FA_BYPASS_ENABLED",
+  
         "ALLOW_SEED",
         "CONFIRM_SEED",
         "DISABLE_VOCAB_GREP",
