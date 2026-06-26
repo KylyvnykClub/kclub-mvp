@@ -31,18 +31,17 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, '../../'),
-  transpilePackages: ['@kclub/ui'],
-  serverExternalPackages: ['@kclub/database', 'pino', 'pino-pretty'],
+  transpilePackages: ['@kclub/ui', '@kclub/database'],
+  serverExternalPackages: ['pino', 'pino-pretty'],
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    outputFileTracingIncludes: {
-      '**': [
-        '../../packages/database/dist/**',
-        '../../packages/database/src/generated/**',
-        '../../node_modules/.prisma/**',
-        '../../node_modules/@prisma/client/**',
-      ],
-    },
+  },
+  outputFileTracingIncludes: {
+    '**': [
+      '../../packages/database/src/generated/**',
+      '../../node_modules/.prisma/**',
+      '../../node_modules/@prisma/client/**',
+    ],
   },
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];

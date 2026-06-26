@@ -1,6 +1,6 @@
 {
   "installCommand": "cd ../.. && bun install",
-  "buildCommand": "cd ../.. && bun run build --filter=@kclub/product-core...",
+  "buildCommand": "cd ../.. && bun --filter @kclub/database db:generate && bun run build --filter=@kclub/product-core...",
   "framework": "nextjs",
   "env": {
     "BUN_VERSION": "1.3.14"
