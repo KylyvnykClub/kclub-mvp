@@ -1,12 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["BUN_VERSION"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "dist/**", "!.next/cache/**"],
       "env": [
         "NODE_ENV",
-        "BUN_VERSION",
         "DATABASE_URL",
         "DATABASE_URL_DIRECT",
         "NEXT_PUBLIC_APP_URL",
@@ -37,7 +37,6 @@
         "EMAIL_PROVIDER_API_KEY",
         "EMAIL_FROM_ADDRESS",
         "LOG_LEVEL",
-        "BUN_VERSION",
         "ALLOW_SEED",
         "CONFIRM_SEED",
         "DISABLE_VOCAB_GREP",
