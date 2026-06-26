@@ -35,6 +35,14 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@kclub/database', 'pino', 'pino-pretty'],
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    outputFileTracingIncludes: {
+      '**': [
+        '../../packages/database/dist/**',
+        '../../packages/database/src/generated/**',
+        '../../node_modules/.prisma/**',
+        '../../node_modules/@prisma/client/**',
+      ],
+    },
   },
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
