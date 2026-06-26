@@ -1,15 +1,15 @@
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
 type PageShellProps = {
   title: string;
   description: string;
-  roleScope: string;
+  roleScope?: string;
+  count?: number;
   children?: React.ReactNode;
 };
 
-export function PageShell({ title, description, roleScope, children }: PageShellProps) {
+export function PageShell({ title, description, count, children }: PageShellProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
@@ -17,7 +17,11 @@ export function PageShell({ title, description, roleScope, children }: PageShell
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
-        <Badge variant="secondary">{roleScope}</Badge>
+        {count !== undefined && (
+          <span className="text-sm font-medium text-muted-foreground">
+            {count.toLocaleString()}
+          </span>
+        )}
       </div>
       <Separator />
       {children ?? (

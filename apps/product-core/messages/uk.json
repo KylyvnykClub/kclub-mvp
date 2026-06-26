@@ -388,7 +388,10 @@
         "businessFeature5": "Консультації з кастомних рішень",
         "businessFeature6": "Виділений менеджер",
         "checkoutError": "Не вдалося розпочати оплату. Спробуйте ще раз.",
-        "alreadyVip": "Ваша VIP-підписка активна."
+        "alreadyVip": "Ваша VIP-підписка активна.",
+        "paymentHistory": "Історія платежів",
+        "invoiceStatusPaid": "Оплачено",
+        "invoiceDownload": "Квитанція"
       },
       "introductionsLocked": {
         "eyebrow": "Лише для VIP",

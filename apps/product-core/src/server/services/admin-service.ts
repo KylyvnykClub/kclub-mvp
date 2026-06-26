@@ -69,6 +69,8 @@ import { getPrismaClient } from '@/server/db';
 import { createDbAuditService } from '@/server/audit';
 import type { RequestContext } from '@/server/context';
 import { revokeCard, reissueCard, toMemberCardDto } from './card-service';
+import { getStripeClient } from '@/server/stripe/client';
+import { mapStripeStatusToLocal } from './webhook-service';
 
 const auditService = createDbAuditService();
 
@@ -146,6 +148,9 @@ export async function listUsers(
     where.membership_tier = params.membershipTier;
   }
 
+  // Exclude users who own an active business profile
+  where.business_profiles = { none: { status: { not: 'REJECTED' } } };
+
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       where,
@@ -188,6 +193,102 @@ export async function getUserDetail(userId: string): Promise<AdminUserDetailDto>
   }
 
   return toAdminUserDetail(user, cards, subscriptions, auditEntries);
+}
+
+export async function syncVipSubscriptionForUser(
+  userId: string,
+  context: RequestContext,
+): Promise<AdminUserDetailDto> {
+  const prisma = getPrismaClient();
+  const stripe = getStripeClient();
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'User not found', status: 404 });
+  }
+
+  const existingLocal = await prisma.vipSubscription.findFirst({
+    where: { user_id: userId },
+    orderBy: { created_at: 'desc' },
+  });
+
+  if (!existingLocal?.stripe_subscription_id && !existingLocal?.stripe_customer_id) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'No Stripe identifiers found locally. Ask the user to revisit the checkout success page, or enter the subscription ID manually in Stripe dashboard.',
+      status: 404,
+    });
+  }
+
+  let stripeSub;
+  if (existingLocal.stripe_subscription_id) {
+    stripeSub = await stripe.subscriptions.retrieve(existingLocal.stripe_subscription_id);
+  } else {
+    const list = await stripe.subscriptions.list({
+      customer: existingLocal.stripe_customer_id!,
+      limit: 5,
+    });
+    stripeSub = list.data[0];
+  }
+
+  if (!stripeSub) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'No Stripe subscription found for this user.',
+      status: 404,
+    });
+  }
+
+  const newStatus = mapStripeStatusToLocal(stripeSub.status, stripeSub.current_period_end) ?? 'ACTIVE';
+
+  const resolvedCustomerId = existingLocal?.stripe_customer_id
+    ?? (typeof stripeSub.customer === 'string' ? stripeSub.customer : null);
+
+  const localSub = existingLocal
+    ? await prisma.vipSubscription.update({
+        where: { id: existingLocal.id },
+        data: {
+          status: newStatus,
+          stripe_customer_id: resolvedCustomerId,
+          stripe_subscription_id: stripeSub.id,
+          current_period_end: stripeSub.current_period_end
+            ? new Date(stripeSub.current_period_end * 1000)
+            : undefined,
+          cancel_at_period_end: stripeSub.cancel_at_period_end,
+        },
+      })
+    : await prisma.vipSubscription.create({
+        data: {
+          user_id: userId,
+          status: newStatus,
+          stripe_customer_id: resolvedCustomerId,
+          stripe_subscription_id: stripeSub.id,
+          current_period_end: stripeSub.current_period_end
+            ? new Date(stripeSub.current_period_end * 1000)
+            : null,
+          cancel_at_period_end: stripeSub.cancel_at_period_end,
+        },
+      });
+
+  // eslint-disable-next-line
+  await (prisma.user as any).update({
+    where: { id: userId },
+    data: { membership_tier: newStatus === 'ACTIVE' || newStatus === 'PAST_DUE' ? 'VIP' : 'MEMBER' },
+  });
+
+  await auditService.log(
+    {
+      action: 'STRIPE_WEBHOOK_REPLAYED',
+      entityType: 'VipSubscription',
+      entityId: userId,
+      after: { subscriptionId: localSub.id, status: newStatus },
+    },
+    context,
+  );
+
+  revalidateTag('users');
+
+  return getUserDetail(userId);
 }
 
 export async function blockUser(
@@ -595,6 +696,61 @@ export async function approveBusiness(
   await auditService.log(
     {
       action: 'BUSINESS_APPROVED',
+      entityType: 'BusinessProfile',
+      entityId: businessId,
+      before: { status: business.status },
+      after: { status: updated.status },
+    },
+    context,
+  );
+
+  revalidateTag('businesses');
+  revalidateTag('public-businesses');
+
+  const auditEntries = await prisma.auditLog.findMany({
+    where: { entity_type: 'BusinessProfile', entity_id: businessId },
+    orderBy: { created_at: 'desc' },
+    take: 50,
+  });
+
+  return toAdminBusinessDetail(updated, auditEntries);
+}
+
+export async function publishBusiness(
+  businessId: string,
+  context: RequestContext,
+): Promise<AdminBusinessDetailDto> {
+  const prisma = getPrismaClient();
+  const business = await prisma.businessProfile.findUnique({
+    where: { id: businessId },
+    include: BUSINESS_MUTATION_INCLUDE,
+  });
+
+  if (!business) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business not found',
+      status: 404,
+    });
+  }
+
+  if (!canTransitionBusinessStatus(business.status as BusinessStatus, 'PUBLISHED')) {
+    throw new AppError({
+      code: ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION,
+      message: `Cannot publish business with status ${business.status}`,
+      status: 409,
+    });
+  }
+
+  const updated = await prisma.businessProfile.update({
+    where: { id: businessId },
+    data: { status: 'PUBLISHED', published_at: new Date() },
+    include: BUSINESS_MUTATION_INCLUDE,
+  });
+
+  await auditService.log(
+    {
+      action: 'BUSINESS_PUBLISHED',
       entityType: 'BusinessProfile',
       entityId: businessId,
       before: { status: business.status },

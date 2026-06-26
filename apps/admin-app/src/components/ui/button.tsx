@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded-lg border border-transparent bg-clip-padding text-sm font-medium outline-none transition-all focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0',
+  'inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded-lg border border-transparent bg-clip-padding text-base font-medium outline-none transition-all focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:h-5 [&_svg]:w-5 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -20,14 +20,14 @@ const buttonVariants = cva(
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
-        default: 'h-8 gap-1.5 px-2.5',
-        xs: 'h-6 gap-1 rounded-md px-2 text-xs [&_svg]:h-3 [&_svg]:w-3',
-        sm: 'h-7 gap-1 rounded-md px-2.5 text-[0.8rem] [&_svg]:h-3.5 [&_svg]:w-3.5',
-        lg: 'h-9 gap-1.5 px-3',
-        icon: 'size-8',
-        'icon-xs': 'size-6 rounded-md [&_svg]:h-3 [&_svg]:w-3',
-        'icon-sm': 'size-7 rounded-md',
-        'icon-lg': 'size-9',
+        default: 'h-10 gap-2 px-4',
+        xs: 'h-7 gap-1 rounded-md px-2.5 text-xs [&_svg]:h-3.5 [&_svg]:w-3.5',
+        sm: 'h-8 gap-1.5 rounded-md px-3 text-sm [&_svg]:h-4 [&_svg]:w-4',
+        lg: 'h-12 gap-2 px-6',
+        icon: 'size-10',
+        'icon-xs': 'size-7 rounded-md [&_svg]:h-3.5 [&_svg]:w-3.5',
+        'icon-sm': 'size-8 rounded-md [&_svg]:h-4 [&_svg]:w-4',
+        'icon-lg': 'size-12 [&_svg]:h-6 [&_svg]:w-6',
       },
     },
     defaultVariants: {

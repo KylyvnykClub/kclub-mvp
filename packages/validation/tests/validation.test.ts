@@ -189,13 +189,15 @@ describe('introduction schemas', () => {
   test('validates introduction submit, cancel, and filters', () => {
     expect(
       introductionSubmitSchema.parse({
-        requesterBusinessId: uuid,
         targetBusinessId: secondUuid,
+        clientName: 'John Doe',
+        clientContact: 'john@example.com',
         message: 'Please introduce us.',
       }),
     ).toEqual({
-      requesterBusinessId: uuid,
       targetBusinessId: secondUuid,
+      clientName: 'John Doe',
+      clientContact: 'john@example.com',
       message: 'Please introduce us.',
     });
 

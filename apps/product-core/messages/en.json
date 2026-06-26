@@ -388,7 +388,10 @@
         "businessFeature5": "Custom solutions consulting",
         "businessFeature6": "Dedicated account manager",
         "checkoutError": "Could not start checkout. Please try again.",
-        "alreadyVip": "Your VIP membership is active."
+        "alreadyVip": "Your VIP membership is active.",
+        "paymentHistory": "Payment history",
+        "invoiceStatusPaid": "Paid",
+        "invoiceDownload": "Receipt"
       },
       "introductionsLocked": {
         "eyebrow": "VIP Access Only",

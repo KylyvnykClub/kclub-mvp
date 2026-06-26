@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Check, Minus } from 'lucide-react';
+import { Check, FileText, Minus } from 'lucide-react';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
 import { cn } from '@kclub/ui';
 
 import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
-import { getOwnSubscriptions } from '@/server/services/subscription-service';
+import { getOwnSubscriptions, getOwnInvoices, type InvoiceDto } from '@/server/services/subscription-service';
 
 import { UpgradeToVipButton } from './UpgradeToVipButton';
 
@@ -19,14 +19,15 @@ type SubscriptionUpgradePanelProps = {
 export async function SubscriptionUpgradePanel({ locale, profile }: SubscriptionUpgradePanelProps) {
   const t = await getTranslations({ locale, namespace: 'member.dashboard.subscription' });
 
-  const subscriptions =
-    profile.membershipTier === 'VIP' ? await getOwnSubscriptions(profile.id) : [];
+  const isVip = profile.membershipTier === 'VIP';
+
+  const [subscriptions, invoices] = isVip
+    ? await Promise.all([getOwnSubscriptions(profile.id), getOwnInvoices(profile.id)])
+    : [[], [] as InvoiceDto[]];
 
   const activeSubscription = subscriptions.find(
     (subscription) => subscription.status === 'ACTIVE' || subscription.status === 'PAST_DUE',
   );
-
-  const isVip = profile.membershipTier === 'VIP';
   const vipFeatures = [
     { label: t('vipFeature1'), included: true },
     { label: t('vipFeature2'), included: true },
@@ -144,6 +145,59 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
           <span className="text-xs tracking-wide text-muted">{t('continueFree')}</span>
         </p>
       ) : null}
+
+      {isVip && invoices.length > 0 && (
+        <div className="mt-10 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">{t('paymentHistory')}</h3>
+          <div className="divide-y divide-border border border-border">
+            {invoices.map((inv) => (
+              <div key={inv.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                <div className="min-w-0 space-y-0.5">
+                  <p className="text-sm font-medium text-foreground">
+                    {inv.number ?? inv.id}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {inv.periodStart
+                      ? new Date(inv.periodStart).toLocaleDateString(locale)
+                      : new Date(inv.createdAt).toLocaleDateString(locale)}
+                    {inv.periodEnd
+                      ? ` — ${new Date(inv.periodEnd).toLocaleDateString(locale)}`
+                      : null}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="text-sm font-semibold text-foreground">
+                    {(inv.amountPaid / 100).toLocaleString(locale, {
+                      style: 'currency',
+                      currency: inv.currency.toUpperCase(),
+                    })}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-xs font-medium',
+                      inv.status === 'paid' ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground',
+                    )}
+                  >
+                    {inv.status === 'paid' ? t('invoiceStatusPaid') : (inv.status ?? '—')}
+                  </span>
+                  {inv.hostedInvoiceUrl && (
+                    <a
+                      href={inv.hostedInvoiceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-accent underline-offset-2 hover:underline"
+                      aria-label={t('invoiceDownload')}
+                    >
+                      <FileText size={13} aria-hidden />
+                      {t('invoiceDownload')}
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

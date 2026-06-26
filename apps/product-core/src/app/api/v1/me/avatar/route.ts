@@ -9,6 +9,10 @@ import {
   toCurrentMemberProfileDto,
 } from '@/server/services';
 import { getPrismaClient } from '@/server/db';
+import { createRequestContext } from '@/server/context';
+import { createDbAuditService } from '@/server/audit';
+
+const auditService = createDbAuditService();
 
 const AVATAR_BUCKET = 'avatars';
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -85,6 +89,12 @@ export async function POST(request: NextRequest) {
       where: { id: localUser.id },
       data: { avatar_url: publicUrl },
     });
+
+    const context = createRequestContext({ actor: { kind: 'member', userId: localUser.id }, headers: request.headers });
+    await auditService.log(
+      { action: 'USER_AVATAR_UPDATED', entityType: 'User', entityId: localUser.id },
+      context,
+    );
 
     return jsonSuccess(toCurrentMemberProfileDto(updated));
   } catch (err) {

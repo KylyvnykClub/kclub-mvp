@@ -31,11 +31,39 @@ export default async function CheckoutSuccessPage({
         profile?.id === session.metadata.userId
       ) {
         const prisma = getPrismaClient();
-        // eslint-disable-next-line
-        await (prisma.user as any).update({
-          where: { id: profile.id },
-          data: { membership_tier: 'VIP' },
+        const userId = profile.id;
+        const stripeCustomerId = typeof session.customer === 'string' ? session.customer : null;
+        const stripeSubscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
+
+        const existing = await prisma.vipSubscription.findFirst({
+          where: { user_id: userId },
+          orderBy: { created_at: 'desc' },
         });
+
+        await prisma.$transaction([
+          // eslint-disable-next-line
+          (prisma.user as any).update({
+            where: { id: userId },
+            data: { membership_tier: 'VIP' },
+          }),
+          existing
+            ? prisma.vipSubscription.update({
+                where: { id: existing.id },
+                data: {
+                  status: 'ACTIVE',
+                  stripe_customer_id: stripeCustomerId ?? existing.stripe_customer_id,
+                  stripe_subscription_id: stripeSubscriptionId ?? existing.stripe_subscription_id,
+                },
+              })
+            : prisma.vipSubscription.create({
+                data: {
+                  user_id: userId,
+                  status: 'ACTIVE',
+                  stripe_customer_id: stripeCustomerId,
+                  stripe_subscription_id: stripeSubscriptionId,
+                },
+              }),
+        ]);
       }
     } catch {
       // Non-critical — webhook will also handle this

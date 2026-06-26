@@ -15,7 +15,6 @@ import {
   AdminTableDesktop,
   AdminTableMobile,
 } from '@/components/admin-list-layout';
-import { accountContentClasses } from '../styles';
 import type { AuditLogDto } from '@kclub/contracts';
 
 type ActivityPanelProps = {
@@ -38,9 +37,8 @@ function formatAction(action: string): string {
 
 export function ActivityPanel({ logs }: ActivityPanelProps) {
   return (
-    <div className={accountContentClasses}>
-      <div className="mx-auto max-w-4xl">
-        {logs.length === 0 ? (
+    <div className="p-6 sm:p-8">
+      {logs.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">No activity recorded yet.</p>
         ) : (
           <AdminList>
@@ -91,7 +89,6 @@ export function ActivityPanel({ logs }: ActivityPanelProps) {
             </AdminTableCard>
           </AdminList>
         )}
-      </div>
     </div>
   );
 }

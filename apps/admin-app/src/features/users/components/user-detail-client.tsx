@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Calendar,
   CreditCard,
   LayoutGrid,
+  RefreshCw,
   ScrollText,
   User,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { StatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -24,7 +27,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { AdminUserDetailDto, StaffRole } from '@kclub/contracts';
 
@@ -52,11 +55,30 @@ type UserDetailClientProps = {
   staffRole: StaffRole;
 };
 
-export function UserDetailClient({ user, staffRole }: UserDetailClientProps) {
+async function syncVipSubscription(userId: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch(`/api/proxy/users/${userId}/sync-vip`, { method: 'POST' });
+  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+}
+
+export function UserDetailClient({ user }: UserDetailClientProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<UserDetailTab>('overview');
+  const [syncing, setSyncing] = useState(false);
 
   function handleTabChange(value: string): void {
     setActiveTab(parseUserDetailTab(value));
+  }
+
+  async function handleSyncVip(): Promise<void> {
+    setSyncing(true);
+    const result = await syncVipSubscription(user.id);
+    setSyncing(false);
+    if (!result.ok) {
+      toast.error(result.error ?? 'Sync failed');
+      return;
+    }
+    toast.success('VIP subscription synced from Stripe');
+    router.refresh();
   }
 
   return (
@@ -232,9 +254,21 @@ export function UserDetailClient({ user, staffRole }: UserDetailClientProps) {
 
             <TabsContent value="subscriptions" className="mt-0 space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>Subscriptions</CardTitle>
-                  <CardDescription>VIP subscription history.</CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between gap-4">
+                  <div>
+                    <CardTitle>Subscriptions</CardTitle>
+                    <CardDescription>VIP subscription history.</CardDescription>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={syncing}
+                    onClick={handleSyncVip}
+                    className="shrink-0"
+                  >
+                    <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${syncing ? 'animate-spin' : ''}`} />
+                    {syncing ? 'Syncing...' : 'Sync from Stripe'}
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   {user.subscriptions.length === 0 ? (

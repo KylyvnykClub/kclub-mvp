@@ -10,6 +10,10 @@ import {
   toCurrentMemberProfileDto,
   updateMemberProfile,
 } from '@/server/services';
+import { createRequestContext } from '@/server/context';
+import { createDbAuditService } from '@/server/audit';
+
+const auditService = createDbAuditService();
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,8 +71,21 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    const localUser = await getMemberBySupabaseUserId(supabaseUser.id);
+    const context = createRequestContext({ actor: { kind: 'member', userId: localUser.id }, headers: request.headers });
+
     const updated = await updateMemberProfile(supabaseUser.id, parsed.data);
     const profile = toCurrentMemberProfileDto(updated);
+
+    await auditService.log(
+      {
+        action: 'USER_PROFILE_UPDATED',
+        entityType: 'User',
+        entityId: localUser.id,
+        after: Object.fromEntries(Object.entries(parsed.data).map(([k, v]) => [k, String(v ?? '')])),
+      },
+      context,
+    );
 
     return jsonSuccess(profile);
   } catch (error) {

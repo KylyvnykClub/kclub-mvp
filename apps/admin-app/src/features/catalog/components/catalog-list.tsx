@@ -261,7 +261,7 @@ export function CatalogList({ businesses: initialBusinesses, staffRole }: Catalo
       </div>
 
       {(!canToggle || businesses.some((b) => b.status !== 'PUBLISHED')) && (
-        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+        <div className="flex items-start gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             Only PUBLISHED businesses can be featured. Featured slots are limited to 3 per type.

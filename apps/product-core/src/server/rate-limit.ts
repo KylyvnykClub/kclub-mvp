@@ -4,11 +4,17 @@ import { NextResponse } from 'next/server';
 
 let redis: Redis | null = null;
 
+function isConfiguredEnvValue(value: string | undefined): value is string {
+  if (!value || value.trim() === '') return false;
+  if (value.includes('REPLACE_ME')) return false;
+  return true;
+}
+
 function getRedis(): Redis | null {
   if (redis) return redis;
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
+  if (!isConfiguredEnvValue(url) || !isConfiguredEnvValue(token)) return null;
   redis = new Redis({ url, token });
   return redis;
 }

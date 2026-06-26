@@ -3,7 +3,6 @@
 import { Check, X } from 'lucide-react';
 
 import { STAFF_PERMISSIONS, STAFF_ROLE_PERMISSIONS, type StaffRole, type StaffPermission } from '@kclub/contracts';
-import { accountContentClasses, accountPanelClasses } from '../styles';
 
 type PermissionsPanelProps = {
   staffRole: StaffRole;
@@ -32,10 +31,9 @@ export function PermissionsPanel({ staffRole }: PermissionsPanelProps) {
   const rolePermissions = STAFF_ROLE_PERMISSIONS[staffRole] as readonly StaffPermission[];
 
   return (
-    <div className={accountContentClasses}>
-      <div className="mx-auto max-w-2xl">
-        <div className={accountPanelClasses}>
-          <h3 className="mb-4 text-sm font-semibold">
+    <div className="p-6 sm:p-8">
+      <div className="rounded-lg border bg-card p-6">
+        <h3 className="mb-4 text-sm font-semibold">
             Permissions for role: {staffRole}
           </h3>
           <div className="divide-y">
@@ -59,7 +57,6 @@ export function PermissionsPanel({ staffRole }: PermissionsPanelProps) {
             })}
           </div>
         </div>
-      </div>
     </div>
   );
 }

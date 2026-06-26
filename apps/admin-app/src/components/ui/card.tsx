@@ -12,7 +12,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        'bg-card text-card-foreground flex flex-col overflow-hidden rounded-lg border py-4 text-sm shadow-sm data-[size=sm]:py-3',
+        'bg-card text-card-foreground flex flex-col overflow-hidden rounded-xl border py-6 text-base shadow-sm data-[size=sm]:py-4',
         className,
       )}
       {...props}
@@ -25,7 +25,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="card-header"
       className={cn(
-        'grid auto-rows-min items-start gap-1 rounded-t-lg px-4 data-[size=sm]:px-3',
+        'grid auto-rows-min items-start gap-1.5 rounded-t-xl px-6 data-[size=sm]:px-4',
         className,
       )}
       {...props}
@@ -37,7 +37,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-title"
-      className={cn('text-base font-medium leading-snug', className)}
+      className={cn('text-lg font-semibold leading-snug tracking-tight', className)}
       {...props}
     />
   );
@@ -47,7 +47,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-description"
-      className={cn('text-sm text-muted-foreground', className)}
+      className={cn('text-base text-muted-foreground', className)}
       {...props}
     />
   );
@@ -64,14 +64,14 @@ function CardAction({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="card-content" className={cn('px-4', className)} {...props} />;
+  return <div data-slot="card-content" className={cn('px-6 py-2', className)} {...props} />;
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-footer"
-      className={cn('bg-muted/50 flex items-center rounded-b-lg border-t p-4', className)}
+      className={cn('bg-muted/50 flex items-center rounded-b-xl border-t p-6 mt-4', className)}
       {...props}
     />
   );

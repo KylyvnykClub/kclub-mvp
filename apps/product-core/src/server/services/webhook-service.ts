@@ -159,14 +159,15 @@ async function handleCheckoutCompleted(session: Record<string, unknown>): Promis
         },
       });
 
-  await prisma.$transaction([userUpgrade, subUpsert]);
+  const result = await prisma.$transaction([userUpgrade, subUpsert]);
+  const createdSub = result[1];
 
   await auditService.log(
     {
       action: 'CHECKOUT_CREATED',
       entityType: 'VipSubscription',
-      entityId: existing?.id ?? 'new',
-      after: { stripeSubscriptionId: subscriptionId, status: 'ACTIVE' },
+      entityId: userId,
+      after: { subscriptionId: createdSub.id, stripeSubscriptionId: subscriptionId, status: 'ACTIVE' },
     },
     systemContext,
   );
@@ -428,7 +429,7 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
       {
         action: 'SUBSCRIPTION_SYNCED',
         entityType: 'VipSubscription',
-        entityId: localSub.id,
+        entityId: localSub.user_id,
         before: { status: previousStatus },
         after: { status: newStatus },
       },

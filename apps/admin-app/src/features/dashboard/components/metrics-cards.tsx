@@ -45,7 +45,7 @@ export function VipSubscriptionsCard({ data }: { data: DashboardMetricsDto }) {
           <span className="text-green-600 dark:text-green-400">
             {data.activeSubscriptions} active
           </span>
-          <span className="text-amber-600 dark:text-amber-400">
+          <span className="text-yellow-600 dark:text-yellow-400">
             {data.pastDueSubscriptions} past due
           </span>
           <span className="text-red-600 dark:text-red-400">

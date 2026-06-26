@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -250,25 +251,27 @@ export function CardsTable({
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <select
-          className="flex h-9 w-[140px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="all">All statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="REVOKED">Revoked</option>
-          <option value="EXPIRED">Expired</option>
-        </select>
-        <select
-          className="flex h-9 w-[140px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          value={tierFilter}
-          onChange={(e) => setTierFilter(e.target.value)}
-        >
-          <option value="all">All tiers</option>
-          <option value="MEMBER">Member</option>
-          <option value="VIP">VIP</option>
-        </select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="REVOKED">Revoked</SelectItem>
+            <SelectItem value="EXPIRED">Expired</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={tierFilter} onValueChange={setTierFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All tiers" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All tiers</SelectItem>
+            <SelectItem value="MEMBER">Member</SelectItem>
+            <SelectItem value="VIP">VIP</SelectItem>
+          </SelectContent>
+        </Select>
         <Button type="submit" size="sm">
           Search
         </Button>

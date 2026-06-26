@@ -23,6 +23,8 @@ export function createIntroduction(
       requesterUserId: makeEntityId('member', sequence),
       requesterBusinessId: makeEntityId('business', sequence),
       targetBusinessId: makeEntityId('business', sequence + 1000),
+      clientName: `Client ${sequence}`,
+      clientContact: `client${sequence}@example.com`,
       status,
       message: `Introduction request ${sequence}`,
       rejectionReason: status === 'REJECTED' ? 'Target is unavailable.' : null,

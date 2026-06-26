@@ -5,7 +5,8 @@ import type { Metadata } from 'next';
 import { ReactNode } from 'react';
 import { AppProviders } from '@/components/app-providers';
 import { Geist } from 'next/font/google';
-import { SkipLink, cn } from '@kclub/ui';
+import { SkipLink } from '@kclub/ui';
+import { cn } from '@/lib/utils';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 

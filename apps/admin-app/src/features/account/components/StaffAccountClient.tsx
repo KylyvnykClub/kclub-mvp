@@ -6,6 +6,9 @@ import type { ReactNode } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
+import { logoutAction } from '@/server/auth/actions';
 import {
   STAFF_ACCOUNT_TABS,
   STAFF_ACCOUNT_TAB_LABELS,
@@ -30,15 +33,21 @@ export function StaffAccountClient({
   const [activeTab, setActiveTab] = useState<StaffAccountTab>(initialTab);
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Avatar className="h-12 w-12">
-          <AvatarFallback className="text-base">{staffInitials}</AvatarFallback>
-        </Avatar>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{staffName}</h1>
-          <Badge variant="secondary" className="mt-0.5">{staffRole}</Badge>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12">
+            <AvatarFallback className="text-base">{staffInitials}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">{staffName}</h1>
+            <Badge variant="secondary" className="mt-0.5">{staffRole}</Badge>
+          </div>
         </div>
+        <Button variant="outline" onClick={() => logoutAction()}>
+          <LogOut className="mr-2 h-4 w-4" />
+          Sign out
+        </Button>
       </div>
 
       <div className="rounded-lg border bg-card">

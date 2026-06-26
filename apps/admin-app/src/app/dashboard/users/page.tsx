@@ -35,6 +35,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
       title="Users"
       description="Admin list of members, statuses, and support actions."
       roleScope="ADMIN"
+      count={result?.total}
     >
       <UsersTable
         users={result?.users ?? []}

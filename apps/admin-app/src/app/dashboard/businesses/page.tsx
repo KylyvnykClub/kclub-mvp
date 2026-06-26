@@ -29,6 +29,7 @@ export default async function BusinessesPage({ searchParams }: BusinessesPagePro
       title="Businesses"
       description="Moderation queue for verification and publication."
       roleScope="MODERATOR"
+      count={result?.total}
     >
       <BusinessesTable
         businesses={result?.businesses ?? []}

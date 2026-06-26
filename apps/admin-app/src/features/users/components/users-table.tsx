@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -255,24 +256,26 @@ export function UsersTable({
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <select
-          className="flex h-9 w-[140px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          value={statusFilter}
-          onChange={(e) => handleStatusChange(e.target.value)}
-        >
-          <option value="all">All statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="BLOCKED">Blocked</option>
-        </select>
-        <select
-          className="flex h-9 w-[140px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          value={tierFilter}
-          onChange={(e) => handleTierChange(e.target.value)}
-        >
-          <option value="all">All tiers</option>
-          <option value="MEMBER">Member</option>
-          <option value="VIP">VIP</option>
-        </select>
+        <Select value={statusFilter} onValueChange={handleStatusChange}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="BLOCKED">Blocked</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={tierFilter} onValueChange={handleTierChange}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All tiers" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All tiers</SelectItem>
+            <SelectItem value="MEMBER">Member</SelectItem>
+            <SelectItem value="VIP">VIP</SelectItem>
+          </SelectContent>
+        </Select>
         <Button type="submit" size="sm" disabled={isPending}>
           Search
         </Button>

@@ -10,6 +10,10 @@ import {
   toCurrentMemberProfileDto,
   issueCardForUserIfNoneActive,
 } from '@/server/services';
+import { createRequestContext } from '@/server/context';
+import { createDbAuditService } from '@/server/audit';
+
+const auditService = createDbAuditService();
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,6 +49,12 @@ export async function POST(request: NextRequest) {
     const user = await completeMemberOnboarding(supabaseUser.id, parsed.data);
 
     await issueCardForUserIfNoneActive(user.id, user.membership_tier);
+
+    const context = createRequestContext({ actor: { kind: 'member', userId: user.id }, headers: request.headers });
+    await auditService.log(
+      { action: 'USER_ONBOARDING_COMPLETED', entityType: 'User', entityId: user.id },
+      context,
+    );
 
     const profile = toCurrentMemberProfileDto(user);
 

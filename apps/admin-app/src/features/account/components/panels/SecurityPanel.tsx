@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { ShieldCheck, ShieldAlert } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
-import { accountContentClasses, accountPanelClasses } from '../styles';
 
 type SecurityPanelProps = {
   totpVerified: boolean;
@@ -12,16 +11,15 @@ type SecurityPanelProps = {
 
 export function SecurityPanel({ totpVerified }: SecurityPanelProps) {
   return (
-    <div className={accountContentClasses}>
-      <div className="mx-auto max-w-2xl space-y-6">
-        <div className={accountPanelClasses}>
-          <h3 className="mb-4 text-sm font-semibold">Two-Factor Authentication</h3>
+    <div className="p-6 sm:p-8 space-y-6">
+      <div className="rounded-lg border bg-card p-6">
+        <h3 className="mb-4 text-sm font-semibold">Two-Factor Authentication</h3>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {totpVerified ? (
                 <ShieldCheck className="h-5 w-5 text-green-600" />
               ) : (
-                <ShieldAlert className="h-5 w-5 text-amber-500" />
+                <ShieldAlert className="h-5 w-5 text-yellow-600" />
               )}
               <div>
                 <p className="text-sm font-medium">TOTP Authenticator</p>
@@ -44,14 +42,13 @@ export function SecurityPanel({ totpVerified }: SecurityPanelProps) {
           </div>
         </div>
 
-        <div className={accountPanelClasses}>
+        <div className="rounded-lg border bg-card p-6">
           <h3 className="mb-4 text-sm font-semibold">Session</h3>
           <p className="text-sm text-muted-foreground">
             Your session is managed via a secure JWT token with an 8-hour expiry.
             Sign out to invalidate the current session.
           </p>
         </div>
-      </div>
     </div>
   );
 }

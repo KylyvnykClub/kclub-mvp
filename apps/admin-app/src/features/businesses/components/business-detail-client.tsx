@@ -16,6 +16,7 @@ import {
   PencilLine,
   Phone,
   ScrollText,
+  Send,
   ShieldX,
   Tag,
   User,
@@ -72,7 +73,7 @@ function canSeeAction(status: string, role: StaffRole): string | null {
     case 'UNDER_REVIEW':
       return 'APPROVE_REJECT';
     case 'APPROVED':
-      return 'REJECT';
+      return 'PUBLISH_REJECT';
     case 'PUBLISHED':
       return 'HIDE';
     default:
@@ -101,6 +102,11 @@ async function rejectBusiness(
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ reason }),
   });
+  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+}
+
+async function publishBusiness(businessId: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch(`/api/proxy/businesses/${businessId}/publish`, { method: 'POST' });
   return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
 }
 
@@ -220,12 +226,15 @@ export function BusinessDetailClient({ business, staffRole }: BusinessDetailClie
                   />
                 </>
               )}
-              {action === 'REJECT' && (
-                <RejectDialog
-                  businessId={business.id}
-                  businessName={business.name}
-                  onAction={() => router.refresh()}
-                />
+              {action === 'PUBLISH_REJECT' && (
+                <>
+                  <PublishDialog businessId={business.id} onAction={() => router.refresh()} />
+                  <RejectDialog
+                    businessId={business.id}
+                    businessName={business.name}
+                    onAction={() => router.refresh()}
+                  />
+                </>
               )}
               {action === 'HIDE' && (
                 <HideDialog
@@ -762,6 +771,54 @@ function EditProfileTab({ business, onSaved }: EditProfileTabProps) {
         </div>
       </form>
     </div>
+  );
+}
+
+function PublishDialog({ businessId, onAction }: { businessId: string; onAction: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button size="sm" variant="secondary">
+            <Send className="mr-1.5 h-4 w-4" />
+            Publish
+          </Button>
+        }
+      />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Publish business</DialogTitle>
+          <DialogDescription>
+            This will make the business visible in the public directory immediately.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            disabled={loading}
+            onClick={async () => {
+              setLoading(true);
+              const result = await publishBusiness(businessId);
+              setLoading(false);
+              if (!result.ok) {
+                toast.error(result.error ?? 'Failed to publish');
+                return;
+              }
+              setOpen(false);
+              toast.success('Business published');
+              onAction();
+            }}
+          >
+            {loading ? 'Publishing...' : 'Publish'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

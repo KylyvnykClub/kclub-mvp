@@ -45,6 +45,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     role: profile.role,
     isActive: true,
     totpVerified: profile.totpVerified,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
   const staff = fetchedStaff
     ? fetchedStaff.some((s) => s.id === profile.id)

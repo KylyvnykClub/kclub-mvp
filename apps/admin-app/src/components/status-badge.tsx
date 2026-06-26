@@ -1,22 +1,22 @@
 import { Badge } from '@/components/ui/badge';
 
-type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning';
 
 const variantMap: Record<string, BadgeVariant> = {
-  ACTIVE: 'default',
-  PUBLISHED: 'default',
-  COMPLETED: 'default',
-  UNDER_REVIEW: 'secondary',
-  SUBMITTED: 'secondary',
-  IN_REVIEW: 'secondary',
+  ACTIVE: 'success',
+  PUBLISHED: 'success',
+  COMPLETED: 'success',
+  APPROVED: 'success',
+  UNDER_REVIEW: 'warning',
+  SUBMITTED: 'warning',
+  IN_REVIEW: 'warning',
+  PAST_DUE: 'warning',
   BLOCKED: 'destructive',
   REJECTED: 'destructive',
   REVOKED: 'destructive',
   EXPIRED: 'destructive',
-  APPROVED: 'outline',
-  CANCELED: 'outline',
-  PAST_DUE: 'outline',
-  HIDDEN: 'outline',
+  CANCELED: 'secondary',
+  HIDDEN: 'secondary',
   MEMBER: 'outline',
   VIP: 'default',
 };

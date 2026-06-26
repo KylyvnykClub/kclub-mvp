@@ -283,4 +283,48 @@ export async function cancelOwnSubscription(
   return toSubscriptionDto(updated);
 }
 
+export type InvoiceDto = {
+  id: string;
+  number: string | null;
+  amountPaid: number;
+  currency: string;
+  status: string | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+  hostedInvoiceUrl: string | null;
+  invoicePdf: string | null;
+  createdAt: string;
+};
+
+export async function getOwnInvoices(userId: string): Promise<InvoiceDto[]> {
+  const prisma = getPrismaClient();
+  const stripe = getStripeClient();
+
+  const sub = await prisma.vipSubscription.findFirst({
+    where: { user_id: userId },
+    orderBy: { created_at: 'desc' },
+  });
+
+  if (!sub?.stripe_customer_id) return [];
+
+  const invoices = await stripe.invoices.list({
+    customer: sub.stripe_customer_id,
+    limit: 24,
+    expand: ['data.payment_intent'],
+  });
+
+  return invoices.data.map((inv) => ({
+    id: inv.id,
+    number: inv.number,
+    amountPaid: inv.amount_paid,
+    currency: inv.currency,
+    status: inv.status ?? null,
+    periodStart: inv.period_start ? new Date(inv.period_start * 1000).toISOString() : null,
+    periodEnd: inv.period_end ? new Date(inv.period_end * 1000).toISOString() : null,
+    hostedInvoiceUrl: inv.hosted_invoice_url ?? null,
+    invoicePdf: inv.invoice_pdf ?? null,
+    createdAt: new Date(inv.created * 1000).toISOString(),
+  }));
+}
+
 export { buildVipMetadata, buildPlacementMetadata, buildSuccessUrl, buildCancelUrl };
