@@ -239,7 +239,8 @@ export async function syncVipSubscriptionForUser(
     });
   }
 
-  const newStatus = mapStripeStatusToLocal(stripeSub.status, stripeSub.current_period_end) ?? 'ACTIVE';
+  const stripeSubPeriodEnd = (stripeSub as unknown as { current_period_end: number | null }).current_period_end;
+  const newStatus = mapStripeStatusToLocal(stripeSub.status, stripeSubPeriodEnd) ?? 'ACTIVE';
 
   const resolvedCustomerId = existingLocal?.stripe_customer_id
     ?? (typeof stripeSub.customer === 'string' ? stripeSub.customer : null);
@@ -251,8 +252,8 @@ export async function syncVipSubscriptionForUser(
           status: newStatus,
           stripe_customer_id: resolvedCustomerId,
           stripe_subscription_id: stripeSub.id,
-          current_period_end: stripeSub.current_period_end
-            ? new Date(stripeSub.current_period_end * 1000)
+          current_period_end: stripeSubPeriodEnd
+            ? new Date(stripeSubPeriodEnd * 1000)
             : undefined,
           cancel_at_period_end: stripeSub.cancel_at_period_end,
         },
@@ -263,8 +264,8 @@ export async function syncVipSubscriptionForUser(
           status: newStatus,
           stripe_customer_id: resolvedCustomerId,
           stripe_subscription_id: stripeSub.id,
-          current_period_end: stripeSub.current_period_end
-            ? new Date(stripeSub.current_period_end * 1000)
+          current_period_end: stripeSubPeriodEnd
+            ? new Date(stripeSubPeriodEnd * 1000)
             : null,
           cancel_at_period_end: stripeSub.cancel_at_period_end,
         },
