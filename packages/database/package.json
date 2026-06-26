@@ -18,7 +18,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.client-cjs.json && node -e \"require('node:fs').cpSync('client-cjs/package.json','dist/cjs/package.json')\"",
+    "build": "bun run db:generate && tsc -p tsconfig.build.json && tsc -p tsconfig.client-cjs.json && node -e \"require('node:fs').cpSync('client-cjs/package.json','dist/cjs/package.json')\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "bun test",

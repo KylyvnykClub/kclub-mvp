@@ -19,7 +19,8 @@
     "e2e:ui": "playwright test --ui",
     "e2e:product-core": "playwright test --project=product-core",
     "e2e:admin-app": "playwright test --project=admin-app",
-    "theme-guard": "node scripts/theme-guard.js"
+    "theme-guard": "node scripts/theme-guard.js",
+    "postinstall": "bun --filter @kclub/database db:generate"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.61.0",
