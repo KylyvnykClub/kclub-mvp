@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
 
 export default async function Page(props: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await props.params;
-  const businesses = await getCachedPublicBusinesses();
+  const businesses = await getCachedPublicBusinesses().catch(() => []);
 
   return (
     <>

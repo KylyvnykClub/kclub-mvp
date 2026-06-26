@@ -10,8 +10,13 @@ export default async function MarketingLayout(props: {
   params: Promise<{ locale: Locale }>;
 }) {
   const { locale } = await props.params;
-  const profile = await getCurrentMemberProfileForPage();
-  const isAuthenticated = profile !== null;
+  let isAuthenticated = false;
+  try {
+    const profile = await getCurrentMemberProfileForPage();
+    isAuthenticated = profile !== null;
+  } catch {
+    // auth check failure should not break public pages
+  }
 
   return (
     <div className="min-h-screen bg-white text-zinc-950 dark:bg-[#121212] dark:text-white">
