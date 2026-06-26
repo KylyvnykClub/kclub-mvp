@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
     outputFileTracingRoot: path.join(__dirname, '../../'),
   } : {}),
   transpilePackages: ['@kclub/ui'],
-  serverExternalPackages: ['pino', 'pino-pretty', '@kclub/database'],
+  serverExternalPackages: ['pino', 'pino-pretty', '@kclub/database', '@kclub/database/client'],
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
