@@ -33,8 +33,8 @@ const nextConfig: NextConfig = {
   ...(process.env.VERCEL ? {
     outputFileTracingRoot: path.join(__dirname, '../../'),
   } : {}),
-  transpilePackages: ['@kclub/ui', '@kclub/database'],
-  serverExternalPackages: ['pino', 'pino-pretty'],
+  transpilePackages: ['@kclub/ui'],
+  serverExternalPackages: ['pino', 'pino-pretty', '@kclub/database'],
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
