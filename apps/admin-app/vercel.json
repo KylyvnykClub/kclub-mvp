@@ -2,6 +2,9 @@
   "installCommand": "cd ../.. && bun install --frozen-lockfile",
   "buildCommand": "cd ../.. && bun run build --filter=@kclub/admin-app...",
   "framework": "nextjs",
+  "env": {
+    "BUN_VERSION": "1.3.14"
+  },
   "headers": [
     {
       "source": "/(.*)",
