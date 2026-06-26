@@ -92,7 +92,7 @@ One-time configuration required before first production deploy. Use Stripe test 
 - [ ] Member sign-up flow starts (phone entry page renders)
 - [ ] `GET /api/stripe/webhook` returns **400**, not 404 (endpoint exists, rejects non-POST)
 - [ ] `GET /api/cron/daily-maintenance` without `Authorization` header returns **401**
-- [ ] No launch-blocking errors in logs or Sentry
+- [ ] No launch-blocking errors in logs
 
 ### admin-app (`admin.kylyvnyk.club`)
 
@@ -100,7 +100,7 @@ One-time configuration required before first production deploy. Use Stripe test 
 - [ ] Response headers include `X-Robots-Tag: noindex, nofollow`
 - [ ] Staff sign-in redirects correctly after authentication
 - [ ] Audit log and moderation routes are accessible to authorized staff
-- [ ] No launch-blocking errors in logs or Sentry
+- [ ] No launch-blocking errors in logs
 
 ## Rollback
 

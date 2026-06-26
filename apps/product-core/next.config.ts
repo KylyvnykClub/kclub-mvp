@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next';
-import { withSentryConfig } from '@sentry/nextjs';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
@@ -20,7 +19,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self'",
-      "connect-src 'self' https://api.stripe.com https://plausible.io https://*.supabase.co https://*.upstash.io https://*.ingest.sentry.io https://*.sentry.io",
+      "connect-src 'self' https://api.stripe.com https://plausible.io https://*.supabase.co https://*.upstash.io",
       "frame-src https://js.stripe.com https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
@@ -40,10 +39,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(withNextIntl(nextConfig), {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  disableLogger: true,
-});
+export default withNextIntl(nextConfig);

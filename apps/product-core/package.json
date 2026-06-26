@@ -18,7 +18,6 @@
     "@kclub/domain": "workspace:*",
     "@kclub/ui": "workspace:*",
     "@kclub/validation": "workspace:*",
-    "@sentry/nextjs": "^10.60.0",
     "@supabase/ssr": "^0.5.0",
     "@supabase/supabase-js": "^2.45.0",
     "@upstash/ratelimit": "^2.0.8",

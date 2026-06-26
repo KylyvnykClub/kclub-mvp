@@ -50,8 +50,6 @@ This document defines the environment contract for KCLUB MVP v4. Never commit re
 | ---------------------- | ------------------------ | ----------- | --------------------------------------- |
 | `NODE_ENV`             | Yes                      | all         | Runtime mode                            |
 | `APP_ENV`              | Yes                      | all         | `development`, `staging`, `production`  |
-| `SENTRY_DSN`           | Optional but recommended | all         | Error reporting                         |
-| `SENTRY_AUTH_TOKEN`    | Optional                 | CI/deploy   | Source map upload or release automation |
 | `RATE_LIMIT_REDIS_URL` | Optional but recommended | server only | Abuse/rate-limit backend if used        |
 
 ## Ownership
