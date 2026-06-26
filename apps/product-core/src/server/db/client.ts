@@ -6,8 +6,8 @@ let cachedPrisma: PrismaClient | null = null;
 
 export function getPrismaClient(): PrismaClient {
   if (!cachedPrisma) {
-    // Hide the require from Turbopack to prevent it from bundling Prisma and breaking __dirname
-    const { PrismaClient: NativePrismaClient } = eval('require')('@kclub/database/client');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PrismaClient: NativePrismaClient } = require('@kclub/database/client');
     cachedPrisma = new NativePrismaClient();
   }
 
