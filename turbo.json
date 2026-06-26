@@ -1,12 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["BUN_VERSION"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "dist/**", "!.next/cache/**"],
       "env": [
         "NODE_ENV",
+        "BUN_VERSION",
         "DATABASE_URL",
         "DATABASE_URL_DIRECT",
         "NEXT_PUBLIC_APP_URL",
@@ -37,6 +37,9 @@
         "EMAIL_PROVIDER_API_KEY",
         "EMAIL_FROM_ADDRESS",
         "LOG_LEVEL",
+        "AUTH_DEV_PHONE_BYPASS_ENABLED",
+        "AUTH_DEV_PHONE_BYPASS_SECRET",
+        "AUTH_DEV_2FA_BYPASS_ENABLED",
         "ALLOW_SEED",
         "CONFIRM_SEED",
         "DISABLE_VOCAB_GREP",
@@ -49,28 +52,34 @@
     },
     "typecheck": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": [],
+      "env": ["BUN_VERSION"]
     },
     "lint": {
-      "outputs": []
+      "outputs": [],
+      "env": ["BUN_VERSION"]
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "env": ["BUN_VERSION"]
     },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["BUN_VERSION"]
     },
     "start:e2e": {
       "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["BUN_VERSION"]
     },
     "e2e": {
       "dependsOn": ["build"],
-      "cache": false
+      "cache": false,
+      "env": ["BUN_VERSION"]
     }
   }
 }
