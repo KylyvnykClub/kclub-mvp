@@ -30,12 +30,21 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.join(__dirname, '../../'),
+  ...(process.env.VERCEL ? {
+    outputFileTracingRoot: path.join(__dirname, '../../'),
+  } : {}),
   transpilePackages: ['@kclub/ui', '@kclub/database'],
   serverExternalPackages: ['pino', 'pino-pretty'],
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  ...(process.env.VERCEL ? {
+    outputFileTracingIncludes: {
+      '/(.*)': [
+        '../../packages/database/src/generated/**/*',
+      ],
+    },
+  } : {}),
 
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];

@@ -19,7 +19,7 @@ const schemaPath = resolve(import.meta.dir, '../prisma/schema.prisma');
 
 describe('database package contracts', () => {
   test('exports generated types placeholder metadata', () => {
-    expect(GENERATED_DATABASE_TYPES_PATH).toBe('node_modules/@prisma/client');
+    expect(GENERATED_DATABASE_TYPES_PATH).toBe('packages/database/src/generated/client');
     expect(GENERATED_DATABASE_TYPES_COMMAND).toBe('bun --filter @kclub/database db:generate');
   });
 

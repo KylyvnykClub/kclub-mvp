@@ -11,10 +11,10 @@
       "default": "./dist/index.js"
     },
     "./client": {
-      "types": "./dist/client.d.ts",
-      "import": "./dist/client.js",
-      "require": "./dist/cjs/client.js",
-      "default": "./dist/client.js"
+      "types": "./src/generated/client/index.d.ts",
+      "import": "./src/generated/client/index.js",
+      "require": "./src/generated/client/index.js",
+      "default": "./src/generated/client/index.js"
     }
   },
   "scripts": {
