@@ -35,12 +35,17 @@ function buildPlacementMetadata(userId: string, businessId: string): Record<stri
   };
 }
 
+function normalizeAppUrl(url: string): string {
+  const stripped = url.replace(/\/+$/, '');
+  return stripped.replace(/\/(en|ru|uk)$/, '');
+}
+
 function buildSuccessUrl(appUrl: string, locale: Locale): string {
-  return `${appUrl}/${locale}/m/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+  return `${normalizeAppUrl(appUrl)}/${locale}/m/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
 }
 
 function buildCancelUrl(appUrl: string, locale: Locale): string {
-  return `${appUrl}/${locale}/m/checkout/cancel`;
+  return `${normalizeAppUrl(appUrl)}/${locale}/m/checkout/cancel`;
 }
 
 async function getPriceIdForKey(key: string): Promise<string> {

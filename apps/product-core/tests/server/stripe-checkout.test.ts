@@ -43,6 +43,21 @@ describe('buildSuccessUrl', () => {
     const url = buildSuccessUrl('https://example.com', 'uk');
     expect(url).toBe('https://example.com/uk/m/checkout/success?session_id={CHECKOUT_SESSION_ID}');
   });
+
+  test('strips trailing locale prefix from appUrl', () => {
+    const url = buildSuccessUrl('https://example.com/en', 'en');
+    expect(url).toBe('https://example.com/en/m/checkout/success?session_id={CHECKOUT_SESSION_ID}');
+  });
+
+  test('strips trailing slash from appUrl', () => {
+    const url = buildSuccessUrl('https://example.com/', 'en');
+    expect(url).toBe('https://example.com/en/m/checkout/success?session_id={CHECKOUT_SESSION_ID}');
+  });
+
+  test('strips trailing slash and locale prefix from appUrl', () => {
+    const url = buildSuccessUrl('https://example.com/ru/', 'en');
+    expect(url).toBe('https://example.com/en/m/checkout/success?session_id={CHECKOUT_SESSION_ID}');
+  });
 });
 
 describe('buildCancelUrl', () => {
@@ -59,5 +74,15 @@ describe('buildCancelUrl', () => {
   test('does not include session_id', () => {
     const url = buildCancelUrl('https://example.com', 'en');
     expect(url).not.toContain('session_id');
+  });
+
+  test('strips trailing locale prefix from appUrl', () => {
+    const url = buildCancelUrl('https://example.com/uk', 'en');
+    expect(url).toBe('https://example.com/en/m/checkout/cancel');
+  });
+
+  test('strips trailing slash from appUrl', () => {
+    const url = buildCancelUrl('https://example.com/', 'ru');
+    expect(url).toBe('https://example.com/ru/m/checkout/cancel');
   });
 });

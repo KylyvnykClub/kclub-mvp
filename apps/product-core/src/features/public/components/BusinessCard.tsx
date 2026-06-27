@@ -51,7 +51,7 @@ export function BusinessCard({
         </p>
       ) : null}
 
-      <div className="mt-auto flex flex-col gap-3 sm:flex-row">
+      <div className="mt-auto flex flex-col gap-3">
         <Link
           href={href}
           className="kclub-button-primary w-full rounded-none border-0 px-4 py-3 text-xs tracking-[0.24em] sm:w-auto"
@@ -64,7 +64,7 @@ export function BusinessCard({
             href={externalUrl}
             target="_blank"
             rel="noreferrer"
-            className="kclub-button-secondary w-full rounded-none px-4 py-3 text-xs tracking-[0.24em] sm:w-auto"
+            className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-zinc-500 transition hover:text-zinc-800 hover:underline dark:text-white/58 dark:hover:text-white/85 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus"
           >
             <ExternalLink aria-hidden="true" size={16} strokeWidth={1.5} />
             {externalLabel}
