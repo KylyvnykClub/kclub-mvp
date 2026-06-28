@@ -81,4 +81,6 @@ To run checks on specific affected packages, you can use Turbo filtering (e.g., 
 
 ## Status
 
-Documentation is now aligned around the monorepo architecture. Application scaffold and implementation follow the phase plan in `docs/development/`.
+Documentation is now aligned around the monorepo architecture. Application scaffold and implementation follow the phase plan in `docs/development/`
+
+## Migration
