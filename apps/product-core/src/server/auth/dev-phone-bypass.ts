@@ -27,7 +27,7 @@ async function findAuthUserIdByPhoneInDatabase(phone: string): Promise<string | 
   const candidates = getPhoneLookupCandidates(phone);
 
   for (const candidate of candidates) {
-    const { rows } = await db.execute(sql`
+    const rows = await db.execute(sql`
       SELECT id::text AS id
       FROM auth.users
       WHERE phone = ${candidate}

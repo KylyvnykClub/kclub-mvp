@@ -337,13 +337,14 @@ async function seedScenario(
     const customerId = checkoutSession.customer ?? `cus_e2e_${timestamp}`;
 
     if (metadata?.type === 'vip' && metadata.userId) {
+      const userId = metadata.userId;
       await db.transaction(async (tx) => {
         await tx.update(schema.users)
           .set({ membership_tier: 'VIP' })
-          .where(eq(schema.users.id, metadata.userId));
+          .where(eq(schema.users.id, userId));
           
         await tx.insert(schema.vipSubscriptions).values({
-          user_id: metadata.userId,
+          user_id: userId,
           status: 'ACTIVE',
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
@@ -362,14 +363,16 @@ async function seedScenario(
     }
 
     if (metadata?.type === 'placement' && metadata.userId && metadata.businessProfileId) {
+      const userId = metadata.userId;
+      const businessProfileId = metadata.businessProfileId;
       await db.transaction(async (tx) => {
         await tx.update(schema.businessProfiles)
           .set({ status: 'PUBLISHED', published_at: new Date() })
-          .where(eq(schema.businessProfiles.id, metadata.businessProfileId));
+          .where(eq(schema.businessProfiles.id, businessProfileId));
 
         await tx.insert(schema.subscriptions).values({
-          user_id: metadata.userId,
-          business_profile_id: metadata.businessProfileId,
+          user_id: userId,
+          business_profile_id: businessProfileId,
           kind: 'BUSINESS_PLACEMENT',
           status: 'ACTIVE',
           stripe_customer_id: customerId,

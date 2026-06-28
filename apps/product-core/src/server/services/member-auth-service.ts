@@ -83,7 +83,7 @@ export async function sendPhoneOtp(
     columns: { id: true, status: true },
   });
 
-  const intent = determineAuthIntent(existingUser, input.purpose);
+  const intent = determineAuthIntent(existingUser ?? null, input.purpose);
   assertIntentAllowed(intent, input.purpose);
 
   if (isDevPhoneBypassEnabled()) {
@@ -133,7 +133,7 @@ export async function verifyPhoneOtp(
     columns: { id: true, status: true },
   });
 
-  const intent = determineAuthIntent(existingUser, input.purpose);
+  const intent = determineAuthIntent(existingUser ?? null, input.purpose);
   assertIntentAllowed(intent, input.purpose);
 
   const { supabaseUserId } = isDevPhoneBypassEnabled()

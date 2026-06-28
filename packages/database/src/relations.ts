@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
-import { users, memberCards, vipSubscriptions, businessProfiles, subscriptions, businessIntroductions, categories, countries, cities, adminUsers, admin2fa, adminSessions, auditLogs, adminConfigs, stripeWebhookEvents } from './schema.js';
+import { users, memberCards, vipSubscriptions, businessProfiles, subscriptions, businessIntroductions, categories, countries, cities, adminUsers, admin2fa, adminSessions, auditLogs, adminConfigs } from './schema.js';
 
-export const usersRelations = relations(users, ({ many, one }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   memberCards: many(memberCards),
   vipSubscriptions: many(vipSubscriptions),
   businessProfiles: many(businessProfiles),
