@@ -1,4 +1,5 @@
-import { PrismaClient } from '../generated/client/index.js';
+import { eq, and } from 'drizzle-orm';
+import { getDbClient, schema } from '../index.js';
 import {
   ADMIN_BOOTSTRAP_PLAN,
   CATEGORY_SEED_PLAN,
@@ -125,30 +126,29 @@ function normalizePhone(phone: string): string {
   return phone.replace(/[^\d+]/g, '').trim();
 }
 
-async function seedReferenceData(prisma: PrismaClient): Promise<void> {
+async function seedReferenceData(db: ReturnType<typeof getDbClient>): Promise<void> {
   for (const country of COUNTRY_SEED_PLAN) {
-    await prisma.country.upsert({
-      where: { slug: country.slug },
-      create: {
+    const existing = await db.select().from(schema.countries).where(eq(schema.countries.slug, country.slug)).limit(1);
+    if (existing.length > 0) {
+      await db.update(schema.countries).set({
+        code2: country.code2,
+        code3: country.code3,
+        name: country.name,
+        is_active: true,
+      }).where(eq(schema.countries.slug, country.slug));
+    } else {
+      await db.insert(schema.countries).values({
         code2: country.code2,
         code3: country.code3,
         name: country.name,
         slug: country.slug,
         is_active: true,
-      },
-      update: {
-        code2: country.code2,
-        code3: country.code3,
-        name: country.name,
-        is_active: true,
-      },
-    });
+      });
+    }
   }
 
-  const countries = await prisma.country.findMany({
-    where: { slug: { in: COUNTRY_SEED_PLAN.map((country) => country.slug) } },
-  });
-  const countryBySlug = new Map(countries.map((country) => [country.slug, country]));
+  const countriesList = await db.select().from(schema.countries);
+  const countryBySlug = new Map(countriesList.map((country) => [country.slug, country]));
 
   for (const city of CITY_SEED_PLAN) {
     const country = countryBySlug.get(city.countrySlug);
@@ -156,67 +156,67 @@ async function seedReferenceData(prisma: PrismaClient): Promise<void> {
       throw new Error(`Missing country for city seed: ${city.countrySlug}`);
     }
 
-    await prisma.city.upsert({
-      where: {
-        country_id_slug: {
-          country_id: country.id,
-          slug: city.slug,
-        },
-      },
-      create: {
+    const existing = await db.select().from(schema.cities).where(and(eq(schema.cities.country_id, country.id), eq(schema.cities.slug, city.slug))).limit(1);
+    if (existing.length > 0) {
+      await db.update(schema.cities).set({
+        name: city.name,
+        is_active: true,
+      }).where(and(eq(schema.cities.country_id, country.id), eq(schema.cities.slug, city.slug)));
+    } else {
+      await db.insert(schema.cities).values({
         country_id: country.id,
         name: city.name,
         slug: city.slug,
         is_active: true,
-      },
-      update: {
-        name: city.name,
-        is_active: true,
-      },
-    });
+      });
+    }
   }
 
   for (const category of CATEGORY_SEED_PLAN) {
-    await prisma.category.upsert({
-      where: { slug: category.slug },
-      create: {
+    const existing = await db.select().from(schema.categories).where(eq(schema.categories.slug, category.slug)).limit(1);
+    if (existing.length > 0) {
+      await db.update(schema.categories).set({
+        name: category.name,
+        is_high_risk: category.isHighRisk,
+        is_active: true,
+      }).where(eq(schema.categories.slug, category.slug));
+    } else {
+      await db.insert(schema.categories).values({
         name: category.name,
         slug: category.slug,
         is_high_risk: category.isHighRisk,
         is_active: true,
-      },
-      update: {
-        name: category.name,
-        is_high_risk: category.isHighRisk,
-        is_active: true,
-      },
-    });
+      });
+    }
   }
 
   for (const key of CONFIG_SEED_PLAN.initialAdminConfigKeys) {
-    await prisma.adminConfig.upsert({
-      where: { key },
-      create: {
+    const existing = await db.select().from(schema.adminConfigs).where(eq(schema.adminConfigs.key, key)).limit(1);
+    if (existing.length === 0) {
+      await db.insert(schema.adminConfigs).values({
         key,
         value: {},
         description: `Initial ${key} seed placeholder`,
-      },
-      update: {},
-    });
+      });
+    }
   }
 
   for (const key of CONFIG_SEED_PLAN.stripePriceKeys) {
     const priceId = resolveStripePriceIdFromEnv(key);
+    const valueObj = priceId ? { priceId } : {};
 
-    await prisma.adminConfig.upsert({
-      where: { key },
-      create: {
+    const existing = await db.select().from(schema.adminConfigs).where(eq(schema.adminConfigs.key, key)).limit(1);
+    if (existing.length > 0) {
+      await db.update(schema.adminConfigs).set({
+        value: valueObj,
+      }).where(eq(schema.adminConfigs.key, key));
+    } else {
+      await db.insert(schema.adminConfigs).values({
         key,
-        value: priceId ? { priceId } : {},
+        value: valueObj,
         description: `Stripe price config for ${key}`,
-      },
-      update: priceId ? { value: { priceId } } : {},
-    });
+      });
+    }
   }
 }
 
@@ -242,7 +242,7 @@ function resolveStripePriceIdFromEnv(configKey: string): string | null {
   return null;
 }
 
-async function seedBootstrapOwner(prisma: PrismaClient): Promise<void> {
+async function seedBootstrapOwner(db: ReturnType<typeof getDbClient>): Promise<void> {
   const ownerPhone = process.env[ADMIN_BOOTSTRAP_PLAN.ownerPhoneEnv];
   if (!ownerPhone) {
     console.log('Skipping admin owner seed: ADMIN_BOOTSTRAP_OWNER_PHONE is not set');
@@ -250,29 +250,33 @@ async function seedBootstrapOwner(prisma: PrismaClient): Promise<void> {
   }
 
   const phone = normalizePhone(ownerPhone);
-  await prisma.adminUser.upsert({
-    where: { phone },
-    create: {
+  const existing = await db.select().from(schema.adminUsers).where(eq(schema.adminUsers.phone, phone)).limit(1);
+  if (existing.length > 0) {
+    await db.update(schema.adminUsers).set({
+      role: 'OWNER',
+      display_name: 'Bootstrap Owner',
+      is_active: true,
+    }).where(eq(schema.adminUsers.phone, phone));
+  } else {
+    await db.insert(schema.adminUsers).values({
       phone,
       role: 'OWNER',
       display_name: 'Bootstrap Owner',
       is_active: true,
-    },
-    update: {
-      role: 'OWNER',
-      display_name: 'Bootstrap Owner',
-      is_active: true,
-    },
-  });
+    });
+  }
 }
 
-async function seedDemoBusinesses(prisma: PrismaClient): Promise<void> {
-  const countries = await prisma.country.findMany();
-  const cities = await prisma.city.findMany({ include: { country: true } });
-  const categories = await prisma.category.findMany();
+async function seedDemoBusinesses(db: ReturnType<typeof getDbClient>): Promise<void> {
+  const countries = await db.select().from(schema.countries);
+  const cities = await db.select().from(schema.cities);
+  const categories = await db.select().from(schema.categories);
 
   const countryBySlug = new Map(countries.map((country) => [country.slug, country]));
-  const cityByKey = new Map(cities.map((city) => [`${city.country.slug}:${city.slug}`, city]));
+  const cityByKey = new Map(cities.map((city) => {
+    const c = countries.find(co => co.id === city.country_id);
+    return [`${c?.slug}:${city.slug}`, city];
+  }));
   const categoryBySlug = new Map(categories.map((category) => [category.slug, category]));
 
   const now = new Date();
@@ -286,24 +290,37 @@ async function seedDemoBusinesses(prisma: PrismaClient): Promise<void> {
       throw new Error(`Missing taxonomy for demo business ${demo.slug}`);
     }
 
-    const user = await prisma.user.upsert({
-      where: { phone: demo.userPhone },
-      create: {
+    let user;
+    const existingUsers = await db.select().from(schema.users).where(eq(schema.users.phone, demo.userPhone)).limit(1);
+    if (existingUsers.length > 0) {
+      user = (await db.update(schema.users).set({
+        display_name: demo.userDisplayName,
+      }).where(eq(schema.users.phone, demo.userPhone)).returning())[0];
+    } else {
+      user = (await db.insert(schema.users).values({
         phone: demo.userPhone,
         display_name: demo.userDisplayName,
         locale_preference: 'en',
         terms_accepted_at: now,
-      },
-      update: {
-        display_name: demo.userDisplayName,
-      },
-    });
+      }).returning())[0];
+    }
 
     const demoDescription = 'description' in demo ? demo.description : undefined;
 
-    await prisma.businessProfile.upsert({
-      where: { slug: demo.slug },
-      create: {
+    const existingBiz = await db.select().from(schema.businessProfiles).where(eq(schema.businessProfiles.slug, demo.slug)).limit(1);
+    if (existingBiz.length > 0) {
+      await db.update(schema.businessProfiles).set({
+        name: demo.name,
+        status: 'PUBLISHED',
+        brief_description: demo.briefDescription,
+        description: demoDescription,
+        featured_top: demo.featuredTop,
+        featured_recommended: demo.featuredRecommended,
+        member_discount_percent: demo.memberDiscountPercent,
+        published_at: now,
+      }).where(eq(schema.businessProfiles.slug, demo.slug));
+    } else {
+      await db.insert(schema.businessProfiles).values({
         user_id: user.id,
         slug: demo.slug,
         name: demo.name,
@@ -321,18 +338,8 @@ async function seedDemoBusinesses(prisma: PrismaClient): Promise<void> {
         member_discount_percent: demo.memberDiscountPercent,
         approved_at: now,
         published_at: now,
-      },
-      update: {
-        name: demo.name,
-        status: 'PUBLISHED',
-        brief_description: demo.briefDescription,
-        description: demoDescription,
-        featured_top: demo.featuredTop,
-        featured_recommended: demo.featuredRecommended,
-        member_discount_percent: demo.memberDiscountPercent,
-        published_at: now,
-      },
-    });
+      });
+    }
   }
 }
 
@@ -341,33 +348,30 @@ async function main(): Promise<void> {
     throw new Error('DATABASE_URL must be set before running db:seed');
   }
 
-  const prisma = new PrismaClient();
+  const db = getDbClient();
 
   try {
-    await seedReferenceData(prisma);
+    await seedReferenceData(db);
     console.log(
       `Reference seed complete: ${COUNTRY_SEED_PLAN.length} countries, ${CITY_SEED_PLAN.length} cities, ${CATEGORY_SEED_PLAN.length} categories`,
     );
 
-    await seedBootstrapOwner(prisma);
+    await seedBootstrapOwner(db);
     console.log('Admin bootstrap owner seed complete');
 
     if (isTruthyFlag(process.env.ALLOW_SEED) && isTruthyFlag(process.env.CONFIRM_SEED)) {
-      await seedDemoBusinesses(prisma);
+      await seedDemoBusinesses(db);
       console.log(`Demo seed complete: ${DEMO_BUSINESSES.length} published businesses`);
     } else {
       console.log(
         'Demo businesses skipped. Set ALLOW_SEED=1 and CONFIRM_SEED=1 to insert demo data.',
       );
     }
+  } catch (error) {
+    console.error(error);
   } finally {
-    await prisma.$disconnect();
+    process.exit(0);
   }
 }
 
-if (import.meta.main) {
-  main().catch((error: unknown) => {
-    console.error(error);
-    process.exit(1);
-  });
-}
+main();

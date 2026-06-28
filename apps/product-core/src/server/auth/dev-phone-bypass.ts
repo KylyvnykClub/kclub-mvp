@@ -3,7 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { ERROR_CODES } from '@kclub/contracts';
 
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
+import { eq, sql } from 'drizzle-orm';
 
 import { createSupabaseServiceClient } from './supabase';
 import {
@@ -22,19 +23,19 @@ export {
 } from './dev-phone-bypass-config';
 
 async function findAuthUserIdByPhoneInDatabase(phone: string): Promise<string | null> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const candidates = getPhoneLookupCandidates(phone);
 
   for (const candidate of candidates) {
-    const rows = await prisma.$queryRaw<{ id: string }[]>`
+    const { rows } = await db.execute(sql`
       SELECT id::text AS id
       FROM auth.users
       WHERE phone = ${candidate}
       LIMIT 1
-    `;
+    `);
 
     if (rows[0]?.id) {
-      return rows[0].id;
+      return rows[0].id as string;
     }
   }
 
@@ -78,12 +79,12 @@ async function resolveSupabaseAuthUserId(
   phone: string,
   purpose: 'sign-in' | 'sign-up',
 ): Promise<string> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const admin = createSupabaseServiceClient();
 
-  const member = await prisma.user.findUnique({
-    where: { phone },
-    select: { supabase_auth_user_id: true },
+  const member = await db.query.users.findFirst({
+    where: eq(schema.users.phone, phone),
+    columns: { supabase_auth_user_id: true },
   });
 
   if (member?.supabase_auth_user_id) {

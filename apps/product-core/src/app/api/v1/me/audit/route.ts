@@ -5,7 +5,8 @@ import { ERROR_CODES } from '@kclub/contracts';
 import { createSupabaseServerClient } from '@/server/auth';
 import { jsonSuccess, jsonError, jsonErrorFromUnknown } from '@/server/api';
 import { getMemberBySupabaseUserId } from '@/server/services';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
+import { desc, eq } from 'drizzle-orm';
 
 export async function GET(_request: NextRequest) {
   try {
@@ -32,11 +33,11 @@ export async function GET(_request: NextRequest) {
       );
     }
 
-    const prisma = getPrismaClient();
-    const entries = await prisma.auditLog.findMany({
-      where: { entity_id: member.id },
-      orderBy: { created_at: 'desc' },
-      take: 50,
+    const db = getDbClient();
+    const entries = await db.query.auditLogs.findMany({
+      where: eq(schema.auditLogs.entity_id, member.id),
+      orderBy: [desc(schema.auditLogs.created_at)],
+      limit: 50,
     });
 
     const data = entries.map((log: any) => ({

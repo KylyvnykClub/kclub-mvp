@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import type { Locale } from '@/i18n/routing';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
+import { desc, eq } from 'drizzle-orm';
 import { getStripeClient } from '@/server/stripe/client';
 import { getCurrentMemberProfileForPage } from '@/server/member-page';
 
@@ -30,40 +31,42 @@ export default async function CheckoutSuccessPage({
         session.metadata.userId &&
         profile?.id === session.metadata.userId
       ) {
-        const prisma = getPrismaClient();
+        const db = getDbClient();
         const userId = profile.id;
         const stripeCustomerId = typeof session.customer === 'string' ? session.customer : null;
         const stripeSubscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
 
-        const existing = await prisma.vipSubscription.findFirst({
-          where: { user_id: userId },
-          orderBy: { created_at: 'desc' },
+        const existing = await db.query.vipSubscriptions.findFirst({
+          where: eq(schema.vipSubscriptions.user_id, userId),
+          orderBy: [desc(schema.vipSubscriptions.created_at)],
         });
 
-        await prisma.$transaction([
-          // eslint-disable-next-line
-          (prisma.user as any).update({
-            where: { id: userId },
-            data: { membership_tier: 'VIP' },
-          }),
-          existing
-            ? prisma.vipSubscription.update({
-                where: { id: existing.id },
-                data: {
-                  status: 'ACTIVE',
-                  stripe_customer_id: stripeCustomerId ?? existing.stripe_customer_id,
-                  stripe_subscription_id: stripeSubscriptionId ?? existing.stripe_subscription_id,
-                },
+        await db.transaction(async (tx) => {
+          await tx
+            .update(schema.users)
+            .set({ membership_tier: 'VIP' })
+            .where(eq(schema.users.id, userId));
+
+          if (existing) {
+            await tx
+              .update(schema.vipSubscriptions)
+              .set({
+                status: 'ACTIVE',
+                stripe_customer_id: stripeCustomerId ?? existing.stripe_customer_id,
+                stripe_subscription_id: stripeSubscriptionId ?? existing.stripe_subscription_id,
               })
-            : prisma.vipSubscription.create({
-                data: {
-                  user_id: userId,
-                  status: 'ACTIVE',
-                  stripe_customer_id: stripeCustomerId,
-                  stripe_subscription_id: stripeSubscriptionId,
-                },
-              }),
-        ]);
+              .where(eq(schema.vipSubscriptions.id, existing.id));
+          } else {
+            await tx
+              .insert(schema.vipSubscriptions)
+              .values({
+                user_id: userId,
+                status: 'ACTIVE',
+                stripe_customer_id: stripeCustomerId,
+                stripe_subscription_id: stripeSubscriptionId,
+              });
+          }
+        });
       }
     } catch {
       // Non-critical — webhook will also handle this

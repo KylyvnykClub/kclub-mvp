@@ -1,42 +1,34 @@
 {
   "name": "@kclub/database",
   "version": "0.1.0",
+  "main": "./dist/index.js",
   "private": true,
   "type": "module",
-  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./client": {
-      "types": "./src/generated/client/index.d.ts",
-      "import": "./src/generated/client/index.js",
-      "require": "./src/generated/client/index.js",
-      "default": "./src/generated/client/index.js"
     }
   },
   "scripts": {
-    "build": "bun run db:generate && tsc -p tsconfig.build.json && tsc -p tsconfig.client-cjs.json && node -e \"require('node:fs').cpSync('client-cjs/package.json','dist/cjs/package.json')\"",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "bun test",
-    "db:format": "prisma format --schema prisma/schema.prisma",
-    "db:validate": "prisma validate --schema prisma/schema.prisma",
-    "db:generate": "prisma generate --schema prisma/schema.prisma",
-    "db:migrate:dev": "prisma migrate dev --schema prisma/schema.prisma",
-    "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
     "db:seed": "bun run src/seeds/run-seed.ts",
     "db:seed:plan": "bun run src/seeds/seed-plan.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.0.0"
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@kclub/config": "workspace:*",
     "@types/bun": "^1.3.3",
-    "prisma": "^6.0.0",
+    "drizzle-kit": "^0.31.10",
     "typescript": "^5.8.3"
   }
 }

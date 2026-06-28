@@ -1,7 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 
 import type { Locale } from '@/i18n/routing';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
+import { and, asc, eq } from 'drizzle-orm';
 import { BusinessSubmitWizard } from '@/features/member/components/BusinessSubmitWizard';
 import type { CityTaxonomyOption, TaxonomyOption } from '@/features/member/components/BusinessPanel';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
@@ -14,14 +15,23 @@ export async function IntroductionsTabPanel({ locale }: IntroductionsTabPanelPro
   const t = await getTranslations({ locale, namespace: 'member.dashboard.introductions' });
   const tWizard = await getTranslations({ locale, namespace: 'member.businessOnboarding' });
 
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const [countries, categories, cities] = await Promise.all([
-    prisma.country.findMany({ where: { is_active: true }, orderBy: { name: 'asc' } }),
-    prisma.category.findMany({
-      where: { is_active: true, is_high_risk: false },
-      orderBy: { name: 'asc' },
+    db.query.countries.findMany({
+      where: eq(schema.countries.is_active, true),
+      orderBy: [asc(schema.countries.name)],
     }),
-    prisma.city.findMany({ where: { is_active: true }, orderBy: { name: 'asc' } }),
+    db.query.categories.findMany({
+      where: and(
+        eq(schema.categories.is_active, true),
+        eq(schema.categories.is_high_risk, false)
+      ),
+      orderBy: [asc(schema.categories.name)],
+    }),
+    db.query.cities.findMany({
+      where: eq(schema.cities.is_active, true),
+      orderBy: [asc(schema.cities.name)],
+    }),
   ]);
 
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));

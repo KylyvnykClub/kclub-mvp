@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
+import { eq } from 'drizzle-orm';
 
 function getE2eSecret(): string | undefined {
   return process.env.E2E_TEST_SECRET;
@@ -31,9 +32,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ pat
       // Actually we are IN product-core, we can just use the db!
       let mockUserId = '11111111-2222-3333-4444-555555555555';
       try {
-        const db = getPrismaClient();
-        const existingMember = await db.user.findFirst({
-          where: { phone },
+        const db = getDbClient();
+        const existingMember = await db.query.users.findFirst({
+          where: eq(schema.users.phone, phone),
         });
         if (existingMember) {
           mockUserId = existingMember.id;
