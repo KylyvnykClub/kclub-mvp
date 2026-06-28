@@ -4,5 +4,6 @@
   "framework": "nextjs",
   "env": {
     "BUN_VERSION": "1.3.14"
-  }
+  },
+  "ignoreCommand": "git branch --show-current | grep -q '^main$'"
 }

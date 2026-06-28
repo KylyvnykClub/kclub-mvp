@@ -10,5 +10,6 @@
       "source": "/(.*)",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
-  ]
+  ],
+  "ignoreCommand": "git branch --show-current | grep -q '^main$'"
 }
