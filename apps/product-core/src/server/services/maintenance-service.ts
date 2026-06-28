@@ -1,4 +1,5 @@
-import { getPrismaClient } from '@/server/db';
+import { eq, and, isNotNull, lte, not, inArray } from 'drizzle-orm';
+import { getDbClient, schema } from '@/server/db';
 import { createDbAuditService } from '@/server/audit';
 import { createRequestContext } from '@/server/context';
 
@@ -15,77 +16,69 @@ export type DailyMaintenanceResult = {
 };
 
 export async function runDailyMaintenance(): Promise<DailyMaintenanceResult> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const now = new Date();
 
-  const expiredCards = await expireCards(prisma, now);
-  const expiredSubscriptions = await expireSubscriptions(prisma, now);
-  const hiddenBusinesses = await hideExpiredBusinesses(prisma, now);
-  const cleanedEvents = await cleanOldWebhookEvents(prisma, now);
+  const expiredCards = await expireCards(db, now);
+  const expiredSubscriptions = await expireSubscriptions(db, now);
+  const hiddenBusinesses = await hideExpiredBusinesses(db, now);
+  const cleanedEvents = await cleanOldWebhookEvents(db, now);
 
   return { expiredCards, expiredSubscriptions, hiddenBusinesses, cleanedEvents };
 }
 
-async function expireCards(prisma: ReturnType<typeof getPrismaClient>, now: Date): Promise<number> {
-  const result = await prisma.memberCard.updateMany({
-    where: { status: 'ACTIVE', expires_at: { not: null, lte: now } },
-    data: { status: 'EXPIRED' },
-  });
-  return result.count;
+async function expireCards(db: ReturnType<typeof getDbClient>, now: Date): Promise<number> {
+  const result = await db.update(schema.memberCards)
+    .set({ status: 'EXPIRED' })
+    .where(and(eq(schema.memberCards.status, 'ACTIVE'), isNotNull(schema.memberCards.expires_at), lte(schema.memberCards.expires_at, now)))
+    .returning({ id: schema.memberCards.id });
+  return result.length;
 }
 
 async function expireSubscriptions(
-  prisma: ReturnType<typeof getPrismaClient>,
+  db: ReturnType<typeof getDbClient>,
   now: Date,
 ): Promise<number> {
-  const result = await prisma.vipSubscription.updateMany({
-    where: {
-      status: { not: 'EXPIRED' },
-      current_period_end: { not: null, lte: now },
-    },
-    data: { status: 'EXPIRED', expires_at: now },
-  });
-  return result.count;
+  const result = await db.update(schema.vipSubscriptions)
+    .set({ status: 'EXPIRED', expires_at: now })
+    .where(and(
+      not(eq(schema.vipSubscriptions.status, 'EXPIRED')),
+      isNotNull(schema.vipSubscriptions.current_period_end),
+      lte(schema.vipSubscriptions.current_period_end, now)
+    ))
+    .returning({ id: schema.vipSubscriptions.id });
+  return result.length;
 }
 
 async function hideExpiredBusinesses(
-  prisma: ReturnType<typeof getPrismaClient>,
+  db: ReturnType<typeof getDbClient>,
   now: Date,
 ): Promise<number> {
-  const expiredVipUserIds = await prisma.vipSubscription.findMany({
-    where: {
-      status: 'EXPIRED',
-      user_id: { not: undefined },
-    },
-    select: { user_id: true },
-    distinct: ['user_id'],
-  });
+  const expiredVipUserIds = await db.selectDistinct({ user_id: schema.vipSubscriptions.user_id })
+    .from(schema.vipSubscriptions)
+    .where(and(eq(schema.vipSubscriptions.status, 'EXPIRED'), isNotNull(schema.vipSubscriptions.user_id)));
 
   if (expiredVipUserIds.length === 0) return 0;
 
-  const userIds = expiredVipUserIds.map((s) => s.user_id);
+  const userIds = expiredVipUserIds.map((s) => s.user_id).filter((id): id is string => id !== null);
 
-  const businessesToHide = await prisma.businessProfile.findMany({
-    where: {
-      user_id: { in: userIds },
-      status: 'PUBLISHED',
-    },
+  const businessesToHide = await db.query.businessProfiles.findMany({
+    where: and(inArray(schema.businessProfiles.user_id, userIds), eq(schema.businessProfiles.status, 'PUBLISHED')),
   });
 
   if (businessesToHide.length === 0) return 0;
 
   const businessIds = businessesToHide.map((b) => b.id);
 
-  await prisma.$transaction(async (tx) => {
-    await tx.businessProfile.updateMany({
-      where: { id: { in: businessIds } },
-      data: {
+  await db.transaction(async (tx) => {
+    await tx.update(schema.businessProfiles)
+      .set({
         status: 'HIDDEN',
         hidden_at: now,
         featured_top: false,
         featured_recommended: false,
-      },
-    });
+      })
+      .where(inArray(schema.businessProfiles.id, businessIds));
   });
 
   for (const business of businessesToHide) {
@@ -105,12 +98,12 @@ async function hideExpiredBusinesses(
 }
 
 async function cleanOldWebhookEvents(
-  prisma: ReturnType<typeof getPrismaClient>,
+  db: ReturnType<typeof getDbClient>,
   now: Date,
 ): Promise<number> {
   const cutoff = new Date(now.getTime() - WEBHOOK_RETENTION_DAYS * 24 * 60 * 60 * 1000);
-  const result = await prisma.stripeWebhookEvent.deleteMany({
-    where: { created_at: { lte: cutoff } },
-  });
-  return result.count;
+  const result = await db.delete(schema.stripeWebhookEvents)
+    .where(lte(schema.stripeWebhookEvents.created_at, cutoff))
+    .returning({ id: schema.stripeWebhookEvents.id });
+  return result.length;
 }

@@ -7,9 +7,10 @@ import {
 } from '@kclub/contracts';
 import { canTransitionBusinessStatus, hasActiveVipAccess } from '@kclub/domain';
 import { revalidateTag } from 'next/cache';
+import { eq, and, desc } from 'drizzle-orm';
 
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
 import { getStripeClient } from '@/server/stripe/client';
 import { createDbAuditService } from '@/server/audit';
 import { createRequestContext } from '@/server/context';
@@ -42,22 +43,20 @@ export function mapStripeStatusToLocal(
 }
 
 export async function processStripeEvent(event: Stripe.Event): Promise<void> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const eventId = event.id;
 
   try {
-    await prisma.stripeWebhookEvent.create({
-      data: {
-        event_id: eventId,
-        event_type: event.type,
-        payload: event as unknown as any,
-        handler_status: 'RECEIVED',
-        livemode: event.livemode ?? false,
-      },
+    await db.insert(schema.stripeWebhookEvents).values({
+      event_id: eventId,
+      event_type: event.type,
+      payload: event as unknown as any,
+      handler_status: 'RECEIVED',
+      livemode: event.livemode ?? false,
     });
   } catch (err: unknown) {
-    const prismaError = err as { code?: string };
-    if (prismaError?.code === 'P2002') {
+    // Unique constraint violation in Postgres (Postgres error code 23505)
+    if (typeof err === 'object' && err !== null && 'code' in err && (err as any).code === '23505') {
       return;
     }
     throw err;
@@ -65,16 +64,14 @@ export async function processStripeEvent(event: Stripe.Event): Promise<void> {
 
   try {
     await handleEventByType(event);
-    await prisma.stripeWebhookEvent.update({
-      where: { event_id: eventId },
-      data: { handler_status: 'PROCESSED', processed_at: new Date() },
-    });
+    await db.update(schema.stripeWebhookEvents)
+      .set({ handler_status: 'PROCESSED', processed_at: new Date() })
+      .where(eq(schema.stripeWebhookEvents.event_id, eventId));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    await prisma.stripeWebhookEvent.update({
-      where: { event_id: eventId },
-      data: { handler_status: 'FAILED', error_message: errorMessage },
-    });
+    await db.update(schema.stripeWebhookEvents)
+      .set({ handler_status: 'FAILED', error_message: errorMessage })
+      .where(eq(schema.stripeWebhookEvents.event_id, eventId));
     throw error;
   }
 }
@@ -107,7 +104,7 @@ async function handleEventByType(event: Stripe.Event): Promise<void> {
 }
 
 async function handleCheckoutCompleted(session: Record<string, unknown>): Promise<void> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const metadata = (session.metadata ?? {}) as Record<string, string>;
   const userId = metadata.userId;
 
@@ -130,37 +127,39 @@ async function handleCheckoutCompleted(session: Record<string, unknown>): Promis
     });
   }
 
-  const existing = await prisma.vipSubscription.findFirst({
-    where: { user_id: userId },
-    orderBy: { created_at: 'desc' },
-  });
+  const existingRes = await db.select().from(schema.vipSubscriptions)
+    .where(eq(schema.vipSubscriptions.user_id, userId))
+    .orderBy(desc(schema.vipSubscriptions.created_at))
+    .limit(1);
+  const existing = existingRes[0];
 
-  // eslint-disable-next-line
-  const userUpgrade = (prisma.user as any).update({
-    where: { id: userId },
-    data: { membership_tier: 'VIP' },
-  });
+  const createdSub = await db.transaction(async (tx) => {
+    await tx.update(schema.users)
+      .set({ membership_tier: 'VIP' })
+      .where(eq(schema.users.id, userId));
 
-  const subUpsert = existing
-    ? prisma.vipSubscription.update({
-        where: { id: existing.id },
-        data: {
+    if (existing) {
+      const res = await tx.update(schema.vipSubscriptions)
+        .set({
           status: 'ACTIVE',
           stripe_customer_id: customerId ?? existing.stripe_customer_id,
           stripe_subscription_id: subscriptionId,
-        },
-      })
-    : prisma.vipSubscription.create({
-        data: {
+        })
+        .where(eq(schema.vipSubscriptions.id, existing.id))
+        .returning();
+      return res[0];
+    } else {
+      const res = await tx.insert(schema.vipSubscriptions)
+        .values({
           user_id: userId,
           status: 'ACTIVE',
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
-        },
-      });
-
-  const result = await prisma.$transaction([userUpgrade, subUpsert]);
-  const createdSub = result[1];
+        })
+        .returning();
+      return res[0];
+    }
+  });
 
   await auditService.log(
     {
@@ -244,13 +243,12 @@ export function validatePlacementCheckout(
 export async function handlePlacementCheckoutCompleted(
   session: Record<string, unknown>,
 ): Promise<void> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const stripe = getStripeClient();
   const metadata = (session.metadata ?? {}) as Record<string, string>;
   const userId = metadata.userId;
   const businessId = metadata.businessId;
 
-  // 1. Validate metadata BEFORE any DB reads
   if (!userId || !businessId) {
     throw new AppError({
       code: ERROR_CODES.STRIPE_CONFIG_MISSING,
@@ -278,20 +276,16 @@ export async function handlePlacementCheckoutCompleted(
     });
   }
 
-  // 2. DB reads + Stripe subscription fetch in parallel
-  const [business, vipSub, existingPlacementSub] = await Promise.all([
-    prisma.businessProfile.findUnique({ where: { id: businessId } }),
-    prisma.vipSubscription.findFirst({
-      where: { user_id: userId },
-      orderBy: { created_at: 'desc' },
-    }),
-    prisma.subscription.findFirst({
-      where: { business_profile_id: businessId, kind: 'BUSINESS_PLACEMENT' },
-      orderBy: { created_at: 'desc' },
-    }),
+  const [businessRes, vipSubRes, existingPlacementSubRes] = await Promise.all([
+    db.select().from(schema.businessProfiles).where(eq(schema.businessProfiles.id, businessId)).limit(1),
+    db.select().from(schema.vipSubscriptions).where(eq(schema.vipSubscriptions.user_id, userId)).orderBy(desc(schema.vipSubscriptions.created_at)).limit(1),
+    db.select().from(schema.subscriptions).where(and(eq(schema.subscriptions.business_profile_id, businessId), eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'))).orderBy(desc(schema.subscriptions.created_at)).limit(1),
   ]);
 
-  // 3. Validate using domain policies with stricter idempotency
+  const business = businessRes[0] ?? null;
+  const vipSub = vipSubRes[0] ?? null;
+  const existingPlacementSub = existingPlacementSubRes[0] ?? null;
+
   const validation = validatePlacementCheckout(
     metadata,
     business,
@@ -303,7 +297,6 @@ export async function handlePlacementCheckoutCompleted(
     return;
   }
 
-  // 4. Fetch Stripe subscription for additional fields
   let stripePriceId: string | null = null;
   let currentPeriodStart: Date | null = null;
   let currentPeriodEnd: Date | null = null;
@@ -321,25 +314,22 @@ export async function handlePlacementCheckoutCompleted(
       : null;
     cancelAtPeriodEnd = stripeSub.cancel_at_period_end ?? false;
   } catch {
-    // Non-critical — details will be synced by subscription webhooks or cron
+    // Non-critical
   }
 
-  // 5. Single transaction: publish business + upsert placement subscription
-  await prisma.$transaction(async (tx) => {
-    await tx.businessProfile.update({
-      where: { id: businessId },
-      data: {
+  await db.transaction(async (tx) => {
+    await tx.update(schema.businessProfiles)
+      .set({
         status: 'PUBLISHED',
         published_at: new Date(),
         featured_top: false,
         featured_recommended: false,
-      },
-    });
+      })
+      .where(eq(schema.businessProfiles.id, businessId));
 
     if (existingPlacementSub) {
-      await tx.subscription.update({
-        where: { id: existingPlacementSub.id },
-        data: {
+      await tx.update(schema.subscriptions)
+        .set({
           status: 'ACTIVE',
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
@@ -347,11 +337,11 @@ export async function handlePlacementCheckoutCompleted(
           current_period_start: currentPeriodStart,
           current_period_end: currentPeriodEnd,
           cancel_at_period_end: cancelAtPeriodEnd,
-        },
-      });
+        })
+        .where(eq(schema.subscriptions.id, existingPlacementSub.id));
     } else {
-      await tx.subscription.create({
-        data: {
+      await tx.insert(schema.subscriptions)
+        .values({
           user_id: userId,
           business_profile_id: businessId,
           kind: 'BUSINESS_PLACEMENT',
@@ -362,16 +352,13 @@ export async function handlePlacementCheckoutCompleted(
           current_period_start: currentPeriodStart,
           current_period_end: currentPeriodEnd,
           cancel_at_period_end: cancelAtPeriodEnd,
-        },
-      });
+        });
     }
   });
 
-  // 6. Revalidate public business cache
   revalidateTag('businesses');
   revalidateTag('public-businesses');
 
-  // 7. Audit log after transaction
   await auditService.log(
     {
       action: 'BUSINESS_PUBLISHED',
@@ -385,12 +372,11 @@ export async function handlePlacementCheckoutCompleted(
 }
 
 async function handleSubscriptionChange(subscription: Record<string, unknown>): Promise<void> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const subscriptionId = subscription.id as string;
 
-  const localSub = await prisma.vipSubscription.findFirst({
-    where: { stripe_subscription_id: subscriptionId },
-  });
+  const localSubRes = await db.select().from(schema.vipSubscriptions).where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId)).limit(1);
+  const localSub = localSubRes[0];
 
   if (!localSub) {
     return;
@@ -407,9 +393,9 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
   const canceledAt = subscription.canceled_at as number | null;
   const cancelAtPeriodEnd = subscription.cancel_at_period_end as boolean;
 
-  const updateData: Record<string, unknown> = {
+  const updateData: any = {
     status: newStatus,
-    current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : undefined,
+    current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : null,
     cancel_at_period_end: cancelAtPeriodEnd,
   };
 
@@ -419,10 +405,9 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
 
   const previousStatus = localSub.status;
 
-  await prisma.vipSubscription.update({
-    where: { id: localSub.id },
-    data: updateData as any,
-  });
+  await db.update(schema.vipSubscriptions)
+    .set(updateData)
+    .where(eq(schema.vipSubscriptions.id, localSub.id));
 
   if (previousStatus !== newStatus) {
     await auditService.log(
@@ -439,12 +424,11 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
 }
 
 async function handleSubscriptionDeleted(subscription: Record<string, unknown>): Promise<void> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const subscriptionId = subscription.id as string;
 
-  const localSub = await prisma.vipSubscription.findFirst({
-    where: { stripe_subscription_id: subscriptionId },
-  });
+  const localSubRes = await db.select().from(schema.vipSubscriptions).where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId)).limit(1);
+  const localSub = localSubRes[0];
 
   if (!localSub) {
     return;
@@ -452,23 +436,19 @@ async function handleSubscriptionDeleted(subscription: Record<string, unknown>):
 
   const previousStatus = localSub.status;
 
-  // eslint-disable-next-line
-  const userDowngrade = (prisma.user as any).update({
-    where: { id: localSub.user_id },
-    data: { membership_tier: 'MEMBER' },
-  });
+  await db.transaction(async (tx) => {
+    await tx.update(schema.users)
+      .set({ membership_tier: 'MEMBER' })
+      .where(eq(schema.users.id, localSub.user_id));
 
-  await prisma.$transaction([
-    userDowngrade,
-    prisma.vipSubscription.update({
-      where: { id: localSub.id },
-      data: {
+    await tx.update(schema.vipSubscriptions)
+      .set({
         status: 'EXPIRED',
         expires_at: new Date(),
         cancel_at_period_end: false,
-      },
-    }),
-  ]);
+      })
+      .where(eq(schema.vipSubscriptions.id, localSub.id));
+  });
 
   await auditService.log(
     {
@@ -483,12 +463,11 @@ async function handleSubscriptionDeleted(subscription: Record<string, unknown>):
 }
 
 async function handlePaymentFailed(invoice: Record<string, unknown>): Promise<void> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const subscriptionId = invoice.subscription as string;
 
-  const localSub = await prisma.vipSubscription.findFirst({
-    where: { stripe_subscription_id: subscriptionId },
-  });
+  const localSubRes = await db.select().from(schema.vipSubscriptions).where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId)).limit(1);
+  const localSub = localSubRes[0];
 
   if (!localSub) {
     return;
@@ -496,10 +475,9 @@ async function handlePaymentFailed(invoice: Record<string, unknown>): Promise<vo
 
   const previousStatus = localSub.status;
 
-  await prisma.vipSubscription.update({
-    where: { id: localSub.id },
-    data: { status: 'PAST_DUE' },
-  });
+  await db.update(schema.vipSubscriptions)
+    .set({ status: 'PAST_DUE' })
+    .where(eq(schema.vipSubscriptions.id, localSub.id));
 
   if (previousStatus !== 'PAST_DUE') {
     await auditService.log(

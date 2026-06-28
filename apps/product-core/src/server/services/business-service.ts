@@ -10,14 +10,15 @@ import type {
   BusinessProfileEditableFieldsInput,
 } from '@kclub/validation';
 
+import { eq, desc, and, ne } from 'drizzle-orm';
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
 import { createDbAuditService } from '@/server/audit';
 import type { RequestContext } from '@/server/context';
 
 const auditService = createDbAuditService();
 
-export const PUBLIC_BUSINESS_VISIBILITY_FILTER = { status: 'PUBLISHED' as const };
+export const PUBLIC_BUSINESS_VISIBILITY_FILTER = eq(schema.businessProfiles.status, 'PUBLISHED');
 
 function generateSlug(name: string): string {
   const base = name
@@ -32,7 +33,7 @@ export async function submitBusiness(
   input: BusinessProfileSubmitInput,
   context: RequestContext,
 ): Promise<MemberBusinessProfileDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const userId = context.actor?.kind === 'member' ? context.actor.userId : null;
 
   if (!userId) {
@@ -44,11 +45,11 @@ export async function submitBusiness(
   }
 
   // Check duplicate active business
-  const existingActiveBusiness = await prisma.businessProfile.findFirst({
-    where: {
-      user_id: userId,
-      status: { not: 'REJECTED' },
-    },
+  const existingActiveBusiness = await db.query.businessProfiles.findFirst({
+    where: and(
+      eq(schema.businessProfiles.user_id, userId),
+      ne(schema.businessProfiles.status, 'REJECTED')
+    ),
   });
 
   if (existingActiveBusiness) {
@@ -60,8 +61,8 @@ export async function submitBusiness(
   }
 
   // 3. Category exists, is active, not high risk
-  const category = await prisma.category.findUnique({
-    where: { id: input.categoryId },
+  const category = await db.query.categories.findFirst({
+    where: eq(schema.categories.id, input.categoryId),
   });
 
   if (!category || !category.is_active) {
@@ -81,8 +82,8 @@ export async function submitBusiness(
   }
 
   // 4. City belongs to country
-  const city = await prisma.city.findUnique({
-    where: { id: input.cityId },
+  const city = await db.query.cities.findFirst({
+    where: eq(schema.cities.id, input.cityId),
   });
 
   if (!city || city.country_id !== input.countryId) {
@@ -95,23 +96,25 @@ export async function submitBusiness(
 
   const slug = generateSlug(input.name);
 
-  const newBusiness = await prisma.businessProfile.create({
-    data: {
-      user_id: userId,
-      slug,
-      name: input.name,
-      representative_name: input.representativeName,
-      representative_email: input.representativeEmail,
-      representative_phone: input.representativePhone,
-      country_id: input.countryId,
-      city_id: input.cityId,
-      category_id: input.categoryId,
-      website_url: input.websiteUrl ?? null,
-      social_url: input.socialUrl ?? null,
-      brief_description: input.briefDescription ?? null,
-      status: 'UNDER_REVIEW',
-    },
-    include: {
+  const [newBusinessData] = await db.insert(schema.businessProfiles).values({
+    user_id: userId,
+    slug,
+    name: input.name,
+    representative_name: input.representativeName,
+    representative_email: input.representativeEmail,
+    representative_phone: input.representativePhone,
+    country_id: input.countryId,
+    city_id: input.cityId,
+    category_id: input.categoryId,
+    website_url: input.websiteUrl ?? null,
+    social_url: input.socialUrl ?? null,
+    brief_description: input.briefDescription ?? null,
+    status: 'UNDER_REVIEW',
+  }).returning();
+
+  const newBusiness = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, newBusinessData.id),
+    with: {
       category: true,
       country: true,
       city: true,
@@ -122,8 +125,8 @@ export async function submitBusiness(
     {
       action: 'BUSINESS_SUBMITTED',
       entityType: 'BusinessProfile',
-      entityId: newBusiness.id,
-      after: { status: newBusiness.status },
+      entityId: newBusiness!.id,
+      after: { status: newBusiness!.status },
     },
     context,
   );
@@ -136,7 +139,7 @@ export async function updateBusiness(
   input: BusinessProfileEditableFieldsInput,
   context: RequestContext,
 ): Promise<MemberBusinessProfileDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const userId = context.actor?.kind === 'member' ? context.actor.userId : null;
 
   if (!userId) {
@@ -147,8 +150,8 @@ export async function updateBusiness(
     });
   }
 
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
   });
 
   if (!business) {
@@ -177,7 +180,9 @@ export async function updateBusiness(
 
   // Optional category/city checks
   if (input.categoryId && input.categoryId !== business.category_id) {
-    const category = await prisma.category.findUnique({ where: { id: input.categoryId } });
+    const category = await db.query.categories.findFirst({
+      where: eq(schema.categories.id, input.categoryId)
+    });
     if (!category || !category.is_active) {
       throw new AppError({
         code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -197,7 +202,9 @@ export async function updateBusiness(
   if (input.cityId || input.countryId) {
     const targetCityId = input.cityId ?? business.city_id;
     const targetCountryId = input.countryId ?? business.country_id;
-    const city = await prisma.city.findUnique({ where: { id: targetCityId } });
+    const city = await db.query.cities.findFirst({
+      where: eq(schema.cities.id, targetCityId)
+    });
     if (!city || city.country_id !== targetCountryId) {
       throw new AppError({
         code: ERROR_CODES.BUSINESS_CITY_COUNTRY_MISMATCH,
@@ -238,19 +245,22 @@ export async function updateBusiness(
   dataToUpdate.status = 'UNDER_REVIEW';
   dataToUpdate.approved_at = null;
 
-  const updatedBusiness = await prisma.businessProfile.update({
-    where: { id: businessId },
-    data: dataToUpdate,
-    include: { category: true, country: true, city: true },
+  await db.update(schema.businessProfiles)
+    .set(dataToUpdate)
+    .where(eq(schema.businessProfiles.id, businessId));
+
+  const updatedBusiness = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: { category: true, country: true, city: true },
   });
 
   await auditService.log(
     {
       action: 'BUSINESS_UPDATED',
       entityType: 'BusinessProfile',
-      entityId: updatedBusiness.id,
+      entityId: updatedBusiness!.id,
       before: { status: business.status },
-      after: { status: updatedBusiness.status },
+      after: { status: updatedBusiness!.status },
     },
     context,
   );
@@ -259,11 +269,11 @@ export async function updateBusiness(
 }
 
 export async function getOwnBusinesses(userId: string): Promise<MemberBusinessProfileDto[]> {
-  const prisma = getPrismaClient();
-  const businesses = await prisma.businessProfile.findMany({
-    where: { user_id: userId },
-    include: { category: true, country: true, city: true },
-    orderBy: { created_at: 'desc' },
+  const db = getDbClient();
+  const businesses = await db.query.businessProfiles.findMany({
+    where: eq(schema.businessProfiles.user_id, userId),
+    with: { category: true, country: true, city: true },
+    orderBy: [desc(schema.businessProfiles.created_at)],
   });
 
   return businesses.map(toMemberBusinessProfileDto);
@@ -273,10 +283,10 @@ export async function getBusinessDetail(
   businessId: string,
   userId?: string,
 ): Promise<PublicBusinessDetailDto | MemberBusinessProfileDto> {
-  const prisma = getPrismaClient();
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
-    include: { category: true, country: true, city: true },
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: { category: true, country: true, city: true },
   });
 
   if (!business) {
@@ -305,21 +315,25 @@ export async function getBusinessDetail(
 }
 
 export async function getPublicBusinesses(): Promise<PublicBusinessListItemDto[]> {
-  const prisma = getPrismaClient();
-  const businesses = await prisma.businessProfile.findMany({
+  const db = getDbClient();
+  const businesses = await db.query.businessProfiles.findMany({
     where: PUBLIC_BUSINESS_VISIBILITY_FILTER,
-    include: { category: true, country: true, city: true },
-    orderBy: [{ featured_top: 'desc' }, { featured_recommended: 'desc' }, { published_at: 'desc' }],
+    with: { category: true, country: true, city: true },
+    orderBy: [
+      desc(schema.businessProfiles.featured_top),
+      desc(schema.businessProfiles.featured_recommended),
+      desc(schema.businessProfiles.published_at),
+    ],
   });
 
   return businesses.map(toPublicBusinessListItemDto);
 }
 
 export async function getPublicBusinessBySlug(slug: string): Promise<PublicBusinessDetailDto> {
-  const prisma = getPrismaClient();
-  const business = await prisma.businessProfile.findFirst({
-    where: { ...PUBLIC_BUSINESS_VISIBILITY_FILTER, slug },
-    include: { category: true, country: true, city: true },
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: and(PUBLIC_BUSINESS_VISIBILITY_FILTER, eq(schema.businessProfiles.slug, slug)),
+    with: { category: true, country: true, city: true },
   });
 
   if (!business) {

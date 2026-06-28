@@ -7,8 +7,9 @@ import {
 } from '@kclub/contracts';
 import { hasActiveVipAccess } from '@kclub/domain';
 
+import { eq, desc } from 'drizzle-orm';
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
 import { getStripeClient } from '@/server/stripe/client';
 import { rethrowStripeCheckoutError } from '@/server/stripe/errors';
 import {
@@ -49,8 +50,8 @@ function buildCancelUrl(appUrl: string, locale: Locale): string {
 }
 
 async function getPriceIdForKey(key: string): Promise<string> {
-  const prisma = getPrismaClient();
-  const config = await prisma.adminConfig.findUnique({ where: { key } });
+  const db = getDbClient();
+  const config = await db.query.adminConfigs.findFirst({ where: eq(schema.adminConfigs.key, key) });
   const priceId =
     parseAdminConfigPriceId(config?.value) ?? resolveStripePriceIdFromEnv(key);
 
@@ -72,7 +73,7 @@ export async function startVipCheckout(
   context: RequestContext,
   locale: Locale,
 ): Promise<CheckoutSessionDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const stripe = getStripeClient();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -84,9 +85,9 @@ export async function startVipCheckout(
     });
   }
 
-  const subscription = await prisma.vipSubscription.findFirst({
-    where: { user_id: userId },
-    orderBy: { created_at: 'desc' },
+  const subscription = await db.query.vipSubscriptions.findFirst({
+    where: eq(schema.vipSubscriptions.user_id, userId),
+    orderBy: [desc(schema.vipSubscriptions.created_at)],
   });
   if (subscription && hasActiveVipAccess(subscription.status)) {
     throw new AppError({
@@ -129,7 +130,7 @@ export async function startPlacementCheckout(
   context: RequestContext,
   locale: Locale,
 ): Promise<CheckoutSessionDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const stripe = getStripeClient();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -141,7 +142,7 @@ export async function startPlacementCheckout(
     });
   }
 
-  const business = await prisma.businessProfile.findUnique({ where: { id: businessId } });
+  const business = await db.query.businessProfiles.findFirst({ where: eq(schema.businessProfiles.id, businessId) });
   if (!business) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -209,10 +210,10 @@ export function toSubscriptionDto(sub: any): SubscriptionDto {
 }
 
 export async function getOwnSubscriptions(userId: string): Promise<SubscriptionDto[]> {
-  const prisma = getPrismaClient();
-  const subs = await prisma.vipSubscription.findMany({
-    where: { user_id: userId },
-    orderBy: { created_at: 'desc' },
+  const db = getDbClient();
+  const subs = await db.query.vipSubscriptions.findMany({
+    where: eq(schema.vipSubscriptions.user_id, userId),
+    orderBy: [desc(schema.vipSubscriptions.created_at)],
   });
   return subs.map(toSubscriptionDto);
 }
@@ -221,8 +222,8 @@ export async function getOwnSubscriptionDetail(
   userId: string,
   subscriptionId: string,
 ): Promise<SubscriptionDto> {
-  const prisma = getPrismaClient();
-  const sub = await prisma.vipSubscription.findUnique({ where: { id: subscriptionId } });
+  const db = getDbClient();
+  const sub = await db.query.vipSubscriptions.findFirst({ where: eq(schema.vipSubscriptions.id, subscriptionId) });
   if (!sub) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -245,8 +246,8 @@ export async function cancelOwnSubscription(
   subscriptionId: string,
   context: RequestContext,
 ): Promise<SubscriptionDto> {
-  const prisma = getPrismaClient();
-  const sub = await prisma.vipSubscription.findUnique({ where: { id: subscriptionId } });
+  const db = getDbClient();
+  const sub = await db.query.vipSubscriptions.findFirst({ where: eq(schema.vipSubscriptions.id, subscriptionId) });
   if (!sub) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -269,10 +270,10 @@ export async function cancelOwnSubscription(
     });
   }
 
-  const updated = await prisma.vipSubscription.update({
-    where: { id: subscriptionId },
-    data: { cancel_at_period_end: true, canceled_at: new Date() },
-  });
+  const [updated] = await db.update(schema.vipSubscriptions)
+    .set({ cancel_at_period_end: true, canceled_at: new Date() })
+    .where(eq(schema.vipSubscriptions.id, subscriptionId))
+    .returning();
 
   await auditService.log(
     {
@@ -302,12 +303,12 @@ export type InvoiceDto = {
 };
 
 export async function getOwnInvoices(userId: string): Promise<InvoiceDto[]> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const stripe = getStripeClient();
 
-  const sub = await prisma.vipSubscription.findFirst({
-    where: { user_id: userId },
-    orderBy: { created_at: 'desc' },
+  const sub = await db.query.vipSubscriptions.findFirst({
+    where: eq(schema.vipSubscriptions.user_id, userId),
+    orderBy: [desc(schema.vipSubscriptions.created_at)],
   });
 
   if (!sub?.stripe_customer_id) return [];

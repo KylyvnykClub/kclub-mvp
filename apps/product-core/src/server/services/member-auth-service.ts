@@ -7,7 +7,8 @@ import {
   verifyPhoneOtpWithDevBypass,
 } from '@/server/auth/dev-phone-bypass';
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { eq } from 'drizzle-orm';
+import { getDbClient, schema } from '@/server/db';
 
 export const AUTH_INTENT = {
   SIGN_IN_EXISTS: 'SIGN_IN_EXISTS',
@@ -75,14 +76,14 @@ export async function sendPhoneOtp(
     });
   }
 
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const existingUser = await prisma.user.findUnique({
-    where: { phone: input.phone },
-    select: { id: true, status: true },
+  const existingUser = await db.query.users.findFirst({
+    where: eq(schema.users.phone, input.phone),
+    columns: { id: true, status: true },
   });
 
-  const intent = determineAuthIntent(existingUser, input.purpose);
+  const intent = determineAuthIntent(existingUser ?? null, input.purpose);
   assertIntentAllowed(intent, input.purpose);
 
   if (isDevPhoneBypassEnabled()) {
@@ -125,14 +126,14 @@ export async function verifyPhoneOtp(
     });
   }
 
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const existingUser = await prisma.user.findUnique({
-    where: { phone: input.phone },
-    select: { id: true, status: true },
+  const existingUser = await db.query.users.findFirst({
+    where: eq(schema.users.phone, input.phone),
+    columns: { id: true, status: true },
   });
 
-  const intent = determineAuthIntent(existingUser, input.purpose);
+  const intent = determineAuthIntent(existingUser ?? null, input.purpose);
   assertIntentAllowed(intent, input.purpose);
 
   const { supabaseUserId } = isDevPhoneBypassEnabled()
@@ -144,11 +145,9 @@ export async function verifyPhoneOtp(
     : await verifyPhoneOtpWithSupabase(supabase, input);
 
   if (input.purpose === 'sign-up') {
-    await prisma.user.create({
-      data: {
+    await db.insert(schema.users).values({
         supabase_auth_user_id: supabaseUserId,
         phone: input.phone,
-      },
     });
   }
 

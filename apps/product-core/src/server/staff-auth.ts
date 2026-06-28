@@ -12,14 +12,10 @@ import {
   type StaffRole,
   type StaffTotpSetupDto,
 } from '@kclub/contracts';
-import {
-  parseWithValidation,
-  staffPhoneOtpSendSchema,
-  staffPhoneOtpVerifySchema,
-  staffTotpCodeSchema,
-} from '@kclub/validation';
-import { getPrismaClient } from '@/server/db';
+import { parseWithValidation, staffPhoneOtpSendSchema, staffPhoneOtpVerifySchema, staffTotpCodeSchema } from '@kclub/validation';
+import { getDbClient, schema } from '@/server/db';
 import { encryptSecret, decryptSecret } from '@/server/totp-crypto';
+import { and, eq, isNull } from 'drizzle-orm';
 
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
 const DEFAULT_DEV_OTP = '000000';
@@ -111,15 +107,13 @@ async function createDbSession(
   userAgent?: string | null,
 ): Promise<void> {
   try {
-    const prisma = getPrismaClient();
-    await prisma.adminSession.create({
-      data: {
-        admin_user_id: adminUserId,
-        session_token_hash: hashSessionToken(token),
-        ip_address: ipAddress ?? null,
-        user_agent: userAgent ?? null,
-        expires_at: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
-      },
+    const db = getDbClient();
+    await db.insert(schema.adminSessions).values({
+      admin_user_id: adminUserId,
+      session_token_hash: hashSessionToken(token),
+      ip_address: ipAddress ?? null,
+      user_agent: userAgent ?? null,
+      expires_at: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
     });
   } catch {
     // DB unavailable — session will be validated by JWT only
@@ -128,20 +122,18 @@ async function createDbSession(
 
 async function validateDbSession(token: string): Promise<boolean> {
   try {
-    const prisma = getPrismaClient();
-    const session = await prisma.adminSession.findUnique({
-      where: { session_token_hash: hashSessionToken(token) },
+    const db = getDbClient();
+    const session = await db.query.adminSessions.findFirst({
+      where: eq(schema.adminSessions.session_token_hash, hashSessionToken(token)),
     });
 
     if (!session) return true;
     if (session.revoked_at) return false;
     if (session.expires_at <= new Date()) return false;
 
-    prisma.adminSession
-      .update({
-        where: { id: session.id },
-        data: { last_seen_at: new Date() },
-      })
+    db.update(schema.adminSessions)
+      .set({ last_seen_at: new Date() })
+      .where(eq(schema.adminSessions.id, session.id))
       .catch(() => {});
 
     return true;
@@ -152,14 +144,13 @@ async function validateDbSession(token: string): Promise<boolean> {
 
 async function revokeDbSession(token: string): Promise<void> {
   try {
-    const prisma = getPrismaClient();
-    await prisma.adminSession.updateMany({
-      where: {
-        session_token_hash: hashSessionToken(token),
-        revoked_at: null,
-      },
-      data: { revoked_at: new Date() },
-    });
+    const db = getDbClient();
+    await db.update(schema.adminSessions)
+      .set({ revoked_at: new Date() })
+      .where(and(
+        eq(schema.adminSessions.session_token_hash, hashSessionToken(token)),
+        isNull(schema.adminSessions.revoked_at)
+      ));
   } catch {
     // DB unavailable
   }
@@ -369,9 +360,9 @@ export async function handleStaffTotpVerify(request: Request): Promise<Response>
   let secretFromDb: string | null = null;
 
   try {
-    const prisma = getPrismaClient();
-    const twoFactor = await prisma.admin2FA.findUnique({
-      where: { admin_user_id: staff.id },
+    const db = getDbClient();
+    const twoFactor = await db.query.admin2fa.findFirst({
+      where: eq(schema.admin2fa.admin_user_id, staff.id),
     });
 
     if (twoFactor?.secret_ciphertext) {
@@ -387,16 +378,14 @@ export async function handleStaffTotpVerify(request: Request): Promise<Response>
       isValidCode = totp.validate({ token: code, window: 1 }) !== null;
 
       if (isValidCode && !twoFactor.verified_at) {
-        await prisma.$transaction([
-          prisma.admin2FA.update({
-            where: { id: twoFactor.id },
-            data: { verified_at: new Date() },
-          }),
-          prisma.adminUser.update({
-            where: { id: staff.id },
-            data: { totp_verified_at: new Date() },
-          }),
-        ]);
+        await db.transaction(async (tx) => {
+          await tx.update(schema.admin2fa)
+            .set({ verified_at: new Date() })
+            .where(eq(schema.admin2fa.id, twoFactor.id));
+          await tx.update(schema.adminUsers)
+            .set({ totp_verified_at: new Date() })
+            .where(eq(schema.adminUsers.id, staff.id));
+        });
       }
     }
   } catch {
@@ -482,10 +471,10 @@ export async function handleStaffTotpSetup(request: Request): Promise<Response> 
   const cachedSecret = totpSecretCache.get(staff.id);
 
   try {
-    const prisma = getPrismaClient();
+    const db = getDbClient();
 
-    const existing = await prisma.admin2FA.findUnique({
-      where: { admin_user_id: staff.id },
+    const existing = await db.query.admin2fa.findFirst({
+      where: eq(schema.admin2fa.admin_user_id, staff.id),
     });
 
     if (existing?.secret_ciphertext && !existing.verified_at) {
@@ -502,11 +491,9 @@ export async function handleStaffTotpSetup(request: Request): Promise<Response> 
       secret = newSecret.base32;
       const encrypted = encryptSecret(secret);
 
-      await prisma.admin2FA.create({
-        data: {
-          admin_user_id: staff.id,
-          secret_ciphertext: encrypted,
-        },
+      await db.insert(schema.admin2fa).values({
+        admin_user_id: staff.id,
+        secret_ciphertext: encrypted,
       });
       totpSecretCache.set(staff.id, secret);
     }

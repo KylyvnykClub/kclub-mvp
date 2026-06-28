@@ -1,5 +1,6 @@
-import { getPrismaClient } from '@/server/db';
+import { getDbClient } from '@/server/db';
 import { jsonSuccess } from '@/server/api';
+import { sql } from 'drizzle-orm';
 
 type HealthDependency = {
   database: 'ok' | 'down';
@@ -13,8 +14,8 @@ type HealthResult = {
 
 async function checkDatabase(): Promise<'ok' | 'down'> {
   try {
-    const prisma = getPrismaClient();
-    await prisma.$queryRawUnsafe('SELECT 1');
+    const db = getDbClient();
+    await db.execute(sql`SELECT 1`);
     return 'ok';
   } catch {
     return 'down';

@@ -5,7 +5,8 @@ import { ERROR_CODES } from '@kclub/contracts';
 import { createSupabaseServerClient } from '@/server/auth';
 import { jsonSuccess, jsonError, jsonErrorFromUnknown } from '@/server/api';
 import { getMemberBySupabaseUserId } from '@/server/services';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
+import { and, eq, notInArray } from 'drizzle-orm';
 import { getIncomingIntroductions } from '@/server/services/introduction-service';
 
 export async function GET(_request: NextRequest) {
@@ -18,9 +19,12 @@ export async function GET(_request: NextRequest) {
     }
 
     const localUser = await getMemberBySupabaseUserId(supabaseUser.id);
-    const prisma = getPrismaClient();
-    const business = await prisma.businessProfile.findFirst({
-      where: { user_id: localUser.id, status: { notIn: ['REJECTED', 'HIDDEN'] } },
+    const db = getDbClient();
+    const business = await db.query.businessProfiles.findFirst({
+      where: and(
+        eq(schema.businessProfiles.user_id, localUser.id),
+        notInArray(schema.businessProfiles.status, ['REJECTED', 'HIDDEN'])
+      ),
     });
 
     if (!business) {

@@ -7,7 +7,8 @@ import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
 import { getOwnBusinesses } from '@/server/services/business-service';
 import { getIncomingIntroductions } from '@/server/services/introduction-service';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
+import { and, asc, eq } from 'drizzle-orm';
 import { BusinessForm } from './BusinessForm';
 
 export type TaxonomyOption = {
@@ -47,12 +48,21 @@ export async function BusinessPanel({
   profile: CurrentMemberProfileDto;
 }) {
   const t = await getTranslations({ locale, namespace: 'member.dashboard.business' });
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
   const [ownBusinesses, countries, categories] = await Promise.all([
     getOwnBusinesses(profile.id),
-    prisma.country.findMany({ where: { is_active: true }, orderBy: { name: 'asc' } }),
-    prisma.category.findMany({ where: { is_active: true, is_high_risk: false }, orderBy: { name: 'asc' } }),
+    db.query.countries.findMany({
+      where: eq(schema.countries.is_active, true),
+      orderBy: [asc(schema.countries.name)],
+    }),
+    db.query.categories.findMany({
+      where: and(
+        eq(schema.categories.is_active, true),
+        eq(schema.categories.is_high_risk, false)
+      ),
+      orderBy: [asc(schema.categories.name)],
+    }),
   ]);
 
   const activeBusiness = ownBusinesses.find((b) => b.status !== 'REJECTED');
@@ -60,9 +70,9 @@ export async function BusinessPanel({
     ? await getIncomingIntroductions(activeBusiness.id)
     : [];
 
-  const cities = await prisma.city.findMany({
-    where: { is_active: true },
-    orderBy: { name: 'asc' },
+  const cities = await db.query.cities.findMany({
+    where: eq(schema.cities.is_active, true),
+    orderBy: [asc(schema.cities.name)],
   });
 
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));

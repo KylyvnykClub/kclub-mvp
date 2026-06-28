@@ -8,7 +8,8 @@ import {
   getMemberBySupabaseUserId,
   toCurrentMemberProfileDto,
 } from '@/server/services';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
+import { eq } from 'drizzle-orm';
 import { createRequestContext } from '@/server/context';
 import { createDbAuditService } from '@/server/audit';
 
@@ -83,12 +84,11 @@ export async function POST(request: NextRequest) {
       data: { publicUrl },
     } = serviceClient.storage.from(AVATAR_BUCKET).getPublicUrl(storagePath);
 
-    const prisma = getPrismaClient();
-    // eslint-disable-next-line
-    const updated = await (prisma.user.update as any)({
-      where: { id: localUser.id },
-      data: { avatar_url: publicUrl },
-    });
+    const db = getDbClient();
+    const [updated] = await db.update(schema.users)
+      .set({ avatar_url: publicUrl })
+      .where(eq(schema.users.id, localUser.id))
+      .returning();
 
     const context = createRequestContext({ actor: { kind: 'member', userId: localUser.id }, headers: request.headers });
     await auditService.log(
