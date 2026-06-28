@@ -9,7 +9,8 @@ import {
 import type { MemberOnboardingInput, MemberProfileUpdateInput } from '@kclub/validation';
 
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { eq } from 'drizzle-orm';
+import { getDbClient, schema } from '@/server/db';
 
 export type UserRecord = {
   id: string;
@@ -65,12 +66,11 @@ export function toCurrentMemberProfileDto(user: UserRecord): CurrentMemberProfil
 }
 
 export async function getMemberBySupabaseUserId(supabaseUserId: string): Promise<UserRecord> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  // eslint-disable-next-line
-  const user = await (prisma.user.findUnique as any)({
-    where: { supabase_auth_user_id: supabaseUserId },
-  }) as UserRecord | null;
+  const user = await db.query.users.findFirst({
+    where: eq(schema.users.supabase_auth_user_id, supabaseUserId),
+  }) as UserRecord | undefined;
 
   if (!user) {
     throw new AppError({
@@ -95,7 +95,7 @@ export async function updateMemberProfile(
   supabaseUserId: string,
   input: MemberProfileUpdateInput,
 ): Promise<UserRecord> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
   const user = await getMemberBySupabaseUserId(supabaseUserId);
 
@@ -108,20 +108,19 @@ export async function updateMemberProfile(
   if (input.about !== undefined) data.about = input.about ?? null;
   if (input.avatarUrl !== undefined) data.avatar_url = input.avatarUrl ?? null;
 
-  // eslint-disable-next-line
-  const updated = await (prisma.user.update as any)({
-    where: { id: user.id },
-    data,
-  }) as UserRecord;
+  const [updated] = await db.update(schema.users)
+    .set(data)
+    .where(eq(schema.users.id, user.id))
+    .returning();
 
-  return updated;
+  return updated as UserRecord;
 }
 
 export async function completeMemberOnboarding(
   supabaseUserId: string,
   input: MemberOnboardingInput,
 ): Promise<UserRecord> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
   const user = await getMemberBySupabaseUserId(supabaseUserId);
 
@@ -133,15 +132,14 @@ export async function completeMemberOnboarding(
     });
   }
 
-  // eslint-disable-next-line
-  const updated = await (prisma.user.update as any)({
-    where: { id: user.id },
-    data: {
+  const [updated] = await db.update(schema.users)
+    .set({
       display_name: input.displayName,
       locale_preference: input.localePreference,
       terms_accepted_at: new Date(),
-    },
-  }) as UserRecord;
+    })
+    .where(eq(schema.users.id, user.id))
+    .returning();
 
-  return updated;
+  return updated as UserRecord;
 }
