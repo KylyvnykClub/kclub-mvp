@@ -1,7 +1,7 @@
 {
   "installCommand": "bun install",
   "ignoreCommand": "bash -c 'if [ \"$VERCEL_GIT_COMMIT_REF\" = \"main\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"main-dev\" ]; then exit 0; else exit 1; fi'",
-  "buildCommand": "bun run --cwd packages/database db:generate && bun run --cwd apps/admin-app build",
+  "buildCommand": "bun --filter @kclub/database run db:generate && bun --filter @kclub/admin-app run build",
   "framework": "nextjs",
   "env": {
     "BUN_VERSION": "1.3.14"
