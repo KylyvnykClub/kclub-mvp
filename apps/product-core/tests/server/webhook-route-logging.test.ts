@@ -1,4 +1,4 @@
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, mock, spyOn, afterAll } from 'bun:test';
 
 const mockLogError = mock();
 const mockLogWebhook = mock();
@@ -31,11 +31,8 @@ mock.module('@/server/stripe/env', () => ({
   readStripeEnv: () => ({ STRIPE_WEBHOOK_SECRET: 'whsec_test' }),
 }));
 
-const mockProcessStripeEvent = mock(async () => {});
-
-mock.module('@/server/services/webhook-service', () => ({
-  processStripeEvent: mockProcessStripeEvent,
-}));
+import * as webhookService from '@/server/services/webhook-service';
+const mockProcessStripeEvent = spyOn(webhookService, 'processStripeEvent') as any;
 
 const { POST } = await import('../../src/app/api/stripe/webhook/route');
 
@@ -49,9 +46,8 @@ function createWebhookRequest(body = '{}', signature: string | null = 'valid-sig
 
 describe('POST /api/stripe/webhook — structured logging', () => {
   test('logs error with eventId and eventType when processStripeEvent throws', async () => {
-    mockProcessStripeEvent.mockImplementation(async () => {
-      throw new Error('DB write failed');
-    });
+    mockProcessStripeEvent.mockRejectedValue(new Error('DB write failed'));
+
     mockLogError.mockClear();
 
     const response = await POST(createWebhookRequest() as any);
@@ -68,7 +64,7 @@ describe('POST /api/stripe/webhook — structured logging', () => {
   });
 
   test('logs webhook info with eventId and eventType on success', async () => {
-    mockProcessStripeEvent.mockImplementation(async () => {});
+    mockProcessStripeEvent.mockResolvedValue(undefined);
     mockLogWebhook.mockClear();
 
     const response = await POST(createWebhookRequest() as any);
@@ -81,5 +77,9 @@ describe('POST /api/stripe/webhook — structured logging', () => {
       eventId: 'evt_test_123',
       eventType: 'customer.subscription.updated',
     });
+  });
+
+  afterAll(() => {
+    mockProcessStripeEvent.mockRestore();
   });
 });

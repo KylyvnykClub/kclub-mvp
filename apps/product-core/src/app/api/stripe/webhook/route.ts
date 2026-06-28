@@ -22,9 +22,19 @@ export async function POST(request: Request) {
     );
   }
 
+  let env;
+  try {
+    env = readStripeEnv();
+  } catch (error) {
+    return jsonError(
+      { code: ERROR_CODES.SERVER_ERROR, message: 'Server configuration error' },
+      undefined,
+      { status: 500 },
+    );
+  }
+
   let event;
   try {
-    const env = readStripeEnv();
     event = getStripeClient().webhooks.constructEvent(
       rawBody,
       signature,

@@ -1,9 +1,11 @@
 import { describe, expect, test, mock } from 'bun:test';
 
-import {
+mock.module('server-only', () => ({}));
+
+const {
   mapStripeStatusToLocal,
   validatePlacementCheckout,
-} from '../../src/server/services/webhook-service';
+} = await import('../../src/server/services/webhook-service');
 
 describe('mapStripeStatusToLocal', () => {
   const futurePeriodEnd = Math.floor(Date.now() / 1000) + 86400 * 30;
@@ -52,7 +54,7 @@ describe('mapStripeStatusToLocal', () => {
 
 describe('validatePlacementCheckout', () => {
   const validMetadata = { userId: 'user-1', businessId: 'bus-1' };
-  const approvedBusiness = { status: 'APPROVED' as const, user_id: 'user-1' };
+  const approvedBusiness = { status: 'APPROVED' as const, userId: 'user-1' };
   const activeVipSub = { status: 'ACTIVE' as const };
 
   test('returns VALID for valid placement checkout', () => {
@@ -79,15 +81,15 @@ describe('validatePlacementCheckout', () => {
   });
 
   test('throws when business owner does not match metadata userId', () => {
-    const wrongOwnerBusiness = { status: 'APPROVED' as const, user_id: 'user-2' };
+    const wrongOwnerBusiness = { status: 'APPROVED' as const, userId: 'user-2' };
     expect(() =>
       validatePlacementCheckout(validMetadata, wrongOwnerBusiness, activeVipSub),
     ).toThrow('owner mismatch');
   });
 
   test('returns ALREADY_PUBLISHED when business is PUBLISHED with matching placement subscription', () => {
-    const publishedBusiness = { status: 'PUBLISHED' as const, user_id: 'user-1' };
-    const existingSub = { kind: 'BUSINESS_PLACEMENT', stripe_subscription_id: 'sub_00000001' };
+    const publishedBusiness = { status: 'PUBLISHED' as const, userId: 'user-1' };
+    const existingSub = { kind: 'BUSINESS_PLACEMENT', stripeSubscriptionId: 'sub_00000001' };
     const result = validatePlacementCheckout(
       validMetadata,
       publishedBusiness,
@@ -99,15 +101,15 @@ describe('validatePlacementCheckout', () => {
   });
 
   test('throws when business is PUBLISHED without matching subscription', () => {
-    const publishedBusiness = { status: 'PUBLISHED' as const, user_id: 'user-1' };
+    const publishedBusiness = { status: 'PUBLISHED' as const, userId: 'user-1' };
     expect(() => validatePlacementCheckout(validMetadata, publishedBusiness, activeVipSub)).toThrow(
       'no matching placement subscription',
     );
   });
 
   test('throws when business is PUBLISHED with mismatched subscription id', () => {
-    const publishedBusiness = { status: 'PUBLISHED' as const, user_id: 'user-1' };
-    const existingSub = { kind: 'BUSINESS_PLACEMENT', stripe_subscription_id: 'sub_other' };
+    const publishedBusiness = { status: 'PUBLISHED' as const, userId: 'user-1' };
+    const existingSub = { kind: 'BUSINESS_PLACEMENT', stripeSubscriptionId: 'sub_other' };
     expect(() =>
       validatePlacementCheckout(
         validMetadata,
@@ -120,21 +122,21 @@ describe('validatePlacementCheckout', () => {
   });
 
   test('throws when business is not APPROVED', () => {
-    const underReviewBusiness = { status: 'UNDER_REVIEW' as const, user_id: 'user-1' };
+    const underReviewBusiness = { status: 'UNDER_REVIEW' as const, userId: 'user-1' };
     expect(() =>
       validatePlacementCheckout(validMetadata, underReviewBusiness, activeVipSub),
     ).toThrow('UNDER_REVIEW');
   });
 
   test('throws when business is REJECTED', () => {
-    const rejectedBusiness = { status: 'REJECTED' as const, user_id: 'user-1' };
+    const rejectedBusiness = { status: 'REJECTED' as const, userId: 'user-1' };
     expect(() => validatePlacementCheckout(validMetadata, rejectedBusiness, activeVipSub)).toThrow(
       'REJECTED',
     );
   });
 
   test('throws when business is HIDDEN', () => {
-    const hiddenBusiness = { status: 'HIDDEN' as const, user_id: 'user-1' };
+    const hiddenBusiness = { status: 'HIDDEN' as const, userId: 'user-1' };
     expect(() => validatePlacementCheckout(validMetadata, hiddenBusiness, activeVipSub)).toThrow(
       'HIDDEN',
     );

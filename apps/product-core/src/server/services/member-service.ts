@@ -9,30 +9,17 @@ import {
 import type { MemberOnboardingInput, MemberProfileUpdateInput } from '@kclub/validation';
 
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@/server/db';
+import { eq } from 'drizzle-orm';
 
-export type UserRecord = {
-  id: string;
-  phone: string;
-  display_name: string | null;
-  locale_preference: string | null;
-  membership_tier: string;
-  status: string;
-  terms_accepted_at: Date | null;
-  country: string | null;
-  city: string | null;
-  about: string | null;
-  avatar_url: string | null;
-  created_at: Date;
-  updated_at: Date;
-};
+export type UserRecord = typeof schema.users.$inferSelect;
 
 export function isOnboardingComplete(user: {
-  display_name: string | null;
-  locale_preference: string | null;
-  terms_accepted_at: Date | null;
+  displayName: string | null;
+  localePreference: string | null;
+  termsAcceptedAt: Date | null;
 }): boolean {
-  return !!(user.display_name && user.locale_preference && user.terms_accepted_at);
+  return !!(user.displayName && user.localePreference && user.termsAcceptedAt);
 }
 
 export function assertMemberOnboardingComplete(user: UserRecord): void {
@@ -49,28 +36,27 @@ export function toCurrentMemberProfileDto(user: UserRecord): CurrentMemberProfil
   return {
     id: user.id,
     phone: user.phone,
-    displayName: user.display_name,
-    localePreference: user.locale_preference as Locale | null,
-    membershipTier: user.membership_tier as MemberTier,
+    displayName: user.displayName,
+    localePreference: user.localePreference as Locale | null,
+    membershipTier: user.membershipTier as MemberTier,
     status: user.status as UserStatus,
     onboardingComplete: isOnboardingComplete(user),
-    termsAcceptedAt: user.terms_accepted_at?.toISOString() ?? null,
-    createdAt: user.created_at.toISOString(),
-    updatedAt: user.updated_at.toISOString(),
+    termsAcceptedAt: user.termsAcceptedAt?.toISOString() ?? null,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
     country: user.country,
     city: user.city,
     about: user.about,
-    avatarUrl: user.avatar_url,
+    avatarUrl: user.avatarUrl,
   };
 }
 
 export async function getMemberBySupabaseUserId(supabaseUserId: string): Promise<UserRecord> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  // eslint-disable-next-line
-  const user = await (prisma.user.findUnique as any)({
-    where: { supabase_auth_user_id: supabaseUserId },
-  }) as UserRecord | null;
+  const user = await db.query.users.findFirst({
+    where: eq(schema.users.supabaseAuthUserId, supabaseUserId),
+  });
 
   if (!user) {
     throw new AppError({
@@ -95,24 +81,24 @@ export async function updateMemberProfile(
   supabaseUserId: string,
   input: MemberProfileUpdateInput,
 ): Promise<UserRecord> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
   const user = await getMemberBySupabaseUserId(supabaseUserId);
 
-  const data: Record<string, string | null> = {};
+  const data: Partial<UserRecord> = {};
 
-  if (input.displayName !== undefined) data.display_name = input.displayName;
-  if (input.localePreference !== undefined) data.locale_preference = input.localePreference;
+  if (input.displayName !== undefined) data.displayName = input.displayName;
+  if (input.localePreference !== undefined) data.localePreference = input.localePreference;
   if (input.country !== undefined) data.country = input.country ?? null;
   if (input.city !== undefined) data.city = input.city ?? null;
   if (input.about !== undefined) data.about = input.about ?? null;
-  if (input.avatarUrl !== undefined) data.avatar_url = input.avatarUrl ?? null;
+  if (input.avatarUrl !== undefined) data.avatarUrl = input.avatarUrl ?? null;
 
-  // eslint-disable-next-line
-  const updated = await (prisma.user.update as any)({
-    where: { id: user.id },
-    data,
-  }) as UserRecord;
+  const [updated] = await db
+    .update(schema.users)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(schema.users.id, user.id))
+    .returning();
 
   return updated;
 }
@@ -121,7 +107,7 @@ export async function completeMemberOnboarding(
   supabaseUserId: string,
   input: MemberOnboardingInput,
 ): Promise<UserRecord> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
   const user = await getMemberBySupabaseUserId(supabaseUserId);
 
@@ -133,15 +119,16 @@ export async function completeMemberOnboarding(
     });
   }
 
-  // eslint-disable-next-line
-  const updated = await (prisma.user.update as any)({
-    where: { id: user.id },
-    data: {
-      display_name: input.displayName,
-      locale_preference: input.localePreference,
-      terms_accepted_at: new Date(),
-    },
-  }) as UserRecord;
+  const [updated] = await db
+    .update(schema.users)
+    .set({
+      displayName: input.displayName,
+      localePreference: input.localePreference,
+      termsAcceptedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.users.id, user.id))
+    .returning();
 
   return updated;
 }

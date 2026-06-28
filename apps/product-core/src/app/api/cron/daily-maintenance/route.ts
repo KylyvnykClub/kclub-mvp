@@ -4,10 +4,9 @@ import { jsonSuccess, jsonError } from '@/server/api';
 import { runDailyMaintenance } from '@/server/services/maintenance-service';
 import { createLogger } from '@/server/logger';
 
-const CRON_SECRET = process.env.CRON_SECRET;
-const log = createLogger();
-
 export async function POST(request: Request) {
+  const log = createLogger();
+  const CRON_SECRET = process.env.CRON_SECRET;
   const authHeader = request.headers.get('authorization');
 
   if (!CRON_SECRET) {

@@ -8,36 +8,39 @@ import {
 import { canIssueNewActiveCard, canTransitionCardStatus } from '@kclub/domain';
 
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@kclub/database';
+import { eq, and, desc, count } from 'drizzle-orm';
 import { formatCardNumber, cardNumberToTierPrefix, parseCardNumber } from './card-helpers';
 
 export type CardRecord = {
   id: string;
-  user_id: string;
-  card_number: string;
-  membership_tier: string;
+  userId: string;
+  cardNumber: string;
+  membershipTier: string;
   status: string;
-  qr_payload_url: string | null;
-  issued_at: Date;
-  expires_at: Date | null;
-  revoked_at: Date | null;
-  revoked_reason: string | null;
+  qrPayloadUrl: string | null;
+  issuedAt: Date;
+  expiresAt: Date | null;
+  revokedAt: Date | null;
+  revokedReason: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export type CardWithUserDisplayName = CardRecord & {
-  user: { display_name: string | null };
+  user: { displayName: string | null } | null;
 };
 
 export function toMemberCardDto(card: CardRecord): MemberCardDto {
   return {
     id: card.id,
-    userId: card.user_id,
-    cardNumber: card.card_number,
+    userId: card.userId,
+    cardNumber: card.cardNumber,
     status: card.status as ClubCardStatus,
-    membershipTier: card.membership_tier as MemberTier,
-    qrPayloadUrl: card.qr_payload_url ?? '',
-    issuedAt: card.issued_at.toISOString(),
-    expiresAt: card.expires_at?.toISOString() ?? null,
+    membershipTier: card.membershipTier as MemberTier,
+    qrPayloadUrl: card.qrPayloadUrl ?? '',
+    issuedAt: card.issuedAt.toISOString(),
+    expiresAt: card.expiresAt?.toISOString() ?? null,
   };
 }
 
@@ -45,27 +48,27 @@ export function toPublicCardVerificationDto(
   card: CardWithUserDisplayName,
 ): PublicCardVerificationDto {
   return {
-    cardNumber: card.card_number,
+    cardNumber: card.cardNumber,
     status: card.status as ClubCardStatus,
-    membershipTier: card.membership_tier as MemberTier,
-    displayName: card.user.display_name,
-    issuedAt: card.issued_at.toISOString(),
-    expiresAt: card.expires_at?.toISOString() ?? null,
+    membershipTier: card.membershipTier as MemberTier,
+    displayName: card.user?.displayName ?? null,
+    issuedAt: card.issuedAt.toISOString(),
+    expiresAt: card.expiresAt?.toISOString() ?? null,
   };
 }
 
 async function generateNextCardNumber(tierPrefix: 'VIP' | 'MEM' = 'MEM'): Promise<string> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const lastCard = await prisma.memberCard.findFirst({
-    orderBy: { card_number: 'desc' },
-    select: { card_number: true },
+  const lastCard = await db.query.memberCards.findFirst({
+    orderBy: (cards, { desc }) => [desc(cards.cardNumber)],
+    columns: { cardNumber: true },
   });
 
   let nextSeq = 1;
   if (lastCard) {
     try {
-      const { sequence } = parseCardNumber(lastCard.card_number);
+      const { sequence } = parseCardNumber(lastCard.cardNumber);
       nextSeq = sequence + 1;
     } catch {
       nextSeq = 1;
@@ -76,25 +79,28 @@ async function generateNextCardNumber(tierPrefix: 'VIP' | 'MEM' = 'MEM'): Promis
 }
 
 export async function getActiveCardForUser(userId: string): Promise<CardRecord | null> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const card = await prisma.memberCard.findFirst({
-    where: { user_id: userId, status: 'ACTIVE' },
-    orderBy: { issued_at: 'desc' },
+  const card = await db.query.memberCards.findFirst({
+    where: (cards, { eq, and }) => and(eq(cards.userId, userId), eq(cards.status, 'ACTIVE')),
+    orderBy: (cards, { desc }) => [desc(cards.issuedAt)],
   });
 
-  return card;
+  return card ?? null;
 }
 
 export async function issueCardForUser(
   userId: string,
   membershipTier: string,
 ): Promise<CardRecord> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const activeCardCount = await prisma.memberCard.count({
-    where: { user_id: userId, status: 'ACTIVE' },
-  });
+  const activeCardCountRes = await db
+    .select({ value: count() })
+    .from(schema.memberCards)
+    .where(and(eq(schema.memberCards.userId, userId), eq(schema.memberCards.status, 'ACTIVE')));
+
+  const activeCardCount = activeCardCountRes[0].value;
 
   if (!canIssueNewActiveCard(activeCardCount)) {
     throw new AppError({
@@ -113,18 +119,16 @@ export async function issueCardForUser(
     try {
       const cardNumber = await generateNextCardNumber(tierPrefix);
 
-      const card = await prisma.memberCard.create({
-        data: {
-          user_id: userId,
-          card_number: cardNumber,
-          membership_tier: membershipTier as MemberTier,
-          qr_payload_url: `/verify-card/${cardNumber}`,
-        },
-      });
+      const [card] = await db.insert(schema.memberCards).values({
+        userId,
+        cardNumber,
+        membershipTier: membershipTier as MemberTier,
+        qrPayloadUrl: `/verify-card/${cardNumber}`,
+      }).returning();
 
       return card;
     } catch (error: any) {
-      if (error?.code === 'P2002') {
+      if (error?.code === '23505') { // Postgres unique violation
         attempt++;
         if (attempt >= MAX_RETRIES) {
           throw new AppError({
@@ -153,10 +157,10 @@ export async function issueCardForUserIfNoneActive(
 }
 
 export async function revokeCard(cardId: string, reason?: string): Promise<CardRecord> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const card = await prisma.memberCard.findUnique({
-    where: { id: cardId },
+  const card = await db.query.memberCards.findFirst({
+    where: (cards, { eq }) => eq(cards.id, cardId),
   });
 
   if (!card) {
@@ -175,14 +179,11 @@ export async function revokeCard(cardId: string, reason?: string): Promise<CardR
     });
   }
 
-  const updated = await prisma.memberCard.update({
-    where: { id: cardId },
-    data: {
-      status: 'REVOKED',
-      revoked_at: new Date(),
-      revoked_reason: reason ?? null,
-    },
-  });
+  const [updated] = await db.update(schema.memberCards).set({
+    status: 'REVOKED',
+    revokedAt: new Date(),
+    revokedReason: reason ?? null,
+  }).where(eq(schema.memberCards.id, cardId)).returning();
 
   return updated;
 }
@@ -193,16 +194,16 @@ export async function reissueCard(
   currentCardId: string,
   revokeReason?: string,
 ): Promise<CardRecord> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
   const MAX_RETRIES = 3;
   let attempt = 0;
 
   while (attempt < MAX_RETRIES) {
     try {
-      const [newCard] = await prisma.$transaction(async (tx) => {
-        const card = await tx.memberCard.findUnique({
-          where: { id: currentCardId },
+      const newCard = await db.transaction(async (tx) => {
+        const card = await tx.query.memberCards.findFirst({
+          where: (cards, { eq }) => eq(cards.id, currentCardId),
         });
 
         if (!card) {
@@ -221,33 +222,28 @@ export async function reissueCard(
           });
         }
 
-        await tx.memberCard.update({
-          where: { id: currentCardId },
-          data: {
-            status: 'REVOKED',
-            revoked_at: new Date(),
-            revoked_reason: revokeReason ?? null,
-          },
-        });
+        await tx.update(schema.memberCards).set({
+          status: 'REVOKED',
+          revokedAt: new Date(),
+          revokedReason: revokeReason ?? null,
+        }).where(eq(schema.memberCards.id, currentCardId));
 
         const tierPrefix = cardNumberToTierPrefix(membershipTier as 'MEMBER' | 'VIP');
         const cardNumber = await generateNextCardNumber(tierPrefix);
 
-        const newCardRecord = await tx.memberCard.create({
-          data: {
-            user_id: userId,
-            card_number: cardNumber,
-            membership_tier: membershipTier as MemberTier,
-            qr_payload_url: `/verify-card/${cardNumber}`,
-          },
-        });
+        const [newCardRecord] = await tx.insert(schema.memberCards).values({
+          userId,
+          cardNumber,
+          membershipTier: membershipTier as MemberTier,
+          qrPayloadUrl: `/verify-card/${cardNumber}`,
+        }).returning();
 
-        return [newCardRecord];
+        return newCardRecord;
       });
 
       return newCard;
     } catch (error: any) {
-      if (error?.code === 'P2002') {
+      if (error?.code === '23505') { // Postgres unique violation
         attempt++;
         if (attempt >= MAX_RETRIES) {
           throw new AppError({
@@ -266,11 +262,11 @@ export async function reissueCard(
 }
 
 export async function publicVerifyCard(cardNumber: string): Promise<PublicCardVerificationDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const card = await prisma.memberCard.findUnique({
-    where: { card_number: cardNumber },
-    include: { user: { select: { display_name: true } } },
+  const card = await db.query.memberCards.findFirst({
+    where: (cards, { eq }) => eq(cards.cardNumber, cardNumber),
+    with: { user: { columns: { displayName: true } } },
   });
 
   if (!card) {

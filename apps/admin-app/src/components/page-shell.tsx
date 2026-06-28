@@ -11,7 +11,7 @@ type PageShellProps = {
 
 export function PageShell({ title, description, count, children }: PageShellProps) {
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-7xl space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>

@@ -65,7 +65,8 @@ import type {
 import { revalidateTag } from 'next/cache';
 
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@kclub/database';
+import { eq, and, ne, desc, asc, inArray, ilike, or, not, exists, count, gte, lte } from 'drizzle-orm';
 import { createDbAuditService } from '@/server/audit';
 import type { RequestContext } from '@/server/context';
 import { revokeCard, reissueCard, toMemberCardDto } from './card-service';
@@ -89,7 +90,14 @@ function assertValidUuid(id: string, entityName: string): void {
 // ── Dashboard Metrics ──
 
 export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
+
+  const getCount = async (table: any, condition?: any) => {
+    const q = db.select({ value: count() }).from(table);
+    if (condition) q.where(condition);
+    const res = await q;
+    return res[0].value;
+  };
 
   const [
     totalUsers,
@@ -101,14 +109,14 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
     introductionsSubmitted,
     introductionsInReview,
   ] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { status: 'BLOCKED' } }),
-    prisma.vipSubscription.count({ where: { status: 'ACTIVE' } }),
-    prisma.vipSubscription.count({ where: { status: 'PAST_DUE' } }),
-    prisma.vipSubscription.count({ where: { status: 'EXPIRED' } }),
-    prisma.businessProfile.count({ where: { status: 'UNDER_REVIEW' } }),
-    prisma.businessIntroduction.count({ where: { status: 'SUBMITTED' } }),
-    prisma.businessIntroduction.count({ where: { status: 'IN_REVIEW' } }),
+    getCount(schema.users),
+    getCount(schema.users, eq(schema.users.status, 'BLOCKED')),
+    getCount(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'ACTIVE')),
+    getCount(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'PAST_DUE')),
+    getCount(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'EXPIRED')),
+    getCount(schema.businessProfiles, eq(schema.businessProfiles.status, 'UNDER_REVIEW')),
+    getCount(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'SUBMITTED')),
+    getCount(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'IN_REVIEW')),
   ]);
 
   return {
@@ -129,58 +137,67 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
 export async function listUsers(
   params: AdminUserListInput,
 ): Promise<{ data: AdminUserListItemDto[]; total: number }> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const where: Record<string, unknown> = {};
+  const conditions = [];
 
   if (params.search) {
-    where.OR = [
-      { phone: { contains: params.search } },
-      { display_name: { contains: params.search, mode: 'insensitive' } },
-    ];
+    conditions.push(or(
+      ilike(schema.users.phone, `%${params.search}%`),
+      ilike(schema.users.displayName, `%${params.search}%`)
+    ));
   }
 
   if (params.status) {
-    where.status = params.status;
+    conditions.push(eq(schema.users.status, params.status));
   }
 
   if (params.membershipTier) {
-    where.membership_tier = params.membershipTier;
+    conditions.push(eq(schema.users.membershipTier, params.membershipTier));
   }
 
   // Exclude users who own an active business profile
-  where.business_profiles = { none: { status: { not: 'REJECTED' } } };
+  const activeBusinessExists = exists(
+    db.select().from(schema.businessProfiles)
+      .where(and(
+        eq(schema.businessProfiles.userId, schema.users.id),
+        ne(schema.businessProfiles.status, 'REJECTED')
+      ))
+  );
+  conditions.push(not(activeBusinessExists));
 
-  const [users, total] = await Promise.all([
-    prisma.user.findMany({
-      where,
-      orderBy: { created_at: 'desc' },
-      skip: (params.page - 1) * params.limit,
-      take: params.limit,
+  const finalCondition = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [users, totalRes] = await Promise.all([
+    db.query.users.findMany({
+      where: finalCondition,
+      orderBy: (u, { desc }) => [desc(u.createdAt)],
+      limit: params.limit,
+      offset: (params.page - 1) * params.limit,
     }),
-    prisma.user.count({ where }),
+    db.select({ value: count() }).from(schema.users).where(finalCondition),
   ]);
 
-  return { data: users.map(toAdminUserListItem), total };
+  return { data: users.map(toAdminUserListItem), total: totalRes[0].value };
 }
 
 export async function getUserDetail(userId: string): Promise<AdminUserDetailDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
   const [user, cards, subscriptions, auditEntries] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId } }),
-    prisma.memberCard.findMany({
-      where: { user_id: userId },
-      orderBy: { issued_at: 'desc' },
+    db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, userId) }),
+    db.query.memberCards.findMany({
+      where: (c, { eq }) => eq(c.userId, userId),
+      orderBy: (c, { desc }) => [desc(c.issuedAt)],
     }),
-    prisma.vipSubscription.findMany({
-      where: { user_id: userId },
-      orderBy: { created_at: 'desc' },
+    db.query.vipSubscriptions.findMany({
+      where: (s, { eq }) => eq(s.userId, userId),
+      orderBy: (s, { desc }) => [desc(s.createdAt)],
     }),
-    prisma.auditLog.findMany({
-      where: { entity_id: userId },
-      orderBy: { created_at: 'desc' },
-      take: 50,
+    db.query.auditLogs.findMany({
+      where: (l, { eq }) => eq(l.entityId, userId),
+      orderBy: (l, { desc }) => [desc(l.createdAt)],
+      limit: 50,
     }),
   ]);
 
@@ -199,20 +216,20 @@ export async function syncVipSubscriptionForUser(
   userId: string,
   context: RequestContext,
 ): Promise<AdminUserDetailDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const stripe = getStripeClient();
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, userId) });
   if (!user) {
     throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'User not found', status: 404 });
   }
 
-  const existingLocal = await prisma.vipSubscription.findFirst({
-    where: { user_id: userId },
-    orderBy: { created_at: 'desc' },
+  const existingLocal = await db.query.vipSubscriptions.findFirst({
+    where: (s, { eq }) => eq(s.userId, userId),
+    orderBy: (s, { desc }) => [desc(s.createdAt)],
   });
 
-  if (!existingLocal?.stripe_subscription_id && !existingLocal?.stripe_customer_id) {
+  if (!existingLocal?.stripeSubscriptionId && !existingLocal?.stripeCustomerId) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
       message: 'No Stripe identifiers found locally. Ask the user to revisit the checkout success page, or enter the subscription ID manually in Stripe dashboard.',
@@ -221,11 +238,11 @@ export async function syncVipSubscriptionForUser(
   }
 
   let stripeSub;
-  if (existingLocal.stripe_subscription_id) {
-    stripeSub = await stripe.subscriptions.retrieve(existingLocal.stripe_subscription_id);
+  if (existingLocal.stripeSubscriptionId) {
+    stripeSub = await stripe.subscriptions.retrieve(existingLocal.stripeSubscriptionId);
   } else {
     const list = await stripe.subscriptions.list({
-      customer: existingLocal.stripe_customer_id!,
+      customer: existingLocal.stripeCustomerId!,
       limit: 5,
     });
     stripeSub = list.data[0];
@@ -242,40 +259,32 @@ export async function syncVipSubscriptionForUser(
   const stripeSubPeriodEnd = (stripeSub as unknown as { current_period_end: number | null }).current_period_end;
   const newStatus = mapStripeStatusToLocal(stripeSub.status, stripeSubPeriodEnd) ?? 'ACTIVE';
 
-  const resolvedCustomerId = existingLocal?.stripe_customer_id
+  const resolvedCustomerId = existingLocal?.stripeCustomerId
     ?? (typeof stripeSub.customer === 'string' ? stripeSub.customer : null);
 
-  const localSub = existingLocal
-    ? await prisma.vipSubscription.update({
-        where: { id: existingLocal.id },
-        data: {
-          status: newStatus,
-          stripe_customer_id: resolvedCustomerId,
-          stripe_subscription_id: stripeSub.id,
-          current_period_end: stripeSubPeriodEnd
-            ? new Date(stripeSubPeriodEnd * 1000)
-            : undefined,
-          cancel_at_period_end: stripeSub.cancel_at_period_end,
-        },
-      })
-    : await prisma.vipSubscription.create({
-        data: {
-          user_id: userId,
-          status: newStatus,
-          stripe_customer_id: resolvedCustomerId,
-          stripe_subscription_id: stripeSub.id,
-          current_period_end: stripeSubPeriodEnd
-            ? new Date(stripeSubPeriodEnd * 1000)
-            : null,
-          cancel_at_period_end: stripeSub.cancel_at_period_end,
-        },
-      });
+  let localSub;
+  if (existingLocal) {
+    [localSub] = await db.update(schema.vipSubscriptions).set({
+      status: newStatus,
+      stripeCustomerId: resolvedCustomerId,
+      stripeSubscriptionId: stripeSub.id,
+      currentPeriodEnd: stripeSubPeriodEnd ? new Date(stripeSubPeriodEnd * 1000) : null,
+      cancelAtPeriodEnd: stripeSub.cancel_at_period_end,
+    }).where(eq(schema.vipSubscriptions.id, existingLocal.id)).returning();
+  } else {
+    [localSub] = await db.insert(schema.vipSubscriptions).values({
+      userId,
+      status: newStatus,
+      stripeCustomerId: resolvedCustomerId,
+      stripeSubscriptionId: stripeSub.id,
+      currentPeriodEnd: stripeSubPeriodEnd ? new Date(stripeSubPeriodEnd * 1000) : null,
+      cancelAtPeriodEnd: stripeSub.cancel_at_period_end,
+    }).returning();
+  }
 
-  // eslint-disable-next-line
-  await (prisma.user as any).update({
-    where: { id: userId },
-    data: { membership_tier: newStatus === 'ACTIVE' || newStatus === 'PAST_DUE' ? 'VIP' : 'MEMBER' },
-  });
+  await db.update(schema.users).set({
+    membershipTier: newStatus === 'ACTIVE' || newStatus === 'PAST_DUE' ? 'VIP' : 'MEMBER',
+  }).where(eq(schema.users.id, userId));
 
   await auditService.log(
     {
@@ -297,9 +306,9 @@ export async function blockUser(
   input: BlockUserInput,
   context: RequestContext,
 ): Promise<AdminUserDetailDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, userId) });
   if (!user) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -316,20 +325,16 @@ export async function blockUser(
     });
   }
 
-  const [updated] = await prisma.$transaction(async (tx) => {
-    await tx.memberCard.updateMany({
-      where: { user_id: userId, status: 'ACTIVE' },
-      data: {
-        status: 'REVOKED',
-        revoked_at: new Date(),
-        revoked_reason: input.reason ?? 'User blocked',
-      },
-    });
+  const [updated] = await db.transaction(async (tx) => {
+    await tx.update(schema.memberCards).set({
+      status: 'REVOKED',
+      revokedAt: new Date(),
+      revokedReason: input.reason ?? 'User blocked',
+    }).where(and(eq(schema.memberCards.userId, userId), eq(schema.memberCards.status, 'ACTIVE')));
 
-    const u = await tx.user.update({
-      where: { id: userId },
-      data: { status: 'BLOCKED' },
-    });
+    const [u] = await tx.update(schema.users).set({
+      status: 'BLOCKED',
+    }).where(eq(schema.users.id, userId)).returning();
 
     return [u];
   });
@@ -345,7 +350,7 @@ export async function blockUser(
     context,
   );
 
-  return toAdminUserDetail(updated);
+  return getUserDetail(userId);
 }
 
 export async function unblockUser(
@@ -353,9 +358,9 @@ export async function unblockUser(
   input: UnblockUserInput,
   context: RequestContext,
 ): Promise<AdminUserDetailDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, userId) });
   if (!user) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -372,10 +377,9 @@ export async function unblockUser(
     });
   }
 
-  const updated = await prisma.user.update({
-    where: { id: userId },
-    data: { status: 'ACTIVE' },
-  });
+  const [updated] = await db.update(schema.users).set({
+    status: 'ACTIVE',
+  }).where(eq(schema.users.id, userId)).returning();
 
   await auditService.log(
     {
@@ -388,7 +392,7 @@ export async function unblockUser(
     context,
   );
 
-  return toAdminUserDetail(updated);
+  return getUserDetail(userId);
 }
 
 // ── Cards ──
@@ -396,44 +400,70 @@ export async function unblockUser(
 export async function listCards(
   params: AdminCardListInput,
 ): Promise<{ data: AdminCardListItemDto[]; total: number }> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const where: Record<string, unknown> = {};
+  const conditions = [];
 
   if (params.status) {
-    where.status = params.status;
+    conditions.push(eq(schema.memberCards.status, params.status));
   }
 
   if (params.membershipTier) {
-    where.membership_tier = params.membershipTier;
+    conditions.push(eq(schema.memberCards.membershipTier, params.membershipTier));
   }
 
   if (params.search) {
-    where.user = {
-      OR: [
-        { phone: { contains: params.search } },
-        { display_name: { contains: params.search, mode: 'insensitive' } },
-      ],
-    };
+    conditions.push(or(
+      ilike(schema.users.phone, `%${params.search}%`),
+      ilike(schema.users.displayName, `%${params.search}%`)
+    ));
   }
 
-  const [cards, total] = await Promise.all([
-    prisma.memberCard.findMany({
-      where,
-      include: { user: { select: { phone: true, display_name: true } } },
-      orderBy: { issued_at: 'desc' },
-      skip: (params.page - 1) * params.limit,
-      take: params.limit,
-    }),
-    prisma.memberCard.count({ where }),
+  const finalCondition = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [cards, totalRes] = await Promise.all([
+    db.select({
+      id: schema.memberCards.id,
+      userId: schema.memberCards.userId,
+      cardNumber: schema.memberCards.cardNumber,
+      membershipTier: schema.memberCards.membershipTier,
+      status: schema.memberCards.status,
+      issuedAt: schema.memberCards.issuedAt,
+      expiresAt: schema.memberCards.expiresAt,
+      user: {
+        phone: schema.users.phone,
+        displayName: schema.users.displayName,
+      }
+    }).from(schema.memberCards)
+      .leftJoin(schema.users, eq(schema.memberCards.userId, schema.users.id))
+      .where(finalCondition)
+      .orderBy(desc(schema.memberCards.issuedAt))
+      .limit(params.limit)
+      .offset((params.page - 1) * params.limit),
+    db.select({ value: count() }).from(schema.memberCards)
+      .leftJoin(schema.users, eq(schema.memberCards.userId, schema.users.id))
+      .where(finalCondition),
   ]);
 
-  return { data: cards.map(toAdminCardListItem), total };
+  return {
+    data: cards.map(c => ({
+      id: c.id,
+      userId: c.userId,
+      userPhone: c.user?.phone ?? '',
+      userDisplayName: c.user?.displayName ?? null,
+      cardNumber: c.cardNumber,
+      status: c.status as ClubCardStatus,
+      membershipTier: c.membershipTier as MemberTier,
+      issuedAt: c.issuedAt.toISOString(),
+      expiresAt: c.expiresAt?.toISOString() ?? null,
+    })),
+    total: totalRes[0].value,
+  };
 }
 
 export async function getCardDetail(cardId: string): Promise<MemberCardDto> {
-  const prisma = getPrismaClient();
-  const card = await prisma.memberCard.findUnique({ where: { id: cardId } });
+  const db = getDbClient();
+  const card = await db.query.memberCards.findFirst({ where: (c, { eq }) => eq(c.id, cardId) });
   if (!card) {
     throw new AppError({
       code: ERROR_CODES.CARD_NOT_FOUND,
@@ -449,8 +479,8 @@ export async function adminRevokeCard(
   input: RevokeCardInput,
   context: RequestContext,
 ): Promise<MemberCardDto> {
-  const prisma = getPrismaClient();
-  const card = await prisma.memberCard.findUnique({ where: { id: cardId } });
+  const db = getDbClient();
+  const card = await db.query.memberCards.findFirst({ where: (c, { eq }) => eq(c.id, cardId) });
   if (!card) {
     throw new AppError({
       code: ERROR_CODES.CARD_NOT_FOUND,
@@ -466,7 +496,7 @@ export async function adminRevokeCard(
       action: 'CARD_REVOKED',
       entityType: 'MemberCard',
       entityId: cardId,
-      before: { status: card.status, userId: card.user_id },
+      before: { status: card.status, userId: card.userId },
       after: { status: updated.status },
     },
     context,
@@ -480,8 +510,8 @@ export async function adminReissueCard(
   input: ReissueCardInput,
   context: RequestContext,
 ): Promise<MemberCardDto> {
-  const prisma = getPrismaClient();
-  const card = await prisma.memberCard.findUnique({ where: { id: cardId } });
+  const db = getDbClient();
+  const card = await db.query.memberCards.findFirst({ where: (c, { eq }) => eq(c.id, cardId) });
   if (!card) {
     throw new AppError({
       code: ERROR_CODES.CARD_NOT_FOUND,
@@ -490,7 +520,7 @@ export async function adminReissueCard(
     });
   }
 
-  const newCard = await reissueCard(card.user_id, card.membership_tier, cardId, input.reason);
+  const newCard = await reissueCard(card.userId, card.membershipTier, cardId, input.reason);
 
   await auditService.log(
     {
@@ -498,7 +528,7 @@ export async function adminReissueCard(
       entityType: 'MemberCard',
       entityId: newCard.id,
       before: { revokedCardId: cardId },
-      after: { cardNumber: newCard.card_number, status: newCard.status },
+      after: { cardNumber: newCard.cardNumber, status: newCard.status },
     },
     context,
   );
@@ -508,77 +538,55 @@ export async function adminReissueCard(
 
 // ── Businesses ──
 
-const BUSINESS_LIST_INCLUDE = {
-  category: true,
-  country: true,
-  city: true,
-  user: {
-    select: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
-  },
-  subscriptions: {
-    where: { kind: 'BUSINESS_PLACEMENT' as const },
-    orderBy: { created_at: 'desc' as const },
-    take: 1,
-  },
-};
-
 export async function listBusinesses(
   params: AdminBusinessListInput,
 ): Promise<{ data: AdminBusinessListItemDto[]; total: number }> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const where: Record<string, unknown> = {};
-  if (params.status) {
-    where.status = params.status;
-  }
+  const conditions = [];
+  if (params.status) conditions.push(eq(schema.businessProfiles.status, params.status));
 
-  const [businesses, total] = await Promise.all([
-    prisma.businessProfile.findMany({
-      where,
-      include: BUSINESS_LIST_INCLUDE,
-      orderBy: { created_at: 'desc' },
-      skip: (params.page - 1) * params.limit,
-      take: params.limit,
+  const finalCondition = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [businesses, totalRes] = await Promise.all([
+    db.query.businessProfiles.findMany({
+      where: finalCondition,
+      with: {
+        category: true,
+        country: true,
+        city: true,
+        user: { columns: { id: true, phone: true, displayName: true, status: true, membershipTier: true } },
+        subscriptions: {
+          where: (s, { eq }) => eq(s.kind, 'BUSINESS_PLACEMENT'),
+          orderBy: (s, { desc }) => [desc(s.createdAt)],
+          limit: 1,
+        }
+      },
+      orderBy: (bp, { desc }) => [desc(bp.createdAt)],
+      limit: params.limit,
+      offset: (params.page - 1) * params.limit,
     }),
-    prisma.businessProfile.count({ where }),
+    db.select({ value: count() }).from(schema.businessProfiles).where(finalCondition),
   ]);
 
-  return { data: businesses.map(toAdminBusinessListItem), total };
+  return { data: businesses.map(toAdminBusinessListItem), total: totalRes[0].value };
 }
 
-const BUSINESS_MUTATION_INCLUDE = {
-  category: true,
-  country: true,
-  city: true,
-  user: {
-    select: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
-  },
-  subscriptions: {
-    where: { kind: 'BUSINESS_PLACEMENT' as const },
-    orderBy: { created_at: 'desc' as const },
-    take: 1,
-  },
-};
-
-const BUSINESS_DETAIL_INCLUDE = {
-  category: true,
-  country: true,
-  city: true,
-  user: {
-    select: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
-  },
-  subscriptions: {
-    where: { kind: 'BUSINESS_PLACEMENT' as const },
-    orderBy: { created_at: 'desc' as const },
-    take: 1,
-  },
-};
-
 export async function getBusinessDetail(businessId: string): Promise<AdminBusinessDetailDto> {
-  const prisma = getPrismaClient();
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
-    include: BUSINESS_DETAIL_INCLUDE,
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
+    with: {
+      category: true,
+      country: true,
+      city: true,
+      user: { columns: { id: true, phone: true, displayName: true, status: true, membershipTier: true } },
+      subscriptions: {
+        where: (s, { eq }) => eq(s.kind, 'BUSINESS_PLACEMENT'),
+        orderBy: (s, { desc }) => [desc(s.createdAt)],
+        limit: 1,
+      }
+    },
   });
   if (!business) {
     throw new AppError({
@@ -588,10 +596,10 @@ export async function getBusinessDetail(businessId: string): Promise<AdminBusine
     });
   }
 
-  const auditEntries = await prisma.auditLog.findMany({
-    where: { entity_type: 'BusinessProfile', entity_id: businessId },
-    orderBy: { created_at: 'desc' },
-    take: 50,
+  const auditEntries = await db.query.auditLogs.findMany({
+    where: (al, { eq, and }) => and(eq(al.entityType, 'BusinessProfile'), eq(al.entityId, businessId)),
+    orderBy: (al, { desc }) => [desc(al.createdAt)],
+    limit: 50,
   });
 
   return toAdminBusinessDetail(business, auditEntries);
@@ -602,11 +610,10 @@ export async function adminUpdateBusiness(
   input: AdminBusinessUpdateInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
-    include: BUSINESS_MUTATION_INCLUDE,
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
   });
 
   if (!business) {
@@ -617,28 +624,24 @@ export async function adminUpdateBusiness(
     });
   }
 
-  const updated = await prisma.businessProfile.update({
-    where: { id: businessId },
-    data: {
-      ...(input.name !== undefined && { name: input.name }),
-      ...(input.representativeName !== undefined && {
-        representative_name: input.representativeName,
-      }),
-      ...(input.representativeEmail !== undefined && {
-        representative_email: input.representativeEmail,
-      }),
-      ...(input.representativePhone !== undefined && {
-        representative_phone: input.representativePhone,
-      }),
-      ...(input.websiteUrl !== undefined && { website_url: input.websiteUrl }),
-      ...(input.socialUrl !== undefined && { social_url: input.socialUrl }),
-      ...(input.briefDescription !== undefined && {
-        brief_description: input.briefDescription,
-      }),
-      updated_at: new Date(),
-    },
-    include: BUSINESS_MUTATION_INCLUDE,
-  });
+  const [updated] = await db.update(schema.businessProfiles).set({
+    ...(input.name !== undefined && { name: input.name }),
+    ...(input.representativeName !== undefined && {
+      representativeName: input.representativeName,
+    }),
+    ...(input.representativeEmail !== undefined && {
+      representativeEmail: input.representativeEmail,
+    }),
+    ...(input.representativePhone !== undefined && {
+      representativePhone: input.representativePhone,
+    }),
+    ...(input.websiteUrl !== undefined && { websiteUrl: input.websiteUrl }),
+    ...(input.socialUrl !== undefined && { socialUrl: input.socialUrl }),
+    ...(input.briefDescription !== undefined && {
+      briefDescription: input.briefDescription,
+    }),
+    updatedAt: new Date(),
+  }).where(eq(schema.businessProfiles.id, businessId)).returning();
 
   await auditService.log(
     {
@@ -647,14 +650,14 @@ export async function adminUpdateBusiness(
       entityId: businessId,
       before: {
         name: business.name,
-        representativeEmail: business.representative_email,
+        representativeEmail: business.representativeEmail,
       },
-      after: { name: updated.name, representativeEmail: updated.representative_email },
+      after: { name: updated.name, representativeEmail: updated.representativeEmail },
     },
     context,
   );
 
-  return toAdminBusinessDetail(updated);
+  return getBusinessDetail(businessId);
 }
 
 export async function approveBusiness(
@@ -662,10 +665,9 @@ export async function approveBusiness(
   input: BusinessApproveInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
-  const prisma = getPrismaClient();
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
-    include: BUSINESS_MUTATION_INCLUDE,
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
   });
 
   if (!business) {
@@ -684,15 +686,11 @@ export async function approveBusiness(
     });
   }
 
-  const updated = await prisma.businessProfile.update({
-    where: { id: businessId },
-    data: {
-      status: 'APPROVED',
-      approved_at: new Date(),
-      internal_notes: input.notes ?? business.internal_notes,
-    },
-    include: BUSINESS_MUTATION_INCLUDE,
-  });
+  const [updated] = await db.update(schema.businessProfiles).set({
+    status: 'APPROVED',
+    approvedAt: new Date(),
+    internalNotes: input.notes ?? business.internalNotes,
+  }).where(eq(schema.businessProfiles.id, businessId)).returning();
 
   await auditService.log(
     {
@@ -708,23 +706,16 @@ export async function approveBusiness(
   revalidateTag('businesses');
   revalidateTag('public-businesses');
 
-  const auditEntries = await prisma.auditLog.findMany({
-    where: { entity_type: 'BusinessProfile', entity_id: businessId },
-    orderBy: { created_at: 'desc' },
-    take: 50,
-  });
-
-  return toAdminBusinessDetail(updated, auditEntries);
+  return getBusinessDetail(businessId);
 }
 
 export async function publishBusiness(
   businessId: string,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
-  const prisma = getPrismaClient();
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
-    include: BUSINESS_MUTATION_INCLUDE,
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
   });
 
   if (!business) {
@@ -743,11 +734,10 @@ export async function publishBusiness(
     });
   }
 
-  const updated = await prisma.businessProfile.update({
-    where: { id: businessId },
-    data: { status: 'PUBLISHED', published_at: new Date() },
-    include: BUSINESS_MUTATION_INCLUDE,
-  });
+  const [updated] = await db.update(schema.businessProfiles).set({
+    status: 'PUBLISHED',
+    publishedAt: new Date(),
+  }).where(eq(schema.businessProfiles.id, businessId)).returning();
 
   await auditService.log(
     {
@@ -763,13 +753,7 @@ export async function publishBusiness(
   revalidateTag('businesses');
   revalidateTag('public-businesses');
 
-  const auditEntries = await prisma.auditLog.findMany({
-    where: { entity_type: 'BusinessProfile', entity_id: businessId },
-    orderBy: { created_at: 'desc' },
-    take: 50,
-  });
-
-  return toAdminBusinessDetail(updated, auditEntries);
+  return getBusinessDetail(businessId);
 }
 
 export async function rejectBusiness(
@@ -777,10 +761,9 @@ export async function rejectBusiness(
   input: BusinessRejectInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
-  const prisma = getPrismaClient();
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
-    include: BUSINESS_MUTATION_INCLUDE,
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
   });
 
   if (!business) {
@@ -799,15 +782,11 @@ export async function rejectBusiness(
     });
   }
 
-  const updated = await prisma.businessProfile.update({
-    where: { id: businessId },
-    data: {
-      status: 'REJECTED',
-      rejection_reason: input.reason,
-      rejected_at: new Date(),
-    },
-    include: BUSINESS_MUTATION_INCLUDE,
-  });
+  const [updated] = await db.update(schema.businessProfiles).set({
+    status: 'REJECTED',
+    rejectionReason: input.reason,
+    rejectedAt: new Date(),
+  }).where(eq(schema.businessProfiles.id, businessId)).returning();
 
   await auditService.log(
     {
@@ -823,7 +802,7 @@ export async function rejectBusiness(
   revalidateTag('businesses');
   revalidateTag('public-businesses');
 
-  return toAdminBusinessDetail(updated);
+  return getBusinessDetail(businessId);
 }
 
 export async function hideBusiness(
@@ -831,10 +810,9 @@ export async function hideBusiness(
   input: BusinessHideInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
-  const prisma = getPrismaClient();
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
-    include: BUSINESS_MUTATION_INCLUDE,
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
   });
 
   if (!business) {
@@ -853,16 +831,12 @@ export async function hideBusiness(
     });
   }
 
-  const updated = await prisma.businessProfile.update({
-    where: { id: businessId },
-    data: {
-      status: 'HIDDEN',
-      hidden_at: new Date(),
-      featured_top: false,
-      featured_recommended: false,
-    },
-    include: BUSINESS_MUTATION_INCLUDE,
-  });
+  const [updated] = await db.update(schema.businessProfiles).set({
+    status: 'HIDDEN',
+    hiddenAt: new Date(),
+    featuredTop: false,
+    featuredRecommended: false,
+  }).where(eq(schema.businessProfiles.id, businessId)).returning();
 
   await auditService.log(
     {
@@ -871,8 +845,8 @@ export async function hideBusiness(
       entityId: businessId,
       before: {
         status: business.status,
-        featuredTop: business.featured_top,
-        featuredRecommended: business.featured_recommended,
+        featuredTop: business.featuredTop,
+        featuredRecommended: business.featuredRecommended,
       },
       after: { status: updated.status, featuredTop: false, featuredRecommended: false },
     },
@@ -882,7 +856,7 @@ export async function hideBusiness(
   revalidateTag('businesses');
   revalidateTag('public-businesses');
 
-  return toAdminBusinessDetail(updated);
+  return getBusinessDetail(businessId);
 }
 
 export async function updateBusinessFeatured(
@@ -890,11 +864,10 @@ export async function updateBusinessFeatured(
   input: BusinessFeaturedInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
-    include: BUSINESS_MUTATION_INCLUDE,
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
   });
 
   if (!business) {
@@ -916,17 +889,18 @@ export async function updateBusinessFeatured(
   const setTop = input.featuredTop;
   const setRecommended = input.featuredRecommended;
 
-  const [updated] = await prisma.$transaction(async (tx) => {
-    if (setTop !== undefined && setTop !== business.featured_top) {
+  const [updated] = await db.transaction(async (tx) => {
+    if (setTop !== undefined && setTop !== business.featuredTop) {
       if (setTop) {
-        const currentTopCount = await tx.businessProfile.count({
-          where: { featured_top: true, id: { not: businessId } },
-        });
+        const currentTopCountRes = await tx.select({ value: count() })
+          .from(schema.businessProfiles)
+          .where(and(eq(schema.businessProfiles.featuredTop, true), ne(schema.businessProfiles.id, businessId)));
+        
         if (
           !canSetFeaturedFlag(
             business.status as BusinessStatus,
             true,
-            currentTopCount,
+            currentTopCountRes[0].value,
             FEATURED_TOP_MAX,
           )
         ) {
@@ -939,16 +913,17 @@ export async function updateBusinessFeatured(
       }
     }
 
-    if (setRecommended !== undefined && setRecommended !== business.featured_recommended) {
+    if (setRecommended !== undefined && setRecommended !== business.featuredRecommended) {
       if (setRecommended) {
-        const currentRecommendedCount = await tx.businessProfile.count({
-          where: { featured_recommended: true, id: { not: businessId } },
-        });
+        const currentRecommendedCountRes = await tx.select({ value: count() })
+          .from(schema.businessProfiles)
+          .where(and(eq(schema.businessProfiles.featuredRecommended, true), ne(schema.businessProfiles.id, businessId)));
+
         if (
           !canSetFeaturedFlag(
             business.status as BusinessStatus,
             true,
-            currentRecommendedCount,
+            currentRecommendedCountRes[0].value,
             FEATURED_RECOMMENDED_MAX,
           )
         ) {
@@ -961,33 +936,11 @@ export async function updateBusinessFeatured(
       }
     }
 
-    const b = await tx.businessProfile.update({
-      where: { id: businessId },
-      data: {
-        featured_top: setTop !== undefined ? setTop : business.featured_top,
-        featured_recommended:
-          setRecommended !== undefined ? setRecommended : business.featured_recommended,
-      },
-      include: {
-        category: true,
-        country: true,
-        city: true,
-        user: {
-          select: {
-            id: true,
-            phone: true,
-            display_name: true,
-            status: true,
-            membership_tier: true,
-          },
-        },
-        subscriptions: {
-          where: { kind: 'BUSINESS_PLACEMENT' as const },
-          orderBy: { created_at: 'desc' as const },
-          take: 1,
-        },
-      },
-    });
+    const [b] = await tx.update(schema.businessProfiles).set({
+      featuredTop: setTop !== undefined ? setTop : business.featuredTop,
+      featuredRecommended:
+        setRecommended !== undefined ? setRecommended : business.featuredRecommended,
+    }).where(eq(schema.businessProfiles.id, businessId)).returning();
 
     return [b];
   });
@@ -998,12 +951,12 @@ export async function updateBusinessFeatured(
       entityType: 'BusinessProfile',
       entityId: businessId,
       before: {
-        featuredTop: business.featured_top,
-        featuredRecommended: business.featured_recommended,
+        featuredTop: business.featuredTop,
+        featuredRecommended: business.featuredRecommended,
       },
       after: {
-        featuredTop: updated.featured_top,
-        featuredRecommended: updated.featured_recommended,
+        featuredTop: updated.featuredTop,
+        featuredRecommended: updated.featuredRecommended,
       },
     },
     context,
@@ -1012,22 +965,20 @@ export async function updateBusinessFeatured(
   revalidateTag('businesses');
   revalidateTag('public-businesses');
 
-  return toAdminBusinessDetail(updated);
+  return getBusinessDetail(businessId);
 }
 
 // ── Introductions ──
 
-const INTRODUCTION_LIST_INCLUDE = {
-  requester_user: { select: { id: true, phone: true, display_name: true } },
-  requester_business: { select: { id: true, name: true, slug: true } },
-  target_business: { select: { id: true, name: true, slug: true } },
-} as const;
-
 export async function listIntroductions(): Promise<AdminIntroductionListItemDto[]> {
-  const prisma = getPrismaClient();
-  const introductions = await prisma.businessIntroduction.findMany({
-    include: INTRODUCTION_LIST_INCLUDE,
-    orderBy: { created_at: 'desc' },
+  const db = getDbClient();
+  const introductions = await db.query.businessIntroductions.findMany({
+    with: {
+      requesterUser: { columns: { id: true, phone: true, displayName: true } },
+      requesterBusiness: { columns: { id: true, name: true, slug: true } },
+      targetBusiness: { columns: { id: true, name: true, slug: true } },
+    },
+    orderBy: (bi, { desc }) => [desc(bi.createdAt)],
   });
   return introductions.map(toAdminIntroductionListItem);
 }
@@ -1035,10 +986,14 @@ export async function listIntroductions(): Promise<AdminIntroductionListItemDto[
 export async function getIntroductionDetail(
   introductionId: string,
 ): Promise<AdminIntroductionListItemDto> {
-  const prisma = getPrismaClient();
-  const intro = await prisma.businessIntroduction.findUnique({
-    where: { id: introductionId },
-    include: INTRODUCTION_LIST_INCLUDE,
+  const db = getDbClient();
+  const intro = await db.query.businessIntroductions.findFirst({
+    where: (bi, { eq }) => eq(bi.id, introductionId),
+    with: {
+      requesterUser: { columns: { id: true, phone: true, displayName: true } },
+      requesterBusiness: { columns: { id: true, name: true, slug: true } },
+      targetBusiness: { columns: { id: true, name: true, slug: true } },
+    },
   });
   if (!intro) {
     throw new AppError({
@@ -1055,8 +1010,8 @@ export async function approveIntroduction(
   input: IntroductionApproveInput,
   context: RequestContext,
 ): Promise<IntroductionDto> {
-  const prisma = getPrismaClient();
-  const intro = await prisma.businessIntroduction.findUnique({ where: { id: introductionId } });
+  const db = getDbClient();
+  const intro = await db.query.businessIntroductions.findFirst({ where: (bi, { eq }) => eq(bi.id, introductionId) });
   if (!intro) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1074,10 +1029,8 @@ export async function approveIntroduction(
     });
   }
 
-  const updated = await prisma.businessIntroduction.update({
-    where: { id: introductionId },
-    data: { status: 'APPROVED' },
-  });
+  const [updated] = await db.update(schema.businessIntroductions).set({ status: 'APPROVED' })
+    .where(eq(schema.businessIntroductions.id, introductionId)).returning();
 
   await auditService.log(
     {
@@ -1098,8 +1051,8 @@ export async function rejectIntroduction(
   input: IntroductionRejectInput,
   context: RequestContext,
 ): Promise<IntroductionDto> {
-  const prisma = getPrismaClient();
-  const intro = await prisma.businessIntroduction.findUnique({ where: { id: introductionId } });
+  const db = getDbClient();
+  const intro = await db.query.businessIntroductions.findFirst({ where: (bi, { eq }) => eq(bi.id, introductionId) });
   if (!intro) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1117,10 +1070,10 @@ export async function rejectIntroduction(
     });
   }
 
-  const updated = await prisma.businessIntroduction.update({
-    where: { id: introductionId },
-    data: { status: 'REJECTED', rejection_reason: input.reason },
-  });
+  const [updated] = await db.update(schema.businessIntroductions).set({
+    status: 'REJECTED',
+    rejectionReason: input.reason,
+  }).where(eq(schema.businessIntroductions.id, introductionId)).returning();
 
   await auditService.log(
     {
@@ -1140,8 +1093,8 @@ export async function completeIntroduction(
   introductionId: string,
   context: RequestContext,
 ): Promise<IntroductionDto> {
-  const prisma = getPrismaClient();
-  const intro = await prisma.businessIntroduction.findUnique({ where: { id: introductionId } });
+  const db = getDbClient();
+  const intro = await db.query.businessIntroductions.findFirst({ where: (bi, { eq }) => eq(bi.id, introductionId) });
   if (!intro) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1158,10 +1111,8 @@ export async function completeIntroduction(
     });
   }
 
-  const updated = await prisma.businessIntroduction.update({
-    where: { id: introductionId },
-    data: { status: 'COMPLETED' },
-  });
+  const [updated] = await db.update(schema.businessIntroductions).set({ status: 'COMPLETED' })
+    .where(eq(schema.businessIntroductions.id, introductionId)).returning();
 
   await auditService.log(
     {
@@ -1180,14 +1131,14 @@ export async function completeIntroduction(
 // ── Taxonomy ──
 
 export async function listCategories(): Promise<CategoryDto[]> {
-  const prisma = getPrismaClient();
-  const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
+  const db = getDbClient();
+  const categories = await db.query.categories.findMany({ orderBy: (c, { asc }) => [asc(c.name)] });
   return categories.map(toCategoryDto);
 }
 
 export async function getCategory(categoryId: string): Promise<CategoryDto> {
-  const prisma = getPrismaClient();
-  const category = await prisma.category.findUnique({ where: { id: categoryId } });
+  const db = getDbClient();
+  const category = await db.query.categories.findFirst({ where: (c, { eq }) => eq(c.id, categoryId) });
   if (!category) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1199,15 +1150,13 @@ export async function getCategory(categoryId: string): Promise<CategoryDto> {
 }
 
 export async function createCategory(input: CategoryCreateInput): Promise<CategoryDto> {
-  const prisma = getPrismaClient();
-  const category = await prisma.category.create({
-    data: {
-      name: input.name,
-      slug: input.slug,
-      is_high_risk: input.isHighRisk ?? false,
-      is_active: input.isActive ?? true,
-    },
-  });
+  const db = getDbClient();
+  const [category] = await db.insert(schema.categories).values({
+    name: input.name,
+    slug: input.slug,
+    isHighRisk: input.isHighRisk ?? false,
+    isActive: input.isActive ?? true,
+  }).returning();
   revalidateTag('categories');
   return toCategoryDto(category);
 }
@@ -1216,8 +1165,8 @@ export async function updateCategory(
   categoryId: string,
   input: CategoryUpdateInput,
 ): Promise<CategoryDto> {
-  const prisma = getPrismaClient();
-  const existing = await prisma.category.findUnique({ where: { id: categoryId } });
+  const db = getDbClient();
+  const existing = await db.query.categories.findFirst({ where: (c, { eq }) => eq(c.id, categoryId) });
   if (!existing) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1226,22 +1175,20 @@ export async function updateCategory(
     });
   }
 
-  const category = await prisma.category.update({
-    where: { id: categoryId },
-    data: {
-      ...(input.name !== undefined ? { name: input.name } : {}),
-      ...(input.slug !== undefined ? { slug: input.slug } : {}),
-      ...(input.isHighRisk !== undefined ? { is_high_risk: input.isHighRisk } : {}),
-      ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
-    },
-  });
+  const [category] = await db.update(schema.categories).set({
+    ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.slug !== undefined ? { slug: input.slug } : {}),
+    ...(input.isHighRisk !== undefined ? { isHighRisk: input.isHighRisk } : {}),
+    ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+  }).where(eq(schema.categories.id, categoryId)).returning();
+  
   revalidateTag('categories');
   return toCategoryDto(category);
 }
 
 export async function deleteCategory(categoryId: string): Promise<void> {
-  const prisma = getPrismaClient();
-  const existing = await prisma.category.findUnique({ where: { id: categoryId } });
+  const db = getDbClient();
+  const existing = await db.query.categories.findFirst({ where: (c, { eq }) => eq(c.id, categoryId) });
   if (!existing) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1249,19 +1196,19 @@ export async function deleteCategory(categoryId: string): Promise<void> {
       status: 404,
     });
   }
-  await prisma.category.delete({ where: { id: categoryId } });
+  await db.delete(schema.categories).where(eq(schema.categories.id, categoryId));
   revalidateTag('categories');
 }
 
 export async function listCountries(): Promise<CountryDto[]> {
-  const prisma = getPrismaClient();
-  const countries = await prisma.country.findMany({ orderBy: { name: 'asc' } });
+  const db = getDbClient();
+  const countries = await db.query.countries.findMany({ orderBy: (c, { asc }) => [asc(c.name)] });
   return countries.map(toCountryDto);
 }
 
 export async function getCountry(countryId: string): Promise<CountryDto> {
-  const prisma = getPrismaClient();
-  const country = await prisma.country.findUnique({ where: { id: countryId } });
+  const db = getDbClient();
+  const country = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.id, countryId) });
   if (!country) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1273,16 +1220,14 @@ export async function getCountry(countryId: string): Promise<CountryDto> {
 }
 
 export async function createCountry(input: CountryCreateInput): Promise<CountryDto> {
-  const prisma = getPrismaClient();
-  const country = await prisma.country.create({
-    data: {
-      code2: input.code2,
-      code3: input.code3 ?? null,
-      name: input.name,
-      slug: input.slug,
-      is_active: input.isActive ?? true,
-    },
-  });
+  const db = getDbClient();
+  const [country] = await db.insert(schema.countries).values({
+    code2: input.code2,
+    code3: input.code3 ?? null,
+    name: input.name,
+    slug: input.slug,
+    isActive: input.isActive ?? true,
+  }).returning();
   return toCountryDto(country);
 }
 
@@ -1290,8 +1235,8 @@ export async function updateCountry(
   countryId: string,
   input: CountryUpdateInput,
 ): Promise<CountryDto> {
-  const prisma = getPrismaClient();
-  const existing = await prisma.country.findUnique({ where: { id: countryId } });
+  const db = getDbClient();
+  const existing = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.id, countryId) });
   if (!existing) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1300,22 +1245,20 @@ export async function updateCountry(
     });
   }
 
-  const country = await prisma.country.update({
-    where: { id: countryId },
-    data: {
-      ...(input.code2 !== undefined ? { code2: input.code2 } : {}),
-      ...(input.code3 !== undefined ? { code3: input.code3 } : {}),
-      ...(input.name !== undefined ? { name: input.name } : {}),
-      ...(input.slug !== undefined ? { slug: input.slug } : {}),
-      ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
-    },
-  });
+  const [country] = await db.update(schema.countries).set({
+    ...(input.code2 !== undefined ? { code2: input.code2 } : {}),
+    ...(input.code3 !== undefined ? { code3: input.code3 } : {}),
+    ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.slug !== undefined ? { slug: input.slug } : {}),
+    ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+  }).where(eq(schema.countries.id, countryId)).returning();
+  
   return toCountryDto(country);
 }
 
 export async function deleteCountry(countryId: string): Promise<void> {
-  const prisma = getPrismaClient();
-  const existing = await prisma.country.findUnique({ where: { id: countryId } });
+  const db = getDbClient();
+  const existing = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.id, countryId) });
   if (!existing) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1323,23 +1266,23 @@ export async function deleteCountry(countryId: string): Promise<void> {
       status: 404,
     });
   }
-  await prisma.country.delete({ where: { id: countryId } });
+  await db.delete(schema.countries).where(eq(schema.countries.id, countryId));
 }
 
 export async function listCities(): Promise<CityDto[]> {
-  const prisma = getPrismaClient();
-  const cities = await prisma.city.findMany({
-    include: { country: { select: { id: true, name: true } } },
-    orderBy: { name: 'asc' },
+  const db = getDbClient();
+  const cities = await db.query.cities.findMany({
+    with: { country: { columns: { id: true, name: true } } },
+    orderBy: (c, { asc }) => [asc(c.name)],
   });
   return cities.map(toCityDto);
 }
 
 export async function getCity(cityId: string): Promise<CityDto> {
-  const prisma = getPrismaClient();
-  const city = await prisma.city.findUnique({
-    where: { id: cityId },
-    include: { country: { select: { id: true, name: true } } },
+  const db = getDbClient();
+  const city = await db.query.cities.findFirst({
+    where: (c, { eq }) => eq(c.id, cityId),
+    with: { country: { columns: { id: true, name: true } } },
   });
   if (!city) {
     throw new AppError({
@@ -1352,8 +1295,8 @@ export async function getCity(cityId: string): Promise<CityDto> {
 }
 
 export async function createCity(input: CityCreateInput): Promise<CityDto> {
-  const prisma = getPrismaClient();
-  const country = await prisma.country.findUnique({ where: { id: input.countryId } });
+  const db = getDbClient();
+  const country = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.id, input.countryId) });
   if (!country) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1362,21 +1305,19 @@ export async function createCity(input: CityCreateInput): Promise<CityDto> {
     });
   }
 
-  const city = await prisma.city.create({
-    data: {
-      country_id: input.countryId,
-      name: input.name,
-      slug: input.slug,
-      is_active: input.isActive ?? true,
-    },
-    include: { country: { select: { id: true, name: true } } },
-  });
-  return toCityDto(city);
+  const [city] = await db.insert(schema.cities).values({
+    countryId: input.countryId,
+    name: input.name,
+    slug: input.slug,
+    isActive: input.isActive ?? true,
+  }).returning();
+
+  return getCity(city.id);
 }
 
 export async function updateCity(cityId: string, input: CityUpdateInput): Promise<CityDto> {
-  const prisma = getPrismaClient();
-  const existing = await prisma.city.findUnique({ where: { id: cityId } });
+  const db = getDbClient();
+  const existing = await db.query.cities.findFirst({ where: (c, { eq }) => eq(c.id, cityId) });
   if (!existing) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1386,7 +1327,7 @@ export async function updateCity(cityId: string, input: CityUpdateInput): Promis
   }
 
   if (input.countryId !== undefined) {
-    const country = await prisma.country.findUnique({ where: { id: input.countryId } });
+    const country = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.id, input.countryId!) });
     if (!country) {
       throw new AppError({
         code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1396,22 +1337,19 @@ export async function updateCity(cityId: string, input: CityUpdateInput): Promis
     }
   }
 
-  const city = await prisma.city.update({
-    where: { id: cityId },
-    data: {
-      ...(input.countryId !== undefined ? { country_id: input.countryId } : {}),
-      ...(input.name !== undefined ? { name: input.name } : {}),
-      ...(input.slug !== undefined ? { slug: input.slug } : {}),
-      ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
-    },
-    include: { country: { select: { id: true, name: true } } },
-  });
-  return toCityDto(city);
+  await db.update(schema.cities).set({
+    ...(input.countryId !== undefined ? { countryId: input.countryId } : {}),
+    ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.slug !== undefined ? { slug: input.slug } : {}),
+    ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+  }).where(eq(schema.cities.id, cityId));
+  
+  return getCity(cityId);
 }
 
 export async function deleteCity(cityId: string): Promise<void> {
-  const prisma = getPrismaClient();
-  const existing = await prisma.city.findUnique({ where: { id: cityId } });
+  const db = getDbClient();
+  const existing = await db.query.cities.findFirst({ where: (c, { eq }) => eq(c.id, cityId) });
   if (!existing) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1419,29 +1357,28 @@ export async function deleteCity(cityId: string): Promise<void> {
       status: 404,
     });
   }
-  await prisma.city.delete({ where: { id: cityId } });
+  await db.delete(schema.cities).where(eq(schema.cities.id, cityId));
 }
 
 // ── Subscriptions (Admin Read) ──
 
+
 export async function listSubscriptions(): Promise<SubscriptionDto[]> {
-  const prisma = getPrismaClient();
-  const subs = await prisma.vipSubscription.findMany({
-    orderBy: { created_at: 'desc' },
+  const db = getDbClient();
+  const subs = await db.query.vipSubscriptions.findMany({
+    orderBy: (vs, { desc }) => [desc(vs.createdAt)],
   });
   return subs.map(toSubscriptionDto);
 }
 
-const ADMIN_SUBSCRIPTION_INCLUDE = {
-  user: { select: { id: true, phone: true, display_name: true, membership_tier: true } },
-  business_profile: { select: { name: true } },
-} as const;
-
 export async function listAdminSubscriptions(): Promise<AdminSubscriptionListItemDto[]> {
-  const prisma = getPrismaClient();
-  const subs = await prisma.subscription.findMany({
-    include: ADMIN_SUBSCRIPTION_INCLUDE,
-    orderBy: { created_at: 'desc' },
+  const db = getDbClient();
+  const subs = await db.query.subscriptions.findMany({
+    with: {
+      user: { columns: { id: true, phone: true, displayName: true, membershipTier: true } },
+      businessProfile: { columns: { name: true } },
+    },
+    orderBy: (s, { desc }) => [desc(s.createdAt)],
   });
   return subs.map(toAdminSubscriptionListItem);
 }
@@ -1449,10 +1386,13 @@ export async function listAdminSubscriptions(): Promise<AdminSubscriptionListIte
 export async function getAdminSubscriptionDetail(
   subscriptionId: string,
 ): Promise<AdminSubscriptionListItemDto> {
-  const prisma = getPrismaClient();
-  const sub = await prisma.subscription.findUnique({
-    where: { id: subscriptionId },
-    include: ADMIN_SUBSCRIPTION_INCLUDE,
+  const db = getDbClient();
+  const sub = await db.query.subscriptions.findFirst({
+    where: (s, { eq }) => eq(s.id, subscriptionId),
+    with: {
+      user: { columns: { id: true, phone: true, displayName: true, membershipTier: true } },
+      businessProfile: { columns: { name: true } },
+    },
   });
   if (!sub) {
     throw new AppError({
@@ -1465,8 +1405,8 @@ export async function getAdminSubscriptionDetail(
 }
 
 export async function getSubscriptionDetail(subscriptionId: string): Promise<SubscriptionDto> {
-  const prisma = getPrismaClient();
-  const sub = await prisma.vipSubscription.findUnique({ where: { id: subscriptionId } });
+  const db = getDbClient();
+  const sub = await db.query.vipSubscriptions.findFirst({ where: (vs, { eq }) => eq(vs.id, subscriptionId) });
   if (!sub) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1481,10 +1421,9 @@ export async function adminCancelSubscription(
   subscriptionId: string,
   context: RequestContext,
 ): Promise<AdminSubscriptionListItemDto> {
-  const prisma = getPrismaClient();
-  const sub = await prisma.subscription.findUnique({
-    where: { id: subscriptionId },
-    include: ADMIN_SUBSCRIPTION_INCLUDE,
+  const db = getDbClient();
+  const sub = await db.query.subscriptions.findFirst({
+    where: (s, { eq }) => eq(s.id, subscriptionId),
   });
   if (!sub) {
     throw new AppError({
@@ -1494,24 +1433,23 @@ export async function adminCancelSubscription(
     });
   }
 
-  const updated = await prisma.subscription.update({
-    where: { id: subscriptionId },
-    data: { cancel_at_period_end: true, canceled_at: new Date() },
-    include: ADMIN_SUBSCRIPTION_INCLUDE,
-  });
+  await db.update(schema.subscriptions).set({
+    cancelAtPeriodEnd: true,
+    canceledAt: new Date(),
+  }).where(eq(schema.subscriptions.id, subscriptionId));
 
   await auditService.log(
     {
       action: 'SUBSCRIPTION_CANCELED',
       entityType: 'Subscription',
       entityId: subscriptionId,
-      before: { cancelAtPeriodEnd: sub.cancel_at_period_end },
+      before: { cancelAtPeriodEnd: sub.cancelAtPeriodEnd },
       after: { cancelAtPeriodEnd: true },
     },
     context,
   );
 
-  return toAdminSubscriptionListItem(updated);
+  return getAdminSubscriptionDetail(subscriptionId);
 }
 
 // ── Audit Log ──
@@ -1519,46 +1457,45 @@ export async function adminCancelSubscription(
 export async function listAuditLogs(
   filters: Partial<AuditLogListInput> = {},
 ): Promise<{ data: AuditLogDto[]; total: number }> {
-  const prisma = getPrismaClient();
-  const where: Record<string, unknown> = {};
+  const db = getDbClient();
+  const conditions = [];
 
-  if (filters.action) where.action = filters.action;
-  if (filters.actorRole) where.actor_role = filters.actorRole;
-  if (filters.entityType) where.entity_type = { contains: filters.entityType };
-  if (filters.dateFrom || filters.dateTo) {
-    const createdAtFilter: Record<string, Date> = {};
-    if (filters.dateFrom) createdAtFilter.gte = filters.dateFrom;
-    if (filters.dateTo) createdAtFilter.lte = filters.dateTo;
-    where.created_at = createdAtFilter;
-  }
+  if (filters.action) conditions.push(eq(schema.auditLogs.action, filters.action));
+  if (filters.actorRole) conditions.push(eq(schema.auditLogs.actorRole, filters.actorRole));
+  if (filters.entityType) conditions.push(ilike(schema.auditLogs.entityType, `%${filters.entityType}%`));
+  
+  if (filters.dateFrom) conditions.push(gte(schema.auditLogs.createdAt, filters.dateFrom));
+  if (filters.dateTo) conditions.push(lte(schema.auditLogs.createdAt, filters.dateTo));
+
+  const finalCondition = conditions.length > 0 ? and(...conditions) : undefined;
 
   const page = filters.page ?? 1;
   const limit = filters.limit ?? 20;
 
-  const [logs, total] = await Promise.all([
-    prisma.auditLog.findMany({
-      where,
-      orderBy: { created_at: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
+  const [logs, totalRes] = await Promise.all([
+    db.query.auditLogs.findMany({
+      where: finalCondition,
+      orderBy: (al, { desc }) => [desc(al.createdAt)],
+      limit,
+      offset: (page - 1) * limit,
     }),
-    prisma.auditLog.count({ where }),
+    db.select({ value: count() }).from(schema.auditLogs).where(finalCondition),
   ]);
 
   return {
     data: logs.map((log: any) => ({
       id: log.id,
-      actorStaffId: log.actor_staff_id ?? null,
-      actorRole: log.actor_role as any,
+      actorStaffId: log.actorStaffId ?? null,
+      actorRole: log.actorRole as any,
       action: log.action as any,
-      entityType: log.entity_type,
-      entityId: log.entity_id,
-      before: log.before_data as Record<string, unknown> | null,
-      after: log.after_data as Record<string, unknown> | null,
-      ipAddress: log.ip_address ?? null,
-      createdAt: log.created_at?.toISOString() ?? new Date().toISOString(),
+      entityType: log.entityType,
+      entityId: log.entityId,
+      before: log.beforeData as Record<string, unknown> | null,
+      after: log.afterData as Record<string, unknown> | null,
+      ipAddress: log.ipAddress ?? null,
+      createdAt: log.createdAt?.toISOString() ?? new Date().toISOString(),
     })),
-    total,
+    total: totalRes[0].value,
   };
 }
 
@@ -1574,9 +1511,9 @@ export type StripePriceKey = (typeof STRIPE_PRICE_KEYS)[number];
 export type StripePricesMap = Record<StripePriceKey, string | null>;
 
 export async function getStripePrices(): Promise<StripePricesMap> {
-  const prisma = getPrismaClient();
-  const configs = await prisma.adminConfig.findMany({
-    where: { key: { in: STRIPE_PRICE_KEYS as unknown as string[] } },
+  const db = getDbClient();
+  const configs = await db.query.adminConfig.findMany({
+    where: (c, { inArray }) => inArray(c.key, STRIPE_PRICE_KEYS as unknown as string[]),
   });
 
   const result: StripePricesMap = {
@@ -1595,21 +1532,18 @@ export async function updateStripePrices(
   input: Partial<StripePricesMap>,
   context: RequestContext,
 ): Promise<StripePricesMap> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
 
   for (const [key, priceId] of Object.entries(input)) {
     if (!STRIPE_PRICE_KEYS.includes(key as StripePriceKey)) continue;
 
-    await prisma.adminConfig.upsert({
-      where: { key },
-      create: {
-        key,
-        value: { priceId },
-        description: `Stripe Price ID for ${key.replace('stripe_price_', '')}`,
-      },
-      update: {
-        value: { priceId },
-      },
+    await db.insert(schema.adminConfig).values({
+      key,
+      value: { priceId },
+      description: `Stripe Price ID for ${key.replace('stripe_price_', '')}`,
+    }).onConflictDoUpdate({
+      target: schema.adminConfig.key,
+      set: { value: { priceId } },
     });
   }
 
@@ -1617,8 +1551,8 @@ export async function updateStripePrices(
 }
 
 export async function getAdminConfig(key: string): Promise<AdminConfigEntryDto> {
-  const prisma = getPrismaClient();
-  const config = await prisma.adminConfig.findUnique({ where: { key } });
+  const db = getDbClient();
+  const config = await db.query.adminConfig.findFirst({ where: (c, { eq }) => eq(c.key, key) });
   if (!config) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1633,36 +1567,30 @@ export async function updateAdminConfig(
   key: string,
   input: AdminConfigUpdateInput,
 ): Promise<AdminConfigEntryDto> {
-  const prisma = getPrismaClient();
-  const existing = await prisma.adminConfig.findUnique({ where: { key } });
+  const db = getDbClient();
+  const existing = await db.query.adminConfig.findFirst({ where: (c, { eq }) => eq(c.key, key) });
 
   let result;
   if (existing) {
-    result = await prisma.adminConfig.update({
-      where: { key },
-      data: {
-        value: input.value,
-        description: input.description ?? existing.description,
-      },
-    });
+    [result] = await db.update(schema.adminConfig).set({
+      value: input.value,
+      description: input.description ?? existing.description,
+      updatedAt: new Date(),
+    }).where(eq(schema.adminConfig.key, key)).returning();
   } else {
-    result = await prisma.adminConfig.create({
-      data: {
-        key,
-        value: input.value,
-        description: input.description ?? null,
-      },
-    });
+    [result] = await db.insert(schema.adminConfig).values({
+      key,
+      value: input.value,
+      description: input.description ?? null,
+    }).returning();
   }
   return toAdminConfigEntry(result);
 }
 
 export async function getMembershipPlans(): Promise<MembershipPlanDto[]> {
-  const prisma = getPrismaClient();
-  const configs = await prisma.adminConfig.findMany({
-    where: {
-      key: { in: ['vip_membership_monthly', 'business_placement_monthly'] },
-    },
+  const db = getDbClient();
+  const configs = await db.query.adminConfig.findMany({
+    where: (c, { inArray }) => inArray(c.key, ['vip_membership_monthly', 'business_placement_monthly']),
   });
   return configs.map((c: any) => ({
     key: c.key,
@@ -1672,17 +1600,17 @@ export async function getMembershipPlans(): Promise<MembershipPlanDto[]> {
 }
 
 export async function listStaff(context: RequestContext): Promise<AdminStaffListItemDto[]> {
-  const prisma = getPrismaClient();
-  const staff = await prisma.adminUser.findMany({
-    orderBy: { created_at: 'asc' },
+  const db = getDbClient();
+  const staff = await db.query.adminUsers.findMany({
+    orderBy: (su, { asc }) => [asc(su.createdAt)],
   });
   return staff.map(toAdminStaffListItem);
 }
 
 export async function getStaffDetail(staffId: string): Promise<AdminStaffListItemDto> {
   assertValidUuid(staffId, 'staff');
-  const prisma = getPrismaClient();
-  const staff = await prisma.adminUser.findUnique({ where: { id: staffId } });
+  const db = getDbClient();
+  const staff = await db.query.adminUsers.findFirst({ where: (su, { eq }) => eq(su.id, staffId) });
   if (!staff) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1699,8 +1627,8 @@ export async function updateStaffRole(
   context: RequestContext,
 ): Promise<AdminStaffListItemDto> {
   assertValidUuid(staffId, 'staff');
-  const prisma = getPrismaClient();
-  const staff = await prisma.adminUser.findUnique({ where: { id: staffId } });
+  const db = getDbClient();
+  const staff = await db.query.adminUsers.findFirst({ where: (su, { eq }) => eq(su.id, staffId) });
   if (!staff) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1709,10 +1637,7 @@ export async function updateStaffRole(
     });
   }
 
-  const updated = await prisma.adminUser.update({
-    where: { id: staffId },
-    data: { role: input.role as any },
-  });
+  const [updated] = await db.update(schema.adminUsers).set({ role: input.role as any }).where(eq(schema.adminUsers.id, staffId)).returning();
 
   await auditService.log(
     {
@@ -1734,8 +1659,8 @@ export async function deactivateStaff(
   context: RequestContext,
 ): Promise<AdminStaffListItemDto> {
   assertValidUuid(staffId, 'staff');
-  const prisma = getPrismaClient();
-  const staff = await prisma.adminUser.findUnique({ where: { id: staffId } });
+  const db = getDbClient();
+  const staff = await db.query.adminUsers.findFirst({ where: (su, { eq }) => eq(su.id, staffId) });
   if (!staff) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -1744,7 +1669,7 @@ export async function deactivateStaff(
     });
   }
 
-  if (!staff.is_active) {
+  if (!staff.isActive) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_CONFLICT,
       message: 'Staff is already inactive',
@@ -1752,10 +1677,7 @@ export async function deactivateStaff(
     });
   }
 
-  const updated = await prisma.adminUser.update({
-    where: { id: staffId },
-    data: { is_active: false },
-  });
+  const [updated] = await db.update(schema.adminUsers).set({ isActive: false }).where(eq(schema.adminUsers.id, staffId)).returning();
 
   await auditService.log(
     {
@@ -1777,10 +1699,10 @@ function toAdminUserListItem(user: any): AdminUserListItemDto {
   return {
     id: user.id,
     phone: user.phone,
-    displayName: user.display_name,
+    displayName: user.displayName,
     status: user.status as UserStatus,
-    membershipTier: user.membership_tier as MemberTier,
-    createdAt: user.created_at.toISOString(),
+    membershipTier: user.membershipTier as MemberTier,
+    createdAt: user.createdAt.toISOString(),
   };
 }
 
@@ -1793,31 +1715,31 @@ function toAdminUserDetail(
   return {
     id: user.id,
     phone: user.phone,
-    displayName: user.display_name,
+    displayName: user.displayName,
     status: user.status as UserStatus,
-    membershipTier: user.membership_tier as MemberTier,
-    createdAt: user.created_at.toISOString(),
-    localePreference: user.locale_preference as Locale | null,
-    onboardingComplete: !!(user.display_name && user.locale_preference && user.terms_accepted_at),
-    termsAcceptedAt: user.terms_accepted_at?.toISOString() ?? null,
-    updatedAt: user.updated_at.toISOString(),
+    membershipTier: user.membershipTier as MemberTier,
+    createdAt: user.createdAt.toISOString(),
+    localePreference: user.localePreference as Locale | null,
+    onboardingComplete: !!(user.displayName && user.localePreference && user.termsAcceptedAt),
+    termsAcceptedAt: user.termsAcceptedAt?.toISOString() ?? null,
+    updatedAt: user.updatedAt.toISOString(),
     country: user.country ?? null,
     city: user.city ?? null,
     about: user.about ?? null,
-    avatarUrl: user.avatar_url ?? null,
+    avatarUrl: user.avatarUrl ?? null,
     cards: (cards ?? []).map(toMemberCardDto),
     subscriptions: (subscriptions ?? []).map(toSubscriptionDto),
     auditEntries: (auditEntries ?? []).map((log: any) => ({
       id: log.id,
-      actorStaffId: log.actor_staff_id ?? null,
-      actorRole: log.actor_role as any,
+      actorStaffId: log.actorStaffId ?? null,
+      actorRole: log.actorRole as any,
       action: log.action as any,
-      entityType: log.entity_type,
-      entityId: log.entity_id,
-      before: log.before_data as Record<string, unknown> | null,
-      after: log.after_data as Record<string, unknown> | null,
-      ipAddress: log.ip_address ?? null,
-      createdAt: log.created_at?.toISOString() ?? new Date().toISOString(),
+      entityType: log.entityType,
+      entityId: log.entityId,
+      before: log.beforeData as Record<string, unknown> | null,
+      after: log.afterData as Record<string, unknown> | null,
+      ipAddress: log.ipAddress ?? null,
+      createdAt: log.createdAt?.toISOString() ?? new Date().toISOString(),
     })),
   };
 }
@@ -1825,14 +1747,14 @@ function toAdminUserDetail(
 function toAdminCardListItem(card: any): AdminCardListItemDto {
   return {
     id: card.id,
-    userId: card.user_id,
+    userId: card.userId,
     userPhone: card.user?.phone ?? '',
-    userDisplayName: card.user?.display_name ?? null,
-    cardNumber: card.card_number,
+    userDisplayName: card.user?.displayName ?? null,
+    cardNumber: card.cardNumber,
     status: card.status as ClubCardStatus,
-    membershipTier: card.membership_tier as MemberTier,
-    issuedAt: card.issued_at.toISOString(),
-    expiresAt: card.expires_at?.toISOString() ?? null,
+    membershipTier: card.membershipTier as MemberTier,
+    issuedAt: card.issuedAt.toISOString(),
+    expiresAt: card.expiresAt?.toISOString() ?? null,
   };
 }
 
@@ -1840,9 +1762,9 @@ function toAdminBusinessOwnerSummary(user: any): AdminBusinessOwnerSummaryDto {
   return {
     id: user.id,
     phone: user.phone,
-    displayName: user.display_name,
+    displayName: user.displayName,
     status: user.status as UserStatus,
-    membershipTier: user.membership_tier as MemberTier,
+    membershipTier: user.membershipTier as MemberTier,
   };
 }
 
@@ -1852,7 +1774,7 @@ function toAdminBusinessSubscriptionIndicator(
   if (!sub) return null;
   return {
     status: sub.status as SubscriptionStatus,
-    currentPeriodEnd: sub.current_period_end?.toISOString() ?? null,
+    currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
   };
 }
 
@@ -1865,25 +1787,25 @@ function toAdminBusinessListItem(business: any): AdminBusinessListItemDto {
     categoryName: business.category?.name ?? '',
     countryName: business.country?.name ?? '',
     cityName: business.city?.name ?? '',
-    briefDescription: business.brief_description,
-    websiteUrl: business.website_url,
-    socialUrl: business.social_url,
-    featuredTop: business.featured_top,
-    featuredRecommended: business.featured_recommended,
-    memberDiscountPercent: business.member_discount_percent ?? null,
+    briefDescription: business.briefDescription,
+    websiteUrl: business.websiteUrl,
+    socialUrl: business.socialUrl,
+    featuredTop: business.featuredTop,
+    featuredRecommended: business.featuredRecommended,
+    memberDiscountPercent: business.memberDiscountPercent ?? null,
     description: business.description,
-    representativeName: business.representative_name,
-    publishedAt: business.published_at?.toISOString() ?? null,
-    ownerUserId: business.user_id,
+    representativeName: business.representativeName,
+    publishedAt: business.publishedAt?.toISOString() ?? null,
+    ownerUserId: business.userId,
     status: business.status as BusinessStatus,
-    representativeEmail: business.representative_email,
-    representativePhone: business.representative_phone,
-    rejectionReason: business.rejection_reason,
-    internalNotes: business.internal_notes,
-    approvedAt: business.approved_at?.toISOString() ?? null,
-    hiddenAt: business.hidden_at?.toISOString() ?? null,
-    createdAt: business.created_at.toISOString(),
-    updatedAt: business.updated_at.toISOString(),
+    representativeEmail: business.representativeEmail,
+    representativePhone: business.representativePhone,
+    rejectionReason: business.rejectionReason,
+    internalNotes: business.internalNotes,
+    approvedAt: business.approvedAt?.toISOString() ?? null,
+    hiddenAt: business.hiddenAt?.toISOString() ?? null,
+    createdAt: business.createdAt.toISOString(),
+    updatedAt: business.updatedAt.toISOString(),
     owner: toAdminBusinessOwnerSummary(business.user),
     placementSubscription: toAdminBusinessSubscriptionIndicator(placementSub),
   };
@@ -1894,15 +1816,15 @@ function toAdminBusinessDetail(business: any, auditEntries?: any[]): AdminBusine
     ...toAdminBusinessListItem(business),
     auditEntries: (auditEntries ?? []).map((log: any) => ({
       id: log.id,
-      actorStaffId: log.actor_staff_id ?? null,
-      actorRole: log.actor_role as any,
+      actorStaffId: log.actorStaffId ?? null,
+      actorRole: log.actorRole as any,
       action: log.action as any,
-      entityType: log.entity_type,
-      entityId: log.entity_id,
-      before: log.before_data as Record<string, unknown> | null,
-      after: log.after_data as Record<string, unknown> | null,
-      ipAddress: log.ip_address ?? null,
-      createdAt: log.created_at?.toISOString() ?? new Date().toISOString(),
+      entityType: log.entityType,
+      entityId: log.entityId,
+      before: log.beforeData as Record<string, unknown> | null,
+      after: log.afterData as Record<string, unknown> | null,
+      ipAddress: log.ipAddress ?? null,
+      createdAt: log.createdAt?.toISOString() ?? new Date().toISOString(),
     })),
   };
 }
@@ -1910,44 +1832,44 @@ function toAdminBusinessDetail(business: any, auditEntries?: any[]): AdminBusine
 function toIntroductionDto(intro: any): IntroductionDto {
   return {
     id: intro.id,
-    requesterUserId: intro.requester_user_id,
-    requesterBusinessId: intro.requester_business_id ?? null,
-    targetBusinessId: intro.target_business_id,
+    requesterUserId: intro.requesterUserId,
+    requesterBusinessId: intro.requesterBusinessId ?? null,
+    targetBusinessId: intro.targetBusinessId,
     status: intro.status as IntroductionStatus,
-    clientName: intro.client_name ?? '',
-    clientContact: intro.client_contact ?? '',
+    clientName: intro.clientName ?? '',
+    clientContact: intro.clientContact ?? '',
     message: intro.message,
-    rejectionReason: intro.rejection_reason,
-    createdAt: intro.created_at.toISOString(),
-    updatedAt: intro.updated_at.toISOString(),
+    rejectionReason: intro.rejectionReason,
+    createdAt: intro.createdAt.toISOString(),
+    updatedAt: intro.updatedAt.toISOString(),
   };
 }
 
 function toAdminIntroductionListItem(intro: any): AdminIntroductionListItemDto {
   return {
     id: intro.id,
-    requesterUserId: intro.requester_user_id,
-    requesterBusinessId: intro.requester_business_id,
-    targetBusinessId: intro.target_business_id,
+    requesterUserId: intro.requesterUserId,
+    requesterBusinessId: intro.requesterBusinessId,
+    targetBusinessId: intro.targetBusinessId,
     status: intro.status as IntroductionStatus,
     message: intro.message,
-    rejectionReason: intro.rejection_reason,
-    createdAt: intro.created_at.toISOString(),
-    updatedAt: intro.updated_at.toISOString(),
+    rejectionReason: intro.rejectionReason,
+    createdAt: intro.createdAt.toISOString(),
+    updatedAt: intro.updatedAt.toISOString(),
     requesterUser: {
-      id: intro.requester_user?.id ?? '',
-      phone: intro.requester_user?.phone ?? '',
-      displayName: intro.requester_user?.display_name ?? null,
+      id: intro.requesterUser?.id ?? '',
+      phone: intro.requesterUser?.phone ?? '',
+      displayName: intro.requesterUser?.displayName ?? null,
     },
     requesterBusiness: {
-      id: intro.requester_business?.id ?? '',
-      name: intro.requester_business?.name ?? '',
-      slug: intro.requester_business?.slug ?? '',
+      id: intro.requesterBusiness?.id ?? '',
+      name: intro.requesterBusiness?.name ?? '',
+      slug: intro.requesterBusiness?.slug ?? '',
     },
     targetBusiness: {
-      id: intro.target_business?.id ?? '',
-      name: intro.target_business?.name ?? '',
-      slug: intro.target_business?.slug ?? '',
+      id: intro.targetBusiness?.id ?? '',
+      name: intro.targetBusiness?.name ?? '',
+      slug: intro.targetBusiness?.slug ?? '',
     },
   };
 }
@@ -1955,41 +1877,41 @@ function toAdminIntroductionListItem(intro: any): AdminIntroductionListItemDto {
 function toSubscriptionDto(sub: any): SubscriptionDto {
   return {
     id: sub.id,
-    userId: sub.user_id,
+    userId: sub.userId,
     status: sub.status as SubscriptionStatus,
-    stripeCustomerId: sub.stripe_customer_id,
-    stripeSubscriptionId: sub.stripe_subscription_id,
-    currentPeriodStart: sub.current_period_start?.toISOString() ?? null,
-    currentPeriodEnd: sub.current_period_end?.toISOString() ?? null,
-    cancelAtPeriodEnd: sub.cancel_at_period_end,
-    createdAt: sub.created_at.toISOString(),
-    updatedAt: sub.updated_at.toISOString(),
+    stripeCustomerId: sub.stripeCustomerId,
+    stripeSubscriptionId: sub.stripeSubscriptionId,
+    currentPeriodStart: sub.currentPeriodStart?.toISOString() ?? null,
+    currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
+    cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+    createdAt: sub.createdAt.toISOString(),
+    updatedAt: sub.updatedAt.toISOString(),
   };
 }
 
 function toAdminSubscriptionListItem(sub: any): AdminSubscriptionListItemDto {
   return {
     id: sub.id,
-    userId: sub.user_id ?? null,
+    userId: sub.userId ?? null,
     kind: sub.kind as SubscriptionKind,
     status: sub.status as SubscriptionStatus,
-    stripeCustomerId: sub.stripe_customer_id,
-    stripeSubscriptionId: sub.stripe_subscription_id,
-    stripePriceId: sub.stripe_price_id,
-    currentPeriodStart: sub.current_period_start?.toISOString() ?? null,
-    currentPeriodEnd: sub.current_period_end?.toISOString() ?? null,
-    cancelAtPeriodEnd: sub.cancel_at_period_end,
-    createdAt: sub.created_at.toISOString(),
-    updatedAt: sub.updated_at.toISOString(),
+    stripeCustomerId: sub.stripeCustomerId,
+    stripeSubscriptionId: sub.stripeSubscriptionId,
+    stripePriceId: sub.stripePriceId,
+    currentPeriodStart: sub.currentPeriodStart?.toISOString() ?? null,
+    currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
+    cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+    createdAt: sub.createdAt.toISOString(),
+    updatedAt: sub.updatedAt.toISOString(),
     user: sub.user
       ? {
           id: sub.user.id,
           phone: sub.user.phone,
-          displayName: sub.user.display_name,
-          membershipTier: sub.user.membership_tier as MemberTier,
+          displayName: sub.user.displayName,
+          membershipTier: sub.user.membershipTier as MemberTier,
         }
       : null,
-    businessName: sub.business_profile?.name ?? null,
+    businessName: sub.businessProfile?.name ?? null,
   };
 }
 
@@ -1998,10 +1920,10 @@ function toCategoryDto(cat: any): CategoryDto {
     id: cat.id,
     name: cat.name,
     slug: cat.slug,
-    isHighRisk: cat.is_high_risk,
-    isActive: cat.is_active,
-    createdAt: cat.created_at.toISOString(),
-    updatedAt: cat.updated_at.toISOString(),
+    isHighRisk: cat.isHighRisk,
+    isActive: cat.isActive,
+    createdAt: cat.createdAt.toISOString(),
+    updatedAt: cat.updatedAt.toISOString(),
   };
 }
 
@@ -2012,22 +1934,22 @@ function toCountryDto(country: any): CountryDto {
     code3: country.code3 ?? null,
     name: country.name,
     slug: country.slug,
-    isActive: country.is_active,
-    createdAt: country.created_at.toISOString(),
-    updatedAt: country.updated_at.toISOString(),
+    isActive: country.isActive,
+    createdAt: country.createdAt.toISOString(),
+    updatedAt: country.updatedAt.toISOString(),
   };
 }
 
 function toCityDto(city: any): CityDto {
   return {
     id: city.id,
-    countryId: city.country_id,
+    countryId: city.countryId,
     countryName: city.country?.name ?? '',
     name: city.name,
     slug: city.slug,
-    isActive: city.is_active,
-    createdAt: city.created_at.toISOString(),
-    updatedAt: city.updated_at.toISOString(),
+    isActive: city.isActive,
+    createdAt: city.createdAt.toISOString(),
+    updatedAt: city.updatedAt.toISOString(),
   };
 }
 
@@ -2035,12 +1957,12 @@ function toAdminStaffListItem(staff: any): AdminStaffListItemDto {
   return {
     id: staff.id,
     phone: staff.phone,
-    displayName: staff.display_name,
+    displayName: staff.displayName,
     role: staff.role,
-    isActive: staff.is_active,
-    totpVerified: !!staff.totp_verified_at,
-    createdAt: staff.created_at.toISOString(),
-    updatedAt: staff.updated_at.toISOString(),
+    isActive: staff.isActive,
+    totpVerified: !!staff.totpVerifiedAt,
+    createdAt: staff.createdAt.toISOString(),
+    updatedAt: staff.updatedAt.toISOString(),
   };
 }
 
@@ -2050,6 +1972,6 @@ function toAdminConfigEntry(config: any): AdminConfigEntryDto {
     key: config.key,
     value: config.value,
     description: config.description,
-    updatedAt: config.updated_at.toISOString(),
+    updatedAt: config.updatedAt.toISOString(),
   };
 }

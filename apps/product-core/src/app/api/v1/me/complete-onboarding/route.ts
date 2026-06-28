@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     const user = await completeMemberOnboarding(supabaseUser.id, parsed.data);
 
-    await issueCardForUserIfNoneActive(user.id, user.membership_tier);
+    await issueCardForUserIfNoneActive(user.id, user.membershipTier);
 
     const context = createRequestContext({ actor: { kind: 'member', userId: user.id }, headers: request.headers });
     await auditService.log(

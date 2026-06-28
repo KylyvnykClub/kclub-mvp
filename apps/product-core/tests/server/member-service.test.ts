@@ -10,9 +10,9 @@ describe('isOnboardingComplete', () => {
   test('returns true when all fields are present', () => {
     expect(
       isOnboardingComplete({
-        display_name: 'John',
-        locale_preference: 'en',
-        terms_accepted_at: new Date('2026-06-15'),
+        displayName: 'John',
+        localePreference: 'en',
+        termsAcceptedAt: new Date('2026-06-15'),
       }),
     ).toBe(true);
   });
@@ -20,9 +20,9 @@ describe('isOnboardingComplete', () => {
   test('returns false when display_name is null', () => {
     expect(
       isOnboardingComplete({
-        display_name: null,
-        locale_preference: 'en',
-        terms_accepted_at: new Date('2026-06-15'),
+        displayName: null,
+        localePreference: 'en',
+        termsAcceptedAt: new Date('2026-06-15'),
       }),
     ).toBe(false);
   });
@@ -30,9 +30,9 @@ describe('isOnboardingComplete', () => {
   test('returns false when locale_preference is null', () => {
     expect(
       isOnboardingComplete({
-        display_name: 'John',
-        locale_preference: null,
-        terms_accepted_at: new Date('2026-06-15'),
+        displayName: 'John',
+        localePreference: null,
+        termsAcceptedAt: new Date('2026-06-15'),
       }),
     ).toBe(false);
   });
@@ -40,9 +40,9 @@ describe('isOnboardingComplete', () => {
   test('returns false when terms_accepted_at is null', () => {
     expect(
       isOnboardingComplete({
-        display_name: 'John',
-        locale_preference: 'en',
-        terms_accepted_at: null,
+        displayName: 'John',
+        localePreference: 'en',
+        termsAcceptedAt: null,
       }),
     ).toBe(false);
   });
@@ -50,29 +50,29 @@ describe('isOnboardingComplete', () => {
   test('returns false when all onboarding fields are null', () => {
     expect(
       isOnboardingComplete({
-        display_name: null,
-        locale_preference: null,
-        terms_accepted_at: null,
+        displayName: null,
+        localePreference: null,
+        termsAcceptedAt: null,
       }),
     ).toBe(false);
   });
 });
 
 describe('toCurrentMemberProfileDto', () => {
-  const baseUser = {
+  const baseUser: any = {
     id: '550e8400-e29b-41d4-a716-446655440000',
     phone: '+15551234567',
-    display_name: 'John Doe',
-    locale_preference: 'en',
-    membership_tier: 'MEMBER',
+    displayName: 'John Doe',
+    localePreference: 'en',
+    membershipTier: 'MEMBER',
     status: 'ACTIVE',
-    terms_accepted_at: new Date('2026-06-15T10:00:00.000Z'),
+    termsAcceptedAt: new Date('2026-06-15T10:00:00.000Z'),
     country: null,
     city: null,
     about: null,
-    avatar_url: null,
-    created_at: new Date('2026-06-14T10:00:00.000Z'),
-    updated_at: new Date('2026-06-15T10:00:00.000Z'),
+    avatarUrl: null,
+    createdAt: new Date('2026-06-14T10:00:00.000Z'),
+    updatedAt: new Date('2026-06-15T10:00:00.000Z'),
   };
 
   test('maps user record to CurrentMemberProfileDto correctly', () => {
@@ -97,7 +97,7 @@ describe('toCurrentMemberProfileDto', () => {
   });
 
   test('sets onboardingComplete false when terms_accepted_at is null', () => {
-    const dto = toCurrentMemberProfileDto({ ...baseUser, terms_accepted_at: null });
+    const dto = toCurrentMemberProfileDto({ ...baseUser, termsAcceptedAt: null });
 
     expect(dto.onboardingComplete).toBe(false);
     expect(dto.termsAcceptedAt).toBeNull();
@@ -106,7 +106,7 @@ describe('toCurrentMemberProfileDto', () => {
   test('maps membership tier and status correctly', () => {
     const dto = toCurrentMemberProfileDto({
       ...baseUser,
-      membership_tier: 'VIP',
+      membershipTier: 'VIP',
       status: 'BLOCKED',
     });
 
@@ -124,20 +124,20 @@ describe('toCurrentMemberProfileDto', () => {
 });
 
 describe('assertMemberOnboardingComplete', () => {
-  const fullyOnboardedUser = {
+  const fullyOnboardedUser: any = {
     id: '550e8400-e29b-41d4-a716-446655440000',
     phone: '+15551234567',
-    display_name: 'John Doe',
-    locale_preference: 'en',
-    membership_tier: 'MEMBER',
+    displayName: 'John Doe',
+    localePreference: 'en',
+    membershipTier: 'MEMBER',
     status: 'ACTIVE',
-    terms_accepted_at: new Date('2026-06-15T10:00:00.000Z'),
+    termsAcceptedAt: new Date('2026-06-15T10:00:00.000Z'),
     country: null,
     city: null,
     about: null,
-    avatar_url: null,
-    created_at: new Date('2026-06-14T10:00:00.000Z'),
-    updated_at: new Date('2026-06-15T10:00:00.000Z'),
+    avatarUrl: null,
+    createdAt: new Date('2026-06-14T10:00:00.000Z'),
+    updatedAt: new Date('2026-06-15T10:00:00.000Z'),
   };
 
   test('does not throw when onboarding is complete', () => {
@@ -146,19 +146,19 @@ describe('assertMemberOnboardingComplete', () => {
 
   test('throws PERMISSION_DENIED (403) when display_name is null', () => {
     expect(() =>
-      assertMemberOnboardingComplete({ ...fullyOnboardedUser, display_name: null }),
+      assertMemberOnboardingComplete({ ...fullyOnboardedUser, displayName: null }),
     ).toThrow(expect.objectContaining({ status: 403, code: 'PERMISSION_DENIED' }));
   });
 
   test('throws PERMISSION_DENIED (403) when locale_preference is null', () => {
     expect(() =>
-      assertMemberOnboardingComplete({ ...fullyOnboardedUser, locale_preference: null }),
+      assertMemberOnboardingComplete({ ...fullyOnboardedUser, localePreference: null }),
     ).toThrow(expect.objectContaining({ status: 403, code: 'PERMISSION_DENIED' }));
   });
 
   test('throws PERMISSION_DENIED (403) when terms_accepted_at is null', () => {
     expect(() =>
-      assertMemberOnboardingComplete({ ...fullyOnboardedUser, terms_accepted_at: null }),
+      assertMemberOnboardingComplete({ ...fullyOnboardedUser, termsAcceptedAt: null }),
     ).toThrow(expect.objectContaining({ status: 403, code: 'PERMISSION_DENIED' }));
   });
 
@@ -166,9 +166,9 @@ describe('assertMemberOnboardingComplete', () => {
     expect(() =>
       assertMemberOnboardingComplete({
         ...fullyOnboardedUser,
-        display_name: null,
-        locale_preference: null,
-        terms_accepted_at: null,
+        displayName: null,
+        localePreference: null,
+        termsAcceptedAt: null,
       }),
     ).toThrow(expect.objectContaining({ status: 403, code: 'PERMISSION_DENIED' }));
   });

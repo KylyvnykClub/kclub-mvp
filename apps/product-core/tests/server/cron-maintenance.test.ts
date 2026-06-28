@@ -1,49 +1,84 @@
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, mock, beforeEach } from 'bun:test';
 
-function createMockPrisma() {
+function createMockDb() {
+  const createUpdateChain = (returningLength: number) => {
+    const chain: any = {
+      set: mock(() => chain),
+      where: mock(() => chain),
+      returning: mock(() => Promise.resolve(new Array(returningLength).fill(1))),
+    };
+    return chain;
+  };
+
+  const createDeleteChain = (returningLength: number) => {
+    const chain: any = {
+      where: mock(() => chain),
+      returning: mock(() => Promise.resolve(new Array(returningLength).fill(1))),
+    };
+    return chain;
+  };
+
+  const mockSelectChain = {
+    from: mock(() => ({
+      where: mock(() => Promise.resolve([{ userId: 'user-expired-1' }, { userId: 'user-expired-2' }])),
+    })),
+  };
+
   return {
-    memberCard: {
-      updateMany: mock(() => Promise.resolve({ count: 2 })),
+    update: mock((table: any) => {
+      if (table.name === 'vip_subscriptions') return createUpdateChain(1);
+      return createUpdateChain(2); // memberCards and businessProfiles
+    }),
+    delete: mock(() => createDeleteChain(5)),
+    selectDistinct: mock(() => mockSelectChain),
+    query: {
+      businessProfiles: {
+        findMany: mock(() =>
+          Promise.resolve([
+            { id: 'bus-1', status: 'PUBLISHED', userId: 'user-expired-1' },
+            { id: 'bus-2', status: 'PUBLISHED', userId: 'user-expired-2' },
+          ]),
+        ),
+      },
     },
-    vipSubscription: {
-      updateMany: mock(() => Promise.resolve({ count: 1 })),
-      findMany: mock(() =>
-        Promise.resolve([{ user_id: 'user-expired-1' }, { user_id: 'user-expired-2' }]),
-      ),
-    },
-    businessProfile: {
-      findMany: mock(() =>
-        Promise.resolve([
-          { id: 'bus-1', status: 'PUBLISHED', user_id: 'user-expired-1' },
-          { id: 'bus-2', status: 'PUBLISHED', user_id: 'user-expired-2' },
-        ]),
-      ),
-      updateMany: mock(() => Promise.resolve({ count: 2 })),
-    },
-    stripeWebhookEvent: {
-      deleteMany: mock(() => Promise.resolve({ count: 5 })),
-    },
-    $transaction: mock((fn: any) => fn(createMockTx())),
+    transaction: mock(async (fn: any) => {
+      const tx = {
+        update: mock(() => createUpdateChain(2)),
+      };
+      return fn(tx);
+    }),
   };
 }
 
-function createMockTx() {
-  return {
-    businessProfile: {
-      updateMany: mock(() => Promise.resolve({ count: 2 })),
-    },
-  };
-}
+let mockDb: ReturnType<typeof createMockDb>;
 
-let mockPrisma: ReturnType<typeof createMockPrisma>;
+// @ts-ignore
+Object.defineProperty(globalThis, 'dbMockForBun', {
+  get: () => mockDb,
+  configurable: true
+});
 
 mock.module('@/server/db', () => ({
-  getPrismaClient: () => mockPrisma,
+  getDbClient: () => {
+    // @ts-ignore
+    if (globalThis.dbMockForBun) return globalThis.dbMockForBun;
+    return mockDb;
+  },
+  schema: {
+    memberCards: { name: 'member_cards' },
+    vipSubscriptions: { name: 'vip_subscriptions' },
+    stripeWebhookEvents: { name: 'stripe_webhook_events' },
+    businessProfiles: { name: 'business_profiles' },
+  },
 }));
 
 mock.module('@/server/audit', () => ({
   createDbAuditService: () => ({
-    log: mock(() => Promise.resolve({ id: 'audit-1' })),
+    log: (...args: any[]) => {
+      // @ts-ignore
+      if (globalThis.auditLogMockForBun) return globalThis.auditLogMockForBun(...args);
+      return Promise.resolve({ id: 'audit-1' });
+    },
   }),
 }));
 
@@ -59,7 +94,7 @@ const { runDailyMaintenance } = await import('../../src/server/services/maintena
 
 describe('runDailyMaintenance', () => {
   test('returns result counts for all actions', async () => {
-    mockPrisma = createMockPrisma();
+    mockDb = createMockDb();
 
     const result = await runDailyMaintenance();
 
@@ -72,8 +107,10 @@ describe('runDailyMaintenance', () => {
   });
 
   test('handles zero expired subscriptions gracefully', async () => {
-    mockPrisma = createMockPrisma();
-    mockPrisma.vipSubscription.findMany.mockImplementation(() => Promise.resolve([]));
+    mockDb = createMockDb();
+    mockDb.selectDistinct.mockImplementation(() => ({
+      from: () => ({ where: () => Promise.resolve([]) }),
+    }));
 
     const result = await runDailyMaintenance();
 
@@ -81,11 +118,11 @@ describe('runDailyMaintenance', () => {
     expect(result.expiredSubscriptions).toBe(1);
     expect(result.hiddenBusinesses).toBe(0);
     expect(result.cleanedEvents).toBe(5);
-    expect(mockPrisma.businessProfile.findMany).not.toHaveBeenCalled();
+    expect(mockDb.query.businessProfiles.findMany).not.toHaveBeenCalled();
   });
 
   test('is idempotent on repeated calls', async () => {
-    mockPrisma = createMockPrisma();
+    mockDb = createMockDb();
 
     const result1 = await runDailyMaintenance();
     const result2 = await runDailyMaintenance();

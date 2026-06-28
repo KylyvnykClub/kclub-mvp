@@ -14,12 +14,12 @@ describe('toPublicBusinessListItemDto', () => {
     category: { name: 'Category' },
     country: { name: 'Country' },
     city: { name: 'City' },
-    brief_description: 'Brief',
-    website_url: 'http://example.com',
-    social_url: null,
-    featured_top: true,
-    featured_recommended: false,
-    member_discount_percent: 15,
+    briefDescription: 'Brief',
+    websiteUrl: 'http://example.com',
+    socialUrl: null,
+    featuredTop: true,
+    featuredRecommended: false,
+    memberDiscountPercent: 15,
   };
 
   test('maps to public list item DTO correctly', () => {
@@ -50,15 +50,15 @@ describe('toPublicBusinessDetailDto', () => {
     category: { name: 'Category' },
     country: { name: 'Country' },
     city: { name: 'City' },
-    brief_description: 'Brief',
-    website_url: 'http://example.com',
-    social_url: null,
-    featured_top: true,
-    featured_recommended: false,
-    member_discount_percent: null,
+    briefDescription: 'Brief',
+    websiteUrl: 'http://example.com',
+    socialUrl: null,
+    featuredTop: true,
+    featuredRecommended: false,
+    memberDiscountPercent: null,
     description: 'Full description',
-    representative_name: 'Rep Name',
-    published_at: new Date('2026-06-15T10:00:00.000Z'),
+    representativeName: 'Rep Name',
+    publishedAt: new Date('2026-06-15T10:00:00.000Z'),
   };
 
   test('maps to public detail DTO correctly', () => {
@@ -92,21 +92,21 @@ describe('toMemberBusinessProfileDto', () => {
     category: { name: 'Category' },
     country: { name: 'Country' },
     city: { name: 'City' },
-    brief_description: 'Brief',
-    website_url: 'http://example.com',
-    social_url: null,
-    featured_top: true,
-    featured_recommended: false,
-    member_discount_percent: null,
+    briefDescription: 'Brief',
+    websiteUrl: 'http://example.com',
+    socialUrl: null,
+    featuredTop: true,
+    featuredRecommended: false,
+    memberDiscountPercent: null,
     description: 'Full description',
-    representative_name: 'Rep Name',
-    published_at: null,
+    representativeName: 'Rep Name',
+    publishedAt: null,
     status: 'UNDER_REVIEW',
-    representative_email: 'rep@example.com',
-    representative_phone: '+15551234567',
-    rejection_reason: null,
-    created_at: new Date('2026-06-15T10:00:00.000Z'),
-    updated_at: new Date('2026-06-15T10:00:00.000Z'),
+    representativeEmail: 'rep@example.com',
+    representativePhone: '+15551234567',
+    rejectionReason: null,
+    createdAt: new Date('2026-06-15T10:00:00.000Z'),
+    updatedAt: new Date('2026-06-15T10:00:00.000Z'),
   };
 
   test('maps to member profile DTO correctly', () => {
@@ -140,8 +140,8 @@ describe('toMemberBusinessProfileDto', () => {
   test('does not include internal notes or owner id', () => {
     const dto = toMemberBusinessProfileDto({
       ...baseBusiness,
-      internal_notes: 'Secret note',
-      user_id: 'user-1',
+      internalNotes: 'Secret note',
+      userId: 'user-1',
     });
 
     expect((dto as any).internalNotes).toBeUndefined();

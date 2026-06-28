@@ -50,7 +50,13 @@ mock.module('@/server/db', () => {
     $transaction: mock(async (fn: Function) => fn({})),
   };
   return {
-    getPrismaClient: () => mockPrisma,
+    getDbClient: () => {
+      // @ts-ignore
+      if (globalThis.dbMockForBun) return globalThis.dbMockForBun;
+      return {};
+    },
+    getPrismaClient: () => ({}),
+    schema: {},
   };
 });
 

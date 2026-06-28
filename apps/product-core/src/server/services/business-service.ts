@@ -11,7 +11,8 @@ import type {
 } from '@kclub/validation';
 
 import { AppError } from '@/server/errors';
-import { getPrismaClient } from '@/server/db';
+import { getDbClient, schema } from '@kclub/database';
+import { eq, and, ne } from 'drizzle-orm';
 import { createDbAuditService } from '@/server/audit';
 import type { RequestContext } from '@/server/context';
 
@@ -32,7 +33,7 @@ export async function submitBusiness(
   input: BusinessProfileSubmitInput,
   context: RequestContext,
 ): Promise<MemberBusinessProfileDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const userId = context.actor?.kind === 'member' ? context.actor.userId : null;
 
   if (!userId) {
@@ -44,11 +45,8 @@ export async function submitBusiness(
   }
 
   // Check duplicate active business
-  const existingActiveBusiness = await prisma.businessProfile.findFirst({
-    where: {
-      user_id: userId,
-      status: { not: 'REJECTED' },
-    },
+  const existingActiveBusiness = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq, and, ne }) => and(eq(bp.userId, userId), ne(bp.status, 'REJECTED')),
   });
 
   if (existingActiveBusiness) {
@@ -60,11 +58,11 @@ export async function submitBusiness(
   }
 
   // 3. Category exists, is active, not high risk
-  const category = await prisma.category.findUnique({
-    where: { id: input.categoryId },
+  const category = await db.query.categories.findFirst({
+    where: (c, { eq }) => eq(c.id, input.categoryId),
   });
 
-  if (!category || !category.is_active) {
+  if (!category || !category.isActive) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
       message: 'Category not found or inactive',
@@ -72,7 +70,7 @@ export async function submitBusiness(
     });
   }
 
-  if (category.is_high_risk) {
+  if (category.isHighRisk) {
     throw new AppError({
       code: ERROR_CODES.BUSINESS_CATEGORY_HIGH_RISK,
       message: 'Category is high risk and requires manual application',
@@ -81,11 +79,11 @@ export async function submitBusiness(
   }
 
   // 4. City belongs to country
-  const city = await prisma.city.findUnique({
-    where: { id: input.cityId },
+  const city = await db.query.cities.findFirst({
+    where: (c, { eq }) => eq(c.id, input.cityId),
   });
 
-  if (!city || city.country_id !== input.countryId) {
+  if (!city || city.countryId !== input.countryId) {
     throw new AppError({
       code: ERROR_CODES.BUSINESS_CITY_COUNTRY_MISMATCH,
       message: 'City does not belong to the specified country',
@@ -95,23 +93,25 @@ export async function submitBusiness(
 
   const slug = generateSlug(input.name);
 
-  const newBusiness = await prisma.businessProfile.create({
-    data: {
-      user_id: userId,
-      slug,
-      name: input.name,
-      representative_name: input.representativeName,
-      representative_email: input.representativeEmail,
-      representative_phone: input.representativePhone,
-      country_id: input.countryId,
-      city_id: input.cityId,
-      category_id: input.categoryId,
-      website_url: input.websiteUrl ?? null,
-      social_url: input.socialUrl ?? null,
-      brief_description: input.briefDescription ?? null,
-      status: 'UNDER_REVIEW',
-    },
-    include: {
+  const [inserted] = await db.insert(schema.businessProfiles).values({
+    userId,
+    slug,
+    name: input.name,
+    representativeName: input.representativeName,
+    representativeEmail: input.representativeEmail,
+    representativePhone: input.representativePhone,
+    countryId: input.countryId,
+    cityId: input.cityId,
+    categoryId: input.categoryId,
+    websiteUrl: input.websiteUrl ?? null,
+    socialUrl: input.socialUrl ?? null,
+    briefDescription: input.briefDescription ?? null,
+    status: 'UNDER_REVIEW',
+  }).returning();
+
+  const newBusiness = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, inserted.id),
+    with: {
       category: true,
       country: true,
       city: true,
@@ -122,8 +122,8 @@ export async function submitBusiness(
     {
       action: 'BUSINESS_SUBMITTED',
       entityType: 'BusinessProfile',
-      entityId: newBusiness.id,
-      after: { status: newBusiness.status },
+      entityId: newBusiness!.id,
+      after: { status: newBusiness!.status },
     },
     context,
   );
@@ -136,7 +136,7 @@ export async function updateBusiness(
   input: BusinessProfileEditableFieldsInput,
   context: RequestContext,
 ): Promise<MemberBusinessProfileDto> {
-  const prisma = getPrismaClient();
+  const db = getDbClient();
   const userId = context.actor?.kind === 'member' ? context.actor.userId : null;
 
   if (!userId) {
@@ -147,8 +147,8 @@ export async function updateBusiness(
     });
   }
 
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
   });
 
   if (!business) {
@@ -159,7 +159,7 @@ export async function updateBusiness(
     });
   }
 
-  if (business.user_id !== userId) {
+  if (business.userId !== userId) {
     throw new AppError({
       code: ERROR_CODES.PERMISSION_DENIED,
       message: 'You do not have permission to edit this business',
@@ -176,16 +176,16 @@ export async function updateBusiness(
   }
 
   // Optional category/city checks
-  if (input.categoryId && input.categoryId !== business.category_id) {
-    const category = await prisma.category.findUnique({ where: { id: input.categoryId } });
-    if (!category || !category.is_active) {
+  if (input.categoryId && input.categoryId !== business.categoryId) {
+    const category = await db.query.categories.findFirst({ where: (c, { eq }) => eq(c.id, input.categoryId!) });
+    if (!category || !category.isActive) {
       throw new AppError({
         code: ERROR_CODES.RESOURCE_NOT_FOUND,
         message: 'Category not found',
         status: 404,
       });
     }
-    if (category.is_high_risk) {
+    if (category.isHighRisk) {
       throw new AppError({
         code: ERROR_CODES.BUSINESS_CATEGORY_HIGH_RISK,
         message: 'Category is high risk',
@@ -195,10 +195,10 @@ export async function updateBusiness(
   }
 
   if (input.cityId || input.countryId) {
-    const targetCityId = input.cityId ?? business.city_id;
-    const targetCountryId = input.countryId ?? business.country_id;
-    const city = await prisma.city.findUnique({ where: { id: targetCityId } });
-    if (!city || city.country_id !== targetCountryId) {
+    const targetCityId = input.cityId ?? business.cityId;
+    const targetCountryId = input.countryId ?? business.countryId;
+    const city = await db.query.cities.findFirst({ where: (c, { eq }) => eq(c.id, targetCityId) });
+    if (!city || city.countryId !== targetCountryId) {
       throw new AppError({
         code: ERROR_CODES.BUSINESS_CITY_COUNTRY_MISMATCH,
         message: 'City does not belong to the specified country',
@@ -207,50 +207,39 @@ export async function updateBusiness(
     }
   }
 
-  const dataToUpdate: any = {
-    ...input,
-    brief_description: input.briefDescription,
-    website_url: input.websiteUrl,
-    social_url: input.socialUrl,
-  };
-
-  delete dataToUpdate.briefDescription;
-  delete dataToUpdate.websiteUrl;
-  delete dataToUpdate.socialUrl;
-  delete dataToUpdate.categoryId;
-  delete dataToUpdate.cityId;
-  delete dataToUpdate.countryId;
-  delete dataToUpdate.representativeName;
-  delete dataToUpdate.representativeEmail;
-  delete dataToUpdate.representativePhone;
-
-  if (input.categoryId !== undefined) dataToUpdate.category_id = input.categoryId;
-  if (input.cityId !== undefined) dataToUpdate.city_id = input.cityId;
-  if (input.countryId !== undefined) dataToUpdate.country_id = input.countryId;
-  if (input.representativeName !== undefined)
-    dataToUpdate.representative_name = input.representativeName;
-  if (input.representativeEmail !== undefined)
-    dataToUpdate.representative_email = input.representativeEmail;
-  if (input.representativePhone !== undefined)
-    dataToUpdate.representative_phone = input.representativePhone;
+  const dataToUpdate: any = {};
+  
+  if (input.name !== undefined) dataToUpdate.name = input.name;
+  if (input.briefDescription !== undefined) dataToUpdate.briefDescription = input.briefDescription;
+  if (input.websiteUrl !== undefined) dataToUpdate.websiteUrl = input.websiteUrl;
+  if (input.socialUrl !== undefined) dataToUpdate.socialUrl = input.socialUrl;
+  if (input.categoryId !== undefined) dataToUpdate.categoryId = input.categoryId;
+  if (input.cityId !== undefined) dataToUpdate.cityId = input.cityId;
+  if (input.countryId !== undefined) dataToUpdate.countryId = input.countryId;
+  if (input.representativeName !== undefined) dataToUpdate.representativeName = input.representativeName;
+  if (input.representativeEmail !== undefined) dataToUpdate.representativeEmail = input.representativeEmail;
+  if (input.representativePhone !== undefined) dataToUpdate.representativePhone = input.representativePhone;
 
   // Always reset to UNDER_REVIEW so admin re-approves after any edit
   dataToUpdate.status = 'UNDER_REVIEW';
-  dataToUpdate.approved_at = null;
+  dataToUpdate.approvedAt = null;
 
-  const updatedBusiness = await prisma.businessProfile.update({
-    where: { id: businessId },
-    data: dataToUpdate,
-    include: { category: true, country: true, city: true },
+  await db.update(schema.businessProfiles)
+    .set(dataToUpdate)
+    .where(eq(schema.businessProfiles.id, businessId));
+
+  const updatedBusiness = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
+    with: { category: true, country: true, city: true },
   });
 
   await auditService.log(
     {
       action: 'BUSINESS_UPDATED',
       entityType: 'BusinessProfile',
-      entityId: updatedBusiness.id,
+      entityId: updatedBusiness!.id,
       before: { status: business.status },
-      after: { status: updatedBusiness.status },
+      after: { status: updatedBusiness!.status },
     },
     context,
   );
@@ -259,11 +248,11 @@ export async function updateBusiness(
 }
 
 export async function getOwnBusinesses(userId: string): Promise<MemberBusinessProfileDto[]> {
-  const prisma = getPrismaClient();
-  const businesses = await prisma.businessProfile.findMany({
-    where: { user_id: userId },
-    include: { category: true, country: true, city: true },
-    orderBy: { created_at: 'desc' },
+  const db = getDbClient();
+  const businesses = await db.query.businessProfiles.findMany({
+    where: (bp, { eq }) => eq(bp.userId, userId),
+    with: { category: true, country: true, city: true },
+    orderBy: (bp, { desc }) => [desc(bp.createdAt)],
   });
 
   return businesses.map(toMemberBusinessProfileDto);
@@ -273,10 +262,10 @@ export async function getBusinessDetail(
   businessId: string,
   userId?: string,
 ): Promise<PublicBusinessDetailDto | MemberBusinessProfileDto> {
-  const prisma = getPrismaClient();
-  const business = await prisma.businessProfile.findUnique({
-    where: { id: businessId },
-    include: { category: true, country: true, city: true },
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq }) => eq(bp.id, businessId),
+    with: { category: true, country: true, city: true },
   });
 
   if (!business) {
@@ -287,7 +276,7 @@ export async function getBusinessDetail(
     });
   }
 
-  const isOwner = userId === business.user_id;
+  const isOwner = userId === business.userId;
 
   if (isOwner) {
     return toMemberBusinessProfileDto(business);
@@ -305,21 +294,21 @@ export async function getBusinessDetail(
 }
 
 export async function getPublicBusinesses(): Promise<PublicBusinessListItemDto[]> {
-  const prisma = getPrismaClient();
-  const businesses = await prisma.businessProfile.findMany({
-    where: PUBLIC_BUSINESS_VISIBILITY_FILTER,
-    include: { category: true, country: true, city: true },
-    orderBy: [{ featured_top: 'desc' }, { featured_recommended: 'desc' }, { published_at: 'desc' }],
+  const db = getDbClient();
+  const businesses = await db.query.businessProfiles.findMany({
+    where: (bp, { eq }) => eq(bp.status, 'PUBLISHED'),
+    with: { category: true, country: true, city: true },
+    orderBy: (bp, { desc }) => [desc(bp.featuredTop), desc(bp.featuredRecommended), desc(bp.publishedAt)],
   });
 
   return businesses.map(toPublicBusinessListItemDto);
 }
 
 export async function getPublicBusinessBySlug(slug: string): Promise<PublicBusinessDetailDto> {
-  const prisma = getPrismaClient();
-  const business = await prisma.businessProfile.findFirst({
-    where: { ...PUBLIC_BUSINESS_VISIBILITY_FILTER, slug },
-    include: { category: true, country: true, city: true },
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: (bp, { eq, and }) => and(eq(bp.status, 'PUBLISHED'), eq(bp.slug, slug)),
+    with: { category: true, country: true, city: true },
   });
 
   if (!business) {
@@ -341,12 +330,12 @@ export function toPublicBusinessListItemDto(business: any): PublicBusinessListIt
     categoryName: business.category.name,
     countryName: business.country.name,
     cityName: business.city.name,
-    briefDescription: business.brief_description,
-    websiteUrl: business.website_url,
-    socialUrl: business.social_url,
-    featuredTop: business.featured_top,
-    featuredRecommended: business.featured_recommended,
-    memberDiscountPercent: business.member_discount_percent ?? null,
+    briefDescription: business.briefDescription,
+    websiteUrl: business.websiteUrl,
+    socialUrl: business.socialUrl,
+    featuredTop: business.featuredTop,
+    featuredRecommended: business.featuredRecommended,
+    memberDiscountPercent: business.memberDiscountPercent ?? null,
   };
 }
 
@@ -354,8 +343,8 @@ export function toPublicBusinessDetailDto(business: any): PublicBusinessDetailDt
   return {
     ...toPublicBusinessListItemDto(business),
     description: business.description,
-    representativeName: business.representative_name,
-    publishedAt: business.published_at?.toISOString() ?? null,
+    representativeName: business.representativeName,
+    publishedAt: business.publishedAt?.toISOString() ?? null,
   };
 }
 
@@ -363,10 +352,10 @@ export function toMemberBusinessProfileDto(business: any): MemberBusinessProfile
   return {
     ...toPublicBusinessDetailDto(business),
     status: business.status as BusinessStatus,
-    representativeEmail: business.representative_email,
-    representativePhone: business.representative_phone,
-    rejectionReason: business.rejection_reason,
-    createdAt: business.created_at.toISOString(),
-    updatedAt: business.updated_at.toISOString(),
+    representativeEmail: business.representativeEmail,
+    representativePhone: business.representativePhone,
+    rejectionReason: business.rejectionReason,
+    createdAt: business.createdAt.toISOString(),
+    updatedAt: business.updatedAt.toISOString(),
   };
 }

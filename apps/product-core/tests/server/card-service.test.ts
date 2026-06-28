@@ -6,15 +6,17 @@ import { AppError } from '../../src/server/errors';
 describe('toMemberCardDto', () => {
   const baseCard = {
     id: '550e8400-e29b-41d4-a716-446655440001',
-    user_id: '550e8400-e29b-41d4-a716-446655440000',
-    card_number: 'MEM-000001',
-    membership_tier: 'MEMBER',
+    userId: '550e8400-e29b-41d4-a716-446655440000',
+    cardNumber: 'MEM-000001',
+    membershipTier: 'MEMBER',
     status: 'ACTIVE' as const,
-    qr_payload_url: '/verify-card/MEM-000001',
-    issued_at: new Date('2026-06-15T10:00:00.000Z'),
-    expires_at: null,
-    revoked_at: null,
-    revoked_reason: null,
+    qrPayloadUrl: '/verify-card/MEM-000001',
+    issuedAt: new Date('2026-06-15T10:00:00.000Z'),
+    expiresAt: null,
+    revokedAt: null,
+    revokedReason: null,
+    createdAt: new Date('2026-06-15T10:00:00.000Z'),
+    updatedAt: new Date('2026-06-15T10:00:00.000Z'),
   };
 
   test('maps card record to MemberCardDto correctly', () => {
@@ -40,7 +42,7 @@ describe('toMemberCardDto', () => {
   test('includes expiresAt when present', () => {
     const dto = toMemberCardDto({
       ...baseCard,
-      expires_at: new Date('2027-06-15T10:00:00.000Z'),
+      expiresAt: new Date('2027-06-15T10:00:00.000Z'),
     });
 
     expect(dto.expiresAt).toBe('2027-06-15T10:00:00.000Z');
@@ -50,16 +52,18 @@ describe('toMemberCardDto', () => {
 describe('toPublicCardVerificationDto', () => {
   const baseCard = {
     id: '550e8400-e29b-41d4-a716-446655440001',
-    user_id: '550e8400-e29b-41d4-a716-446655440000',
-    card_number: 'MEM-000001',
-    membership_tier: 'MEMBER',
+    userId: '550e8400-e29b-41d4-a716-446655440000',
+    cardNumber: 'MEM-000001',
+    membershipTier: 'MEMBER',
     status: 'ACTIVE' as const,
-    qr_payload_url: '/verify-card/MEM-000001',
-    issued_at: new Date('2026-06-15T10:00:00.000Z'),
-    expires_at: null,
-    revoked_at: null,
-    revoked_reason: null,
-    user: { display_name: 'John Doe' },
+    qrPayloadUrl: '/verify-card/MEM-000001',
+    issuedAt: new Date('2026-06-15T10:00:00.000Z'),
+    expiresAt: null,
+    revokedAt: null,
+    revokedReason: null,
+    createdAt: new Date('2026-06-15T10:00:00.000Z'),
+    updatedAt: new Date('2026-06-15T10:00:00.000Z'),
+    user: { displayName: 'John Doe' },
   };
 
   test('maps to public DTO correctly', () => {
@@ -86,7 +90,7 @@ describe('toPublicCardVerificationDto', () => {
   test('handles null display name', () => {
     const dto = toPublicCardVerificationDto({
       ...baseCard,
-      user: { display_name: null },
+      user: { displayName: null },
     });
 
     expect(dto.displayName).toBeNull();
@@ -95,7 +99,7 @@ describe('toPublicCardVerificationDto', () => {
   test('includes expiresAt when present', () => {
     const dto = toPublicCardVerificationDto({
       ...baseCard,
-      expires_at: new Date('2027-06-15T10:00:00.000Z'),
+      expiresAt: new Date('2027-06-15T10:00:00.000Z'),
     });
 
     expect(dto.expiresAt).toBe('2027-06-15T10:00:00.000Z');

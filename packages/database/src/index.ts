@@ -1,2 +1,2 @@
-export * from './generated/types';
-export * from './seeds/seed-plan';
+export * from './schema';
+export * from './client';

@@ -1,22 +1,44 @@
-import { describe, expect, test, mock } from 'bun:test';
-
-const mockUpdateMany = mock(async () => ({ count: 0 }));
-const mockFindMany = mock(async () => []);
-const mockDeleteMany = mock(async () => ({ count: 0 }));
+import { describe, expect, test, mock, beforeEach } from 'bun:test';
 
 mock.module('@/server/db', () => {
-  const mockPrisma = {
-    memberCard: { updateMany: mockUpdateMany },
-    vipSubscription: { updateMany: mockUpdateMany, findMany: mockFindMany },
-    businessProfile: { updateMany: mockUpdateMany },
-    stripeWebhookEvent: { deleteMany: mockDeleteMany },
+  const createChain = () => {
+    const chain: any = {
+      set: mock(() => chain),
+      where: mock(() => chain),
+      returning: mock(() => Promise.resolve([])),
+    };
+    return chain;
   };
   return {
-    getPrismaClient: () => mockPrisma,
+    getDbClient: () => {
+      // @ts-ignore
+      if (globalThis.dbMockForBun) return globalThis.dbMockForBun;
+      const mockDb = {
+        update: mock(createChain),
+        delete: mock(createChain),
+        selectDistinct: mock(() => ({
+          from: mock(() => ({ where: mock(() => Promise.resolve([])) })),
+        })),
+      };
+      return mockDb;
+    },
+    getPrismaClient: () => ({}),
+    schema: {
+      memberCards: { name: 'member_cards' },
+      vipSubscriptions: { name: 'vip_subscriptions' },
+      stripeWebhookEvents: { name: 'stripe_webhook_events' },
+    },
   };
 });
 
 describe('cron route guard logic', () => {
+  beforeEach(() => {
+    // @ts-ignore
+    delete globalThis.dbMockForBun;
+    // @ts-ignore
+    delete globalThis.auditLogMockForBun;
+  });
+
   test('returns 500 when CRON_SECRET is not set', async () => {
     const original = process.env.CRON_SECRET;
     delete process.env.CRON_SECRET;
@@ -26,7 +48,7 @@ describe('cron route guard logic', () => {
     const response = await POST(request);
     expect(response.status).toBe(500);
     const body = await response.json();
-    expect(body.error.code).toBe('SERVER_ERROR');
+    expect(body.error.code).toBe('SERVER_DEPENDENCY_UNAVAILABLE');
 
     process.env.CRON_SECRET = original;
   });
@@ -34,7 +56,7 @@ describe('cron route guard logic', () => {
   test('returns 401 when Authorization header is missing', async () => {
     process.env.CRON_SECRET = 'test-secret';
 
-    const { POST } = await import('../../src/app/api/cron/daily-maintenance/route');
+    const { POST } = await import('../../src/app/api/cron/daily-maintenance/route?auth=2');
     const request = new Request('http://localhost/api/cron/daily-maintenance', { method: 'POST' });
     const response = await POST(request);
     expect(response.status).toBe(401);
@@ -68,9 +90,9 @@ describe('cron route guard logic', () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.data).toBeDefined();
-    expect(typeof body.data.cardsExpired).toBe('number');
-    expect(typeof body.data.subscriptionsExpired).toBe('number');
-    expect(typeof body.data.businessesHidden).toBe('number');
-    expect(typeof body.data.webhookEventsCleaned).toBe('number');
+    expect(typeof body.data.expiredCards).toBe('number');
+    expect(typeof body.data.expiredSubscriptions).toBe('number');
+    expect(typeof body.data.hiddenBusinesses).toBe('number');
+    expect(typeof body.data.cleanedEvents).toBe('number');
   });
 });

@@ -1,12 +1,11 @@
 'use client';
 
-import Link from 'next/link';
-import { LogOut, Menu, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { LogOut, User } from 'lucide-react';
 
 import { logoutAction } from '@/server/auth/actions';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import {
   DropdownMenu,
@@ -17,8 +16,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { AppSidebar } from '@/components/dashboard/app-sidebar';
+import { Separator } from '@/components/ui/separator';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { StaffRole } from '@kclub/contracts';
 
 type DashboardHeaderProps = {
@@ -28,75 +33,59 @@ type DashboardHeaderProps = {
 };
 
 export function DashboardHeader({ staffName, staffRole, staffInitials }: DashboardHeaderProps) {
+  const router = useRouter();
+
   return (
-    <header className="bg-background/95 sticky top-0 z-20 border-b backdrop-blur">
-      <div className="flex h-14 items-center gap-3 px-4 md:px-6">
-        <Sheet>
-          <SheetTrigger
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Dashboard</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
+        <Badge variant="secondary" className="hidden sm:inline-flex">
+          {staffRole}
+        </Badge>
+        <DropdownMenu>
+          <DropdownMenuTrigger
             render={
-              <Button
-                variant="outline"
-                size="icon"
-                className="lg:hidden"
-                aria-label="Open navigation"
+              <button
+                className="flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+                aria-label="Staff menu"
               />
             }
           >
-            <Menu className="h-4 w-4" />
-            <span className="sr-only">Open navigation</span>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
-            <SheetHeader className="sr-only">
-              <SheetTitle>Navigation</SheetTitle>
-            </SheetHeader>
-            <AppSidebar className="w-full border-r-0" staffRole={staffRole} />
-          </SheetContent>
-        </Sheet>
-
-        <div className="flex-1" />
-
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-          <Badge variant="secondary" className="ml-2 hidden sm:inline-flex">
-            {staffRole}
-          </Badge>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full"
-                  aria-label="Staff menu"
-                />
-              }
-            >
-              <Avatar size="sm">
-                <AvatarFallback>{staffInitials}</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium">{staffName}</span>
-                    <span className="text-xs font-normal text-muted-foreground">{staffRole}</span>
-                  </div>
-                </DropdownMenuLabel>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem render={<Link href="/dashboard/account" />}>
-                <User className="h-4 w-4" />
-                My Account
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => logoutAction()}>
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            <Avatar className="h-8 w-8">
+              <AvatarFallback>{staffInitials}</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium">{staffName}</span>
+                  <span className="text-xs font-normal text-muted-foreground">{staffRole}</span>
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/dashboard/account')}>
+              <User className="h-4 w-4" />
+              My Account
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => logoutAction()}>
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

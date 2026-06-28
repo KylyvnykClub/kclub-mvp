@@ -33,7 +33,7 @@ export function StaffAccountClient({
   const [activeTab, setActiveTab] = useState<StaffAccountTab>(initialTab);
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Avatar className="h-12 w-12">
