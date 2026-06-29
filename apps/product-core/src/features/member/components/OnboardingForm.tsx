@@ -30,8 +30,6 @@ export function OnboardingForm({ locale, profile }: OnboardingFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const inputClassName = 'kclub-field';
-  const buttonClassName =
-    'kclub-button-primary w-full rounded-none border-0 px-5 py-3.5 text-xs tracking-[0.24em]';
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -143,7 +141,7 @@ export function OnboardingForm({ locale, profile }: OnboardingFormProps) {
         {error}
       </FieldError>
 
-      <Button type="submit" fullWidth disabled={isLoading} className={buttonClassName}>
+      <Button type="submit" color="brand" size="lg" fullWidth disabled={isLoading}>
         {isLoading ? tCommon('saving') : t('submit')}
       </Button>
     </form>

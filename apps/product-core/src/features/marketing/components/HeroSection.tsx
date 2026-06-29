@@ -1,9 +1,10 @@
 'use client';
 
-import { ArrowUpRight, QrCode } from 'lucide-react';
+import { ArrowUpRight, QrCode, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, type CSSProperties } from 'react';
+import { getButtonClasses } from '@kclub/ui';
 import { motion } from 'framer-motion';
 
 import dynamic from 'next/dynamic';
@@ -106,7 +107,18 @@ export function HeroSection({ locale }: { locale: Locale }) {
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto flex min-h-0 w-full max-w-7xl flex-1 items-center gap-11 px-4 py-16 sm:px-6 sm:py-20 lg:grid lg:min-h-[calc(100vh-112px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-20 lg:px-10 lg:py-[6.625rem] xl:gap-[5rem]">
+      {/* Globe Background */}
+      <div className="absolute inset-0 z-0 flex items-center justify-center lg:justify-end overflow-hidden opacity-60 mix-blend-screen pointer-events-none">
+        <div className="relative h-full w-full max-w-[800px] sm:max-w-[1000px] lg:max-w-[1200px] lg:translate-x-1/4">
+          <Globe globeConfig={globeConfig} data={dynamicGlobeData} />
+        </div>
+        
+        {/* Full-viewscreen Overlays */}
+        <div className="absolute inset-0 pointer-events-none select-none bg-[radial-gradient(ellipse_at_center,transparent_10%,var(--background)_100%)] z-40" />
+        <div className="absolute w-full bottom-0 inset-x-0 h-40 bg-gradient-to-b pointer-events-none select-none from-transparent to-background z-40" />
+      </div>
+
+      <div className="relative z-10 mx-auto flex flex-col min-h-0 w-full max-w-7xl flex-1 justify-center gap-11 px-4 py-16 sm:px-6 sm:py-20 lg:gap-20 lg:px-10 lg:py-[6.625rem]">
         <motion.div 
           className="min-w-0 max-w-3xl lg:pr-6"
           variants={containerVariants}
@@ -125,11 +137,11 @@ export function HeroSection({ locale }: { locale: Locale }) {
           <motion.p variants={itemVariants} className="kclub-hero-copy mt-11">{t('hero.subline')}</motion.p>
 
           <motion.div variants={itemVariants} className="mt-11 flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
-            <Link href={`/${locale}/sign-up`} className="kclub-button-primary w-full sm:w-auto">
+            <Link href={`/${locale}/sign-up`} className={getButtonClasses({ color: 'brand', size: 'lg', className: 'w-full sm:w-auto' })}>
               <span>{t('hero.primaryCta')}</span>
               <ArrowUpRight aria-hidden="true" size={18} strokeWidth={2} />
             </Link>
-            <Link href={`/${locale}/directory`} className="kclub-button-secondary w-full sm:w-auto">
+            <Link href={`/${locale}/directory`} className={getButtonClasses({ color: 'brand-secondary', size: 'lg', className: 'w-full sm:w-auto' })}>
               <span>{t('hero.secondaryCta')}</span>
               <ArrowUpRight aria-hidden="true" size={18} strokeWidth={2} />
             </Link>
@@ -150,14 +162,6 @@ export function HeroSection({ locale }: { locale: Locale }) {
             </div>
           </motion.div>
         </motion.div>
-
-        <div className="flex items-center justify-center lg:justify-end">
-          <div className="relative h-[24rem] w-full max-w-[640px] sm:h-[32rem] lg:h-[40rem] lg:max-w-[560px] xl:max-w-[600px]">
-            <div className="absolute inset-0 z-0 opacity-80 mix-blend-screen">
-              <Globe globeConfig={globeConfig} data={dynamicGlobeData} />
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* <HeroFlagsCarousel />  */}

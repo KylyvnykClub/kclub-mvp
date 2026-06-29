@@ -2,7 +2,7 @@ import { CalendarDays, ExternalLink, MapPin, UserRound } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 
-import { Badge } from '@kclub/ui';
+import { Badge, getButtonClasses } from '@kclub/ui';
 
 import { getBusinessLocation, getPrimaryBusinessUrl } from '@/features/public/public-page-helpers';
 import { Locale } from '@/i18n/routing';
@@ -128,7 +128,7 @@ export default async function BusinessDetailPage({ params }: Params) {
                 href={externalUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="kclub-button-primary mt-8 w-full rounded-none border-0 px-5 py-3 text-xs tracking-[0.24em]"
+                className={getButtonClasses({ color: 'brand', size: 'md', fullWidth: true, className: 'mt-8' })}
               >
                 <ExternalLink aria-hidden="true" size={16} strokeWidth={1.5} />
                 {t('website')}

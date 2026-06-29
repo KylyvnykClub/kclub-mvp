@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
 import ThreeGlobe from "three-globe";
-import { useThree, Canvas, extend } from "@react-three/fiber";
+import { useThree, Canvas, extend, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import countries from "@/data/globe.json";
 declare module "@react-three/fiber" {
@@ -234,6 +234,14 @@ export function Globe({ globeConfig, data }: WorldProps) {
     };
   }, [isInitialized, data]);
 
+  useFrame((state) => {
+    if (groupRef.current) {
+      // Offset the center slightly towards the Americas (negative offset) and reduce amplitude 
+      // so it stops cleanly after the Americas (+0.55) and still reaches Australia (-0.8).
+      (groupRef.current as any).rotation.y = Math.sin(state.clock.elapsedTime * 0.1) * (Math.PI * 0.675) - (Math.PI * 0.125);
+    }
+  });
+
   return <group ref={groupRef as any} />;
 }
 
@@ -276,8 +284,7 @@ export function World(props: WorldProps) {
         enableZoom={false}
         minDistance={cameraZ}
         maxDistance={cameraZ}
-        autoRotateSpeed={1}
-        autoRotate={true}
+        autoRotate={false}
         minPolarAngle={Math.PI / 3.5}
         maxPolarAngle={Math.PI - Math.PI / 3}
       />

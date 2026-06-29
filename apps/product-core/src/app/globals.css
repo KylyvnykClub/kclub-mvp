@@ -144,23 +144,6 @@ a {
     @apply border-l border-accent pl-4;
   }
 
-  .kclub-button-primary {
-    @apply relative inline-flex min-h-[50px] min-w-[200px] items-start border border-accent bg-accent px-4 py-3 pr-12 text-base font-semibold text-accent-foreground transition hover:border-accent-hover hover:bg-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus;
-  }
-
-  .kclub-button-primary > svg:last-child,
-  .kclub-button-secondary > svg:last-child {
-    @apply absolute bottom-2.5 right-2.5 shrink-0;
-  }
-
-  .kclub-button-secondary {
-    @apply relative inline-flex min-h-[50px] min-w-[200px] items-start border border-accent bg-transparent px-4 py-3 pr-12 text-base font-semibold text-foreground transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus;
-  }
-
-  .kclub-button-secondary:hover {
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
-  }
-
   .kclub-hero-display {
     @apply text-[clamp(2.75rem,7.2vw,5.25rem)] font-bold leading-[1.07] tracking-normal text-foreground;
   }

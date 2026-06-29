@@ -2,7 +2,7 @@ import { ArrowRight, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
-import { EmptyState } from '@kclub/ui';
+import { EmptyState, getButtonClasses } from '@kclub/ui';
 
 import { BusinessCard } from '@/features/public/components/BusinessCard';
 import { getFeaturedBusinessGroups } from '@/features/public/public-page-helpers';
@@ -64,7 +64,7 @@ export default async function DirectoryPage({ params }: { params: Promise<{ loca
             action={
               <Link
                 href={`/${locale}/sign-up`}
-                className="kclub-button-primary rounded-none border-0 px-5 py-3 text-xs tracking-[0.24em]"
+                className={getButtonClasses({ color: 'brand', size: 'md' })}
               >
                 {t('emptyAction')}
                 <ArrowRight aria-hidden="true" size={16} strokeWidth={1.7} />

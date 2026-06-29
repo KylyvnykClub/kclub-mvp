@@ -9,7 +9,7 @@ import {
   type MemberIntroductionDto,
   type PublicBusinessListItemDto,
 } from '@kclub/contracts';
-import { Badge, Skeleton, cn } from '@kclub/ui';
+import { Badge, Skeleton, cn, Button } from '@kclub/ui';
 
 import type { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
@@ -65,8 +65,6 @@ export function IntroductionsPanel({
 
   const labelClassName = cabinetFieldLabelClasses;
   const fieldClassName = 'kclub-field mt-2 w-full';
-  const buttonClassName =
-    'inline-flex items-center bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50';
 
   const availableTargets = serverPublicBusinesses;
 
@@ -266,9 +264,9 @@ export function IntroductionsPanel({
             />
           </div>
 
-          <button type="submit" disabled={isSubmitting} className={buttonClassName}>
+          <Button color="brand" size="md" type="submit" disabled={isSubmitting}>
             {isSubmitting ? tCommon('saving') : t('submitCta')}
-          </button>
+          </Button>
         </form>
       </div>
 
