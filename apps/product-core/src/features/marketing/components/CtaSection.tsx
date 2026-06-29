@@ -1,6 +1,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { getButtonClasses } from '@kclub/ui';
 
 import { Locale } from '@/i18n/routing';
 
@@ -23,7 +24,11 @@ export function CtaSection({ locale }: { locale: Locale }) {
         </div>
         <Link
           href={`/${locale}/sign-up`}
-          className="inline-flex h-14 min-w-56 items-center justify-between gap-8 border border-accent bg-accent px-5 text-sm font-bold text-white transition hover:bg-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus dark:focus-visible:ring-white dark:focus-visible:ring-offset-focus"
+          className={getButtonClasses({
+            color: 'brand',
+            size: 'lg',
+            className: 'min-w-56',
+          })}
         >
           {t('cta.button')}
           <ArrowUpRight aria-hidden="true" size={20} />

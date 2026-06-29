@@ -4,6 +4,7 @@ import { ArrowUpRight, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
+import { getButtonClasses } from '@kclub/ui';
 
 import { Locale } from '@/i18n/routing';
 
@@ -99,7 +100,12 @@ export function ServicesSection({ locale }: { locale: Locale }) {
               </ul>
               <Link
                 href={plan.href}
-                className={`mx-auto mt-8 flex h-14 w-fit shrink-0 items-center justify-center gap-8 border px-5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus dark:focus-visible:ring-offset-focus ${plan.featured ? 'border-accent bg-accent text-white hover:bg-accent-hover' : 'border-zinc-950 text-zinc-950 hover:bg-zinc-950 hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-zinc-950'}`}
+                className={getButtonClasses({
+                  color: plan.featured ? 'brand' : 'outline',
+                  size: 'md',
+                  fullWidth: true,
+                  className: 'mt-8 flex h-14 shrink-0',
+                })}
               >
                 {plan.cta}
                 <ArrowUpRight aria-hidden="true" size={18} />
