@@ -555,6 +555,26 @@ a {
       );
     }
   }
+
+  .kclub-animate-draw-x {
+    animation: kclub-draw-x 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  
+  .kclub-animate-draw-y {
+    animation: kclub-draw-y 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transform-origin: top;
+    transform: scaleY(0);
+  }
+  
+  @keyframes kclub-draw-x {
+    to { transform: scaleX(1); }
+  }
+  
+  @keyframes kclub-draw-y {
+    to { transform: scaleY(1); }
+  }
 }
 
 button:focus:not(:focus-visible),
