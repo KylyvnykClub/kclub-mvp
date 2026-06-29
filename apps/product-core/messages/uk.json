@@ -23,6 +23,11 @@
     "nav": {
       "directory": "Directory",
       "catalog": "Каталог",
+      "about": "Про нас",
+      "how_it_works": "Як це працює",
+      "partners": "Наші партнери",
+      "faq": "FAQ",
+      "contact": "Контакти",
       "signIn": "Sign In",
       "join": "Join",
       "cabinet": "Кабінет",

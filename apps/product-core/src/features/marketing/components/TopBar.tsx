@@ -24,7 +24,7 @@ import { LocaleSwitcherLinks } from './LocaleSwitcherLinks';
 import { ThemeToggle } from './ThemeToggle';
 
 type NavItem = {
-  key: 'catalog';
+  key: 'catalog' | 'about' | 'how_it_works' | 'partners' | 'faq' | 'contact';
   href: string;
 };
 
@@ -44,7 +44,14 @@ export function TopBar({
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const accountRef = useRef<HTMLDivElement>(null);
   const localeRef = useRef<HTMLDivElement>(null);
-  const navItems: NavItem[] = [{ key: 'catalog', href: `/${locale}/directory` }];
+  const navItems: NavItem[] = [
+    { key: 'about', href: `/${locale}/#about` },
+    { key: 'how_it_works', href: `/${locale}/#how-it-works` },
+    { key: 'catalog', href: `/${locale}/directory` },
+    { key: 'partners', href: `/${locale}/#partners` },
+    { key: 'faq', href: `/${locale}/#faq` },
+    { key: 'contact', href: `/${locale}/#contact` },
+  ];
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent): void => {

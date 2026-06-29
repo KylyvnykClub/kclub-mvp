@@ -23,6 +23,11 @@
     "nav": {
       "directory": "Directory",
       "catalog": "Catalog",
+      "about": "About Us",
+      "how_it_works": "How it works",
+      "partners": "Our Partners",
+      "faq": "FAQ",
+      "contact": "Contact",
       "signIn": "Sign In",
       "join": "Join",
       "cabinet": "Cabinet",
