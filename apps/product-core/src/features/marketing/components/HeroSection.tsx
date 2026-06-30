@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { getButtonClasses } from '@kclub/ui';
-import { TextHoverEffect } from '@/components/ui/text-hover-effect';
+import { CanvasText } from '@/components/ui/canvas-text';
 import { motion } from 'framer-motion';
 
 import dynamic from 'next/dynamic';
@@ -131,16 +131,28 @@ export function HeroSection({ locale }: { locale: Locale }) {
             {t('hero.eyebrow')}
           </motion.p>
 
-          <motion.div variants={itemVariants} className="w-full h-[180px] sm:h-[250px] -ml-4 sm:-ml-8 flex items-center mb-8 relative">
-            <h1 className="sr-only">
-              {t('hero.titleLine1')} {t('hero.titleLine2')}
-            </h1>
-            <div className="w-full h-full" aria-hidden="true">
-              <TextHoverEffect 
-                text={[t('hero.titleLine1').toUpperCase(), t('hero.titleLine2').toUpperCase()]} 
+          <motion.h1 variants={itemVariants} className="w-full mb-11 text-5xl sm:text-6xl md:text-7xl lg:text-[90px] font-bold leading-[1.05] tracking-tight text-white uppercase font-[helvetica]">
+            <span className="block text-zinc-100">
+              {t('hero.titleLine1')}
+            </span>
+            <span className="block mt-2">
+              {t('hero.titleLine2').toUpperCase().split(' ').slice(0, -1).join(' ')}{' '}
+              <CanvasText
+                text={t('hero.titleLine2').toUpperCase().split(' ').pop() || ''}
+                backgroundClassName="bg-[#0f0f0f]"
+                colors={[
+                  accentColor,
+                  "#ffffff",
+                  accentColor,
+                  "#a1a1aa"
+                ]}
+                animationDuration={8}
+                lineGap={1}
+                lineWidth={3}
+                curveIntensity={20}
               />
-            </div>
-          </motion.div>
+            </span>
+          </motion.h1>
 
           <motion.p variants={itemVariants} className="kclub-hero-copy mt-11">{t('hero.subline')}</motion.p>
 

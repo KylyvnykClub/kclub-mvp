@@ -8,9 +8,12 @@ import '@kclub/ui/styles/tokens.css';
 import '../globals.css';
 
 import { SkipLink, cn } from '@kclub/ui';
+import { Footer } from '@/features/marketing/components/Footer';
 import { ThemeProvider } from '@/features/marketing/components/ThemeProvider';
-import { isLocale } from '@/i18n/routing';
+import { TopBar } from '@/features/marketing/components/TopBar';
+import { isLocale, Locale } from '@/i18n/routing';
 import { titilliumWeb } from '@/lib/fonts';
+import { getCurrentMemberProfileForPage } from '@/server/member-page';
 
 export default async function LocaleLayout(props: {
   children: ReactNode;
@@ -21,7 +24,17 @@ export default async function LocaleLayout(props: {
     notFound();
   }
 
+  const locale = params.locale as Locale;
+
   const messages = await getMessages();
+
+  let isAuthenticated = false;
+  try {
+    const profile = await getCurrentMemberProfileForPage();
+    isAuthenticated = profile !== null;
+  } catch {
+    // auth check failure should not break public pages
+  }
 
   return (
     <html lang={params.locale} suppressHydrationWarning>
@@ -39,13 +52,19 @@ export default async function LocaleLayout(props: {
         className={cn(
           titilliumWeb.variable,
           titilliumWeb.className,
-          'min-h-screen bg-white font-sans text-zinc-900 antialiased dark:bg-[#121212] dark:text-white',
+          'flex min-h-screen flex-col bg-white font-sans text-zinc-950 antialiased dark:bg-[#09090b] dark:text-white',
         )}
         suppressHydrationWarning
       >
         <SkipLink />
         <NextIntlClientProvider messages={messages}>
-          <ThemeProvider>{props.children}</ThemeProvider>
+          <ThemeProvider>
+            <TopBar locale={locale} isAuthenticated={isAuthenticated} />
+            <main id="content" className="relative z-10 flex-1">
+              {props.children}
+            </main>
+            <Footer locale={locale} />
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

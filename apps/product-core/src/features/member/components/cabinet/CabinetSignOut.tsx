@@ -5,6 +5,8 @@ import { LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
+import { Button } from '@kclub/ui';
+
 import type { Locale } from '@/i18n/routing';
 
 type CabinetSignOutProps = {
@@ -36,14 +38,16 @@ export function CabinetSignOut({ locale }: CabinetSignOutProps) {
   };
 
   return (
-    <button
+    <Button
       type="button"
+      color="ghost"
+      size="sm"
       onClick={handleSignOut}
       disabled={isLoading}
-      className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted transition hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-60"
+      className="flex gap-1.5 px-0 py-0 text-xs tracking-wide text-muted hover:text-foreground"
     >
       <LogOut size={14} aria-hidden />
       {isLoading ? tCommon('signingOut') : t('signOut')}
-    </button>
+    </Button>
   );
 }

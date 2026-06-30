@@ -2,7 +2,7 @@ import { ArrowUpRight, ExternalLink, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 import type { PublicBusinessListItemDto } from '@kclub/contracts';
-import { Badge, cn, getButtonClasses } from '@kclub/ui';
+import { Badge, cn } from '@kclub/ui';
 
 import { getBusinessLocation, getPrimaryBusinessUrl } from '../public-page-helpers';
 
@@ -71,11 +71,14 @@ export function BusinessCard({
 
         <div className="mt-auto pt-5 flex flex-col gap-3">
           <Link
+            className="group inline-flex w-fit items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-accent transition hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus"
             href={href}
-            className={getButtonClasses({ color: 'brand', size: 'sm', className: 'w-full' })}
           >
-            {actionLabel}
-            <ArrowUpRight aria-hidden="true" size={16} strokeWidth={1.7} />
+            <span className="truncate">{actionLabel}</span>
+            <ArrowUpRight
+              aria-hidden="true"
+              className="size-3.5 shrink-0 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            />
           </Link>
           {externalUrl ? (
             <a

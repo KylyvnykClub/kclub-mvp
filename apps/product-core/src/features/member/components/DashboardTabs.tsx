@@ -12,7 +12,6 @@ import { cabinetContentClasses } from '@/features/member/components/cabinet/styl
 
 import { AccountPanel } from './AccountPanel';
 import { BusinessPanel } from './BusinessPanel';
-import { CardPanel } from './CardPanel';
 import { DashboardTabsClient } from './DashboardTabsClient';
 import { IntroductionsPanel } from './IntroductionsPanel';
 import { SettingsPanel } from './SettingsPanel';
@@ -21,6 +20,7 @@ import { SubscriptionUpgradePanel } from './SubscriptionUpgradePanel';
 type DashboardTabsProps = {
   locale: Locale;
   profile: CurrentMemberProfileDto;
+  cardNumber: string | null;
   userContext: UserContext;
   activeTab: ImplementedMemberDashboardTab;
   visibleTabs: readonly ImplementedMemberDashboardTab[];
@@ -30,6 +30,7 @@ type DashboardTabsProps = {
 export async function DashboardTabs({
   locale,
   profile,
+  cardNumber,
   userContext,
   activeTab,
   visibleTabs,
@@ -39,7 +40,6 @@ export async function DashboardTabs({
 
   const tabLabels: Record<ImplementedMemberDashboardTab, string> = {
     details: t('tabs.details'),
-    card: t('tabs.card'),
     subscription: t('tabs.subscription'),
     business: t('tabs.business'),
     introductions: t('tabs.introductions'),
@@ -57,9 +57,7 @@ export async function DashboardTabs({
 
   for (const tab of visibleTabs) {
     if (tab === 'details') {
-      panels.details = <AccountPanel locale={locale} profile={profile} />;
-    } else if (tab === 'card') {
-      panels.card = <CardPanel locale={locale} memberName={memberName} />;
+      panels.details = <AccountPanel locale={locale} profile={profile} cardNumber={cardNumber} />;
     } else if (tab === 'subscription') {
       panels.subscription = <SubscriptionUpgradePanel locale={locale} profile={profile} />;
     } else if (tab === 'introductions') {

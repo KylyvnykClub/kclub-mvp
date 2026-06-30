@@ -1,8 +1,6 @@
 import { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 
-import { Footer } from '@/features/marketing/components/Footer';
-import { TopBar } from '@/features/marketing/components/TopBar';
 import { Locale } from '@/i18n/routing';
 import {
   getCurrentPagePathname,
@@ -28,15 +26,8 @@ export default async function MemberLayout(props: {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-zinc-950 dark:bg-[#09090b] dark:text-white">
-      <div className="kclub-noise pointer-events-none fixed inset-0 opacity-30" />
-      <TopBar locale={locale} isAuthenticated />
-
-      <main id="content" className="relative z-10 flex-1">
-        <div className="container">{props.children}</div>
-      </main>
-
-      <Footer locale={locale} />
-    </div>
+    <>
+      <div className="container">{props.children}</div>
+    </>
   );
 }

@@ -7,7 +7,7 @@ import type { PublicBusinessListItemDto } from '@kclub/contracts';
 
 import { Locale } from '@/i18n/routing';
 
-import { MarketingBusinessCard } from './MarketingBusinessCard';
+import { BusinessCard } from '@/features/public/components/BusinessCard';
 import { MarketingCarousel, type MarketingCarouselLabels } from './MarketingCarousel';
 
 export type MarketingBusinessCarouselProps = {
@@ -34,17 +34,6 @@ function getFeaturedLabel(
   return null;
 }
 
-function getDiscountLabel(
-  business: PublicBusinessListItemDto,
-  formatDiscount: (percent: number) => string,
-): string | null {
-  if (business.memberDiscountPercent === null || business.memberDiscountPercent <= 0) {
-    return null;
-  }
-
-  return formatDiscount(business.memberDiscountPercent);
-}
-
 export function MarketingBusinessCarousel({
   header,
   locale,
@@ -57,20 +46,25 @@ export function MarketingBusinessCarousel({
   return (
     <MarketingCarousel header={header} itemCount={businesses.length} labels={carouselLabels}>
       {businesses.map((business) => (
-        <MarketingBusinessCard
-          key={business.id}
-          actionLabel={actionLabel}
-          business={business}
-          discountLabel={getDiscountLabel(business, (percent) =>
-            t('common.discountLabel', { percent }),
-          )}
-          featuredLabel={getFeaturedLabel(
-            business,
-            t('featured.topLabel'),
-            t('featured.recommendedLabel'),
-          )}
-          href={`/${locale}/directory/${business.slug}`}
-        />
+        <div 
+          key={business.id} 
+          className="w-[20rem] shrink-0 snap-start sm:w-[22rem] flex"
+          data-marketing-carousel-item
+        >
+          <div className="w-full">
+            <BusinessCard
+              actionLabel={actionLabel}
+              business={business}
+              externalLabel={t('common.website')}
+              featuredLabel={getFeaturedLabel(
+                business,
+                t('featured.topLabel'),
+                t('featured.recommendedLabel'),
+              ) ?? undefined}
+              href={`/${locale}/directory/${business.slug}`}
+            />
+          </div>
+        </div>
       ))}
     </MarketingCarousel>
   );

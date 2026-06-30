@@ -32,7 +32,7 @@ export const TextHoverEffect = ({
       ref={svgRef}
       width="100%"
       height="100%"
-      viewBox="0 0 300 100"
+      viewBox="0 0 1200 250"
       xmlns="http://www.w3.org/2000/svg"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -93,7 +93,7 @@ export const TextHoverEffect = ({
         textAnchor="middle"
         dominantBaseline="middle"
         strokeWidth="0.5"
-        className="fill-transparent stroke-neutral-200 font-[helvetica] text-6xl font-bold dark:stroke-white/10"
+        className="fill-transparent stroke-neutral-200 font-[helvetica] text-[90px] font-bold dark:stroke-white/10"
         style={{ opacity: hovered ? 0.7 : 0 }}
       >
         {Array.isArray(text) ? text.map((t, i) => <tspan key={i} x="50%" dy={i === 0 ? "-0.5em" : "1em"}>{t}</tspan>) : text}
@@ -104,7 +104,7 @@ export const TextHoverEffect = ({
         textAnchor="middle"
         dominantBaseline="middle"
         strokeWidth="0.5"
-        className="fill-transparent stroke-neutral-200 font-[helvetica] text-6xl font-bold dark:stroke-white/20"
+        className="fill-transparent stroke-neutral-200 font-[helvetica] text-[90px] font-bold dark:stroke-white/20"
         initial={{ strokeDashoffset: 1000, strokeDasharray: 1000 }}
         animate={{
           strokeDashoffset: 0,
@@ -125,7 +125,7 @@ export const TextHoverEffect = ({
         stroke="url(#textGradient)"
         strokeWidth="0.5"
         mask="url(#textMask)"
-        className="fill-transparent font-[helvetica] text-6xl font-bold"
+        className="fill-transparent font-[helvetica] text-[90px] font-bold"
       >
         {Array.isArray(text) ? text.map((t, i) => <tspan key={i} x="50%" dy={i === 0 ? "-0.5em" : "1em"}>{t}</tspan>) : text}
       </text>

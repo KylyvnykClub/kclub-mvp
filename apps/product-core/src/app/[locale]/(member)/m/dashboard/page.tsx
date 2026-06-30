@@ -5,6 +5,7 @@ import type { UserContext } from '@kclub/contracts';
 import type { Locale } from '@/i18n/routing';
 import { requireCurrentMember } from '@/server/member-page';
 import { getOwnBusinesses, getPublicBusinesses } from '@/server/services/business-service';
+import { getActiveCardForUser } from '@/server/services/card-service';
 import { DashboardTabs } from '@/features/member/components/DashboardTabs';
 import {
   getImplementedDashboardTabs,
@@ -32,9 +33,10 @@ export default async function DashboardPage({
   const query = await searchParams;
 
   const profile = await requireCurrentMember(locale);
-  const [ownBusinesses, publicBusinesses] = await Promise.all([
+  const [ownBusinesses, publicBusinesses, activeCardRecord] = await Promise.all([
     getOwnBusinesses(profile.id),
     getPublicBusinesses(),
+    getActiveCardForUser(profile.id),
   ]);
 
   const userContext: UserContext = {
@@ -50,6 +52,7 @@ export default async function DashboardPage({
     <DashboardTabs
       locale={locale}
       profile={profile}
+      cardNumber={activeCardRecord?.card_number ?? null}
       userContext={userContext}
       activeTab={activeTab}
       visibleTabs={visibleTabs}

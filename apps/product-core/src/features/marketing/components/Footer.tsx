@@ -30,7 +30,7 @@ export function Footer({ locale }: { locale: Locale }) {
 
   return (
     <footer className="kclub-border border-t bg-zinc-100 text-zinc-950 dark:bg-surface dark:text-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-10">
+      <div className="kclub-shell grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <h2 className="inline-flex items-center gap-3 text-sm font-bold uppercase">
             <span className="flex h-10 w-10 items-center justify-center bg-accent text-white">
@@ -69,7 +69,7 @@ export function Footer({ locale }: { locale: Locale }) {
         </div>
       </div>
       <div className="kclub-border border-t">
-        <div className="dark:text-white/54 mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
+        <div className="kclub-shell dark:text-white/54 flex flex-col gap-4 py-5 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
           <p>
             {year} {t('brand')}. {t('footer.copyright')}
           </p>

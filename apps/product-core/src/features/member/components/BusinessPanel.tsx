@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 
 import type { BusinessIncomingIntroductionDto, CurrentMemberProfileDto, MemberBusinessProfileDto } from '@kclub/contracts';
-import { Badge, cn } from '@kclub/ui';
+import { Badge, Button, cn } from '@kclub/ui';
 
 import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
@@ -194,9 +194,9 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
   if (intro.status === 'SUBMITTED') {
     return (
       <form action={`/api/v1/me/business/introductions/${intro.id}/review`} method="POST">
-        <button type="submit" className="text-xs font-medium text-accent underline hover:text-accent-hover">
+        <Button type="submit" color="ghost" size="sm" className="px-0 py-0 text-xs text-accent underline hover:text-accent-hover">
           Рассмотреть
-        </button>
+        </Button>
       </form>
     );
   }
@@ -205,14 +205,14 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
     return (
       <div className="flex gap-3">
         <form action={`/api/v1/me/business/introductions/${intro.id}/approve`} method="POST">
-          <button type="submit" className="text-xs font-medium text-green-700 underline dark:text-green-400">
+          <Button type="submit" color="ghost" size="sm" className="px-0 py-0 text-xs text-green-700 underline dark:text-green-400">
             Принять
-          </button>
+          </Button>
         </form>
         <form action={`/api/v1/me/business/introductions/${intro.id}/reject`} method="POST">
-          <button type="submit" className="text-xs font-medium text-red-600 underline dark:text-red-400">
+          <Button type="submit" color="ghost" size="sm" className="px-0 py-0 text-xs text-red-600 underline dark:text-red-400">
             Отклонить
-          </button>
+          </Button>
         </form>
       </div>
     );
