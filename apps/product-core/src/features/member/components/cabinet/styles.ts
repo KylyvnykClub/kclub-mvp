@@ -19,7 +19,7 @@ export const cabinetTopTabItemInactiveClasses =
 export const cabinetNavItemLockedClasses = 'text-muted';
 
 export const cabinetSidebarClasses =
-  'hidden w-full shrink-0 flex-col border-b border-border bg-surface lg:sticky lg:top-0 lg:flex lg:h-[calc(100vh-5.5rem)] lg:w-60 lg:border-b-0 lg:border-r';
+  'hidden w-full shrink-0 flex-col border-b border-border bg-surface lg:sticky lg:top-0 lg:flex  lg:w-60 lg:border-b-0 lg:border-r';
 
 export const cabinetMobileNavClasses =
   'flex gap-0 overflow-x-auto border-b border-border bg-surface lg:hidden';

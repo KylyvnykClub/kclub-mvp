@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { Check, FileText, Minus } from 'lucide-react';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
-import { cn } from '@kclub/ui';
+import { Button, cn } from '@kclub/ui';
 
 import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
@@ -47,23 +47,6 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
 
   return (
     <div className={cabinetContentClasses}>
-      <p className="mb-10 max-w-2xl text-sm leading-relaxed text-muted-foreground">{t('intro')}</p>
-
-      {activeSubscription ? (
-        <div className="mb-8 border border-border bg-surface-muted p-4 text-sm text-muted-foreground">
-          {activeSubscription.currentPeriodEnd ? (
-            <p>
-              {t('renewalDate', {
-                date: new Date(activeSubscription.currentPeriodEnd).toLocaleDateString(locale),
-              })}
-            </p>
-          ) : null}
-          {activeSubscription.status === 'PAST_DUE' ? (
-            <p className="text-yellow-700 dark:text-yellow-300">{t('statusPastDue')}</p>
-          ) : null}
-        </div>
-      ) : null}
-
       <div className="grid gap-0.5 lg:grid-cols-2">
         <div
           className={cn(
@@ -104,13 +87,15 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
             ))}
           </ul>
           {isVip ? (
-            <button
+            <Button
               type="button"
+              color="secondary"
+              size="md"
+              fullWidth
               disabled
-              className="w-full bg-surface-muted px-6 py-3.5 text-sm font-semibold text-muted"
             >
               {t('currentPlanCta')}
-            </button>
+            </Button>
           ) : (
             <UpgradeToVipButton locale={locale} />
           )}

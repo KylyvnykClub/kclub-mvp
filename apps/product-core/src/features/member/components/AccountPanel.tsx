@@ -3,20 +3,22 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Camera } from 'lucide-react';
+import { Camera, Crown } from 'lucide-react';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
-import { FieldError, Spinner } from '@kclub/ui';
+import { Button, FieldError, Spinner } from '@kclub/ui';
 
 import type { Locale } from '@/i18n/routing';
 import { locales } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
+import { KylyvnykClubCard } from '@/features/member/components/KylyvnykClubCard';
 import { cabinetContentClasses, cabinetFieldLabelClasses } from '@/features/member/components/cabinet/styles';
 
 type AccountPanelProps = {
   locale: Locale;
   profile: CurrentMemberProfileDto;
+  cardNumber?: string | null;
 };
 
 function getInitials(name: string | null, phone: string): string {
@@ -37,7 +39,7 @@ function getPlanLabel(tier: CurrentMemberProfileDto['membershipTier']): string {
   return tier === 'VIP' ? 'VIP' : 'MEMBER';
 }
 
-export function AccountPanel({ locale, profile }: AccountPanelProps) {
+export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps) {
   const t = useTranslations('member.dashboard.account');
   const tCommon = useTranslations('member.common');
   const router = useRouter();
@@ -134,45 +136,54 @@ export function AccountPanel({ locale, profile }: AccountPanelProps) {
 
   return (
     <div className={cabinetContentClasses}>
-      <div className="mb-10 flex items-start gap-6 border-b border-border pb-10">
-        <div className="shrink-0">
-          <button
-            type="button"
-            onClick={handleAvatarClick}
-            aria-label={t('avatar')}
-            className="group relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-accent/25 bg-surface-muted text-2xl font-bold text-accent"
-          >
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={memberName} className="h-full w-full object-cover" />
-            ) : (
-              getInitials(displayName || profile.displayName, profile.phone)
-            )}
-            <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
-              {isUploadingAvatar ? (
-                <Spinner size={18} className="text-white" />
+      <div className="mb-10 flex flex-col gap-6 border-b border-border pb-10 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-start gap-6">
+          <div className="shrink-0">
+            <button
+              type="button"
+              onClick={handleAvatarClick}
+              aria-label={t('avatar')}
+              className="group relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-accent/25 bg-surface-muted text-2xl font-bold text-accent"
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={memberName} className="h-full w-full object-cover" />
               ) : (
-                <Camera size={18} className="text-white" />
+                getInitials(displayName || profile.displayName, profile.phone)
               )}
-            </span>
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleAvatarChange}
-          />
+              <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
+                {isUploadingAvatar ? (
+                  <Spinner size={18} className="text-white" />
+                ) : (
+                  <Camera size={18} className="text-white" />
+                )}
+              </span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+          </div>
+
+          <div className="min-w-0 pt-1">
+            <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
+              <span className="text-2xl font-semibold text-foreground">{memberName}</span>
+              <span className="border border-accent/50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-accent">
+                {getPlanLabel(profile.membershipTier)}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">{t('memberSince', { date: regDate })}</p>
+          </div>
         </div>
 
-        <div className="min-w-0 pt-1">
-          <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
-            <span className="text-2xl font-semibold text-foreground">{memberName}</span>
-            <span className="border border-accent/50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-accent">
-              {getPlanLabel(profile.membershipTier)}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground">{t('memberSince', { date: regDate })}</p>
-        </div>
+        <KylyvnykClubCard
+          name={memberName}
+          status={cardNumber ?? `${getPlanLabel(profile.membershipTier)} MEMBER`}
+          idNumber={profile.id}
+          className="shrink-0"
+        />
       </div>
 
       {avatarError ? <p className="mb-4 text-xs text-destructive">{avatarError}</p> : null}
@@ -293,14 +304,15 @@ export function AccountPanel({ locale, profile }: AccountPanelProps) {
             {t('saveSuccess')}
           </span>
         ) : null}
-        <button
+        <Button
           type="button"
+          color="primary"
+          size="md"
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSaving ? t('saving') : t('save')}
-        </button>
+        </Button>
       </div>
     </div>
   );

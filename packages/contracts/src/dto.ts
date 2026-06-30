@@ -194,9 +194,12 @@ export type PublicBusinessListItemDto = {
   briefDescription: string | null;
   websiteUrl: string | null;
   socialUrl: string | null;
+  coverImageUrl: string | null;
+  logoUrl: string | null;
   featuredTop: boolean;
   featuredRecommended: boolean;
   memberDiscountPercent: number | null;
+  discountMuted: boolean;
 };
 
 export type PublicBusinessDetailDto = PublicBusinessListItemDto & {

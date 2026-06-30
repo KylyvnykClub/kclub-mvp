@@ -1,9 +1,9 @@
 {
-  "name": "@kclub/admin-app",
+  "name": "@kclub/admin-app-legacy",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 3001",
+    "dev": "next dev --turbopack --port 3002",
     "build": "next build",
     "start": "next start",
     "start:e2e": "next start -p 3001",

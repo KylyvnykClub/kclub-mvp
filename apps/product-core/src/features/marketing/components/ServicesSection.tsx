@@ -1,6 +1,10 @@
+'use client';
+
 import { ArrowUpRight, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { motion } from 'framer-motion';
+import { getButtonClasses } from '@kclub/ui';
 
 import { Locale } from '@/i18n/routing';
 
@@ -9,6 +13,19 @@ type PlanCopy = {
   price: string;
   cta: string;
   items: string[];
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
 };
 
 export function ServicesSection({ locale }: { locale: Locale }) {
@@ -25,15 +42,29 @@ export function ServicesSection({ locale }: { locale: Locale }) {
   return (
     <section className="kclub-border border-b bg-white py-16 dark:bg-background sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <p className="border-l-4 border-accent pl-4 text-xs font-bold uppercase text-zinc-500 dark:text-white/60">
-          {t('services.eyebrow')}
-        </p>
-        <h2 className="mt-5 max-w-4xl text-4xl font-black uppercase leading-tight text-zinc-950 dark:text-white sm:text-6xl">
-          {t('services.title')}
-        </h2>
-        <div className="kclub-border-strong mt-12 grid items-stretch gap-px border bg-zinc-300 dark:bg-white/10 lg:grid-cols-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <p className="border-l-4 border-accent pl-4 text-xs font-bold uppercase text-zinc-500 dark:text-white/60">
+            {t('services.eyebrow')}
+          </p>
+          <h2 className="mt-5 max-w-4xl text-4xl font-black uppercase leading-tight text-zinc-950 dark:text-white sm:text-6xl">
+            {t('services.title')}
+          </h2>
+        </motion.div>
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-50px" }}
+          className="kclub-border-strong mt-12 grid items-stretch gap-px border bg-zinc-300 dark:bg-white/10 lg:grid-cols-3"
+        >
           {plans.map((plan) => (
-            <article
+            <motion.article
+              variants={itemVariants}
               key={plan.name}
               className={`flex h-full flex-col bg-white p-6 dark:bg-surface sm:p-9 ${plan.featured ? 'relative overflow-hidden' : ''}`}
             >
@@ -69,14 +100,19 @@ export function ServicesSection({ locale }: { locale: Locale }) {
               </ul>
               <Link
                 href={plan.href}
-                className={`mx-auto mt-8 flex h-14 w-fit shrink-0 items-center justify-center gap-8 border px-5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus dark:focus-visible:ring-offset-focus ${plan.featured ? 'border-accent bg-accent text-white hover:bg-accent-hover' : 'border-zinc-950 text-zinc-950 hover:bg-zinc-950 hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-zinc-950'}`}
+                className={getButtonClasses({
+                  color: plan.featured ? 'brand' : 'outline',
+                  size: 'md',
+                  fullWidth: true,
+                  className: 'mt-8 flex h-14 shrink-0',
+                })}
               >
                 {plan.cta}
                 <ArrowUpRight aria-hidden="true" size={18} />
               </Link>
-            </article>
+            </motion.article>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -21,8 +21,6 @@ export function SignInForm({ locale }: { locale: Locale }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputClassName = 'kclub-field';
-  const buttonClassName =
-    'kclub-button-primary w-full rounded-none border-0 px-5 py-3.5 text-xs tracking-[0.26em]';
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,9 +160,10 @@ export function SignInForm({ locale }: { locale: Locale }) {
             )}
             <Button
               type="submit"
+              color="brand"
+              size="lg"
               fullWidth
               disabled={isLoading}
-              className={buttonClassName}
               data-testid="auth-submit-phone"
             >
               {isLoading ? tCommon('loading') : t('submit')}
@@ -199,9 +198,10 @@ export function SignInForm({ locale }: { locale: Locale }) {
             )}
             <Button
               type="submit"
+              color="brand"
+              size="lg"
               fullWidth
               disabled={isLoading}
-              className={buttonClassName}
               data-testid="auth-submit-otp"
             >
               {isLoading ? tCommon('loading') : tCommon('submitOtp')}

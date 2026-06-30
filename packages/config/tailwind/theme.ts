@@ -5,10 +5,10 @@ export const sharedConfig: Omit<Config, 'content'> = {
     extend: {
       colors: {
         brand: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          500: '#14b8a6',
-          900: '#134e4a',
+          50: 'var(--brand-50)',
+          100: 'var(--brand-100)',
+          500: 'var(--brand-500)',
+          900: 'var(--brand-900)',
         },
         background: 'var(--background)',
         foreground: 'var(--foreground)',

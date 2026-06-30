@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
-import { cn } from '@kclub/ui';
+import { Button, cn } from '@kclub/ui';
 
 import type { Locale } from '@/i18n/routing';
 import { locales } from '@/i18n/routing';
@@ -88,7 +88,7 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
   };
 
   return (
-    <div className={cn(cabinetContentClasses, 'max-w-xl')}>
+    <div className={cn(cabinetContentClasses, 'w-full')}>
       <section className="mb-12">
         <h2 className={cn(cabinetSectionLabelClasses, 'mb-6 border-b border-border pb-3')}>
           {t('authSection')}
@@ -186,13 +186,14 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button
+            <Button
               type="button"
+              color="primary"
+              size="md"
               onClick={handleSavePassword}
-              className="inline-flex items-center gap-2 bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent-hover"
             >
               {t('updatePassword')}
-            </button>
+            </Button>
             {passSaved ? (
               <span className="text-sm font-semibold text-green-600 dark:text-green-400">
                 {t('passwordUpdated')}
@@ -257,13 +258,15 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
             <p className="text-sm font-semibold text-foreground">{t('deleteAccount')}</p>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t('deleteAccountHint')}</p>
           </div>
-          <button
+          <Button
             type="button"
+            color="destructive"
+            size="sm"
             disabled
-            className="shrink-0 border border-destructive/40 px-4 py-2.5 text-sm font-semibold text-destructive opacity-60"
+            className="shrink-0"
           >
             {t('deleteAccountCta')}
-          </button>
+          </Button>
         </div>
       </section>
     </div>

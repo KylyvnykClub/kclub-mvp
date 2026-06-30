@@ -1,13 +1,25 @@
-import { ArrowRight, Building2 } from 'lucide-react';
+import { ArrowRight, Building2, Search, Mic, Home, Car, Utensils, Scale, HeartPulse, Plane, LayoutGrid, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
-import { EmptyState } from '@kclub/ui';
+import { EmptyState, getButtonClasses } from '@kclub/ui';
 
 import { BusinessCard } from '@/features/public/components/BusinessCard';
-import { getFeaturedBusinessGroups } from '@/features/public/public-page-helpers';
 import { Locale } from '@/i18n/routing';
 import { getCachedPublicBusinesses } from '@/server/cache/business-cache';
+import { getCachedCategories } from '@/server/cache/taxonomy-cache';
+
+function getCategoryIcon(slug: string, size = 28) {
+  switch (slug) {
+    case 'real-estate': return <Home size={size} />;
+    case 'luxury-cars': return <Car size={size} />;
+    case 'restaurants': return <Utensils size={size} />;
+    case 'legal-services': return <Scale size={size} />;
+    case 'health': return <HeartPulse size={size} />;
+    case 'travel': return <Plane size={size} />;
+    default: return <LayoutGrid size={size} />;
+  }
+}
 
 export const revalidate = 60;
 
@@ -25,11 +37,25 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
   };
 }
 
-export default async function DirectoryPage({ params }: { params: Promise<{ locale: Locale }> }) {
+export default async function DirectoryPage({ 
+  params,
+  searchParams,
+}: { 
+  params: Promise<{ locale: Locale }>;
+  searchParams: Promise<{ category?: string }>;
+}) {
   const { locale } = await params;
+  const { category: activeCategory } = await searchParams;
+  
   const t = await getTranslations({ locale, namespace: 'directory' });
-  const businesses = await getCachedPublicBusinesses();
-  const { top, recommended } = getFeaturedBusinessGroups(businesses);
+  const [allBusinesses, categories] = await Promise.all([
+    getCachedPublicBusinesses(),
+    getCachedCategories(),
+  ]);
+
+  const businesses = activeCategory 
+    ? allBusinesses.filter(b => b.categoryName.toLowerCase() === categories.find(c => c.slug === activeCategory)?.name.toLowerCase())
+    : allBusinesses;
 
   return (
     <div className="kclub-page-band">
@@ -52,97 +78,108 @@ export default async function DirectoryPage({ params }: { params: Promise<{ loca
               </p>
             </div>
           </div>
+          
+          <div className="mt-12 w-full max-w-3xl mx-auto">
+            {/* Search Bar */}
+            <div className="relative w-full">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
+              <input 
+                type="text" 
+                placeholder="Search partners..." 
+                className="w-full rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 py-4 pl-14 pr-14 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all"
+              />
+              <Mic className="absolute right-5 top-1/2 -translate-y-1/2 text-[#EBB34F]" size={20} />
+            </div>
+
+            {/* Categories (Mobile Only) */}
+            <div className="mt-8 flex md:hidden gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x">
+              <Link href={`/${locale}/directory`} className={`flex flex-col items-center gap-2 shrink-0 snap-start transition cursor-pointer ${!activeCategory ? 'text-[#EBB34F]' : 'text-zinc-400 hover:text-zinc-300'}`}>
+                <LayoutGrid size={28} />
+                <span className="text-xs font-medium">All</span>
+              </Link>
+              {categories.map((c) => (
+                <Link 
+                  key={c.id} 
+                  href={`/${locale}/directory?category=${c.slug}`} 
+                  className={`flex flex-col items-center gap-2 shrink-0 snap-start transition cursor-pointer ${activeCategory === c.slug ? 'text-[#EBB34F]' : 'text-zinc-400 hover:text-zinc-300'}`}
+                >
+                  {getCategoryIcon(c.slug, 28)}
+                  <span className="text-xs font-medium">{c.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className="container py-14 sm:py-20">
-        {businesses.length === 0 ? (
-          <EmptyState
-            icon={<Building2 aria-hidden="true" size={44} strokeWidth={1.5} />}
-            title={t('emptyTitle')}
-            description={t('emptyDescription')}
-            action={
-              <Link
-                href={`/${locale}/sign-up`}
-                className="kclub-button-primary rounded-none border-0 px-5 py-3 text-xs tracking-[0.24em]"
+      <div className="container py-14 sm:py-20 flex flex-col md:flex-row gap-8 lg:gap-12">
+        {/* Sidebar Filter (Desktop Only) */}
+        <aside className="hidden md:block w-64 shrink-0">
+          <div className="sticky top-24">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-950 dark:text-white mb-4">Categories</h3>
+            <div className="flex flex-col gap-1.5">
+              <Link 
+                href={`/${locale}/directory`} 
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${!activeCategory ? 'bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white font-medium' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/5'}`}
               >
-                {t('emptyAction')}
-                <ArrowRight aria-hidden="true" size={16} strokeWidth={1.7} />
+                All Partners
+                {!activeCategory && <ChevronRight size={16} />}
               </Link>
-            }
-          />
-        ) : (
-          <div className="space-y-14">
-            {top.length > 0 ? (
-              <DirectorySection
-                title={t('featuredTopTitle')}
-                businesses={top}
-                locale={locale}
-                actionLabel={t('viewDetails')}
-                externalLabel={t('website')}
-                featuredLabel={t('featuredTopLabel')}
-              />
-            ) : null}
-
-            {recommended.length > 0 ? (
-              <DirectorySection
-                title={t('recommendedTitle')}
-                businesses={recommended}
-                locale={locale}
-                actionLabel={t('viewDetails')}
-                externalLabel={t('website')}
-                featuredLabel={t('recommendedLabel')}
-              />
-            ) : null}
-
-            <DirectorySection
-              title={t('allTitle')}
-              businesses={businesses}
-              locale={locale}
-              actionLabel={t('viewDetails')}
-              externalLabel={t('website')}
-            />
+              {categories.map(c => (
+                <Link 
+                  key={c.id} 
+                  href={`/${locale}/directory?category=${c.slug}`} 
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${activeCategory === c.slug ? 'bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white font-medium' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/5'}`}
+                >
+                  {c.name}
+                  {activeCategory === c.slug && <ChevronRight size={16} />}
+                </Link>
+              ))}
+            </div>
           </div>
-        )}
+        </aside>
+
+        {/* Main Grid */}
+        <div className="flex-1">
+          {businesses.length === 0 ? (
+            <EmptyState
+              icon={<Building2 aria-hidden="true" size={44} strokeWidth={1.5} />}
+              title={t('emptyTitle')}
+              description={t('emptyDescription')}
+              action={
+                <Link
+                  href={`/${locale}/sign-up`}
+                  className={getButtonClasses({ color: 'brand', size: 'md' })}
+                >
+                  {t('emptyAction')}
+                  <ArrowRight aria-hidden="true" size={16} strokeWidth={1.7} />
+                </Link>
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+              {businesses.map((business) => {
+                // Add a featured label to display just to keep parity
+                let featuredLabel = undefined;
+                if (business.featuredTop) featuredLabel = t('featuredTopLabel');
+                else if (business.featuredRecommended) featuredLabel = t('recommendedLabel');
+
+                return (
+                  <BusinessCard
+                    key={business.id}
+                    business={business}
+                    href={`/${locale}/directory/${business.slug}`}
+                    actionLabel={t('viewDetails')}
+                    externalLabel={t('website')}
+                    featuredLabel={featuredLabel}
+                    locale={locale}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  );
-}
-
-function DirectorySection({
-  title,
-  businesses,
-  locale,
-  actionLabel,
-  externalLabel,
-  featuredLabel,
-}: {
-  title: string;
-  businesses: Awaited<ReturnType<typeof getCachedPublicBusinesses>>;
-  locale: Locale;
-  actionLabel: string;
-  externalLabel: string;
-  featuredLabel?: string;
-}) {
-  return (
-    <section>
-      <div className="flex items-end justify-between gap-4">
-        <h2 className="text-2xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white">
-          {title}
-        </h2>
-      </div>
-      <div className="kclub-card-grid mt-6">
-        {businesses.map((business) => (
-          <BusinessCard
-            key={business.id}
-            business={business}
-            href={`/${locale}/directory/${business.slug}`}
-            actionLabel={actionLabel}
-            externalLabel={externalLabel}
-            featuredLabel={featuredLabel}
-          />
-        ))}
-      </div>
-    </section>
   );
 }

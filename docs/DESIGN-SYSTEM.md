@@ -49,7 +49,7 @@ All theme values flow from a single canonical source:
 | `--primary`                           | `bg-primary`, `text-primary`                | Primary button bg                                   |
 | `--primary-foreground`                | `text-primary-foreground`                   | Primary button text                                 |
 | `--secondary`                         | `bg-secondary`                              | Secondary button bg                                 |
-| `--accent`                            | `bg-accent`, `text-accent`, `border-accent` | Brand accent (red)                                  |
+| `--accent`                            | `bg-accent`, `text-accent`, `border-accent` | Brand accent (gold)                                 |
 | `--accent-hover`                      | `bg-accent-hover`, `hover:bg-accent-hover`  | Accent hover state                                  |
 | `--accent-foreground`                 | `text-accent-foreground`                    | Text on accent bg                                   |
 | `--muted`                             | `text-muted`                                | Muted text                                          |
@@ -67,7 +67,7 @@ All theme values flow from a single canonical source:
 
 ## 2. Color Palette
 
-The palette is built on two scales: **zinc** (neutral) and **brand** (teal/green accent).
+The palette is built on two scales: **zinc** (neutral) and **brand** (premium gold accent).
 
 ### 2.1 Zinc — Neutral Scale
 
@@ -89,16 +89,16 @@ Zinc is the primary scale for all UI chrome: text, borders, backgrounds, and sur
 
 **Rule:** Do not use `gray-*`, `slate-*`, `neutral-*`, or any other neutral scale. Always use `zinc-*`.
 
-### 2.2 Brand — Teal Accent
+### 2.2 Brand — Premium Gold Accent
 
 Defined in `packages/config/tailwind/theme.ts` as custom `brand` colors.
 
 | Token       | Value     | Use                                                       |
 | ----------- | --------- | --------------------------------------------------------- |
-| `brand-50`  | `#f0fdfa` | Light teal background tint                                |
-| `brand-100` | `#ccfbf1` | Badge or highlight background                             |
-| `brand-500` | `#14b8a6` | Primary brand accent, links on dark bg, active indicators |
-| `brand-900` | `#134e4a` | Dark brand for text on light brand bg                     |
+| `brand-50`  | `#fffbeb` | Light gold background tint                                |
+| `brand-100` | `#fef3c7` | Badge or highlight background                             |
+| `brand-500` | `#d4af37` | Primary brand accent, links on dark bg, active indicators |
+| `brand-900` | `#452a00` | Dark brand for text on light brand bg                     |
 
 **Use brand colors sparingly** — only for primary CTAs where zinc-900 is insufficient, active/selected state indicators, brand-identity elements (logo area, club card), and success states where green is too strong.
 
@@ -359,7 +359,7 @@ import { ChevronRight, AlertCircle, CheckCircle2 } from 'lucide-react'
 - **Never use `font-bold`** — use `font-semibold` at most.
 - **Never import icons from heroicons, react-icons, or any library other than `lucide-react`.**
 - **Never mix `tokens.ts` raw class strings with component usage** — use the component, not the token string, when a component exists.
-- **Never add hardcoded hex values** (`#ff0030`, `#18181b`, `#121212`, etc.) for theme surfaces, borders, backgrounds, or accent colors in app components — use semantic tokens (`bg-accent`, `text-foreground`, `bg-surface`, etc.).
+- **Never add hardcoded hex values** (`#d4af37`, `#18181b`, `#121212`, etc.) for theme surfaces, borders, backgrounds, or accent colors in app components — use semantic tokens (`bg-accent`, `text-foreground`, `bg-surface`, etc.).
 - **Never redefine core theme CSS variables** in app `globals.css` — the canonical source is `packages/ui/src/styles/tokens.css`.
 - **Never use raw zinc-scale colors** (`bg-zinc-900`, `text-zinc-50`, etc.) for theme surfaces, backgrounds, or borders in new code — use semantic tokens instead. Existing zinc-scale usage in primitives is being migrated incrementally.
 

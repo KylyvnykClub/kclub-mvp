@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 
+import { Button } from '@kclub/ui';
 import { MEMBER_API_ROUTES, type MemberBusinessProfileDto } from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
@@ -52,8 +53,6 @@ export function BusinessForm({
   const [success, setSuccess] = useState(false);
   const labelClassName = 'block text-sm font-medium text-zinc-700 dark:text-white/72';
   const fieldClassName = 'kclub-field mt-1';
-  const buttonClassName =
-    'kclub-button-primary rounded-none border-0 px-5 py-3 text-xs tracking-[0.24em] disabled:cursor-not-allowed disabled:opacity-50';
 
   const isEdit = business !== null;
 
@@ -279,9 +278,9 @@ export function BusinessForm({
         />
       </div>
 
-      <button type="submit" disabled={isSubmitting} className={buttonClassName}>
+      <Button color="brand" size="md" type="submit" disabled={isSubmitting}>
         {isSubmitting ? tCommon('saving') : isEdit ? t('editSubmit') : t('submitCta')}
-      </button>
+      </Button>
     </form>
   );
 }

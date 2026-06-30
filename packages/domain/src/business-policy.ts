@@ -16,7 +16,7 @@ const BUSINESS_STATUS_TRANSITIONS: Record<BusinessStatus, readonly BusinessStatu
   APPROVED: ['PUBLISHED', 'REJECTED'],
   PUBLISHED: ['HIDDEN'],
   REJECTED: [],
-  HIDDEN: [],
+  HIDDEN: ['PUBLISHED'],
 };
 
 export type BusinessTransitionResult = {

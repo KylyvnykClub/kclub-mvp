@@ -95,7 +95,6 @@ export const MEMBER_DASHBOARD_TABS = [
   'introductions',
   'settings',
   'details',
-  'card',
   'audit',
   'permissions',
 ] as const;
