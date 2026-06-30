@@ -56,6 +56,7 @@ export function MarketingBusinessCarousel({
               actionLabel={actionLabel}
               business={business}
               externalLabel={t('common.website')}
+              locale={locale}
               featuredLabel={getFeaturedLabel(
                 business,
                 t('featured.topLabel'),

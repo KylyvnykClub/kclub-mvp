@@ -6,6 +6,12 @@ import { Badge, cn } from '@kclub/ui';
 
 import { getBusinessLocation, getPrimaryBusinessUrl } from '../public-page-helpers';
 
+const MUTED_LABEL: Record<string, [string, string]> = {
+  en: ['tap to', 'reveal'],
+  ru: ['жми,', 'узнай!'],
+  uk: ['тисни,', 'дізнайся!'],
+};
+
 export function BusinessCard({
   business,
   href,
@@ -13,6 +19,7 @@ export function BusinessCard({
   externalLabel,
   featuredLabel,
   compact = false,
+  locale = 'en',
 }: {
   business: PublicBusinessListItemDto;
   href: string;
@@ -20,6 +27,7 @@ export function BusinessCard({
   externalLabel: string;
   featuredLabel?: string;
   compact?: boolean;
+  locale?: string;
 }) {
   const externalUrl = getPrimaryBusinessUrl(business);
 
@@ -36,9 +44,11 @@ export function BusinessCard({
         <div className="absolute right-0 top-0 z-10 w-12 sm:w-16">
           <svg viewBox="0 0 100 120" className="h-auto w-full fill-[#EBB34F] drop-shadow-md" preserveAspectRatio="none">
             <path d="M0,0 L100,0 L100,90 L50,120 L0,90 Z" />
-            <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle" className="text-[28px] font-black fill-black">
-              -{business.memberDiscountPercent}%
-            </text>
+            {business.discountMuted ? null /* TODO: muted label — MUTED_LABEL[locale] */ : (
+              <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle" className="text-[28px] font-black fill-black">
+                -{business.memberDiscountPercent}%
+              </text>
+            )}
           </svg>
         </div>
       ) : null}

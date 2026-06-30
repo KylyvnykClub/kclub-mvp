@@ -46,6 +46,8 @@ export const businessHideSchema = z.object({
 export const businessFeaturedSchema = z.object({
   featuredTop: z.boolean().optional(),
   featuredRecommended: z.boolean().optional(),
+  memberDiscountPercent: z.number().int().min(0).max(100).optional().nullable(),
+  discountMuted: z.boolean().optional(),
 });
 
 export const introductionApproveSchema = z.object({

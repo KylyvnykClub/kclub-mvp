@@ -964,16 +964,18 @@ export async function updateBusinessFeatured(
         });
       }
 
-      if (!canFeatureBusiness(business.status as BusinessStatus)) {
+      const setTop = input.featuredTop;
+      const setRecommended = input.featuredRecommended;
+      const setDiscount = input.memberDiscountPercent;
+      const setDiscountMuted = input.discountMuted;
+
+      if ((setTop !== undefined || setRecommended !== undefined) && !canFeatureBusiness(business.status as BusinessStatus)) {
         throw new AppError({
           code: ERROR_CODES.FEATURED_BUSINESS_NOT_PUBLISHED,
           message: 'Only PUBLISHED businesses can be featured',
           status: 409,
         });
       }
-
-      const setTop = input.featuredTop;
-      const setRecommended = input.featuredRecommended;
 
       const [updated] = await db.transaction(async (tx) => {
         if (setTop !== undefined && setTop !== business.featured_top) {
@@ -1005,6 +1007,8 @@ export async function updateBusinessFeatured(
         const [b] = await tx.update(schema.businessProfiles).set({
           featured_top: setTop !== undefined ? setTop : business.featured_top,
           featured_recommended: setRecommended !== undefined ? setRecommended : business.featured_recommended,
+          ...(setDiscount !== undefined ? { member_discount_percent: setDiscount } : {}),
+          ...(setDiscountMuted !== undefined ? { discount_muted: setDiscountMuted } : {}),
         }).where(eq(schema.businessProfiles.id, businessId)).returning();
 
         return [b];
@@ -1023,10 +1027,14 @@ export async function updateBusinessFeatured(
           before: {
             featuredTop: business.featured_top,
             featuredRecommended: business.featured_recommended,
+            memberDiscountPercent: business.member_discount_percent,
+            discountMuted: business.discount_muted,
           },
           after: {
             featuredTop: updated.featured_top,
             featuredRecommended: updated.featured_recommended,
+            memberDiscountPercent: updated.member_discount_percent,
+            discountMuted: updated.discount_muted,
           },
         },
         context,
@@ -1877,6 +1885,7 @@ function toAdminBusinessListItem(business: any): AdminBusinessListItemDto {
     featuredTop: business.featured_top,
     featuredRecommended: business.featured_recommended,
     memberDiscountPercent: business.member_discount_percent ?? null,
+    discountMuted: business.discount_muted,
     description: business.description,
     representativeName: business.representative_name,
     publishedAt: business.published_at?.toISOString() ?? null,
