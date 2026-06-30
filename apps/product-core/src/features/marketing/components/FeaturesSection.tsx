@@ -3,8 +3,9 @@
 import { BadgeCheck, Building2, Globe2, Handshake, QrCode, ShieldCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { cn } from "@kclub/ui";
-
+import { cn } from '@kclub/ui';
+import {type CSSProperties } from 'react';
+import heroBg from '@/assets/images/hero-bg.png';
 type FeatureItem = {
   title: string;
   description: string;
@@ -17,13 +18,18 @@ export function FeaturesSection() {
   const items = t.raw('features.items') as FeatureItem[];
 
   return (
-    <section className="kclub-border border-b bg-surface-muted py-16 dark:bg-surface-muted sm:py-24 overflow-hidden relative">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 relative z-10">
-        <motion.div 
-          className="grid gap-4 lg:items-end mb-12"
+    <section className="kclub-border relative overflow-hidden border-b bg-surface-muted py-16 dark:bg-surface-muted sm:py-24">
+      <div
+        className="kclub-hero-visual absolute inset-0"
+        style={{ '--hero-bg-image': `url(${heroBg.src})` } as CSSProperties}
+        aria-hidden="true"
+      />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+        <motion.div
+          className="mb-12 grid gap-4 lg:items-end"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
           <p className="border-l-4 border-accent pl-4 text-xs font-bold uppercase text-zinc-500 dark:text-white/60">
@@ -33,17 +39,17 @@ export function FeaturesSection() {
             {t('features.title')}
           </h2>
         </motion.div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative z-10 py-10">
+
+        <div className="relative z-10 grid grid-cols-1 py-10 md:grid-cols-2 lg:grid-cols-3">
           {items.map((feature, index) => {
             const Icon = icons[index];
             return (
-              <Feature 
-                key={feature.title} 
-                title={feature.title} 
-                description={feature.description} 
-                icon={<Icon size={24} strokeWidth={1.5} />} 
-                index={index} 
+              <Feature
+                key={feature.title}
+                title={feature.title}
+                description={feature.description}
+                icon={<Icon size={24} strokeWidth={1.5} />}
+                index={index}
               />
             );
           })}
@@ -71,27 +77,25 @@ const Feature = ({
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className={cn(
-        "flex flex-col lg:border-r py-10 relative group/feature border-border dark:border-border",
-        (index === 0 || index === 3) && "lg:border-l border-border dark:border-border",
-        index < 3 && "lg:border-b border-border dark:border-border"
+        'group/feature relative flex flex-col border-border py-10 dark:border-border lg:border-r',
+        (index === 0 || index === 3) && 'border-border dark:border-border lg:border-l',
+        index < 3 && 'border-border dark:border-border lg:border-b',
       )}
     >
       {index < 3 && (
-        <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-t from-zinc-100 dark:from-zinc-800/50 to-transparent pointer-events-none" />
+        <div className="pointer-events-none absolute inset-0 h-full w-full bg-gradient-to-t from-zinc-100 to-transparent opacity-0 transition duration-200 group-hover/feature:opacity-100 dark:from-zinc-800/50" />
       )}
       {index >= 3 && (
-        <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-b from-zinc-100 dark:from-zinc-800/50 to-transparent pointer-events-none" />
+        <div className="pointer-events-none absolute inset-0 h-full w-full bg-gradient-to-b from-zinc-100 to-transparent opacity-0 transition duration-200 group-hover/feature:opacity-100 dark:from-zinc-800/50" />
       )}
-      <div className="mb-4 relative z-10 px-10 text-zinc-500 dark:text-zinc-400">
-        {icon}
-      </div>
-      <div className="text-lg font-bold mb-2 relative z-10 px-10">
-        <div className="absolute left-0 inset-y-0 h-6 group-hover/feature:h-8 w-1 rounded-tr-full rounded-br-full bg-zinc-300 dark:bg-zinc-700 group-hover/feature:bg-accent transition-all duration-200 origin-center" />
-        <span className="group-hover/feature:translate-x-2 transition duration-200 inline-block text-zinc-900 dark:text-zinc-100 font-black uppercase">
+      <div className="relative z-10 mb-4 px-10 text-zinc-500 dark:text-zinc-400">{icon}</div>
+      <div className="relative z-10 mb-2 px-10 text-lg font-bold">
+        <div className="absolute inset-y-0 left-0 h-6 w-1 origin-center rounded-br-full rounded-tr-full bg-zinc-300 transition-all duration-200 group-hover/feature:h-8 group-hover/feature:bg-accent dark:bg-zinc-700" />
+        <span className="inline-block font-black uppercase text-zinc-900 transition duration-200 group-hover/feature:translate-x-2 dark:text-zinc-100">
           {title}
         </span>
       </div>
-      <p className="text-sm text-zinc-600 dark:text-zinc-300 max-w-xs relative z-10 px-10 leading-relaxed font-medium">
+      <p className="relative z-10 max-w-xs px-10 text-sm font-medium leading-relaxed text-zinc-600 dark:text-zinc-300">
         {description}
       </p>
     </motion.div>

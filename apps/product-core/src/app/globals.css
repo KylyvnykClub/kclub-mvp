@@ -432,6 +432,7 @@ a {
       ),
       var(--hero-bg-image) center right / cover no-repeat,
       linear-gradient(135deg, rgba(244, 244, 245, 0.96) 0%, rgba(228, 228, 231, 0.72) 100%);
+     
   }
 
   .dark .kclub-hero-visual {
