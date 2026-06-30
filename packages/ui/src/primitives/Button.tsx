@@ -11,11 +11,11 @@ export function getButtonClasses({ color = 'primary', size = 'md', fullWidth, cl
         color === 'primary',
       'border border-border bg-secondary text-secondary-foreground hover:bg-surface-muted shadow-sm rounded-md':
         color === 'secondary',
-      'border border-foreground text-foreground hover:bg-foreground hover:text-background rounded-md':
+      'border border-foreground text-foreground hover:bg-foreground hover:text-background [&>svg:last-child]:absolute [&>svg:last-child]:top-1.5 [&>svg:last-child]:right-1.5 [&>svg:last-child]:shrink-0 pr-10':
         color === 'outline',
-      'bg-accent text-accent-foreground border border-transparent hover:bg-accent-hover [&>svg:last-child]:absolute [&>svg:last-child]:bottom-1/2 [&>svg:last-child]:translate-y-1/2 [&>svg:last-child]:right-3 [&>svg:last-child]:shrink-0':
+      'bg-accent text-zinc-950 border border-transparent hover:bg-accent-hover [&>svg:last-child]:absolute [&>svg:last-child]:top-1.5 [&>svg:last-child]:right-1.5 [&>svg:last-child]:shrink-0 pr-10':
         color === 'brand',
-      'bg-transparent text-foreground border border-accent hover:bg-accent/10 [&>svg:last-child]:absolute [&>svg:last-child]:bottom-1/2 [&>svg:last-child]:translate-y-1/2 [&>svg:last-child]:right-3 [&>svg:last-child]:shrink-0':
+      'bg-transparent text-foreground border border-accent hover:bg-accent/10 [&>svg:last-child]:absolute [&>svg:last-child]:top-1.5 [&>svg:last-child]:right-1.5 [&>svg:last-child]:shrink-0 pr-10':
         color === 'brand-secondary',
       'bg-red-600 text-white border border-transparent shadow-sm hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 rounded-md': 
         color === 'destructive',

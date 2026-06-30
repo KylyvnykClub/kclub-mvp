@@ -2,7 +2,7 @@ import { sharedConfig } from '@kclub/config/tailwind/theme';
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: ['./src/**/*.{ts,tsx}'],
+  content: ['./src/**/*.{ts,tsx}', '../../packages/ui/src/**/*.{ts,tsx}'],
   presets: [sharedConfig],
   darkMode: 'class',
   theme: {

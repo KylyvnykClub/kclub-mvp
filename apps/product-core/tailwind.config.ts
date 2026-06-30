@@ -2,7 +2,7 @@ import { sharedConfig } from '@kclub/config/tailwind/theme';
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: ['./src/**/*.{ts,tsx}', './messages/**/*.json'],
+  content: ['./src/**/*.{ts,tsx}', './messages/**/*.json', '../../packages/ui/src/**/*.{ts,tsx}'],
   presets: [sharedConfig],
   darkMode: 'class',
   theme: {

@@ -131,6 +131,8 @@ export const businessProfiles = pgTable('business_profiles', {
   status: businessStatusEnum('status').default('UNDER_REVIEW').notNull(),
   website_url: text('website_url'),
   social_url: text('social_url'),
+  cover_image_url: text('cover_image_url'),
+  logo_url: text('logo_url'),
   brief_description: varchar('brief_description', { length: 500 }),
   description: text('description'),
   featured_top: boolean('featured_top').default(false).notNull(),

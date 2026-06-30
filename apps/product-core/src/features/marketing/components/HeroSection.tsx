@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { getButtonClasses } from '@kclub/ui';
+import { TextHoverEffect } from '@/components/ui/text-hover-effect';
 import { motion } from 'framer-motion';
 
 import dynamic from 'next/dynamic';
@@ -87,7 +88,8 @@ export function HeroSection({ locale }: { locale: Locale }) {
   const dynamicGlobeData = baseGlobeData.map(d => ({ ...d, color: accentColor }));
 
   return (
-    <section className="kclub-premium-hero relative isolate flex min-h-[calc(100vh-112px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">
+    <div className="dark bg-[#0f0f0f]">
+      <section className="kclub-premium-hero relative isolate flex min-h-[calc(100vh-112px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">
       {/* <div
         className="kclub-hero-visual absolute inset-0"
         style={{ '--hero-bg-image': `url(${heroBg.src})` } as CSSProperties}
@@ -129,10 +131,16 @@ export function HeroSection({ locale }: { locale: Locale }) {
             {t('hero.eyebrow')}
           </motion.p>
 
-          <motion.h1 variants={itemVariants} className="kclub-hero-display max-w-full text-balance uppercase">
-            <span className="kclub-outline-text block">{t('hero.titleLine1')}</span>
-            <span className="mt-2 block sm:whitespace-nowrap">{t('hero.titleLine2')}</span>
-          </motion.h1>
+          <motion.div variants={itemVariants} className="w-full h-[180px] sm:h-[250px] -ml-4 sm:-ml-8 flex items-center mb-8 relative">
+            <h1 className="sr-only">
+              {t('hero.titleLine1')} {t('hero.titleLine2')}
+            </h1>
+            <div className="w-full h-full" aria-hidden="true">
+              <TextHoverEffect 
+                text={[t('hero.titleLine1').toUpperCase(), t('hero.titleLine2').toUpperCase()]} 
+              />
+            </div>
+          </motion.div>
 
           <motion.p variants={itemVariants} className="kclub-hero-copy mt-11">{t('hero.subline')}</motion.p>
 
@@ -165,6 +173,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
       </div>
 
       {/* <HeroFlagsCarousel />  */}
-    </section>
+      </section>
+    </div>
   );
 }
