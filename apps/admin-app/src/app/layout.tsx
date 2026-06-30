@@ -1,28 +1,30 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import '@kclub/ui/styles/tokens.css';
+import './globals.css';
 
-import { ThemeProvider } from "@/components/theme-provider";
-import { SidebarConfigProvider } from "@/contexts/sidebar-context";
-import { inter } from "@/lib/fonts";
+import type { Metadata } from 'next';
+import { ReactNode } from 'react';
+import { AppProviders } from '@/components/app-providers';
+import { Geist } from 'next/font/google';
+import { SkipLink } from '@kclub/ui';
+import { cn } from '@/lib/utils';
+
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: "Shadcn Dashboard",
-  description: "A dashboard built with Next.js and shadcn/ui",
+  title: 'KCLUB Admin',
+  description: 'Staff dashboard for KCLUB',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} antialiased`}>
-      <body className={inter.className}>
-        <ThemeProvider defaultTheme="system" storageKey="nextjs-ui-theme">
-          <SidebarConfigProvider>
-            {children}
-          </SidebarConfigProvider>
-        </ThemeProvider>
+    <html lang="en" suppressHydrationWarning className={cn('font-sans', geist.variable)}>
+      <body className="min-h-screen bg-background text-foreground antialiased">
+        <SkipLink />
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );
