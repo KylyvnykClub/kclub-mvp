@@ -201,10 +201,11 @@ describe('business status policies', () => {
     expect(canTransitionBusinessStatus('APPROVED', 'REJECTED')).toBe(true);
     expect(canTransitionBusinessStatus('PUBLISHED', 'HIDDEN')).toBe(true);
 
+    expect(canTransitionBusinessStatus('HIDDEN', 'PUBLISHED')).toBe(true);
+
     expect(canTransitionBusinessStatus('UNDER_REVIEW', 'PUBLISHED')).toBe(false);
     expect(canTransitionBusinessStatus('PUBLISHED', 'APPROVED')).toBe(false);
     expect(canTransitionBusinessStatus('REJECTED', 'UNDER_REVIEW')).toBe(false);
-    expect(canTransitionBusinessStatus('HIDDEN', 'PUBLISHED')).toBe(false);
   });
 
   test('transition results reset featured flags when leaving published', () => {

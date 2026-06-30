@@ -17,6 +17,7 @@ import {
   Phone,
   ScrollText,
   Send,
+  Settings,
   ShieldX,
   Tag,
   User,
@@ -48,11 +49,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { AdminBusinessDetailDto, StaffRole } from '@kclub/contracts';
 
-const BUSINESS_DETAIL_TABS = ['overview', 'owner', 'edit', 'audit'] as const;
+const BUSINESS_DETAIL_TABS = ['overview', 'owner', 'edit', 'settings', 'audit'] as const;
 
 type BusinessDetailTab = (typeof BUSINESS_DETAIL_TABS)[number];
 
@@ -76,6 +78,8 @@ function canSeeAction(status: string, role: StaffRole): string | null {
       return 'PUBLISH_REJECT';
     case 'PUBLISHED':
       return 'HIDE';
+    case 'HIDDEN':
+      return 'SHOW';
     default:
       return null;
   }
@@ -128,6 +132,18 @@ async function updateBusiness(
 ): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(`/api/proxy/businesses/${businessId}`, {
     method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+}
+
+async function updateBusinessSettings(
+  businessId: string,
+  data: { featuredTop?: boolean; featuredRecommended?: boolean; memberDiscountPercent?: number | null; discountMuted?: boolean },
+): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch(`/api/proxy/businesses/${businessId}/featured`, {
+    method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(data),
   });
@@ -243,6 +259,9 @@ export function BusinessDetailClient({ business, staffRole }: BusinessDetailClie
                   onAction={() => router.refresh()}
                 />
               )}
+              {action === 'SHOW' && (
+                <ShowDialog businessId={business.id} onAction={() => router.refresh()} />
+              )}
             </div>
           )}
         </CardContent>
@@ -262,6 +281,12 @@ export function BusinessDetailClient({ business, staffRole }: BusinessDetailClie
                 <TabsTrigger value="edit">
                   <PencilLine aria-hidden />
                   Edit profile
+                </TabsTrigger>
+              )}
+              {canEdit && (
+                <TabsTrigger value="settings">
+                  <Settings aria-hidden />
+                  Settings
                 </TabsTrigger>
               )}
               <TabsTrigger value="audit">
@@ -314,6 +339,12 @@ export function BusinessDetailClient({ business, staffRole }: BusinessDetailClie
                               {business.featuredRecommended ? 'Yes' : 'No'}
                             </Badge>
                           ),
+                        },
+                        {
+                          label: 'Member discount',
+                          value: business.memberDiscountPercent != null
+                            ? `${business.memberDiscountPercent}%`
+                            : '—',
                         },
                         {
                           label: 'Published',
@@ -537,6 +568,12 @@ export function BusinessDetailClient({ business, staffRole }: BusinessDetailClie
             {canEdit && (
               <TabsContent value="edit" className="mt-0">
                 <EditProfileTab business={business} onSaved={() => router.refresh()} />
+              </TabsContent>
+            )}
+
+            {canEdit && (
+              <TabsContent value="settings" className="mt-0">
+                <SettingsTab business={business} onSaved={() => router.refresh()} />
               </TabsContent>
             )}
 
@@ -774,6 +811,139 @@ function EditProfileTab({ business, onSaved }: EditProfileTabProps) {
   );
 }
 
+type SettingsTabProps = {
+  business: AdminBusinessDetailDto;
+  onSaved: () => void;
+};
+
+function SettingsTab({ business, onSaved }: SettingsTabProps) {
+  const [loading, setLoading] = useState(false);
+  const [featuredTop, setFeaturedTop] = useState(business.featuredTop ?? false);
+  const [featuredRecommended, setFeaturedRecommended] = useState(business.featuredRecommended ?? false);
+  const [discountInput, setDiscountInput] = useState(
+    business.memberDiscountPercent != null ? String(business.memberDiscountPercent) : '',
+  );
+  const [discountMuted, setDiscountMuted] = useState(business.discountMuted ?? false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
+    e.preventDefault();
+    setLoading(true);
+
+    const memberDiscountPercent =
+      discountInput === '' ? null : parseInt(discountInput, 10);
+
+    const result = await updateBusinessSettings(business.id, {
+      featuredTop,
+      featuredRecommended,
+      memberDiscountPercent,
+      discountMuted,
+    });
+
+    setLoading(false);
+
+    if (!result.ok) {
+      toast.error(result.error ?? 'Failed to save settings');
+      return;
+    }
+
+    toast.success('Settings saved');
+    onSaved();
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-base font-medium">Business settings</h3>
+        <p className="text-sm text-muted-foreground">
+          Featured placement and member discount configuration.
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Featured placement</CardTitle>
+            <CardDescription>
+              Controls which sections the business appears in on the public catalog.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Top</Label>
+                <p className="text-sm text-muted-foreground">
+                  Show in the Top featured section.
+                </p>
+              </div>
+              <Switch
+                checked={featuredTop}
+                onCheckedChange={setFeaturedTop}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Recommended</Label>
+                <p className="text-sm text-muted-foreground">
+                  Show in the Recommended section.
+                </p>
+              </div>
+              <Switch
+                checked={featuredRecommended}
+                onCheckedChange={setFeaturedRecommended}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Member discount</CardTitle>
+            <CardDescription>
+              Discount percentage shown on the business card for club members.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex max-w-xs items-center gap-3">
+              <Input
+                id="settings-discount"
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                placeholder="0–100"
+                value={discountInput}
+                onChange={(e) => setDiscountInput(e.target.value)}
+              />
+              <span className="text-sm text-muted-foreground">%</span>
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Leave empty to remove the discount badge from the card.
+            </p>
+            <div className="mt-4 flex items-center justify-between border-t pt-4">
+              <div className="space-y-0.5">
+                <Label>Muted</Label>
+                <p className="text-sm text-muted-foreground">
+                  Blur the discount ribbon on the card.
+                </p>
+              </div>
+              <Switch
+                checked={discountMuted}
+                onCheckedChange={setDiscountMuted}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={loading} size="sm">
+            {loading ? 'Saving...' : 'Save settings'}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function PublishDialog({ businessId, onAction }: { businessId: string; onAction: () => void }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -815,6 +985,54 @@ function PublishDialog({ businessId, onAction }: { businessId: string; onAction:
             }}
           >
             {loading ? 'Publishing...' : 'Publish'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ShowDialog({ businessId, onAction }: { businessId: string; onAction: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button size="sm" variant="secondary">
+            <Send className="mr-1.5 h-4 w-4" />
+            Show
+          </Button>
+        }
+      />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Show business</DialogTitle>
+          <DialogDescription>
+            This will re-publish the business and make it visible in the public directory again.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            disabled={loading}
+            onClick={async () => {
+              setLoading(true);
+              const result = await publishBusiness(businessId);
+              setLoading(false);
+              if (!result.ok) {
+                toast.error(result.error ?? 'Failed to show business');
+                return;
+              }
+              setOpen(false);
+              toast.success('Business is now visible');
+              onAction();
+            }}
+          >
+            {loading ? 'Publishing...' : 'Show'}
           </Button>
         </DialogFooter>
       </DialogContent>

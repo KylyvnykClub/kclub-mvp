@@ -172,6 +172,7 @@ export default async function DirectoryPage({
                     actionLabel={t('viewDetails')}
                     externalLabel={t('website')}
                     featuredLabel={featuredLabel}
+                    locale={locale}
                   />
                 );
               })}

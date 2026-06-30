@@ -199,6 +199,7 @@ export type PublicBusinessListItemDto = {
   featuredTop: boolean;
   featuredRecommended: boolean;
   memberDiscountPercent: number | null;
+  discountMuted: boolean;
 };
 
 export type PublicBusinessDetailDto = PublicBusinessListItemDto & {

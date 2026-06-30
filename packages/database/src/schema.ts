@@ -138,6 +138,7 @@ export const businessProfiles = pgTable('business_profiles', {
   featured_top: boolean('featured_top').default(false).notNull(),
   featured_recommended: boolean('featured_recommended').default(false).notNull(),
   member_discount_percent: smallint('member_discount_percent'),
+  discount_muted: boolean('discount_muted').default(false).notNull(),
   internal_notes: text('internal_notes'),
   rejection_reason: text('rejection_reason'),
   approved_at: timestamp('approved_at'),

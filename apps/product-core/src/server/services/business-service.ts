@@ -363,6 +363,7 @@ export function toPublicBusinessListItemDto(business: any): PublicBusinessListIt
     featuredTop: business.featured_top,
     featuredRecommended: business.featured_recommended,
     memberDiscountPercent: business.member_discount_percent ?? null,
+    discountMuted: business.discount_muted,
   };
 }
 
