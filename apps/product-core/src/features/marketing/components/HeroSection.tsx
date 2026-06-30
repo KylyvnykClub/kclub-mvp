@@ -89,12 +89,9 @@ export function HeroSection({ locale }: { locale: Locale }) {
 
   return (
     <div className="dark bg-[#0f0f0f]">
+       
       <section className="kclub-premium-hero relative isolate flex min-h-[calc(100vh-112px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">
-      {/* <div
-        className="kclub-hero-visual absolute inset-0"
-        style={{ '--hero-bg-image': `url(${heroBg.src})` } as CSSProperties}
-        aria-hidden="true"
-      /> */}
+      
       <div className="kclub-premium-hero-tint absolute inset-0" aria-hidden="true" />
       <div
         className="kclub-premium-hero-fade absolute bottom-0 left-0 right-0 h-24"
