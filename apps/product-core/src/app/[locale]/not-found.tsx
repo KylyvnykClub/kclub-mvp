@@ -16,7 +16,7 @@ export default async function NotFound(props: { params?: Promise<{ locale: Local
       description="The page you are looking for does not exist or has been moved."
       action={
         <Link href={`/${locale}`}>
-          <Button variant="primary">{t('cta.button')}</Button>
+          <Button color="primary">{t('cta.button')}</Button>
         </Link>
       }
     />
