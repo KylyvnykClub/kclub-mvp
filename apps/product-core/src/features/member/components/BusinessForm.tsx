@@ -3,11 +3,22 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 
-import { Button } from '@kclub/ui';
 import { MEMBER_API_ROUTES, type MemberBusinessProfileDto } from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/reui/alert';
 import type { TaxonomyOption } from './BusinessPanel';
 
 type BusinessFormProps = {
@@ -51,8 +62,6 @@ export function BusinessForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const labelClassName = 'block text-sm font-medium text-zinc-700 dark:text-white/72';
-  const fieldClassName = 'kclub-field mt-1';
 
   const isEdit = business !== null;
 
@@ -130,155 +139,156 @@ export function BusinessForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {success && (
-        <div className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200">
-          {isEdit ? t('editSuccess') : t('submitSuccess')}
-        </div>
+        <Alert variant="success">
+          <AlertDescription>{isEdit ? t('editSuccess') : t('submitSuccess')}</AlertDescription>
+        </Alert>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className={labelClassName}>{t('nameLabel')}</label>
-          <input
+          <Label>{t('nameLabel')}</Label>
+          <Input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             minLength={2}
             maxLength={100}
-            className={fieldClassName}
+            className="mt-1 w-full"
           />
         </div>
 
         <div>
-          <label className={labelClassName}>{t('representativeNameLabel')}</label>
-          <input
+          <Label>{t('representativeNameLabel')}</Label>
+          <Input
             type="text"
             value={representativeName}
             onChange={(e) => setRepresentativeName(e.target.value)}
             required
             minLength={2}
             maxLength={100}
-            className={fieldClassName}
+            className="mt-1 w-full"
           />
         </div>
 
         <div>
-          <label className={labelClassName}>{t('representativeEmailLabel')}</label>
-          <input
+          <Label>{t('representativeEmailLabel')}</Label>
+          <Input
             type="email"
             value={representativeEmail}
             onChange={(e) => setRepresentativeEmail(e.target.value)}
             required
-            className={fieldClassName}
+            className="mt-1 w-full"
           />
         </div>
 
         <div>
-          <label className={labelClassName}>{t('representativePhoneLabel')}</label>
-          <input
+          <Label>{t('representativePhoneLabel')}</Label>
+          <Input
             type="tel"
             value={representativePhone}
             onChange={(e) => setRepresentativePhone(e.target.value)}
             required
-            className={fieldClassName}
+            className="mt-1 w-full"
           />
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-          <div>
-            <label className={labelClassName}>{t('countryLabel')}</label>
-            <select
-              value={countryId}
-              onChange={(e) => setCountryId(e.target.value)}
-              required
-              className={fieldClassName}
-            >
-              <option value="">{t('selectPlaceholder')}</option>
+        <div>
+          <Label>{t('countryLabel')}</Label>
+          <Select value={countryId} onValueChange={(value) => setCountryId(value ?? '')} required>
+            <SelectTrigger className="mt-1 w-full">
+              <SelectValue placeholder={t('selectPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
               {countryOptions.map((c) => (
-                <option key={c.id} value={c.id}>
+                <SelectItem key={c.id} value={c.id}>
                   {c.name}
-                </option>
+                </SelectItem>
               ))}
-            </select>
-          </div>
-
-          <div>
-            <label className={labelClassName}>{t('cityLabel')}</label>
-            <select
-              value={cityId}
-              onChange={(e) => setCityId(e.target.value)}
-              required
-              disabled={!countryId}
-              className={`${fieldClassName} disabled:cursor-not-allowed disabled:opacity-50`}
-            >
-              <option value="">{t('selectPlaceholder')}</option>
-              {cityOptions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className={labelClassName}>{t('categoryLabel')}</label>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              required
-              className={fieldClassName}
-            >
-              <option value="">{t('selectPlaceholder')}</option>
-              {categoryOptions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+            </SelectContent>
+          </Select>
         </div>
+
+        <div>
+          <Label>{t('cityLabel')}</Label>
+          <Select
+            value={cityId}
+            onValueChange={(value) => setCityId(value ?? '')}
+            disabled={!countryId}
+            required
+          >
+            <SelectTrigger className="mt-1 w-full">
+              <SelectValue placeholder={t('selectPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {cityOptions.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label>{t('categoryLabel')}</Label>
+          <Select value={categoryId} onValueChange={(value) => setCategoryId(value ?? '')} required>
+            <SelectTrigger className="mt-1 w-full">
+              <SelectValue placeholder={t('selectPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {categoryOptions.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className={labelClassName}>{t('websiteUrlLabel')}</label>
-          <input
+          <Label>{t('websiteUrlLabel')}</Label>
+          <Input
             type="url"
             value={websiteUrl}
             onChange={(e) => setWebsiteUrl(e.target.value)}
-            className={fieldClassName}
+            className="mt-1 w-full"
           />
         </div>
 
         <div>
-          <label className={labelClassName}>{t('socialUrlLabel')}</label>
-          <input
+          <Label>{t('socialUrlLabel')}</Label>
+          <Input
             type="url"
             value={socialUrl}
             onChange={(e) => setSocialUrl(e.target.value)}
-            className={fieldClassName}
+            className="mt-1 w-full"
           />
         </div>
       </div>
 
       <div>
-        <label className={labelClassName}>{t('briefDescriptionLabel')}</label>
-        <textarea
+        <Label>{t('briefDescriptionLabel')}</Label>
+        <Textarea
           value={briefDescription ?? ''}
           onChange={(e) => setBriefDescription(e.target.value)}
           maxLength={500}
           rows={3}
-          className={fieldClassName}
+          className="mt-1 w-full"
         />
       </div>
 
-      <Button color="brand" size="md" type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? tCommon('saving') : isEdit ? t('editSubmit') : t('submitCta')}
       </Button>
     </form>

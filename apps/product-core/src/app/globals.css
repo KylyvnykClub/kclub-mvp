@@ -6,6 +6,46 @@
   --brand-color: #d4af37;
 }
 
+@layer base {
+  :root {
+    /* ReUI extended semantic tokens (not in @kclub/ui shared tokens.css) */
+    --success: #16a34a;
+    --success-foreground: #166534;
+    --info: #2563eb;
+    --info-foreground: #1e40af;
+    --warning: #d97706;
+    --warning-foreground: #92400e;
+    --invert: #18181b;
+    --invert-foreground: #ffffff;
+
+    /* shadcn primitive tokens not in @kclub/ui shared tokens.css */
+    --card: var(--surface);
+    --card-foreground: var(--foreground);
+    --popover: var(--surface-raised);
+    --popover-foreground: var(--foreground);
+    --input: var(--border);
+    --ring: var(--accent);
+    /* --destructive-foreground already set in @kclub/ui tokens.css (#ffffff) - not overridden here */
+  }
+  .dark {
+    --success: #22c55e;
+    --success-foreground: #052e12;
+    --info: #60a5fa;
+    --info-foreground: #0b1a3a;
+    --warning: #fbbf24;
+    --warning-foreground: #3a2400;
+    --invert: #fafafa;
+    --invert-foreground: #18181b;
+
+    --card: var(--surface);
+    --card-foreground: var(--foreground);
+    --popover: var(--surface-raised);
+    --popover-foreground: var(--foreground);
+    --input: var(--border);
+    --ring: var(--accent);
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }

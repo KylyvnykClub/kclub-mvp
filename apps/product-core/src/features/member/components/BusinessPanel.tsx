@@ -1,14 +1,17 @@
 import { getTranslations } from 'next-intl/server';
 
 import type { BusinessIncomingIntroductionDto, CurrentMemberProfileDto, MemberBusinessProfileDto } from '@kclub/contracts';
-import { Badge, Button, cn } from '@kclub/ui';
 
+import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
 import { getOwnBusinesses } from '@/server/services/business-service';
 import { getIncomingIntroductions } from '@/server/services/introduction-service';
 import { getDbClient, schema } from '@/server/db';
 import { and, asc, eq } from 'drizzle-orm';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/reui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { BusinessForm } from './BusinessForm';
 
 export type TaxonomyOption = {
@@ -28,11 +31,14 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   HIDDEN: 'hidden',
 };
 
-const STATUS_BADGE_VARIANTS: Record<string, 'default' | 'outline' | 'success'> = {
+const STATUS_BADGE_VARIANTS: Record<
+  string,
+  'default' | 'outline' | 'success' | 'destructive'
+> = {
   UNDER_REVIEW: 'outline',
   APPROVED: 'success',
   PUBLISHED: 'success',
-  REJECTED: 'default',
+  REJECTED: 'destructive',
   HIDDEN: 'outline',
 };
 
@@ -125,9 +131,9 @@ export async function BusinessPanel({
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-foreground">{t('editTitle')}</h3>
           {editNeedsReapproval && (
-            <div className="border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-500/30 dark:bg-yellow-950/40 dark:text-yellow-200">
-              {t('editReapprovalWarning')}
-            </div>
+            <Alert variant="warning">
+              <AlertDescription>{t('editReapprovalWarning')}</AlertDescription>
+            </Alert>
           )}
           <BusinessForm
             locale={locale}
@@ -178,9 +184,7 @@ function IncomingIntroductionsList({
               )}
             </div>
             <div className="shrink-0">
-              <span className="text-xs font-medium text-muted-foreground">
-                {INTRO_STATUS_LABELS[intro.status] ?? intro.status}
-              </span>
+              <Badge variant="outline">{INTRO_STATUS_LABELS[intro.status] ?? intro.status}</Badge>
             </div>
           </div>
           <IncomingIntroductionActions intro={intro} />
@@ -194,7 +198,12 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
   if (intro.status === 'SUBMITTED') {
     return (
       <form action={`/api/v1/me/business/introductions/${intro.id}/review`} method="POST">
-        <Button type="submit" color="ghost" size="sm" className="px-0 py-0 text-xs text-accent underline hover:text-accent-hover">
+        <Button
+          type="submit"
+          variant="ghost"
+          size="sm"
+          className="h-auto px-0 py-0 text-xs text-accent underline hover:bg-transparent hover:text-accent-hover"
+        >
           Рассмотреть
         </Button>
       </form>
@@ -205,12 +214,22 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
     return (
       <div className="flex gap-3">
         <form action={`/api/v1/me/business/introductions/${intro.id}/approve`} method="POST">
-          <Button type="submit" color="ghost" size="sm" className="px-0 py-0 text-xs text-green-700 underline dark:text-green-400">
+          <Button
+            type="submit"
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 py-0 text-xs text-success underline hover:bg-transparent"
+          >
             Принять
           </Button>
         </form>
         <form action={`/api/v1/me/business/introductions/${intro.id}/reject`} method="POST">
-          <Button type="submit" color="ghost" size="sm" className="px-0 py-0 text-xs text-red-600 underline dark:text-red-400">
+          <Button
+            type="submit"
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 py-0 text-xs text-destructive underline hover:bg-transparent"
+          >
             Отклонить
           </Button>
         </form>
@@ -230,57 +249,45 @@ function BusinessStatusBanner({
 }) {
   if (business.status === 'UNDER_REVIEW') {
     return (
-      <div className="border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-500/30 dark:bg-yellow-950/40">
-        <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
-          {t('statusBannerUnderReview')}
-        </p>
-        <p className="mt-1 text-xs text-yellow-700 dark:text-yellow-300">
-          {t('statusBannerUnderReviewSub')}
-        </p>
-      </div>
+      <Alert variant="warning">
+        <AlertTitle>{t('statusBannerUnderReview')}</AlertTitle>
+        <AlertDescription>{t('statusBannerUnderReviewSub')}</AlertDescription>
+      </Alert>
     );
   }
 
   if (business.status === 'APPROVED') {
     return (
-      <div className="border border-green-200 bg-green-50 p-4 dark:border-green-500/30 dark:bg-green-950/40">
-        <p className="text-sm font-semibold text-green-800 dark:text-green-200">
-          {t('statusBannerApproved')}
-        </p>
-        <p className="mt-1 text-xs text-green-700 dark:text-green-300">
-          {t('statusBannerApprovedSub')}
-        </p>
-      </div>
+      <Alert variant="success">
+        <AlertTitle>{t('statusBannerApproved')}</AlertTitle>
+        <AlertDescription>{t('statusBannerApprovedSub')}</AlertDescription>
+      </Alert>
     );
   }
 
   if (business.status === 'PUBLISHED') {
     return (
-      <div className="border border-accent/30 bg-surface-muted p-4">
-        <p className="text-sm font-semibold text-foreground">{t('statusBannerPublished')}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{t('statusBannerPublishedSub')}</p>
-      </div>
+      <Alert variant="info">
+        <AlertTitle>{t('statusBannerPublished')}</AlertTitle>
+        <AlertDescription>{t('statusBannerPublishedSub')}</AlertDescription>
+      </Alert>
     );
   }
 
   if (business.status === 'REJECTED') {
     return (
-      <div className="border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-950/40">
-        <p className="text-sm font-semibold text-red-800 dark:text-red-200">
-          {t('statusBannerRejected')}
-        </p>
-        {business.rejectionReason && (
-          <p className="mt-1 text-xs text-red-700 dark:text-red-300">{business.rejectionReason}</p>
-        )}
-      </div>
+      <Alert variant="destructive">
+        <AlertTitle>{t('statusBannerRejected')}</AlertTitle>
+        {business.rejectionReason && <AlertDescription>{business.rejectionReason}</AlertDescription>}
+      </Alert>
     );
   }
 
   if (business.status === 'HIDDEN') {
     return (
-      <div className="border border-border bg-surface-muted p-4">
-        <p className="text-sm font-semibold text-muted-foreground">{t('statusBannerHidden')}</p>
-      </div>
+      <Alert variant="default">
+        <AlertTitle>{t('statusBannerHidden')}</AlertTitle>
+      </Alert>
     );
   }
 

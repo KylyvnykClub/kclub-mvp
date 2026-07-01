@@ -158,6 +158,14 @@ async function updateBusinessSettings(
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(data),
   });
+
+  if (res.status === 409) {
+    const body = await res.json().catch(() => ({}));
+    const code = body?.error?.code ?? '';
+    const message = body?.error?.message ?? 'Conflict';
+    return { ok: false, error: code || message };
+  }
+
   return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
 }
 
@@ -537,9 +545,17 @@ export function BusinessDetailClient({ business, staffRole, introductions }: Bus
 
             <TabsContent value="owner" className="mt-0 space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>Owner</CardTitle>
-                  <CardDescription>Member account linked to this business.</CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
+                  <div className="space-y-1.5">
+                    <CardTitle>Owner</CardTitle>
+                    <CardDescription>Member account linked to this business.</CardDescription>
+                  </div>
+                  <Link
+                    href={`/dashboard/users/${business.owner.id}`}
+                    className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+                  >
+                    View account
+                  </Link>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center gap-4">
@@ -559,7 +575,7 @@ export function BusinessDetailClient({ business, staffRole, introductions }: Bus
                       <p className="text-sm text-muted-foreground">{business.owner.phone}</p>
                       <div className="flex flex-wrap items-center gap-2 pt-1">
                         <StatusBadge status={business.owner.status} />
-                        <Badge variant="outline">{business.owner.membershipTier}</Badge>
+                        <Badge variant="default" className="border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30">VIP</Badge>
                       </div>
                     </div>
                   </div>
@@ -574,7 +590,7 @@ export function BusinessDetailClient({ business, staffRole, introductions }: Bus
                       { label: 'Display name', value: business.owner.displayName ?? '—' },
                       {
                         label: 'Membership',
-                        value: <Badge variant="outline">{business.owner.membershipTier}</Badge>,
+                        value: <Badge variant="default" className="border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30">VIP</Badge>,
                       },
                       {
                         label: 'Status',
@@ -828,7 +844,15 @@ function SettingsTab({ business, onSaved }: SettingsTabProps) {
     setLoading(false);
 
     if (!result.ok) {
-      toast.error(result.error ?? 'Failed to save settings');
+      if (result.error === 'FEATURED_LIMIT_REACHED') {
+        toast.error('Maximum top or recommended (3) already reached.');
+      } else if (result.error === 'FEATURED_BUSINESS_NOT_PUBLISHED') {
+        toast.error('Only PUBLISHED businesses can be featured.');
+      } else {
+        toast.error(result.error ?? 'Failed to save settings');
+      }
+      setFeaturedTop(business.featuredTop ?? false);
+      setFeaturedRecommended(business.featuredRecommended ?? false);
       return;
     }
 

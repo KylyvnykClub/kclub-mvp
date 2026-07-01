@@ -153,21 +153,7 @@ export async function listUsers(
         conditions.push(eq(schema.users.membership_tier, params.membershipTier));
       }
 
-      // Exclude users who own an active business profile
-      conditions.push(
-        not(
-          exists(
-            db.select()
-              .from(schema.businessProfiles)
-              .where(
-                and(
-                  eq(schema.businessProfiles.user_id, schema.users.id),
-                  not(eq(schema.businessProfiles.status, 'REJECTED'))
-                )
-              )
-          )
-        )
-      );
+
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
