@@ -20,7 +20,7 @@ export default function Error({
       title="Something went wrong"
       description={error.message || 'An unexpected error occurred.'}
       action={
-        <Button variant="primary" onClick={() => reset()}>
+        <Button color="primary" onClick={() => reset()}>
           Try again
         </Button>
       }

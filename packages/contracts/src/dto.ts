@@ -298,9 +298,12 @@ export type AdminBusinessListItemDto = {
   briefDescription: string | null;
   websiteUrl: string | null;
   socialUrl: string | null;
+  coverImageUrl: string | null;
+  logoUrl: string | null;
   featuredTop: boolean;
   featuredRecommended: boolean;
   memberDiscountPercent: number | null;
+  discountMuted: boolean;
   description: string | null;
   representativeName: string | null;
   publishedAt: IsoDateTime | null;
