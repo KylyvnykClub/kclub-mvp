@@ -7,14 +7,17 @@ import {
   ArrowLeft,
   Building2,
   CheckCircle,
+  Download,
   EyeOff,
   Globe,
+  Inbox,
   LayoutGrid,
   Link2,
   Mail,
   MapPin,
   PencilLine,
   Phone,
+  RefreshCw,
   ScrollText,
   Send,
   Settings,
@@ -51,10 +54,18 @@ import {
 } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import type { AdminBusinessDetailDto, StaffRole } from '@kclub/contracts';
+import type { AdminBusinessDetailDto, AdminIntroductionListItemDto, AuditLogDto, StaffRole } from '@kclub/contracts';
+import { IntroductionsTable } from '@/features/introductions/components/introductions-table';
 
-const BUSINESS_DETAIL_TABS = ['overview', 'owner', 'edit', 'settings', 'audit'] as const;
+const BUSINESS_DETAIL_TABS = ['overview', 'owner', 'edit', 'settings', 'audit', 'inbox'] as const;
 
 type BusinessDetailTab = (typeof BUSINESS_DETAIL_TABS)[number];
 
@@ -161,9 +172,10 @@ function getInitials(name: string): string {
 type BusinessDetailClientProps = {
   business: AdminBusinessDetailDto;
   staffRole: StaffRole;
+  introductions: AdminIntroductionListItemDto[];
 };
 
-export function BusinessDetailClient({ business, staffRole }: BusinessDetailClientProps) {
+export function BusinessDetailClient({ business, staffRole, introductions }: BusinessDetailClientProps) {
   const router = useRouter();
   const action = canSeeAction(business.status, staffRole);
   const canEdit = canMutateBusiness(staffRole);
@@ -291,10 +303,19 @@ export function BusinessDetailClient({ business, staffRole }: BusinessDetailClie
               )}
               <TabsTrigger value="audit">
                 <ScrollText aria-hidden />
-                Audit
+                Logs
                 <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1">
                   {business.auditEntries.length}
                 </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="inbox">
+                <Inbox aria-hidden />
+                Inbox
+                {introductions.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1">
+                    {introductions.length}
+                  </Badge>
+                )}
               </TabsTrigger>
               <TabsIndicator />
             </TabsList>
@@ -577,53 +598,18 @@ export function BusinessDetailClient({ business, staffRole }: BusinessDetailClie
               </TabsContent>
             )}
 
+            <TabsContent value="inbox" className="mt-0 space-y-4">
+              <div>
+                <h3 className="text-base font-medium">Inbox</h3>
+                <p className="text-sm text-muted-foreground">
+                  Incoming recommendations from other businesses.
+                </p>
+              </div>
+              <IntroductionsTable introductions={introductions} staffRole={staffRole} />
+            </TabsContent>
+
             <TabsContent value="audit" className="mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Audit trail</CardTitle>
-                  <CardDescription>{business.auditEntries.length} recorded events.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {business.auditEntries.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No audit entries.</p>
-                  ) : (
-                    <div className="overflow-x-auto rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Action</TableHead>
-                            <TableHead>Staff</TableHead>
-                            <TableHead>Details</TableHead>
-                            <TableHead>Date</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {business.auditEntries.map((entry) => (
-                            <TableRow key={entry.id}>
-                              <TableCell>
-                                <StatusBadge status={entry.action} />
-                              </TableCell>
-                              <TableCell className="text-xs text-muted-foreground">
-                                {entry.actorStaffId ?? 'System'}
-                              </TableCell>
-                              <TableCell className="max-w-[240px] truncate text-xs text-muted-foreground">
-                                {entry.after
-                                  ? Object.entries(entry.after)
-                                      .map(([k, v]) => `${k}: ${String(v)}`)
-                                      .join(', ')
-                                  : '—'}
-                              </TableCell>
-                              <TableCell className="text-xs text-muted-foreground">
-                                {new Date(entry.createdAt).toLocaleDateString()}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <LogsTab entries={business.auditEntries} onRefresh={() => router.refresh()} />
             </TabsContent>
           </div>
         </Tabs>
@@ -943,6 +929,223 @@ function SettingsTab({ business, onSaved }: SettingsTabProps) {
     </div>
   );
 }
+
+// ─── Logs Tab ──────────────────────────────────────────────────────────────
+
+type LogsTabProps = {
+  entries: AuditLogDto[];
+  onRefresh: () => void;
+};
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function formatRequest(entityType: string, entityId: string): string {
+  return `${entityType} / ${entityId.slice(0, 8)}…`;
+}
+
+function formatMessages(
+  before: Record<string, unknown> | null,
+  after: Record<string, unknown> | null,
+): string {
+  if (!after && !before) return '—';
+  if (after) {
+    const pairs = Object.entries(after).map(([k, v]) => `${k}: ${String(v ?? '—')}`);
+    return pairs.join(' · ') || '—';
+  }
+  return '—';
+}
+
+function downloadBlob(content: string, filename: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function LogsTab({ entries, onRefresh }: LogsTabProps) {
+  const [actionFilter, setActionFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const uniqueActions = Array.from(new Set(entries.map((e) => e.action))).sort();
+
+  const filtered = entries.filter((e) => {
+    if (actionFilter !== 'all' && e.action !== actionFilter) return false;
+    const day = e.createdAt.slice(0, 10);
+    if (dateFrom && day < dateFrom) return false;
+    if (dateTo && day > dateTo) return false;
+    return true;
+  });
+
+  function handleRefresh() {
+    setRefreshing(true);
+    onRefresh();
+    setTimeout(() => setRefreshing(false), 800);
+  }
+
+  function handleExportCSV() {
+    const header = ['Action', 'Time', 'Status', 'Host', 'Request', 'Messages'].join(',');
+    const rows = filtered.map((e) =>
+      [
+        e.action,
+        e.createdAt,
+        e.actorRole ?? 'System',
+        e.ipAddress ?? '',
+        `${e.entityType}/${e.entityId}`,
+        formatMessages(e.before, e.after).replace(/,/g, ';'),
+      ]
+        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+        .join(','),
+    );
+    downloadBlob([header, ...rows].join('\n'), 'logs.csv', 'text/csv;charset=utf-8;');
+  }
+
+  function handleExportJSON() {
+    const data = filtered.map((e) => ({
+      action: e.action,
+      time: e.createdAt,
+      status: e.actorRole ?? 'System',
+      host: e.ipAddress ?? null,
+      request: `${e.entityType}/${e.entityId}`,
+      before: e.before,
+      after: e.after,
+    }));
+    downloadBlob(JSON.stringify(data, null, 2), 'logs.json', 'application/json');
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Select value={actionFilter} onValueChange={setActionFilter}>
+          <SelectTrigger className="h-9 w-[200px] text-sm">
+            <SelectValue placeholder="All actions" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All actions</SelectItem>
+            {uniqueActions.map((a) => (
+              <SelectItem key={a} value={a}>
+                {a}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="flex items-center gap-1.5">
+          <Input
+            type="date"
+            className="h-9 w-[140px] text-sm"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            placeholder="From"
+          />
+          <span className="text-xs text-muted-foreground">–</span>
+          <Input
+            type="date"
+            className="h-9 w-[140px] text-sm"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            placeholder="To"
+          />
+        </div>
+
+        {(actionFilter !== 'all' || dateFrom || dateTo) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setActionFilter('all'); setDateFrom(''); setDateTo(''); }}
+          >
+            Clear
+          </Button>
+        )}
+
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {filtered.length}/{entries.length} rows
+          </span>
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
+            <RefreshCw className={cn('h-3.5 w-3.5', refreshing && 'animate-spin')} />
+            Refresh
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportCSV}>
+            <Download className="h-3.5 w-3.5" />
+            CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportJSON}>
+            <Download className="h-3.5 w-3.5" />
+            JSON
+          </Button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[200px]">Action</TableHead>
+              <TableHead className="w-[160px]">Time</TableHead>
+              <TableHead className="w-[120px]">Status</TableHead>
+              <TableHead className="w-[120px]">Host</TableHead>
+              <TableHead className="w-[180px]">Request</TableHead>
+              <TableHead>Messages</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                  No log entries found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((entry) => (
+                <TableRow key={entry.id} className="align-top">
+                  <TableCell>
+                    <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium">
+                      {entry.action}
+                    </code>
+                  </TableCell>
+                  <TableCell className="text-xs tabular-nums text-muted-foreground">
+                    {formatDateTime(entry.createdAt)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={entry.actorRole ? 'secondary' : 'outline'}
+                      className="text-xs"
+                    >
+                      {entry.actorRole ?? 'System'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {entry.ipAddress ?? '—'}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {formatRequest(entry.entityType, entry.entityId)}
+                  </TableCell>
+                  <TableCell className="max-w-[320px] text-xs text-muted-foreground">
+                    <span className="line-clamp-2">
+                      {formatMessages(entry.before, entry.after)}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Dialogs ───────────────────────────────────────────────────────────────
 
 function PublishDialog({ businessId, onAction }: { businessId: string; onAction: () => void }) {
   const [open, setOpen] = useState(false);

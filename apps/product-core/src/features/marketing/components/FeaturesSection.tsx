@@ -24,6 +24,10 @@ export function FeaturesSection() {
         style={{ '--hero-bg-image': `url(${heroBg.src})` } as CSSProperties}
         aria-hidden="true"
       />
+      <div
+        className="absolute inset-0 bg-background/60 dark:bg-background/40"
+        aria-hidden="true"
+      />
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
         <motion.div
           className="mb-12 grid gap-4 lg:items-end"

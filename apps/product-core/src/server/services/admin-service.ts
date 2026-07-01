@@ -1054,12 +1054,17 @@ const INTRODUCTION_LIST_INCLUDE = {
           targetBusiness: { columns: { id: true, name: true, slug: true } },
         };
 
-export async function listIntroductions(): Promise<AdminIntroductionListItemDto[]> {
+export async function listIntroductions(opts?: {
+  targetBusinessId?: string;
+}): Promise<AdminIntroductionListItemDto[]> {
 
       const db = getDbClient();
       const introductions = await db.query.businessIntroductions.findMany({
         with: INTRODUCTION_LIST_INCLUDE as any,
         orderBy: [desc(schema.businessIntroductions.created_at)],
+        ...(opts?.targetBusinessId
+          ? { where: eq(schema.businessIntroductions.target_business_id, opts.targetBusinessId) }
+          : {}),
       });
       return introductions.map(toAdminIntroductionListItem);
 }

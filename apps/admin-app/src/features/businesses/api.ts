@@ -2,6 +2,7 @@ import { adminApiFetch } from '@/server/proxy/admin-client';
 import type {
   AdminBusinessListItemDto,
   AdminBusinessDetailDto,
+  AdminIntroductionListItemDto,
   ApiListResponse,
   ApiResponse,
 } from '@kclub/contracts';
@@ -48,5 +49,15 @@ export async function fetchBusinessDetail(
     `/businesses/${businessId}`,
   );
   if (!result.ok || !result.data?.data) return null;
+  return result.data.data;
+}
+
+export async function fetchBusinessIntroductions(
+  businessId: string,
+): Promise<AdminIntroductionListItemDto[]> {
+  const result = await adminApiFetch<ApiResponse<AdminIntroductionListItemDto[]>>(
+    `/introductions?businessId=${businessId}`,
+  );
+  if (!result.ok || !result.data?.data) return [];
   return result.data.data;
 }
