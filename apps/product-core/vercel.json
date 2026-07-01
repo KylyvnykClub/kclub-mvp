@@ -1,7 +1,7 @@
 {
-  "installCommand": "cd ../.. && bun install",
+  "installCommand": "bun install",
   "ignoreCommand": "bash -c 'if [ \"$VERCEL_GIT_COMMIT_REF\" = \"main\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"main-dev\" ]; then exit 0; else exit 1; fi'",
-  "buildCommand": "bun --cwd ../../packages/database run db:generate && bun run build",
+  "buildCommand": "(cd ../../packages/contracts && bun run build) && (cd ../../packages/validation && bun run build) && (cd ../../packages/domain && bun run build) && (cd ../../packages/database && bun run build && bun run db:generate) && bun run build",
   "framework": "nextjs",
   "env": {
     "BUN_VERSION": "1.3.14"
