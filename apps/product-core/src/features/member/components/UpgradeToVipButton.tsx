@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
-import { Button, Spinner } from '@kclub/ui';
+import { Spinner } from '@kclub/ui';
 
 import { parseAuthResponse } from '@/features/auth/utils/api';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/reui/alert';
 
 type Props = {
   locale: string;
@@ -46,13 +48,16 @@ export function UpgradeToVipButton({ locale: _locale }: Props) {
       <Button
         onClick={handleUpgrade}
         disabled={isLoading}
-        fullWidth
-        className="gap-2 rounded-none border-0 bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full gap-2 rounded-none border-0 bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isLoading && <Spinner size={13} />}
         {isLoading ? t('vipUpgrading') : t('vipCta')}
       </Button>
-      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }

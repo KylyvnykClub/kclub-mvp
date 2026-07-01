@@ -9,11 +9,24 @@ import {
   type MemberIntroductionDto,
   type PublicBusinessListItemDto,
 } from '@kclub/contracts';
-import { Badge, Skeleton, cn, Button } from '@kclub/ui';
 
+import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
 import { cabinetContentClasses, cabinetFieldLabelClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/reui/badge';
+import { Alert, AlertDescription } from '@/components/reui/alert';
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
   SUBMITTED: 'statusSubmitted',
@@ -24,12 +37,15 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   CANCELED: 'statusCanceled',
 };
 
-const STATUS_BADGE_VARIANTS: Record<string, 'default' | 'outline' | 'success'> = {
+const STATUS_BADGE_VARIANTS: Record<
+  string,
+  'default' | 'outline' | 'success' | 'destructive'
+> = {
   SUBMITTED: 'outline',
   IN_REVIEW: 'outline',
   APPROVED: 'success',
   COMPLETED: 'success',
-  REJECTED: 'default',
+  REJECTED: 'destructive',
   CANCELED: 'outline',
 };
 
@@ -64,7 +80,6 @@ export function IntroductionsPanel({
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const labelClassName = cabinetFieldLabelClasses;
-  const fieldClassName = 'kclub-field mt-2 w-full';
 
   const availableTargets = serverPublicBusinesses;
 
@@ -188,9 +203,9 @@ export function IntroductionsPanel({
       <p className="mb-9 max-w-2xl text-sm leading-relaxed text-muted-foreground">{t('description')}</p>
 
       {error && (
-        <div className="border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <div className="space-y-4">
@@ -198,73 +213,76 @@ export function IntroductionsPanel({
 
         <form onSubmit={handleSubmitIntroduction} className="space-y-4">
           {submitError && (
-            <div className="border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200">
-              {submitError}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{submitError}</AlertDescription>
+            </Alert>
           )}
 
           {submitSuccess && (
-            <div className="border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200">
-              {t('submitSuccess')}
-            </div>
+            <Alert variant="success">
+              <AlertDescription>{t('submitSuccess')}</AlertDescription>
+            </Alert>
           )}
 
           <div>
             <label className={labelClassName}>{t('targetBusinessLabel')}</label>
-            <select
+            <Select
               value={selectedTargetBusinessId}
-              onChange={(e) => setSelectedTargetBusinessId(e.target.value)}
+              onValueChange={(value) => setSelectedTargetBusinessId(value ?? '')}
               required
-              className={fieldClassName}
             >
-              <option value="">{t('selectPlaceholder')}</option>
-              {availableTargets.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name} — {b.countryName}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="mt-2 w-full">
+                <SelectValue placeholder={t('selectPlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTargets.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name} — {b.countryName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={labelClassName}>{t('clientNameLabel')}</label>
-              <input
+              <Input
                 type="text"
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 required
                 maxLength={200}
-                className={fieldClassName}
+                className="mt-2 w-full"
               />
             </div>
             <div>
               <label className={labelClassName}>{t('clientContactLabel')}</label>
-              <input
+              <Input
                 type="text"
                 value={clientContact}
                 onChange={(e) => setClientContact(e.target.value)}
                 required
                 maxLength={255}
                 placeholder={t('clientContactPlaceholder')}
-                className={fieldClassName}
+                className="mt-2 w-full"
               />
             </div>
           </div>
 
           <div>
             <label className={labelClassName}>{t('messageLabel')}</label>
-            <textarea
+            <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               maxLength={500}
               rows={3}
               placeholder={t('messagePlaceholder')}
-              className={fieldClassName}
+              className="mt-2 w-full"
             />
           </div>
 
-          <Button color="brand" size="md" type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? tCommon('saving') : t('submitCta')}
           </Button>
         </form>
@@ -294,7 +312,7 @@ export function IntroductionsPanel({
                     <p className="text-sm text-muted-foreground">{intro.message}</p>
                   )}
                   {intro.rejectionReason && (
-                    <p className="text-sm text-red-600 dark:text-red-400">
+                    <p className="text-sm text-destructive">
                       {t('rejectionReasonLabel')}: {intro.rejectionReason}
                     </p>
                   )}
@@ -307,10 +325,10 @@ export function IntroductionsPanel({
                   {CANCELLABLE_STATUSES.has(intro.status) && (
                     <Button
                       type="button"
-                      color="ghost"
+                      variant="ghost"
                       size="sm"
                       onClick={() => handleCancel(intro.id)}
-                      className="px-0 py-0 text-xs text-red-600 underline hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                      className="h-auto px-0 py-0 text-xs text-destructive underline hover:bg-transparent"
                     >
                       {t('cancelAction')}
                     </Button>

@@ -3,10 +3,17 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, Search, Star, ArrowUp } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { StatusBadge } from '@/components/status-badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -159,10 +166,8 @@ export function BusinessesTable({
             <TableHeader>
               <TableRow>
                 <TableHead>Business</TableHead>
-                <TableHead>Owner</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-center">Recommended</TableHead>
-                <TableHead className="text-center">Top</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -170,7 +175,7 @@ export function BusinessesTable({
             <TableBody>
               {businesses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
                     No businesses found
                   </TableCell>
                 </TableRow>
@@ -181,74 +186,90 @@ export function BusinessesTable({
                   return (
                     <TableRow key={b.id}>
                       <TableCell>
-                        <div>
+                        <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">{b.name}</span>
-                          {b.categoryName && (
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              {b.categoryName}
-                            </span>
+                          {b.featuredTop && (
+                            <Badge variant="default" className="h-4 rounded-sm border-transparent bg-red-100 px-1.5 py-0 text-[10px] font-medium uppercase tracking-wider text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/30">
+                              Top
+                            </Badge>
+                          )}
+                          {b.featuredRecommended && (
+                            <Badge variant="default" className="h-4 rounded-sm border-transparent bg-yellow-100 px-1.5 py-0 text-[10px] font-medium uppercase tracking-wider text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30">
+                              Rec
+                            </Badge>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">
-                          <span>{b.owner.displayName ?? b.owner.phone}</span>
-                          <span className="ml-2 text-xs text-muted-foreground">{b.owner.phone}</span>
-                        </div>
-                        <StatusBadge status={b.owner.membershipTier} />
+                        <span className="text-sm text-muted-foreground">{b.categoryName || '-'}</span>
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={b.status} />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <button
-                          role="switch"
-                          aria-checked={b.featuredRecommended}
-                          aria-label="Toggle recommended"
-                          disabled={!canToggle || !isPublished || isLoading}
-                          onClick={() => handleToggle(b.id, 'featuredRecommended', b.featuredRecommended)}
-                          className={[
-                            'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-                            b.featuredRecommended ? 'bg-primary' : 'bg-input',
-                          ].join(' ')}
-                        >
-                          <span
-                            className={[
-                              'pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform',
-                              b.featuredRecommended ? 'translate-x-4' : 'translate-x-0',
-                            ].join(' ')}
-                          />
-                        </button>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <button
-                          role="switch"
-                          aria-checked={b.featuredTop}
-                          aria-label="Toggle top"
-                          disabled={!canToggle || !isPublished || isLoading}
-                          onClick={() => handleToggle(b.id, 'featuredTop', b.featuredTop)}
-                          className={[
-                            'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-                            b.featuredTop ? 'bg-primary' : 'bg-input',
-                          ].join(' ')}
-                        >
-                          <span
-                            className={[
-                              'pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform',
-                              b.featuredTop ? 'translate-x-4' : 'translate-x-0',
-                            ].join(' ')}
-                          />
-                        </button>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {new Date(b.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link href={`/dashboard/businesses/${b.id}`}>
-                          <Button variant="ghost" size="xs">
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </Button>
-                        </Link>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm" />}>
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Open menu</span>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-52 rounded-sm">
+                            <DropdownMenuItem render={<Link href={`/dashboard/businesses/${b.id}`} />} className="focus:bg-muted rounded-sm">
+                              View
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <div className="flex items-center justify-between px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors cursor-pointer" onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggle(b.id, 'featuredTop', b.featuredTop);
+                              }}>
+                              <span>Top</span>
+                              <button
+                                role="switch"
+                                aria-checked={b.featuredTop}
+                                disabled={!canToggle || !isPublished || isLoading}
+                                className={[
+                                  'relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                                  b.featuredTop ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-zinc-300 dark:bg-zinc-600',
+                                ].join(' ')}
+                              >
+                                <span
+                                  className={[
+                                    'pointer-events-none block h-3 w-3 rounded-full bg-white shadow-lg ring-0 transition-transform dark:bg-zinc-900',
+                                    b.featuredTop ? 'translate-x-3' : 'translate-x-0',
+                                  ].join(' ')}
+                                />
+                              </button>
+                            </div>
+                            <div className="flex items-center justify-between px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors cursor-pointer" onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggle(b.id, 'featuredRecommended', b.featuredRecommended);
+                              }}>
+                              <span>Recommended</span>
+                              <button
+                                role="switch"
+                                aria-checked={b.featuredRecommended}
+                                disabled={!canToggle || !isPublished || isLoading}
+                                className={[
+                                  'relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                                  b.featuredRecommended ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-zinc-300 dark:bg-zinc-600',
+                                ].join(' ')}
+                              >
+                                <span
+                                  className={[
+                                    'pointer-events-none block h-3 w-3 rounded-full bg-white shadow-lg ring-0 transition-transform dark:bg-zinc-900',
+                                    b.featuredRecommended ? 'translate-x-3' : 'translate-x-0',
+                                  ].join(' ')}
+                                />
+                              </button>
+                            </div>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-muted rounded-sm">
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );
@@ -270,63 +291,84 @@ export function BusinessesTable({
               return (
                 <div key={b.id} className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
                       <p className="truncate text-sm font-medium">{b.name}</p>
-                      <p className="text-xs text-muted-foreground">{b.categoryName}</p>
+                      {b.featuredTop && (
+                        <Badge variant="default" className="h-4 rounded-sm border-transparent bg-red-100 px-1.5 py-0 text-[10px] font-medium uppercase tracking-wider text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/30">
+                          Top
+                        </Badge>
+                      )}
+                      {b.featuredRecommended && (
+                        <Badge variant="default" className="h-4 rounded-sm border-transparent bg-yellow-100 px-1.5 py-0 text-[10px] font-medium uppercase tracking-wider text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30">
+                          Rec
+                        </Badge>
+                      )}
                     </div>
                     <StatusBadge status={b.status} />
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{b.owner.displayName ?? b.owner.phone}</span>
+                    <span>{b.categoryName || '-'}</span>
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5">
-                        <Star className="h-3 w-3" />
-                        <button
-                          role="switch"
-                          aria-checked={b.featuredRecommended}
-                          aria-label="Toggle recommended"
-                          disabled={!canToggle || !isPublished || isLoading}
-                          onClick={() => handleToggle(b.id, 'featuredRecommended', b.featuredRecommended)}
-                          className={[
-                            'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-                            b.featuredRecommended ? 'bg-primary' : 'bg-input',
-                          ].join(' ')}
-                        >
-                          <span
-                            className={[
-                              'pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform',
-                              b.featuredRecommended ? 'translate-x-4' : 'translate-x-0',
-                            ].join(' ')}
-                          />
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <ArrowUp className="h-3 w-3" />
-                        <button
-                          role="switch"
-                          aria-checked={b.featuredTop}
-                          aria-label="Toggle top"
-                          disabled={!canToggle || !isPublished || isLoading}
-                          onClick={() => handleToggle(b.id, 'featuredTop', b.featuredTop)}
-                          className={[
-                            'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-                            b.featuredTop ? 'bg-primary' : 'bg-input',
-                          ].join(' ')}
-                        >
-                          <span
-                            className={[
-                              'pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform',
-                              b.featuredTop ? 'translate-x-4' : 'translate-x-0',
-                            ].join(' ')}
-                          />
-                        </button>
-                      </div>
-                      <Link href={`/dashboard/businesses/${b.id}`}>
-                        <Button variant="ghost" size="xs">
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          View
-                        </Button>
-                      </Link>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm" />}>
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52 rounded-sm">
+                          <DropdownMenuItem render={<Link href={`/dashboard/businesses/${b.id}`} />} className="focus:bg-muted rounded-sm">
+                            View
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <div className="flex items-center justify-between px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors cursor-pointer" onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggle(b.id, 'featuredTop', b.featuredTop);
+                            }}>
+                            <span>Top</span>
+                            <button
+                              role="switch"
+                              aria-checked={b.featuredTop}
+                              disabled={!canToggle || !isPublished || isLoading}
+                              className={[
+                                'relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                                b.featuredTop ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-zinc-300 dark:bg-zinc-600',
+                              ].join(' ')}
+                            >
+                              <span
+                                className={[
+                                  'pointer-events-none block h-3 w-3 rounded-full bg-white shadow-lg ring-0 transition-transform dark:bg-zinc-900',
+                                  b.featuredTop ? 'translate-x-3' : 'translate-x-0',
+                                ].join(' ')}
+                              />
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-between px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors cursor-pointer" onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggle(b.id, 'featuredRecommended', b.featuredRecommended);
+                            }}>
+                            <span>Recommended</span>
+                            <button
+                              role="switch"
+                              aria-checked={b.featuredRecommended}
+                              disabled={!canToggle || !isPublished || isLoading}
+                              className={[
+                                'relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                                b.featuredRecommended ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-zinc-300 dark:bg-zinc-600',
+                              ].join(' ')}
+                            >
+                              <span
+                                className={[
+                                  'pointer-events-none block h-3 w-3 rounded-full bg-white shadow-lg ring-0 transition-transform dark:bg-zinc-900',
+                                  b.featuredRecommended ? 'translate-x-3' : 'translate-x-0',
+                                ].join(' ')}
+                              />
+                            </button>
+                          </div>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-muted rounded-sm">
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>

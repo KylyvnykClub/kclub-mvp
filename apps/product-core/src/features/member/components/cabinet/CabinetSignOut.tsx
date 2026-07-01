@@ -5,7 +5,7 @@ import { LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-import { Button } from '@kclub/ui';
+import { Button } from '@/components/ui/button';
 
 import type { Locale } from '@/i18n/routing';
 
@@ -40,11 +40,11 @@ export function CabinetSignOut({ locale }: CabinetSignOutProps) {
   return (
     <Button
       type="button"
-      color="ghost"
+      variant="ghost"
       size="sm"
       onClick={handleSignOut}
       disabled={isLoading}
-      className="flex gap-1.5 px-0 py-0 text-xs tracking-wide text-muted hover:text-foreground"
+      className="flex h-auto gap-1.5 px-0 py-0 text-xs tracking-wide text-muted hover:bg-transparent hover:text-foreground"
     >
       <LogOut size={14} aria-hidden />
       {isLoading ? tCommon('signingOut') : t('signOut')}

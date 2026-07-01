@@ -3,11 +3,12 @@ import { getTranslations } from 'next-intl/server';
 import { Check, FileText, Minus } from 'lucide-react';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
-import { Button, cn } from '@kclub/ui';
 
+import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
 import { getOwnSubscriptions, getOwnInvoices, type InvoiceDto } from '@/server/services/subscription-service';
+import { Button } from '@/components/ui/button';
 
 import { UpgradeToVipButton } from './UpgradeToVipButton';
 
@@ -87,13 +88,7 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
             ))}
           </ul>
           {isVip ? (
-            <Button
-              type="button"
-              color="secondary"
-              size="md"
-              fullWidth
-              disabled
-            >
+            <Button type="button" variant="secondary" disabled className="w-full">
               {t('currentPlanCta')}
             </Button>
           ) : (
@@ -160,7 +155,7 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
                   <span
                     className={cn(
                       'text-xs font-medium',
-                      inv.status === 'paid' ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground',
+                      inv.status === 'paid' ? 'text-success' : 'text-muted-foreground',
                     )}
                   >
                     {inv.status === 'paid' ? t('invoiceStatusPaid') : (inv.status ?? '—')}

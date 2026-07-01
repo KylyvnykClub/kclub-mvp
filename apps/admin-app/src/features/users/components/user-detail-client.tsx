@@ -11,6 +11,7 @@ import {
   RefreshCw,
   ScrollText,
   User,
+  Search,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,6 +19,7 @@ import { StatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -31,7 +33,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { AdminUserDetailDto, StaffRole } from '@kclub/contracts';
 
-const USER_DETAIL_TABS = ['overview', 'cards', 'subscriptions', 'audit'] as const;
+const USER_DETAIL_TABS = ['overview', 'cards', 'subscriptions', 'logs'] as const;
 
 type UserDetailTab = (typeof USER_DETAIL_TABS)[number];
 
@@ -64,6 +66,15 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<UserDetailTab>('overview');
   const [syncing, setSyncing] = useState(false);
+  const [logFilter, setLogFilter] = useState('');
+
+  const filteredLogs = user.auditEntries.filter((entry) => {
+    if (!logFilter) return true;
+    const term = logFilter.toLowerCase();
+    const actionMatch = entry.action.toLowerCase().includes(term);
+    const actorMatch = (entry.actorStaffId || 'System').toLowerCase().includes(term);
+    return actionMatch || actorMatch;
+  });
 
   function handleTabChange(value: string): void {
     setActiveTab(parseUserDetailTab(value));
@@ -150,9 +161,9 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                   {user.subscriptions.length}
                 </Badge>
               </TabsTrigger>
-              <TabsTrigger value="audit">
+              <TabsTrigger value="logs">
                 <ScrollText aria-hidden />
-                Audit
+                Logs
                 <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1">
                   {user.auditEntries.length}
                 </Badge>
@@ -315,15 +326,26 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
               </Card>
             </TabsContent>
 
-            <TabsContent value="audit" className="mt-0">
+            <TabsContent value="logs" className="mt-0">
               <Card>
-                <CardHeader>
-                  <CardTitle>Audit trail</CardTitle>
-                  <CardDescription>{user.auditEntries.length} recorded events.</CardDescription>
+                <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <CardTitle>Logs</CardTitle>
+                    <CardDescription>{user.auditEntries.length} recorded events.</CardDescription>
+                  </div>
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Filter logs..."
+                      className="pl-8"
+                      value={logFilter}
+                      onChange={(e) => setLogFilter(e.target.value)}
+                    />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  {user.auditEntries.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No audit entries.</p>
+                  {filteredLogs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No logs found.</p>
                   ) : (
                     <div className="overflow-x-auto rounded-md border">
                       <Table>
@@ -336,7 +358,7 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {user.auditEntries.map((entry) => (
+                          {filteredLogs.map((entry) => (
                             <TableRow key={entry.id}>
                               <TableCell>
                                 <StatusBadge status={entry.action} />

@@ -3,8 +3,15 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Ban, CheckCircle, ExternalLink, Search } from 'lucide-react';
+import { Ban, CheckCircle, ExternalLink, Search, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
@@ -75,21 +82,20 @@ function BlockConfirmDialog({
   userId,
   userName,
   onAction,
+  open,
+  onOpenChange,
 }: {
   userId: EntityId;
   userName: string;
   onAction: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reason, setReason] = useState('');
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="destructive" size="xs" />}>
-        <Ban className="h-3.5 w-3.5" />
-        Block
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Block user</DialogTitle>
@@ -107,7 +113,7 @@ function BlockConfirmDialog({
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
@@ -121,7 +127,7 @@ function BlockConfirmDialog({
                 toast.error(result.error ?? 'Failed to block user');
                 return;
               }
-              setOpen(false);
+              onOpenChange(false);
               toast.success('User blocked');
               onAction();
             }}
@@ -138,21 +144,20 @@ function UnblockConfirmDialog({
   userId,
   userName,
   onAction,
+  open,
+  onOpenChange,
 }: {
   userId: EntityId;
   userName: string;
   onAction: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reason, setReason] = useState('');
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="xs" />}>
-        <CheckCircle className="h-3.5 w-3.5" />
-        Unblock
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Unblock user</DialogTitle>
@@ -168,7 +173,7 @@ function UnblockConfirmDialog({
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
@@ -181,7 +186,7 @@ function UnblockConfirmDialog({
                 toast.error(result.error ?? 'Failed to unblock user');
                 return;
               }
-              setOpen(false);
+              onOpenChange(false);
               toast.success('User unblocked');
               onAction();
             }}
@@ -191,6 +196,66 @@ function UnblockConfirmDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function UserRowActions({
+  user,
+  canMutate,
+  onAction,
+}: {
+  user: AdminUserListItemDto;
+  canMutate: boolean;
+  onAction: () => void;
+}) {
+  const [showBlock, setShowBlock] = useState(false);
+  const [showUnblock, setShowUnblock] = useState(false);
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm" />}>
+          <MoreHorizontal className="h-4 w-4" />
+          <span className="sr-only">Open menu</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-40 rounded-sm">
+          <DropdownMenuItem render={<Link href={`/dashboard/users/${user.id}`} />} className="focus:bg-muted rounded-sm">
+            View
+          </DropdownMenuItem>
+          {canMutate && user.status === 'ACTIVE' && (
+            <DropdownMenuItem
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-sm"
+              onSelect={() => setShowBlock(true)}
+            >
+              Block
+            </DropdownMenuItem>
+          )}
+          {canMutate && user.status === 'BLOCKED' && (
+            <DropdownMenuItem 
+              className="rounded-sm focus:bg-muted"
+              onSelect={() => setShowUnblock(true)}
+            >
+              Unblock
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <BlockConfirmDialog
+        open={showBlock}
+        onOpenChange={setShowBlock}
+        userId={user.id}
+        userName={user.displayName ?? user.phone}
+        onAction={onAction}
+      />
+      <UnblockConfirmDialog
+        open={showUnblock}
+        onOpenChange={setShowUnblock}
+        userId={user.id}
+        userName={user.displayName ?? user.phone}
+        onAction={onAction}
+      />
+    </>
   );
 }
 
@@ -316,28 +381,7 @@ export function UsersTable({
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link href={`/dashboard/users/${user.id}`}>
-                          <Button variant="ghost" size="xs">
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </Button>
-                        </Link>
-                        {canMutate ? (
-                          user.status === 'ACTIVE' ? (
-                            <BlockConfirmDialog
-                              userId={user.id}
-                              userName={user.displayName ?? user.phone}
-                              onAction={() => router.refresh()}
-                            />
-                          ) : (
-                            <UnblockConfirmDialog
-                              userId={user.id}
-                              userName={user.displayName ?? user.phone}
-                              onAction={() => router.refresh()}
-                            />
-                          )
-                        ) : null}
-                      </div>
+                      <UserRowActions user={user} canMutate={canMutate} onAction={() => router.refresh()} />
                     </TableCell>
                   </TableRow>
                 ))
@@ -363,27 +407,7 @@ export function UsersTable({
                     {new Date(user.createdAt).toLocaleDateString()}
                   </span>
                   <div className="flex items-center gap-1">
-                    <Link href={`/dashboard/users/${user.id}`}>
-                      <Button variant="ghost" size="xs">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        View
-                      </Button>
-                    </Link>
-                    {canMutate ? (
-                      user.status === 'ACTIVE' ? (
-                        <BlockConfirmDialog
-                          userId={user.id}
-                          userName={user.displayName ?? user.phone}
-                          onAction={() => router.refresh()}
-                        />
-                      ) : (
-                        <UnblockConfirmDialog
-                          userId={user.id}
-                          userName={user.displayName ?? user.phone}
-                          onAction={() => router.refresh()}
-                        />
-                      )
-                    ) : null}
+                    <UserRowActions user={user} canMutate={canMutate} onAction={() => router.refresh()} />
                   </div>
                 </div>
               </div>

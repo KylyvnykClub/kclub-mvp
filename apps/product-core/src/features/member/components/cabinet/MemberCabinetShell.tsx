@@ -1,28 +1,20 @@
 'use client';
 
-import Link from 'next/link';
-
 import type { CurrentMemberProfileDto, UserContext } from '@kclub/contracts';
-import { cn } from '@kclub/ui';
 
+import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-tabs';
 import {
   getDashboardTabLockLabel,
   isDashboardTabLocked,
 } from '@/features/member/dashboard-tabs';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/reui/badge';
 
 import { CabinetSignOut } from './CabinetSignOut';
-import {
-  cabinetLockTagClasses,
-  cabinetMobileNavClasses,
-  cabinetNavItemActiveClasses,
-  cabinetNavItemClasses,
-  cabinetNavItemInactiveClasses,
-  cabinetNavItemLockedClasses,
-  cabinetRootClasses,
-  cabinetSidebarClasses,
-} from './styles';
+import { cabinetMobileNavClasses, cabinetRootClasses, cabinetSidebarClasses } from './styles';
 
 type MemberCabinetShellProps = {
   locale: Locale;
@@ -53,43 +45,38 @@ function getPlanLabel(tier: CurrentMemberProfileDto['membershipTier']): string {
   return tier === 'VIP' ? 'VIP' : 'MEMBER';
 }
 
-function renderNavItem({
-  tab,
-  activeTab,
+function renderTabTriggers({
+  visibleTabs,
   tabLabels,
   userContext,
   lockLabels,
-  onTabChange,
+  itemClassName,
 }: {
-  tab: ImplementedMemberDashboardTab;
-  activeTab: ImplementedMemberDashboardTab;
+  visibleTabs: readonly ImplementedMemberDashboardTab[];
   tabLabels: Record<ImplementedMemberDashboardTab, string>;
   userContext: UserContext;
   lockLabels: Record<'VIP' | 'BIZ', string>;
-  onTabChange: (tab: ImplementedMemberDashboardTab) => void;
+  itemClassName: string;
 }) {
-  const locked = isDashboardTabLocked(userContext, tab);
-  const lockLabel = getDashboardTabLockLabel(tab);
-  const isActive = activeTab === tab;
+  return visibleTabs.map((tab) => {
+    const locked = isDashboardTabLocked(userContext, tab);
+    const lockLabel = getDashboardTabLockLabel(tab);
 
-  return (
-    <button
-      key={tab}
-      type="button"
-      onClick={() => onTabChange(tab)}
-      className={cn(
-        cabinetNavItemClasses,
-        isActive ? cabinetNavItemActiveClasses : cabinetNavItemInactiveClasses,
-        locked && !isActive && cabinetNavItemLockedClasses,
-      )}
-      aria-current={isActive ? 'page' : undefined}
-    >
-      <span>{tabLabels[tab]}</span>
-      {locked && lockLabel ? (
-        <span className={cabinetLockTagClasses}>{lockLabels[lockLabel]}</span>
-      ) : null}
-    </button>
-  );
+    return (
+      <TabsTrigger
+        key={tab}
+        value={tab}
+        className={cn(itemClassName, locked && 'text-muted')}
+      >
+        <span>{tabLabels[tab]}</span>
+        {locked && lockLabel ? (
+          <Badge variant="outline" size="xs">
+            {lockLabels[lockLabel]}
+          </Badge>
+        ) : null}
+      </TabsTrigger>
+    );
+  });
 }
 
 export function MemberCabinetShell({
@@ -109,39 +96,71 @@ export function MemberCabinetShell({
   const displayName = profile.displayName ?? profile.phone;
   const planLabel = getPlanLabel(profile.membershipTier);
 
+  const handleValueChange = (value: string) => {
+    onTabChange(value as ImplementedMemberDashboardTab);
+  };
+
   return (
     <div className={cabinetRootClasses}>
-      <nav aria-label={tabsAriaLabel} className={cabinetMobileNavClasses}>
-        {visibleTabs.map((tab) =>
-          renderNavItem({ tab, activeTab, tabLabels, userContext, lockLabels, onTabChange }),
-        )}
-      </nav>
+      <Tabs value={activeTab} onValueChange={handleValueChange} className={cabinetMobileNavClasses}>
+        <TabsList
+          aria-label={tabsAriaLabel}
+          variant="line"
+          className="h-auto w-full justify-start gap-0 rounded-none bg-transparent p-0"
+        >
+          {renderTabTriggers({
+            visibleTabs,
+            tabLabels,
+            userContext,
+            lockLabels,
+            itemClassName:
+              'shrink-0 gap-2 rounded-none px-4 py-3.5 text-sm font-semibold tracking-wide',
+          })}
+        </TabsList>
+      </Tabs>
 
       <aside className={cabinetSidebarClasses}>
-        
-
         <div className="shrink-0 border-b border-border px-6 py-5">
           <div className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/30 bg-surface-muted text-sm font-bold text-accent"
-              aria-hidden="true"
-            >
-              {getInitials(displayName)}
-            </div>
+            <Avatar size="lg" className="border border-accent/30 bg-surface-muted">
+              <AvatarFallback className="bg-transparent text-sm font-bold text-accent">
+                {getInitials(displayName)}
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
-              <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent">
+              <Badge
+                variant={planLabel === 'VIP' ? 'success-light' : 'outline'}
+                size="sm"
+                className="mt-1"
+              >
                 {planLabel}
-              </p>
+              </Badge>
             </div>
           </div>
         </div>
 
-        <nav aria-label={tabsAriaLabel} className="flex-1 space-y-0 py-2">
-          {visibleTabs.map((tab) =>
-            renderNavItem({ tab, activeTab, tabLabels, userContext, lockLabels, onTabChange }),
-          )}
-        </nav>
+        <Tabs
+          value={activeTab}
+          onValueChange={handleValueChange}
+          orientation="vertical"
+          className="flex-1"
+        >
+          <TabsList
+            aria-label={tabsAriaLabel}
+            variant="line"
+            className="h-fit w-full flex-col items-stretch justify-start gap-0 rounded-none bg-transparent p-0 py-2"
+          >
+            {renderTabTriggers({
+              visibleTabs,
+              tabLabels,
+              userContext,
+              lockLabels,
+              itemClassName:
+                'h-auto w-full flex-none grow-0 justify-between rounded-none px-6 py-3.5 text-sm font-semibold tracking-wide',
+            })}
+          </TabsList>
+        </Tabs>
 
         <div className="shrink-0 border-t border-border px-6 py-5">
           <CabinetSignOut locale={locale} />
