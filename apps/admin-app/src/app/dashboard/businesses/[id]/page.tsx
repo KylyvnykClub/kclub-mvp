@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { requireStaffProfile } from '@/server/auth/profile';
-import { fetchBusinessDetail } from '@/features/businesses/api';
+import { fetchBusinessDetail, fetchBusinessIntroductions } from '@/features/businesses/api';
 import { BusinessDetailClient } from '@/features/businesses/components/business-detail-client';
 
 type BusinessDetailsPageProps = {
@@ -23,7 +23,10 @@ function BusinessDetailFallback() {
 export default async function BusinessDetailsPage({ params }: BusinessDetailsPageProps) {
   const { id } = await params;
   const profile = await requireStaffProfile();
-  const business = await fetchBusinessDetail(id);
+  const [business, introductions] = await Promise.all([
+    fetchBusinessDetail(id),
+    fetchBusinessIntroductions(id),
+  ]);
 
   if (!business) {
     notFound();
@@ -31,7 +34,7 @@ export default async function BusinessDetailsPage({ params }: BusinessDetailsPag
 
   return (
     <Suspense fallback={<BusinessDetailFallback />}>
-      <BusinessDetailClient business={business} staffRole={profile.role} />
+      <BusinessDetailClient business={business} staffRole={profile.role} introductions={introductions} />
     </Suspense>
   );
 }
