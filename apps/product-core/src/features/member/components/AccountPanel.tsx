@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Camera } from 'lucide-react';
+import { toast } from 'sonner';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
@@ -16,7 +17,6 @@ import { KylyvnykClubCard } from '@/features/member/components/KylyvnykClubCard'
 import { cabinetContentClasses, cabinetFieldLabelClasses } from '@/features/member/components/cabinet/styles';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/reui/badge';
-import { Alert, AlertDescription } from '@/components/reui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -67,9 +67,6 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
 
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [avatarError, setAvatarError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const memberName = displayName || profile.displayName || profile.phone;
   const regDate = new Date(profile.createdAt).toLocaleDateString(locale, {
@@ -82,12 +79,9 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
 
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     setIsUploadingAvatar(true);
-    setAvatarError(null);
 
     try {
       const formData = new FormData();
@@ -97,26 +91,22 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
       const result = await parseAuthResponse<CurrentMemberProfileDto>(res);
 
       if (!result.success || !result.data) {
-        setAvatarError(t('avatarUploadError'));
+        toast.error(t('avatarUploadError'));
         return;
       }
 
       setAvatarUrl(result.data.avatarUrl ?? '');
       router.refresh();
     } catch {
-      setAvatarError(t('avatarUploadError'));
+      toast.error(t('avatarUploadError'));
     } finally {
       setIsUploadingAvatar(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-    setError(null);
-    setSaveSuccess(false);
 
     try {
       const res = await fetch(MEMBER_API_ROUTES.ME, {
@@ -134,14 +124,14 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
       const result = await parseAuthResponse<CurrentMemberProfileDto>(res);
 
       if (!result.success) {
-        setError(t('saveError'));
+        toast.error(t('saveError'));
         return;
       }
 
-      setSaveSuccess(true);
+      toast.success(t('saveSuccess'));
       router.refresh();
     } catch {
-      setError(t('saveError'));
+      toast.error(t('saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -202,12 +192,6 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
           className="shrink-0"
         />
       </div>
-
-      {avatarError ? (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>{avatarError}</AlertDescription>
-        </Alert>
-      ) : null}
 
       <div className="mb-8 grid gap-5 sm:grid-cols-2">
         <div>
@@ -320,18 +304,7 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
         </div>
       </div>
 
-      {error ? (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : null}
-
       <div className="flex items-center justify-end gap-4">
-        {saveSuccess ? (
-          <Alert variant="success" className="w-auto py-1.5">
-            <AlertDescription>{t('saveSuccess')}</AlertDescription>
-          </Alert>
-        ) : null}
         <Button type="button" onClick={handleSave} disabled={isSaving}>
           {isSaving ? t('saving') : t('save')}
         </Button>

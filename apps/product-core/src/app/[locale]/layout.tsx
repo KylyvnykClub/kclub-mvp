@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import '@kclub/ui/styles/tokens.css';
 import '../globals.css';
 
+import { Toaster } from 'sonner';
 import { SkipLink, cn } from '@kclub/ui';
 import { Footer } from '@/features/marketing/components/Footer';
 import { ThemeProvider } from '@/features/marketing/components/ThemeProvider';
@@ -64,6 +65,7 @@ export default async function LocaleLayout(props: {
               {props.children}
             </main>
             <Footer locale={locale} />
+            <Toaster position="top-center" richColors closeButton />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

@@ -11,6 +11,7 @@ import { getOwnSubscriptions, getOwnInvoices, type InvoiceDto } from '@/server/s
 import { Button, getButtonClasses } from '@kclub/ui';
 
 import { UpgradeToVipButton } from './UpgradeToVipButton';
+import { CancelSubscriptionButton } from './CancelSubscriptionButton';
 
 type SubscriptionUpgradePanelProps = {
   locale: Locale;
@@ -88,9 +89,9 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
           </ul>
           <div className="mt-8">
             {isVip ? (
-              <Button type="button" variant="secondary" disabled className="w-full">
-                {t('currentPlanCta')}
-              </Button>
+              activeSubscription ? (
+                <CancelSubscriptionButton subscriptionId={activeSubscription.id} />
+              ) : null
             ) : (
               <UpgradeToVipButton locale={locale} />
             )}
