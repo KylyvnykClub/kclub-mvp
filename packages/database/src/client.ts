@@ -15,7 +15,12 @@ export function getDbClient() {
       throw new Error('DATABASE_URL environment variable is required');
     }
     
-    connection = postgres(connectionString, { prepare: false });
+    connection = postgres(connectionString, {
+      prepare: false,
+      max: 3,
+      idle_timeout: 20,
+      connect_timeout: 10,
+    });
     db = drizzle(connection, { schema: fullSchema });
   }
   return db;

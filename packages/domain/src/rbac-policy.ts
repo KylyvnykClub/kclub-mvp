@@ -65,8 +65,8 @@ export function getVisibleDashboardTabs(ctx: UserContext): readonly MemberDashbo
   const tabs: MemberDashboardTab[] = [
     'details', 'subscription', 'settings',
   ];
-  if (ctx.isVip || ctx.hasBusiness) tabs.push('introductions');
-  if (ctx.hasBusiness) tabs.push('business');
+  if (ctx.isVip) tabs.push('introductions');
+  if (ctx.isVip) tabs.push('business');
   return tabs;
 }
 

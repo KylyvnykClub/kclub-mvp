@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Check, FileText, Minus } from 'lucide-react';
+import { ArrowUpRight, Check, FileText, Minus } from 'lucide-react';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
 
@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
 import { getOwnSubscriptions, getOwnInvoices, type InvoiceDto } from '@/server/services/subscription-service';
-import { Button } from '@/components/ui/button';
+import { Button, getButtonClasses } from '@kclub/ui';
 
 import { UpgradeToVipButton } from './UpgradeToVipButton';
 
@@ -52,6 +52,7 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
         <div
           className={cn(
             cabinetGridPanelClasses,
+            'flex flex-col',
             isVip && 'border-accent/25 border-t-2 border-t-accent bg-surface',
           )}
         >
@@ -59,17 +60,15 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
             <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.14em] text-accent">
               {t('currentPlanBadge')}
             </p>
-          ) : (
-            <div className="mb-4 h-6" />
-          )}
-          <p className="mb-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">VIP</p>
+          ) : null}
+          <p className="mb-3.5 text-xl font-semibold uppercase tracking-[0.14em] text-accent">VIP</p>
           <div className="mb-1 flex items-baseline gap-1">
             <span className="text-5xl font-bold leading-none text-foreground">$19</span>
             <span className="self-start pt-2 text-xl font-semibold text-foreground">.99</span>
             <span className="ml-1 text-sm text-muted-foreground">{t('vipPeriod')}</span>
           </div>
           <p className="mb-8 text-xs tracking-wide text-muted">{t('billingNote')}</p>
-          <ul className="mb-9 space-y-3">
+          <ul className="mb-0 flex-1 space-y-3">
             {vipFeatures.map((feature) => (
               <li
                 key={feature.label}
@@ -87,23 +86,24 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
               </li>
             ))}
           </ul>
-          {isVip ? (
-            <Button type="button" variant="secondary" disabled className="w-full">
-              {t('currentPlanCta')}
-            </Button>
-          ) : (
-            <UpgradeToVipButton locale={locale} />
-          )}
+          <div className="mt-8">
+            {isVip ? (
+              <Button type="button" variant="secondary" disabled className="w-full">
+                {t('currentPlanCta')}
+              </Button>
+            ) : (
+              <UpgradeToVipButton locale={locale} />
+            )}
+          </div>
         </div>
 
-        <div className={cn(cabinetGridPanelClasses)}>
-          <div className="mb-4 h-6" />
-          <p className="mb-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+        <div className={cn(cabinetGridPanelClasses, 'flex flex-col')}>
+          <p className="mb-3.5 text-xl font-semibold uppercase tracking-[0.14em] text-accent">
             Business
           </p>
           <p className="mb-2.5 text-2xl font-bold text-foreground">{t('businessPrice')}</p>
           <p className="mb-8 text-sm leading-relaxed text-muted">{t('businessPriceHint')}</p>
-          <ul className="mb-9 space-y-3">
+          <ul className="mb-0 flex-1 space-y-3">
             {businessFeatures.map((feature) => (
               <li key={feature.label} className="flex items-start gap-2.5 text-sm text-muted-foreground">
                 <Check size={14} className="mt-0.5 shrink-0 text-accent" aria-hidden />
@@ -113,9 +113,15 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
           </ul>
           <Link
             href={`/${locale}/m/business/onboarding`}
-            className="inline-flex w-full items-center justify-center bg-accent px-6 py-3.5 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover"
+            className={getButtonClasses({
+              color: 'brand',
+              size: 'md',
+              fullWidth: true,
+              className: 'mt-8 flex h-14 shrink-0',
+            })}
           >
             {t('businessCta')}
+            <ArrowUpRight aria-hidden="true" size={18} />
           </Link>
         </div>
       </div>

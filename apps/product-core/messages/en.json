@@ -323,7 +323,7 @@
         "biz": "BIZ"
       },
       "tabs": {
-        "details": "Details",
+        "details": "Account",
         "card": "Card",
         "subscription": "Subscription",
         "audit": "Activity",
@@ -332,7 +332,7 @@
         "account": "Account",
         "catalog": "Catalog",
         "business": "Business",
-        "introductions": "Introductions",
+        "introductions": "Recommend a Client",
         "profile": "My Account"
       },
       "card": {
@@ -385,7 +385,7 @@
         "vipFeature6": "Team management",
         "businessPrice": "Contact sales",
         "businessPriceHint": "Custom pricing based on your team size and requirements. Our team will get back to you within 24 hours.",
-        "businessCta": "Get Business →",
+        "businessCta": "Get Business",
         "businessFeature1": "Everything in VIP",
         "businessFeature2": "Access to Business tools",
         "businessFeature3": "Team management (up to 10)",

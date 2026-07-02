@@ -323,7 +323,7 @@
         "biz": "BIZ"
       },
       "tabs": {
-        "details": "Профиль",
+        "details": "Аккаунт",
         "card": "Карточка",
         "subscription": "Подписка",
         "audit": "Активность",
@@ -332,7 +332,7 @@
         "account": "Аккаунт",
         "catalog": "Каталог",
         "business": "Бизнес",
-        "introductions": "Знакомства",
+        "introductions": "Рекомендовать клиента",
         "profile": "Мой аккаунт"
       },
       "card": {
@@ -385,7 +385,7 @@
         "vipFeature6": "Управление командой",
         "businessPrice": "Связаться с отделом продаж",
         "businessPriceHint": "Индивидуальная цена в зависимости от размера команды и требований. Мы ответим в течение 24 часов.",
-        "businessCta": "Получить Business →",
+        "businessCta": "Получить Business",
         "businessFeature1": "Всё из VIP",
         "businessFeature2": "Доступ к бизнес-инструментам",
         "businessFeature3": "Управление командой (до 10)",

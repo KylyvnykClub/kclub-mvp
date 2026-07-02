@@ -323,7 +323,7 @@
         "biz": "BIZ"
       },
       "tabs": {
-        "details": "Профіль",
+        "details": "Акаунт",
         "card": "Картка",
         "subscription": "Підписка",
         "audit": "Активність",
@@ -332,7 +332,7 @@
         "account": "Акаунт",
         "catalog": "Каталог",
         "business": "Бізнес",
-        "introductions": "Знайомства",
+        "introductions": "Рекомендувати клієнта",
         "profile": "Мій акаунт"
       },
       "card": {
@@ -385,7 +385,7 @@
         "vipFeature6": "Управління командою",
         "businessPrice": "Зв'язатися з відділом продажів",
         "businessPriceHint": "Індивідуальна ціна залежно від розміру команди та вимог. Ми відповімо протягом 24 годин.",
-        "businessCta": "Отримати Business →",
+        "businessCta": "Отримати Business",
         "businessFeature1": "Усе з VIP",
         "businessFeature2": "Доступ до бізнес-інструментів",
         "businessFeature3": "Управління командою (до 10)",

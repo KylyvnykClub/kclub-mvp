@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowUpRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
-import { Spinner } from '@kclub/ui';
+import { getButtonClasses, Spinner } from '@kclub/ui';
 
 import { parseAuthResponse } from '@/features/auth/utils/api';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/reui/alert';
 
 type Props = {
@@ -45,14 +45,20 @@ export function UpgradeToVipButton({ locale: _locale }: Props) {
 
   return (
     <div className="space-y-2">
-      <Button
+      <button
         onClick={handleUpgrade}
         disabled={isLoading}
-        className="w-full gap-2 rounded-none border-0 bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+        className={getButtonClasses({
+          color: 'brand',
+          size: 'md',
+          fullWidth: true,
+          className: 'flex h-14 shrink-0 disabled:cursor-not-allowed disabled:opacity-60',
+        })}
       >
-        {isLoading && <Spinner size={13} />}
+        {isLoading ? <Spinner size={13} /> : null}
         {isLoading ? t('vipUpgrading') : t('vipCta')}
-      </Button>
+        {!isLoading ? <ArrowUpRight aria-hidden="true" size={18} /> : null}
+      </button>
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

@@ -102,6 +102,30 @@ export function MemberCabinetShell({
 
   return (
     <div className={cabinetRootClasses}>
+      {/* Unified header spanning full width */}
+      <header className="sticky top-0 z-20 col-span-full flex w-full shrink-0 items-center justify-between gap-4 border-b border-border bg-surface px-6 py-4 sm:px-10 lg:order-first lg:col-span-full">
+        <div className="flex items-center gap-3">
+          <Avatar size="lg" className="border border-accent/30 bg-surface-muted">
+            <AvatarFallback className="bg-transparent text-sm font-bold text-accent">
+              {getInitials(displayName)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
+            <Badge
+              variant={planLabel === 'VIP' ? 'success-light' : 'outline'}
+              size="sm"
+              className="mt-1"
+            >
+              {planLabel}
+            </Badge>
+          </div>
+        </div>
+        <h1 className="text-xl font-semibold text-foreground sm:text-2xl">{pageTitle}</h1>
+        <p className="hidden text-sm text-muted sm:block">{contactLine}</p>
+      </header>
+
+      {/* Mobile tabs */}
       <Tabs value={activeTab} onValueChange={handleValueChange} className={cabinetMobileNavClasses}>
         <TabsList
           aria-label={tabsAriaLabel}
@@ -119,60 +143,39 @@ export function MemberCabinetShell({
         </TabsList>
       </Tabs>
 
-      <aside className={cabinetSidebarClasses}>
-        <div className="shrink-0 border-b border-border px-6 py-5">
-          <div className="flex items-center gap-3">
-            <Avatar size="lg" className="border border-accent/30 bg-surface-muted">
-              <AvatarFallback className="bg-transparent text-sm font-bold text-accent">
-                {getInitials(displayName)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
-              <Badge
-                variant={planLabel === 'VIP' ? 'success-light' : 'outline'}
-                size="sm"
-                className="mt-1"
-              >
-                {planLabel}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        <Tabs
-          value={activeTab}
-          onValueChange={handleValueChange}
-          orientation="vertical"
-          className="flex-1"
-        >
-          <TabsList
-            aria-label={tabsAriaLabel}
-            variant="line"
-            className="h-fit w-full flex-col items-stretch justify-start gap-0 rounded-none bg-transparent p-0 py-2"
+      {/* Sidebar + content row */}
+      <div className="flex flex-1 flex-col lg:flex-row">
+        <aside className={cabinetSidebarClasses}>
+          <Tabs
+            value={activeTab}
+            onValueChange={handleValueChange}
+            orientation="vertical"
+            className="flex-1"
           >
-            {renderTabTriggers({
-              visibleTabs,
-              tabLabels,
-              userContext,
-              lockLabels,
-              itemClassName:
-                'h-auto w-full flex-none grow-0 justify-between rounded-none px-6 py-3.5 text-sm font-semibold tracking-wide',
-            })}
-          </TabsList>
-        </Tabs>
+            <TabsList
+              aria-label={tabsAriaLabel}
+              variant="line"
+              className="h-fit w-full flex-col items-stretch justify-start gap-0 rounded-none bg-transparent p-0 py-2"
+            >
+              {renderTabTriggers({
+                visibleTabs,
+                tabLabels,
+                userContext,
+                lockLabels,
+                itemClassName:
+                  'h-auto w-full flex-none grow-0 justify-between rounded-none px-6 py-3.5 text-sm font-semibold tracking-wide',
+              })}
+            </TabsList>
+          </Tabs>
 
-        <div className="shrink-0 border-t border-border px-6 py-5">
-          <CabinetSignOut locale={locale} />
+          <div className="shrink-0 border-t border-border px-6 py-5">
+            <CabinetSignOut locale={locale} />
+          </div>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex-1">{children}</div>
         </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-border bg-surface px-6 py-6 sm:px-12">
-          <h1 className="text-xl font-semibold text-foreground sm:text-2xl">{pageTitle}</h1>
-          <p className="hidden text-sm text-muted sm:block">{contactLine}</p>
-        </header>
-        <div className="flex-1">{children}</div>
       </div>
     </div>
   );
