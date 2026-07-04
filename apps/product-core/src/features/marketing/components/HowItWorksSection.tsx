@@ -16,7 +16,7 @@ export function HowItWorksSection() {
   const data = steps.map((step) => ({
     title: step.title,
     content: (
-      <p className="mb-8 text-xs font-normal leading-relaxed text-zinc-600 dark:text-white/70 md:text-sm">
+      <p className="kclub-section-copy mb-8 text-base font-normal leading-relaxed">
         {step.description}
       </p>
     ),
@@ -25,13 +25,13 @@ export function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="kclub-border border-b bg-surface-muted py-16 dark:bg-surface-muted sm:py-24"
+      className="kclub-border kclub-section-py border-b bg-surface-muted dark:bg-surface-muted"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <p className="border-l-4 border-accent pl-4 text-xs font-bold uppercase text-zinc-500 dark:text-white/60">
+      <div className="kclub-shell">
+        <p className="kclub-section-eyebrow">
           {t('howItWorks.eyebrow')}
         </p>
-        <h2 className="mt-5 max-w-3xl text-4xl font-black uppercase leading-tight text-zinc-950 dark:text-white sm:text-6xl">
+        <h2 className="kclub-section-title mt-5 max-w-3xl">
           {t('howItWorks.title')}
         </h2>
       </div>

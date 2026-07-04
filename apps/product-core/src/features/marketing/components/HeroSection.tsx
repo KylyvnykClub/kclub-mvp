@@ -153,7 +153,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
         >
           <motion.p
             variants={itemVariants}
-            className="kclub-section-label mb-11 border-l border-accent pl-4 text-xs font-semibold uppercase tracking-[0.24em] text-zinc-600 dark:text-white/70"
+            className="kclub-section-label kclub-section-copy mb-11 border-l border-accent pl-4 text-xs font-semibold uppercase tracking-[0.24em]"
           >
             {t('hero.eyebrow')}
           </motion.p>

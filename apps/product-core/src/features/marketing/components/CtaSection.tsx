@@ -9,16 +9,16 @@ export function CtaSection({ locale }: { locale: Locale }) {
   const t = useTranslations('home');
 
   return (
-    <section className="kclub-border border-y bg-zinc-100 py-16 text-zinc-950 dark:bg-surface-raised dark:text-white sm:py-24">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end lg:px-10">
+    <section className="kclub-border kclub-section-py border-y bg-zinc-100 text-zinc-950 dark:bg-surface-raised dark:text-white">
+      <div className="kclub-shell grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
-          <p className="mb-5 border-l-4 border-accent pl-4 text-xs font-bold uppercase text-zinc-500 dark:text-white/60">
+          <p className="kclub-section-eyebrow mb-5">
             KCLUB
           </p>
-          <h2 className="max-w-4xl text-4xl font-black uppercase leading-tight sm:text-6xl">
+          <h2 className="kclub-section-title max-w-4xl">
             {t('cta.title')}
           </h2>
-          <p className="mt-5 max-w-2xl text-base font-medium leading-8 text-zinc-600 dark:text-white/70">
+          <p className="kclub-section-copy mt-5 max-w-2xl text-base font-medium leading-8">
             {t('cta.subline')}
           </p>
         </div>

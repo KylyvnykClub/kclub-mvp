@@ -40,18 +40,18 @@ export function ServicesSection({ locale }: { locale: Locale }) {
   ];
 
   return (
-    <section className="kclub-border border-b bg-white py-16 dark:bg-background sm:py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+    <section className="kclub-border kclub-section-py border-b bg-white dark:bg-background">
+      <div className="kclub-shell">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="border-l-4 border-accent pl-4 text-xs font-bold uppercase text-zinc-500 dark:text-white/60">
+          <p className="kclub-section-eyebrow">
             {t('services.eyebrow')}
           </p>
-          <h2 className="mt-5 max-w-4xl text-4xl font-black uppercase leading-tight text-zinc-950 dark:text-white sm:text-6xl">
+          <h2 className="kclub-section-title mt-5 max-w-4xl">
             {t('services.title')}
           </h2>
         </motion.div>
@@ -71,7 +71,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
               {plan.featured ? <div className="absolute inset-x-0 top-0 h-1.5 bg-accent" /> : null}
               <div className="flex items-start justify-between gap-6">
                 <div>
-                  <h3 className="text-sm font-black uppercase text-zinc-500 dark:text-white/60">
+                  <h3 className="text-base font-black uppercase text-zinc-500 dark:text-white/60">
                     {plan.name}
                   </h3>
                   <p className="mt-5 text-5xl font-black text-zinc-950 dark:text-white">
@@ -86,7 +86,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                 {plan.items.map((item) => (
                   <li
                     key={item}
-                    className="flex gap-3 text-sm font-medium leading-6 text-zinc-600 dark:text-white/70"
+                    className="kclub-section-copy flex gap-3 text-base font-medium leading-6"
                   >
                     <Check
                       aria-hidden="true"
