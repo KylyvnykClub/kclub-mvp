@@ -123,7 +123,7 @@ export function MarketingCarousel({ header, labels, children, itemCount }: Marke
         <div aria-label={labels.navigation} className="flex shrink-0 items-center gap-3">
           <IconButton
             aria-label={labels.previous}
-            className="kclub-border border disabled:cursor-not-allowed disabled:opacity-40"
+            className="!bg-transparent disabled:cursor-not-allowed disabled:opacity-40"
             disabled={!canScrollPrev}
             onClick={() => {
               goToIndex(activeIndexRef.current - 1);
@@ -134,7 +134,7 @@ export function MarketingCarousel({ header, labels, children, itemCount }: Marke
           </IconButton>
           <IconButton
             aria-label={labels.next}
-            className="kclub-border border disabled:cursor-not-allowed disabled:opacity-40"
+            className="!bg-transparent disabled:cursor-not-allowed disabled:opacity-40"
             disabled={!canScrollNext}
             onClick={() => {
               goToIndex(activeIndexRef.current + 1);
@@ -148,7 +148,7 @@ export function MarketingCarousel({ header, labels, children, itemCount }: Marke
 
       <div
         ref={scrollRef}
-        className="kclub-hide-scrollbar -mx-4 mt-12 flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
+        className="kclub-hide-scrollbar -mx-4 mt-6 flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
       >
         {children}
       </div>

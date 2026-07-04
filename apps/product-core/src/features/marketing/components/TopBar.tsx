@@ -11,6 +11,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -18,6 +19,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { IconButton, cn } from '@kclub/ui';
+import crownGoldLogo from '@/assets/logo/crown-gold--logo.png';
 import { Locale } from '@/i18n/routing';
 
 import { LocaleSwitcherLinks } from './LocaleSwitcherLinks';
@@ -112,13 +114,18 @@ export function TopBar({
       <div className="kclub-shell flex h-full items-center justify-between">
         <Link
           href={`/${locale}`}
-          className="group inline-flex items-center gap-3 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus dark:focus-visible:ring-white dark:focus-visible:ring-offset-focus"
+          className="group inline-flex items-center gap-1 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus dark:focus-visible:ring-white dark:focus-visible:ring-offset-focus"
         >
-          <span className="grid text-2xl font-bold leading-none text-zinc-950 dark:text-white">
-            <span>KYLYVNYK CLUB</span>
-            <span className="text-thin text-base font-normal text-zinc-500 dark:text-zinc-500">
-              discover new
-            </span>
+          <Image
+            src={crownGoldLogo}
+            alt=""
+            aria-hidden="true"
+            className="h-6 w-6 shrink-0 object-contain"
+            priority
+          />
+          <span className="grid text-xl font-bold leading-none text-zinc-950 dark:text-accent">
+           KYLYVNYK CLUB
+           
           </span>
         </Link>
 
