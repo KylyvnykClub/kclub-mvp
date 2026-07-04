@@ -1,6 +1,8 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
+import crownGoldLogo from '@/assets/logo/crown-gold--logo.png';
 import { Locale } from '@/i18n/routing';
 
 import { LocaleSwitcherLinks } from './LocaleSwitcherLinks';
@@ -34,7 +36,7 @@ export function Footer({ locale }: { locale: Locale }) {
         <div>
           <h2 className="inline-flex items-center gap-3 text-sm font-bold uppercase">
             <span className="flex h-10 w-10 items-center justify-center bg-accent text-white">
-              K
+              <Image src={crownGoldLogo} alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
             </span>
             {t('brand')}
           </h2>
