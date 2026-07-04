@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { cn } from '@kclub/ui';
 
-import cardLogo from '@/assets/card-logo.png';
+import cardLogo from '@/assets/logo/card-logo.png';
 
 export type KylyvnykClubCardProps = {
   name?: string;

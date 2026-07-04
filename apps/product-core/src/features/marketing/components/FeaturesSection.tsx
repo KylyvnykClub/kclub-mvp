@@ -20,8 +20,12 @@ export function FeaturesSection() {
   return (
     <section className="kclub-border relative overflow-hidden border-b bg-surface-muted py-16 dark:bg-surface-muted sm:py-24">
       <div
-        className="kclub-hero-visual absolute inset-0"
+        className="kclub-hero-visual absolute inset-x-0 top-0 h-[480px] sm:inset-0 sm:h-auto"
         style={{ '--hero-bg-image': `url(${heroBg.src})` } as CSSProperties}
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-x-0 top-0 h-[480px] bg-gradient-to-b from-transparent to-surface-muted sm:hidden"
         aria-hidden="true"
       />
       <div

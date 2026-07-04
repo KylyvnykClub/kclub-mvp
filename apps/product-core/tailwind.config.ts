@@ -30,6 +30,12 @@ const config: Config = {
   darkMode: 'class',
   theme: {
     extend: {
+      // Body-copy sizes only (xs/sm are what <p> tags use across the app).
+      // Bump the scale here to resize all body text project-wide from one place.
+      fontSize: {
+        xs: ['0.8125rem', { lineHeight: '1.25rem' }],
+        sm: ['0.9375rem', { lineHeight: '1.5rem' }],
+      },
       fontFamily: {
         sans: [
           'var(--font-titillium)',

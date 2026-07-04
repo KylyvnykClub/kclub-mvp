@@ -98,6 +98,28 @@
         }
       ]
     },
+    "howItWorks": {
+      "eyebrow": "Getting Started",
+      "title": "How It Works",
+      "steps": [
+        {
+          "title": "Apply",
+          "description": "Submit your membership application in a few minutes — no paperwork, just your details."
+        },
+        {
+          "title": "Get Verified",
+          "description": "Our team reviews your application and issues your QR-verified digital club card."
+        },
+        {
+          "title": "Unlock Access",
+          "description": "Sign in to the member cabinet to reach the partner directory and VIP features."
+        },
+        {
+          "title": "Grow Your Network",
+          "description": "Get warm business introductions and connect with verified members across the club."
+        }
+      ]
+    },
     "services": {
       "eyebrow": "Access",
       "title": "Membership Plans",
