@@ -13,19 +13,19 @@ const vipCtx: UserContext = { isVip: true, hasBusiness: false, businessPublished
 const businessCtx: UserContext = { isVip: false, hasBusiness: true, businessPublished: true };
 const vipBusinessCtx: UserContext = { isVip: true, hasBusiness: true, businessPublished: true };
 
-const BASE_TABS = ['details', 'card', 'subscription', 'settings'] as const;
+const BASE_TABS = ['details', 'subscription', 'settings'] as const;
 
 describe('member dashboard tabs', () => {
-  test('plain member sees base 4 tabs', () => {
+  test('plain member sees base 3 tabs', () => {
     expect(getImplementedDashboardTabs(memberCtx)).toEqual(BASE_TABS);
   });
 
-  test('VIP sees base tabs + introductions', () => {
-    expect(getImplementedDashboardTabs(vipCtx)).toEqual([...BASE_TABS, 'introductions']);
+  test('VIP sees base tabs + introductions + business', () => {
+    expect(getImplementedDashboardTabs(vipCtx)).toEqual([...BASE_TABS, 'introductions', 'business']);
   });
 
-  test('member with business sees base tabs + introductions + business', () => {
-    expect(getImplementedDashboardTabs(businessCtx)).toEqual([...BASE_TABS, 'introductions', 'business']);
+  test('member with business (not VIP) sees only base tabs', () => {
+    expect(getImplementedDashboardTabs(businessCtx)).toEqual(BASE_TABS);
   });
 
   test('VIP with business sees base tabs + introductions + business', () => {
@@ -34,7 +34,7 @@ describe('member dashboard tabs', () => {
 
   test('no tab is locked', () => {
     expect(isDashboardTabLocked(memberCtx, 'details')).toBe(false);
-    expect(isDashboardTabLocked(memberCtx, 'card')).toBe(false);
+    expect(isDashboardTabLocked(memberCtx, 'subscription')).toBe(false);
   });
 
   test('normalizes invalid tab to first visible tab (details)', () => {
@@ -52,7 +52,7 @@ describe('member dashboard tabs', () => {
   test('keeps visible tab selection', () => {
     const tabs = getImplementedDashboardTabs(memberCtx);
     expect(normalizeDashboardTab('settings', tabs)).toBe('settings');
-    expect(normalizeDashboardTab('card', tabs)).toBe('card');
+    expect(normalizeDashboardTab('subscription', tabs)).toBe('subscription');
   });
 
   test('falls back when legacy audit or permissions tab is requested', () => {
