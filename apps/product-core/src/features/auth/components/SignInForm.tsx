@@ -1,12 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-import { Button, Field, Input, Label, linkClasses, textMuted } from '@kclub/ui';
+import crowLogo from '@/assets/logo/crow--logo.png';
+import { Button, Field, Input, Label, linkClasses, PhoneInput, textMuted } from '@kclub/ui';
+import {
+  defaultCountryForLocale,
+  kclubPhonePanelClassName,
+  kclubPhoneTriggerClassName,
+  renderCountryFlag,
+} from '@/components/ui/country-flag';
 import { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '../utils/api';
 
@@ -107,24 +115,13 @@ export function SignInForm({ locale }: { locale: Locale }) {
       </section>
 
       <div className="relative mx-auto w-full max-w-[440px] overflow-hidden border border-zinc-200 bg-white p-6 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.45)] dark:border-white/10 dark:bg-surface sm:p-8">
-        <div className="absolute inset-x-0 top-0 h-1 bg-accent" />
-
         <div className="mb-10 text-center">
-          <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center border border-zinc-200 bg-zinc-100 dark:border-white/10 dark:bg-surface-muted">
-            <svg
-              className="h-6 w-6 text-zinc-700 dark:text-white/80"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
-          </div>
+          <Image
+            src={crowLogo}
+            alt=""
+            aria-hidden="true"
+            className="mx-auto mb-6 block h-14 w-14 rounded-full object-cover"
+          />
           <h2 className="mt-3 text-3xl font-black uppercase tracking-[0.01em] text-zinc-900 dark:text-white">
             {t('title')}
           </h2>
@@ -137,19 +134,20 @@ export function SignInForm({ locale }: { locale: Locale }) {
           <form className="space-y-6" onSubmit={handlePhoneSubmit}>
             <Field>
               <Label htmlFor="phone">{t('phoneLabel')}</Label>
-              <Input
+              <PhoneInput
                 id="phone"
                 name="phone"
-                type="tel"
-                autoComplete="tel"
+                defaultCountry={defaultCountryForLocale(locale)}
+                renderFlag={renderCountryFlag}
                 required
-                aria-invalid={!!error ? 'true' : 'false'}
                 aria-describedby={error ? 'phone-error' : undefined}
                 placeholder={t('phonePlaceholder')}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(value) => setPhone(value)}
                 disabled={isLoading}
-                className={inputClassName}
+                inputClassName={inputClassName}
+                triggerClassName={kclubPhoneTriggerClassName}
+                panelClassName={kclubPhonePanelClassName}
                 data-testid="auth-phone-input"
               />
             </Field>
@@ -167,7 +165,7 @@ export function SignInForm({ locale }: { locale: Locale }) {
               data-testid="auth-submit-phone"
             >
               {isLoading ? tCommon('loading') : t('submit')}
-              <ArrowRight aria-hidden="true" size={16} strokeWidth={1.7} />
+              <ArrowUpRight aria-hidden="true" size={16} strokeWidth={1.7} />
             </Button>
           </form>
         ) : (
@@ -205,7 +203,7 @@ export function SignInForm({ locale }: { locale: Locale }) {
               data-testid="auth-submit-otp"
             >
               {isLoading ? tCommon('loading') : tCommon('submitOtp')}
-              <ArrowRight aria-hidden="true" size={16} strokeWidth={1.7} />
+              <ArrowUpRight aria-hidden="true" size={16} strokeWidth={1.7} />
             </Button>
             <div className="mt-4 text-center">
               <button

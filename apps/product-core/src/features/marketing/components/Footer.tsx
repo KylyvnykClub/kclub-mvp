@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
-import crownGoldLogo from '@/assets/logo/crown-gold--logo.png';
+import crowLogo from '@/assets/logo/crow--logo.png';
 import { Locale } from '@/i18n/routing';
 
 import { LocaleSwitcherLinks } from './LocaleSwitcherLinks';
@@ -35,9 +35,12 @@ export function Footer({ locale }: { locale: Locale }) {
       <div className="kclub-shell grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <h2 className="inline-flex items-center gap-3 text-sm font-bold uppercase">
-            <span className="flex h-10 w-10 items-center justify-center bg-accent text-white">
-              <Image src={crownGoldLogo} alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
-            </span>
+            <Image
+              src={crowLogo}
+              alt=""
+              aria-hidden="true"
+              className="block h-10 w-10 rounded-full object-cover"
+            />
             {t('brand')}
           </h2>
           <p className="dark:text-white/64 mt-5 text-sm font-medium leading-7 text-zinc-600">

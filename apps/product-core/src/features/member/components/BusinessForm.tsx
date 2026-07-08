@@ -5,8 +5,17 @@ import { useTranslations } from 'next-intl';
 
 import { MEMBER_API_ROUTES, type MemberBusinessProfileDto } from '@kclub/contracts';
 
+import { PhoneInput } from '@kclub/ui';
+
 import type { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
+import {
+  defaultCountryForLocale,
+  renderCountryFlag,
+  shadcnPhoneInputClassName,
+  shadcnPhonePanelClassName,
+  shadcnPhoneTriggerClassName,
+} from '@/components/ui/country-flag';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,7 +39,7 @@ type BusinessFormProps = {
 };
 
 export function BusinessForm({
-  locale: _locale,
+  locale,
   business,
   countryOptions,
   cityOptions,
@@ -190,12 +199,16 @@ export function BusinessForm({
 
         <div>
           <Label>{t('representativePhoneLabel')}</Label>
-          <Input
-            type="tel"
+          <PhoneInput
+            defaultCountry={defaultCountryForLocale(locale)}
+            renderFlag={renderCountryFlag}
             value={representativePhone}
-            onChange={(e) => setRepresentativePhone(e.target.value)}
+            onChange={(value) => setRepresentativePhone(value)}
             required
-            className="mt-1 w-full"
+            wrapperClassName="mt-1"
+            inputClassName={shadcnPhoneInputClassName}
+            triggerClassName={shadcnPhoneTriggerClassName}
+            panelClassName={shadcnPhonePanelClassName}
           />
         </div>
       </div>
