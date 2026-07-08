@@ -15,13 +15,13 @@ export function FaqSection() {
   const [openIndex, setOpenIndex] = useState(0);
 
   return (
-    <section className="kclub-border border-b bg-surface-muted py-16 dark:bg-surface-muted sm:py-24">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-10">
+    <section className="kclub-border kclub-section-py border-b bg-surface-muted dark:bg-surface-muted">
+      <div className="kclub-shell grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
-          <p className="border-l-4 border-accent pl-4 text-xs font-bold uppercase text-zinc-500 dark:text-white/60">
+          <p className="kclub-section-eyebrow">
             {t('faq.eyebrow')}
           </p>
-          <h2 className="mt-5 text-4xl font-black uppercase leading-tight text-zinc-950 dark:text-white sm:text-6xl">
+          <h2 className="kclub-section-title mt-5">
             {t('faq.title')}
           </h2>
         </div>
@@ -54,7 +54,7 @@ export function FaqSection() {
                   role="region"
                   aria-labelledby={buttonId}
                   hidden={!open}
-                  className="px-5 pb-6 text-sm font-medium leading-7 text-zinc-600 dark:text-white/70"
+                  className="kclub-section-copy px-5 pb-6 text-base font-medium leading-7"
                 >
                   {item.answer}
                 </div>

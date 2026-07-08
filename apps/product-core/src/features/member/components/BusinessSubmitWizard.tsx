@@ -6,10 +6,16 @@ import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
 
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
-import { FieldError, Spinner } from '@kclub/ui';
+import { FieldError, PhoneInput, Spinner } from '@kclub/ui';
 
 import type { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
+import {
+  defaultCountryForLocale,
+  kclubPhonePanelClassName,
+  kclubPhoneTriggerClassName,
+  renderCountryFlag,
+} from '@/components/ui/country-flag';
 import type { CityTaxonomyOption, TaxonomyOption } from './BusinessPanel';
 
 type WizardData = {
@@ -263,14 +269,17 @@ export function BusinessSubmitWizard({
             <label htmlFor="representativePhone" className={labelClass}>
               {t('phone')}
             </label>
-            <input
+            <PhoneInput
               id="representativePhone"
-              type="tel"
+              defaultCountry={defaultCountryForLocale(locale)}
+              renderFlag={renderCountryFlag}
               required
               placeholder={t('phonePlaceholder')}
               value={data.representativePhone}
-              onChange={(e) => set('representativePhone', e.target.value)}
-              className={fieldClass}
+              onChange={(value) => set('representativePhone', value)}
+              inputClassName={fieldClass}
+              triggerClassName={kclubPhoneTriggerClassName}
+              panelClassName={kclubPhonePanelClassName}
             />
           </div>
         </div>

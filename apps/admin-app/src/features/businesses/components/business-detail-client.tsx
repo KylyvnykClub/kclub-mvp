@@ -63,7 +63,14 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import type { AdminBusinessDetailDto, AdminIntroductionListItemDto, AuditLogDto, StaffRole } from '@kclub/contracts';
+import { PhoneInput } from '@kclub/ui';
 import { IntroductionsTable } from '@/features/introductions/components/introductions-table';
+
+const ADMIN_PHONE_INPUT_CLASSNAME =
+  'aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-base outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50';
+const ADMIN_PHONE_TRIGGER_CLASSNAME =
+  'flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-input bg-background px-3 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50';
+const ADMIN_PHONE_PANEL_CLASSNAME = 'border-border bg-popover text-popover-foreground shadow-md';
 
 const BUSINESS_DETAIL_TABS = ['overview', 'owner', 'edit', 'settings', 'audit', 'inbox'] as const;
 
@@ -756,13 +763,17 @@ function EditProfileTab({ business, onSaved }: EditProfileTabProps) {
 
           <div className="space-y-2">
             <Label htmlFor="edit-representativePhone">Representative phone</Label>
-            <Input
+            <PhoneInput
               id="edit-representativePhone"
               name="representativePhone"
-              type="tel"
               value={fields.representativePhone}
-              onChange={handleChange}
+              onChange={(value) =>
+                setFields((prev) => ({ ...prev, representativePhone: value }))
+              }
               required
+              inputClassName={ADMIN_PHONE_INPUT_CLASSNAME}
+              triggerClassName={ADMIN_PHONE_TRIGGER_CLASSNAME}
+              panelClassName={ADMIN_PHONE_PANEL_CLASSNAME}
             />
           </div>
 

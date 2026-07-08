@@ -6,7 +6,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-import { Button, Field, Input, Label, linkClasses, textMuted } from '@kclub/ui';
+import { Button, Field, Input, Label, linkClasses, PhoneInput, textMuted } from '@kclub/ui';
+import {
+  defaultCountryForLocale,
+  kclubPhonePanelClassName,
+  kclubPhoneTriggerClassName,
+  renderCountryFlag,
+} from '@/components/ui/country-flag';
 import { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '../utils/api';
 
@@ -137,20 +143,21 @@ export function SignUpForm({ locale }: { locale: Locale }) {
           <form className="space-y-6" onSubmit={handlePhoneSubmit}>
             <Field>
               <Label htmlFor="phone">{t('phoneLabel')}</Label>
-              <Input
+              <PhoneInput
                 id="phone"
                 name="phone"
                 data-testid="auth-phone-input"
-                type="tel"
-                autoComplete="tel"
+                defaultCountry={defaultCountryForLocale(locale)}
+                renderFlag={renderCountryFlag}
                 required
-                aria-invalid={!!error ? 'true' : 'false'}
                 aria-describedby={error ? 'phone-error' : undefined}
                 placeholder={t('phonePlaceholder')}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(value) => setPhone(value)}
                 disabled={isLoading}
-                className={inputClassName}
+                inputClassName={inputClassName}
+                triggerClassName={kclubPhoneTriggerClassName}
+                panelClassName={kclubPhonePanelClassName}
               />
             </Field>
             {error && (
