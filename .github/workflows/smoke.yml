@@ -10,3 +10,11 @@ jobs:
     steps:
       - name: Ping
         run: echo "Actions are alive on $GITHUB_REF"
+
+      - name: Setup Bun (third-party action test)
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Bun version
+        run: bun --version
