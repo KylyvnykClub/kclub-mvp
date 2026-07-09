@@ -1,32 +1,20 @@
-import { beforeEach, afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 
-const mockCookieStore = {
-  get: mock((_name: string) => undefined as { value: string } | undefined),
-  set: mock(),
-};
-
-mock.module('next/headers', () => ({
-  cookies: () => Promise.resolve(mockCookieStore),
-}));
+import { mockCookieStore, resetMockCookieStore } from '../test-helpers/mock-cookies';
 
 const { readStaffSession, setStaffSession, clearStaffSession } =
   await import('../../src/server/auth/session');
 
 describe('session', () => {
   beforeEach(() => {
-    mockCookieStore.get.mockClear();
-    mockCookieStore.set.mockClear();
+    resetMockCookieStore();
   });
 
   afterEach(() => {
-    mockCookieStore.get.mockClear();
-    mockCookieStore.set.mockClear();
+    resetMockCookieStore();
   });
 
-  // NOTE: Skipped because Bun's mock.module is global and actions.test.ts
-  // overrides the next/headers mock at module scope. This test passes in
-  // isolation (bun test tests/server/session.test.ts).
-  test.skip('readStaffSession returns null when no cookie exists', async () => {
+  test('readStaffSession returns null when no cookie exists', async () => {
     const session = await readStaffSession();
     expect(session).toBeNull();
   });
