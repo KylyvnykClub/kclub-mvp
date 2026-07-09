@@ -5,9 +5,8 @@ import { readStripeEnv } from '@/server/stripe/env';
 import { jsonError } from '@/server/api';
 import { createLogger } from '@/server/logger';
 
-const log = createLogger();
-
 export async function POST(request: Request) {
+  const log = createLogger();
   const rawBody = await request.text();
   const signature = request.headers.get('stripe-signature');
 
