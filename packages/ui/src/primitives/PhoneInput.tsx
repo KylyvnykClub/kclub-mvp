@@ -214,7 +214,10 @@ export function PhoneInput({
         onClick={() => setOpen((v) => !v)}
         className={triggerClassName ?? DEFAULT_TRIGGER_CLASSES}
       >
-        <span className="flex h-4 w-5 items-center justify-center overflow-hidden" aria-hidden="true">
+        <span
+          className="flex h-4 w-5 items-center justify-center overflow-hidden"
+          aria-hidden="true"
+        >
           {renderFlag ? renderFlag(country) : emojiFlag(country)}
         </span>
         <span>+{callingCode}</span>
@@ -256,7 +259,7 @@ export function PhoneInput({
               panelClassName ?? DEFAULT_PANEL_CLASSES,
             )}
           >
-            <div className="border-b border-current/10 p-2">
+            <div className="border-current/10 border-b p-2">
               <input
                 ref={searchRef}
                 value={search}
@@ -274,7 +277,7 @@ export function PhoneInput({
                     aria-selected={item.code === country}
                     onClick={() => handleCountrySelect(item.code)}
                     className={cn(
-                      'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition hover:bg-current/5',
+                      'hover:bg-current/5 flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition',
                       item.code === country && 'bg-current/5 font-semibold',
                     )}
                   >

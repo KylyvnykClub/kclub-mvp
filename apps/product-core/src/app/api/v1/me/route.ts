@@ -72,7 +72,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     const localUser = await getMemberBySupabaseUserId(supabaseUser.id);
-    const context = createRequestContext({ actor: { kind: 'member', userId: localUser.id }, headers: request.headers });
+    const context = createRequestContext({
+      actor: { kind: 'member', userId: localUser.id },
+      headers: request.headers,
+    });
 
     const updated = await updateMemberProfile(supabaseUser.id, parsed.data);
     const profile = toCurrentMemberProfileDto(updated);
@@ -82,7 +85,9 @@ export async function PATCH(request: NextRequest) {
         action: 'USER_PROFILE_UPDATED',
         entityType: 'User',
         entityId: localUser.id,
-        after: Object.fromEntries(Object.entries(parsed.data).map(([k, v]) => [k, String(v ?? '')])),
+        after: Object.fromEntries(
+          Object.entries(parsed.data).map(([k, v]) => [k, String(v ?? '')]),
+        ),
       },
       context,
     );

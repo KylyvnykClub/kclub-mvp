@@ -21,7 +21,7 @@ const securityHeaders = [
       "img-src 'self' data: blob: https:",
       "font-src 'self'",
       "connect-src 'self' https://api.stripe.com https://plausible.io https://*.supabase.co https://*.upstash.io",
-      "frame-src https://js.stripe.com https://challenges.cloudflare.com",
+      'frame-src https://js.stripe.com https://challenges.cloudflare.com',
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -30,21 +30,23 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  ...(process.env.VERCEL ? {
-    outputFileTracingRoot: path.join(__dirname, '../../'),
-  } : {}),
+  ...(process.env.VERCEL
+    ? {
+        outputFileTracingRoot: path.join(__dirname, '../../'),
+      }
+    : {}),
   transpilePackages: ['@kclub/ui'],
   serverExternalPackages: ['pino', 'pino-pretty', '@kclub/database', '@kclub/database/client'],
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
-  ...(process.env.VERCEL ? {
-    outputFileTracingIncludes: {
-      '/(.*)': [
-        '../../packages/database/src/generated/**/*',
-      ],
-    },
-  } : {}),
+  ...(process.env.VERCEL
+    ? {
+        outputFileTracingIncludes: {
+          '/(.*)': ['../../packages/database/src/generated/**/*'],
+        },
+      }
+    : {}),
 
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];

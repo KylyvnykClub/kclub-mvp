@@ -28,12 +28,8 @@ export function HowItWorksSection() {
       className="kclub-border kclub-section-py border-b bg-surface-muted dark:bg-surface-muted"
     >
       <div className="kclub-shell">
-        <p className="kclub-section-eyebrow">
-          {t('howItWorks.eyebrow')}
-        </p>
-        <h2 className="kclub-section-title mt-5 max-w-3xl">
-          {t('howItWorks.title')}
-        </h2>
+        <p className="kclub-section-eyebrow">{t('howItWorks.eyebrow')}</p>
+        <h2 className="kclub-section-title mt-5 max-w-3xl">{t('howItWorks.title')}</h2>
       </div>
       <Timeline data={data} />
     </section>

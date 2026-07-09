@@ -81,11 +81,11 @@ Runtime decision:
 
 | Capability                      | MEMBER  |  VIP   | Has submitted business |
 | ------------------------------- | :-----: | :----: | :--------------------: |
-| Digital club card               |   Yes   |  Yes   |           Yes          |
-| Public partner directory access |   Yes   |  Yes   |           Yes          |
+| Digital club card               |   Yes   |  Yes   |          Yes           |
+| Public partner directory access |   Yes   |  Yes   |          Yes           |
 | VIP subscription management     | Upgrade | Manage |           No           |
 | Submit business profile         |   No    |  Yes   |           No           |
-| Manage own business profile     |   No    |  No    |           Yes          |
+| Manage own business profile     |   No    |   No   |          Yes           |
 | Business Introductions          |   No    |   No   |           No           |
 
 ### 5.2 Staff Roles
@@ -194,12 +194,12 @@ All public localized routes use `/{locale}` where locale is `en`, `ru`, or `uk`.
 
 | Tab             | MEMBER | VIP | Has submitted business |
 | --------------- | :----: | :-: | :--------------------: |
-| `account`       |  Yes   | Yes |           Yes          |
-| `catalog`       |  Yes   | Yes |           Yes          |
+| `account`       |  Yes   | Yes |          Yes           |
+| `catalog`       |  Yes   | Yes |          Yes           |
 | `subscription`  |  Yes   | Yes |           No           |
-| `business`      |   No   | No  |           Yes          |
+| `business`      |   No   | No  |          Yes           |
 | `introductions` |   No   | Yes |           No           |
-| `settings`      |  Yes   | Yes |           Yes          |
+| `settings`      |  Yes   | Yes |          Yes           |
 
 VIP upgrade is initiated from the Subscription tab. Business onboarding is initiated from the Subscription tab and opens a multi-step wizard at `/{locale}/m/business/onboarding`. After a business application is submitted (`UNDER_REVIEW` or later), the Subscription and Introductions tabs are hidden until product rules say otherwise; the Business tab shows application status.
 

@@ -12,10 +12,7 @@ import { AppError } from '@/server/errors';
 import { getDbClient, schema } from '@/server/db';
 import { getStripeClient } from '@/server/stripe/client';
 import { rethrowStripeCheckoutError } from '@/server/stripe/errors';
-import {
-  parseAdminConfigPriceId,
-  resolveStripePriceIdFromEnv,
-} from '@/server/stripe/price-config';
+import { parseAdminConfigPriceId, resolveStripePriceIdFromEnv } from '@/server/stripe/price-config';
 import type { RequestContext } from '@/server/context';
 import { createDbAuditService } from '@/server/audit';
 
@@ -52,8 +49,7 @@ function buildCancelUrl(appUrl: string, locale: Locale): string {
 async function getPriceIdForKey(key: string): Promise<string> {
   const db = getDbClient();
   const config = await db.query.adminConfigs.findFirst({ where: eq(schema.adminConfigs.key, key) });
-  const priceId =
-    parseAdminConfigPriceId(config?.value) ?? resolveStripePriceIdFromEnv(key);
+  const priceId = parseAdminConfigPriceId(config?.value) ?? resolveStripePriceIdFromEnv(key);
 
   if (!priceId) {
     throw new AppError({
@@ -142,7 +138,9 @@ export async function startPlacementCheckout(
     });
   }
 
-  const business = await db.query.businessProfiles.findFirst({ where: eq(schema.businessProfiles.id, businessId) });
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+  });
   if (!business) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -223,7 +221,9 @@ export async function getOwnSubscriptionDetail(
   subscriptionId: string,
 ): Promise<SubscriptionDto> {
   const db = getDbClient();
-  const sub = await db.query.vipSubscriptions.findFirst({ where: eq(schema.vipSubscriptions.id, subscriptionId) });
+  const sub = await db.query.vipSubscriptions.findFirst({
+    where: eq(schema.vipSubscriptions.id, subscriptionId),
+  });
   if (!sub) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -247,7 +247,9 @@ export async function cancelOwnSubscription(
   context: RequestContext,
 ): Promise<SubscriptionDto> {
   const db = getDbClient();
-  const sub = await db.query.vipSubscriptions.findFirst({ where: eq(schema.vipSubscriptions.id, subscriptionId) });
+  const sub = await db.query.vipSubscriptions.findFirst({
+    where: eq(schema.vipSubscriptions.id, subscriptionId),
+  });
   if (!sub) {
     throw new AppError({
       code: ERROR_CODES.RESOURCE_NOT_FOUND,
@@ -270,7 +272,8 @@ export async function cancelOwnSubscription(
     });
   }
 
-  const [updated] = await db.update(schema.vipSubscriptions)
+  const [updated] = await db
+    .update(schema.vipSubscriptions)
     .set({ cancel_at_period_end: true, canceled_at: new Date() })
     .where(eq(schema.vipSubscriptions.id, subscriptionId))
     .returning();

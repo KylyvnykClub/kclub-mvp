@@ -1,13 +1,13 @@
-"use client";
-import { useEffect, useRef, useState } from "react";
-import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
-import ThreeGlobe from "three-globe";
-import { useThree, Canvas, extend, useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
-import countries from "@/data/globe.json";
-declare module "@react-three/fiber" {
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from 'three';
+import ThreeGlobe from 'three-globe';
+import { useThree, Canvas, extend, useFrame } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import countries from '@/data/globe.json';
+declare module '@react-three/fiber' {
   interface ThreeElements {
-    threeGlobe: ThreeElements["mesh"] & {
+    threeGlobe: ThreeElements['mesh'] & {
       new (): ThreeGlobe;
     };
   }
@@ -70,12 +70,12 @@ export function Globe({ globeConfig, data }: WorldProps) {
 
   const defaultProps = {
     pointSize: 1,
-    atmosphereColor: "#ffffff",
+    atmosphereColor: '#ffffff',
     showAtmosphere: true,
     atmosphereAltitude: 0.1,
-    polygonColor: "rgba(255,255,255,0.7)",
-    globeColor: "#1d072e",
-    emissive: "#000000",
+    polygonColor: 'rgba(255,255,255,0.7)',
+    globeColor: '#1d072e',
+    emissive: '#000000',
     emissiveIntensity: 0.1,
     shininess: 0.9,
     arcTime: 2000,
@@ -146,9 +146,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
     const filteredPoints = points.filter(
       (v, i, a) =>
         a.findIndex((v2) =>
-          ["lat", "lng"].every(
-            (k) => v2[k as "lat" | "lng"] === v[k as "lat" | "lng"],
-          ),
+          ['lat', 'lng'].every((k) => v2[k as 'lat' | 'lng'] === v[k as 'lat' | 'lng']),
         ) === i,
     );
 
@@ -187,9 +185,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
       .ringColor(() => defaultProps.polygonColor)
       .ringMaxRadius(defaultProps.maxRings)
       .ringPropagationSpeed(RING_PROPAGATION_SPEED)
-      .ringRepeatPeriod(
-        (defaultProps.arcTime * defaultProps.arcLength) / defaultProps.rings,
-      );
+      .ringRepeatPeriod((defaultProps.arcTime * defaultProps.arcLength) / defaultProps.rings);
   }, [
     isInitialized,
     data,
@@ -212,11 +208,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
     const interval = setInterval(() => {
       if (!globeRef.current) return;
 
-      const newNumbersOfRings = genRandomNumbers(
-        0,
-        data.length,
-        Math.floor((data.length * 4) / 5),
-      );
+      const newNumbersOfRings = genRandomNumbers(0, data.length, Math.floor((data.length * 4) / 5));
 
       const ringsData = data
         .filter((d, i) => newNumbersOfRings.includes(i))
@@ -236,9 +228,10 @@ export function Globe({ globeConfig, data }: WorldProps) {
 
   useFrame((state) => {
     if (groupRef.current) {
-      // Offset the center slightly towards the Americas (negative offset) and reduce amplitude 
+      // Offset the center slightly towards the Americas (negative offset) and reduce amplitude
       // so it stops cleanly after the Americas (+0.55) and still reaches Australia (-0.8).
-      (groupRef.current as any).rotation.y = Math.sin(state.clock.elapsedTime * 0.1) * (Math.PI * 0.675) - (Math.PI * 0.125);
+      (groupRef.current as any).rotation.y =
+        Math.sin(state.clock.elapsedTime * 0.1) * (Math.PI * 0.675) - Math.PI * 0.125;
     }
   });
 

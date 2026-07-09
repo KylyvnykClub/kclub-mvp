@@ -12,10 +12,17 @@ import { getIncomingIntroductions } from '@/server/services/introduction-service
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
+    const {
+      data: { user: supabaseUser },
+      error,
+    } = await supabase.auth.getUser();
 
     if (error || !supabaseUser) {
-      return jsonError({ code: ERROR_CODES.AUTH_SESSION_REQUIRED, message: 'Authentication required' }, undefined, { status: 401 });
+      return jsonError(
+        { code: ERROR_CODES.AUTH_SESSION_REQUIRED, message: 'Authentication required' },
+        undefined,
+        { status: 401 },
+      );
     }
 
     const localUser = await getMemberBySupabaseUserId(supabaseUser.id);
@@ -23,12 +30,16 @@ export async function GET(_request: NextRequest) {
     const business = await db.query.businessProfiles.findFirst({
       where: and(
         eq(schema.businessProfiles.user_id, localUser.id),
-        notInArray(schema.businessProfiles.status, ['REJECTED', 'HIDDEN'])
+        notInArray(schema.businessProfiles.status, ['REJECTED', 'HIDDEN']),
       ),
     });
 
     if (!business) {
-      return jsonError({ code: ERROR_CODES.PERMISSION_DENIED, message: 'No active business found' }, undefined, { status: 403 });
+      return jsonError(
+        { code: ERROR_CODES.PERMISSION_DENIED, message: 'No active business found' },
+        undefined,
+        { status: 403 },
+      );
     }
 
     const introductions = await getIncomingIntroductions(business.id);

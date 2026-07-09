@@ -57,4 +57,5 @@ export const shadcnPhoneInputClassName =
 export const shadcnPhoneTriggerClassName =
   'flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30';
 
-export const shadcnPhonePanelClassName = 'border-border bg-popover text-popover-foreground shadow-md';
+export const shadcnPhonePanelClassName =
+  'border-border bg-popover text-popover-foreground shadow-md';

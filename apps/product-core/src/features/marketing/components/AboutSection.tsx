@@ -13,12 +13,8 @@ export function AboutSection() {
     <section className="kclub-border kclub-section-py border-b bg-zinc-100 text-zinc-950 dark:bg-surface-raised dark:text-white">
       <div className="kclub-shell grid gap-10 lg:grid-cols-[1.25fr_0.75fr]">
         <div>
-          <p className="kclub-section-eyebrow">
-            {t('about.eyebrow')}
-          </p>
-          <h2 className="kclub-section-title max-w-4xl">
-            {t('about.title')}
-          </h2>
+          <p className="kclub-section-eyebrow">{t('about.eyebrow')}</p>
+          <h2 className="kclub-section-title max-w-4xl">{t('about.title')}</h2>
           <div className="kclub-section-copy mt-8 grid max-w-2xl gap-5 text-base font-medium leading-8">
             <p>{t('about.paragraph1')}</p>
             <p>{t('about.paragraph2')}</p>

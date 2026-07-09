@@ -14,7 +14,7 @@ export function getDbClient() {
     if (!connectionString) {
       throw new Error('DATABASE_URL environment variable is required');
     }
-    
+
     connection = postgres(connectionString, {
       prepare: false,
       max: 3,

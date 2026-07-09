@@ -1,9 +1,16 @@
 import { z } from 'zod';
 
-import { localeSchema, optionalSafeTextSchema, phoneSchema, safeTextSchema, withoutHtml } from './shared';
+import {
+  localeSchema,
+  optionalSafeTextSchema,
+  phoneSchema,
+  safeTextSchema,
+  withoutHtml,
+} from './shared';
 
 export const displayNameSchema = withoutHtml(safeTextSchema.min(2).max(100));
-const optionalShortText = (max: number) => withoutHtml(z.string().trim().max(max)).optional().nullable();
+const optionalShortText = (max: number) =>
+  withoutHtml(z.string().trim().max(max)).optional().nullable();
 
 export const memberOnboardingSchema = z.object({
   phone: phoneSchema,

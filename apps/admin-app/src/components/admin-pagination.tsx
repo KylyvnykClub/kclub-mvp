@@ -18,7 +18,7 @@ export function AdminPagination({ page, total, limit, onNavigate }: AdminPaginat
   }
 
   return (
-    <div className="flex items-center justify-between text-sm text-muted-foreground pt-4">
+    <div className="flex items-center justify-between pt-4 text-sm text-muted-foreground">
       <span>
         Page {page} of {totalPages} ({total} total)
       </span>

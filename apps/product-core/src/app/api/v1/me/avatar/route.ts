@@ -4,10 +4,7 @@ import { ERROR_CODES } from '@kclub/contracts';
 
 import { createSupabaseServerClient, createSupabaseServiceClient } from '@/server/auth';
 import { jsonSuccess, jsonError, jsonErrorFromUnknown } from '@/server/api';
-import {
-  getMemberBySupabaseUserId,
-  toCurrentMemberProfileDto,
-} from '@/server/services';
+import { getMemberBySupabaseUserId, toCurrentMemberProfileDto } from '@/server/services';
 import { getDbClient, schema } from '@/server/db';
 import { eq } from 'drizzle-orm';
 import { createRequestContext } from '@/server/context';
@@ -85,12 +82,16 @@ export async function POST(request: NextRequest) {
     } = serviceClient.storage.from(AVATAR_BUCKET).getPublicUrl(storagePath);
 
     const db = getDbClient();
-    const [updated] = await db.update(schema.users)
+    const [updated] = await db
+      .update(schema.users)
       .set({ avatar_url: publicUrl })
       .where(eq(schema.users.id, localUser.id))
       .returning();
 
-    const context = createRequestContext({ actor: { kind: 'member', userId: localUser.id }, headers: request.headers });
+    const context = createRequestContext({
+      actor: { kind: 'member', userId: localUser.id },
+      headers: request.headers,
+    });
     await auditService.log(
       { action: 'USER_AVATAR_UPDATED', entityType: 'User', entityId: localUser.id },
       context,

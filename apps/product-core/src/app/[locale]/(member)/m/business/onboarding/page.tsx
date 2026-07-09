@@ -7,14 +7,13 @@ import { getOwnBusinesses } from '@/server/services/business-service';
 import { getDbClient, schema } from '@/server/db';
 import { and, asc, eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/features/member/components/Breadcrumbs';
-import type { CityTaxonomyOption, TaxonomyOption } from '@/features/member/components/BusinessPanel';
+import type {
+  CityTaxonomyOption,
+  TaxonomyOption,
+} from '@/features/member/components/BusinessPanel';
 import { BusinessSubmitWizard } from '@/features/member/components/BusinessSubmitWizard';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: Locale }>;
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'member.businessOnboarding' });
 
@@ -43,10 +42,7 @@ export default async function BusinessOnboardingPage({
       orderBy: [asc(schema.countries.name)],
     }),
     db.query.categories.findMany({
-      where: and(
-        eq(schema.categories.is_active, true),
-        eq(schema.categories.is_high_risk, false)
-      ),
+      where: and(eq(schema.categories.is_active, true), eq(schema.categories.is_high_risk, false)),
       orderBy: [asc(schema.categories.name)],
     }),
     db.query.cities.findMany({

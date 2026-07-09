@@ -106,10 +106,10 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
           Back to users
         </Link>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{user.displayName ?? user.phone}</h1>
-          <p className="text-sm text-muted-foreground">
-            User detail
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {user.displayName ?? user.phone}
+          </h1>
+          <p className="text-sm text-muted-foreground">User detail</p>
         </div>
       </div>
 
@@ -188,28 +188,32 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                         { label: 'Country', value: user.country ?? '—' },
                         { label: 'City', value: user.city ?? '—' },
                         { label: 'Locale preference', value: user.localePreference ?? '—' },
-                        { label: 'Onboarding complete', value: user.onboardingComplete ? 'Yes' : 'No' },
+                        {
+                          label: 'Onboarding complete',
+                          value: user.onboardingComplete ? 'Yes' : 'No',
+                        },
                         {
                           label: 'Terms accepted',
                           value: user.termsAcceptedAt
                             ? new Date(user.termsAcceptedAt).toLocaleDateString()
                             : '—',
                         },
-                        { label: 'Last updated', value: new Date(user.updatedAt).toLocaleDateString() },
+                        {
+                          label: 'Last updated',
+                          value: new Date(user.updatedAt).toLocaleDateString(),
+                        },
                       ]}
                     />
                   </CardContent>
                 </Card>
 
-                {(user.about) && (
+                {user.about && (
                   <Card className="lg:col-span-3">
                     <CardHeader>
                       <CardTitle>About</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="whitespace-pre-wrap text-sm leading-6">
-                        {user.about}
-                      </p>
+                      <p className="whitespace-pre-wrap text-sm leading-6">{user.about}</p>
                     </CardContent>
                   </Card>
                 )}
@@ -251,7 +255,9 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                                 {new Date(card.issuedAt).toLocaleDateString()}
                               </TableCell>
                               <TableCell className="text-xs text-muted-foreground">
-                                {card.expiresAt ? new Date(card.expiresAt).toLocaleDateString() : '—'}
+                                {card.expiresAt
+                                  ? new Date(card.expiresAt).toLocaleDateString()
+                                  : '—'}
                               </TableCell>
                             </TableRow>
                           ))}

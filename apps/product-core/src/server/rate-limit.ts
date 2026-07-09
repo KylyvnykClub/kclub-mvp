@@ -19,7 +19,11 @@ function getRedis(): Redis | null {
   return redis;
 }
 
-export function createRateLimiter(opts: { prefix: string; limit: number; window: `${number} ${'s' | 'm' | 'h'}` }) {
+export function createRateLimiter(opts: {
+  prefix: string;
+  limit: number;
+  window: `${number} ${'s' | 'm' | 'h'}`;
+}) {
   const client = getRedis();
   if (!client) return null;
 

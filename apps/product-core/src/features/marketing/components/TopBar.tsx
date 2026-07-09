@@ -124,8 +124,7 @@ export function TopBar({
             priority
           />
           <span className="grid text-xl font-bold leading-none text-zinc-950 dark:text-accent">
-           KYLYVNYK CLUB
-           
+            KYLYVNYK CLUB
           </span>
         </Link>
 

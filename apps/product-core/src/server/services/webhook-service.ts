@@ -64,12 +64,14 @@ export async function processStripeEvent(event: Stripe.Event): Promise<void> {
 
   try {
     await handleEventByType(event);
-    await db.update(schema.stripeWebhookEvents)
+    await db
+      .update(schema.stripeWebhookEvents)
       .set({ handler_status: 'PROCESSED', processed_at: new Date() })
       .where(eq(schema.stripeWebhookEvents.event_id, eventId));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    await db.update(schema.stripeWebhookEvents)
+    await db
+      .update(schema.stripeWebhookEvents)
       .set({ handler_status: 'FAILED', error_message: errorMessage })
       .where(eq(schema.stripeWebhookEvents.event_id, eventId));
     throw error;
@@ -127,19 +129,23 @@ async function handleCheckoutCompleted(session: Record<string, unknown>): Promis
     });
   }
 
-  const existingRes = await db.select().from(schema.vipSubscriptions)
+  const existingRes = await db
+    .select()
+    .from(schema.vipSubscriptions)
     .where(eq(schema.vipSubscriptions.user_id, userId))
     .orderBy(desc(schema.vipSubscriptions.created_at))
     .limit(1);
   const existing = existingRes[0];
 
   const createdSub = await db.transaction(async (tx) => {
-    await tx.update(schema.users)
+    await tx
+      .update(schema.users)
       .set({ membership_tier: 'VIP' })
       .where(eq(schema.users.id, userId));
 
     if (existing) {
-      const res = await tx.update(schema.vipSubscriptions)
+      const res = await tx
+        .update(schema.vipSubscriptions)
         .set({
           status: 'ACTIVE',
           stripe_customer_id: customerId ?? existing.stripe_customer_id,
@@ -149,7 +155,8 @@ async function handleCheckoutCompleted(session: Record<string, unknown>): Promis
         .returning();
       return res[0];
     } else {
-      const res = await tx.insert(schema.vipSubscriptions)
+      const res = await tx
+        .insert(schema.vipSubscriptions)
         .values({
           user_id: userId,
           status: 'ACTIVE',
@@ -166,7 +173,11 @@ async function handleCheckoutCompleted(session: Record<string, unknown>): Promis
       action: 'CHECKOUT_CREATED',
       entityType: 'VipSubscription',
       entityId: userId,
-      after: { subscriptionId: createdSub.id, stripeSubscriptionId: subscriptionId, status: 'ACTIVE' },
+      after: {
+        subscriptionId: createdSub.id,
+        stripeSubscriptionId: subscriptionId,
+        status: 'ACTIVE',
+      },
     },
     systemContext,
   );
@@ -277,9 +288,28 @@ export async function handlePlacementCheckoutCompleted(
   }
 
   const [businessRes, vipSubRes, existingPlacementSubRes] = await Promise.all([
-    db.select().from(schema.businessProfiles).where(eq(schema.businessProfiles.id, businessId)).limit(1),
-    db.select().from(schema.vipSubscriptions).where(eq(schema.vipSubscriptions.user_id, userId)).orderBy(desc(schema.vipSubscriptions.created_at)).limit(1),
-    db.select().from(schema.subscriptions).where(and(eq(schema.subscriptions.business_profile_id, businessId), eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'))).orderBy(desc(schema.subscriptions.created_at)).limit(1),
+    db
+      .select()
+      .from(schema.businessProfiles)
+      .where(eq(schema.businessProfiles.id, businessId))
+      .limit(1),
+    db
+      .select()
+      .from(schema.vipSubscriptions)
+      .where(eq(schema.vipSubscriptions.user_id, userId))
+      .orderBy(desc(schema.vipSubscriptions.created_at))
+      .limit(1),
+    db
+      .select()
+      .from(schema.subscriptions)
+      .where(
+        and(
+          eq(schema.subscriptions.business_profile_id, businessId),
+          eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'),
+        ),
+      )
+      .orderBy(desc(schema.subscriptions.created_at))
+      .limit(1),
   ]);
 
   const business = businessRes[0] ?? null;
@@ -318,7 +348,8 @@ export async function handlePlacementCheckoutCompleted(
   }
 
   await db.transaction(async (tx) => {
-    await tx.update(schema.businessProfiles)
+    await tx
+      .update(schema.businessProfiles)
       .set({
         status: 'PUBLISHED',
         published_at: new Date(),
@@ -328,7 +359,8 @@ export async function handlePlacementCheckoutCompleted(
       .where(eq(schema.businessProfiles.id, businessId));
 
     if (existingPlacementSub) {
-      await tx.update(schema.subscriptions)
+      await tx
+        .update(schema.subscriptions)
         .set({
           status: 'ACTIVE',
           stripe_customer_id: customerId,
@@ -340,19 +372,18 @@ export async function handlePlacementCheckoutCompleted(
         })
         .where(eq(schema.subscriptions.id, existingPlacementSub.id));
     } else {
-      await tx.insert(schema.subscriptions)
-        .values({
-          user_id: userId,
-          business_profile_id: businessId,
-          kind: 'BUSINESS_PLACEMENT',
-          status: 'ACTIVE',
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          stripe_price_id: stripePriceId,
-          current_period_start: currentPeriodStart,
-          current_period_end: currentPeriodEnd,
-          cancel_at_period_end: cancelAtPeriodEnd,
-        });
+      await tx.insert(schema.subscriptions).values({
+        user_id: userId,
+        business_profile_id: businessId,
+        kind: 'BUSINESS_PLACEMENT',
+        status: 'ACTIVE',
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscriptionId,
+        stripe_price_id: stripePriceId,
+        current_period_start: currentPeriodStart,
+        current_period_end: currentPeriodEnd,
+        cancel_at_period_end: cancelAtPeriodEnd,
+      });
     }
   });
 
@@ -375,7 +406,11 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
   const db = getDbClient();
   const subscriptionId = subscription.id as string;
 
-  const localSubRes = await db.select().from(schema.vipSubscriptions).where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId)).limit(1);
+  const localSubRes = await db
+    .select()
+    .from(schema.vipSubscriptions)
+    .where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId))
+    .limit(1);
   const localSub = localSubRes[0];
 
   if (!localSub) {
@@ -405,7 +440,8 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
 
   const previousStatus = localSub.status;
 
-  await db.update(schema.vipSubscriptions)
+  await db
+    .update(schema.vipSubscriptions)
     .set(updateData)
     .where(eq(schema.vipSubscriptions.id, localSub.id));
 
@@ -427,7 +463,11 @@ async function handleSubscriptionDeleted(subscription: Record<string, unknown>):
   const db = getDbClient();
   const subscriptionId = subscription.id as string;
 
-  const localSubRes = await db.select().from(schema.vipSubscriptions).where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId)).limit(1);
+  const localSubRes = await db
+    .select()
+    .from(schema.vipSubscriptions)
+    .where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId))
+    .limit(1);
   const localSub = localSubRes[0];
 
   if (!localSub) {
@@ -437,11 +477,13 @@ async function handleSubscriptionDeleted(subscription: Record<string, unknown>):
   const previousStatus = localSub.status;
 
   await db.transaction(async (tx) => {
-    await tx.update(schema.users)
+    await tx
+      .update(schema.users)
       .set({ membership_tier: 'MEMBER' })
       .where(eq(schema.users.id, localSub.user_id));
 
-    await tx.update(schema.vipSubscriptions)
+    await tx
+      .update(schema.vipSubscriptions)
       .set({
         status: 'EXPIRED',
         expires_at: new Date(),
@@ -466,7 +508,11 @@ async function handlePaymentFailed(invoice: Record<string, unknown>): Promise<vo
   const db = getDbClient();
   const subscriptionId = invoice.subscription as string;
 
-  const localSubRes = await db.select().from(schema.vipSubscriptions).where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId)).limit(1);
+  const localSubRes = await db
+    .select()
+    .from(schema.vipSubscriptions)
+    .where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId))
+    .limit(1);
   const localSub = localSubRes[0];
 
   if (!localSub) {
@@ -475,7 +521,8 @@ async function handlePaymentFailed(invoice: Record<string, unknown>): Promise<vo
 
   const previousStatus = localSub.status;
 
-  await db.update(schema.vipSubscriptions)
+  await db
+    .update(schema.vipSubscriptions)
     .set({ status: 'PAST_DUE' })
     .where(eq(schema.vipSubscriptions.id, localSub.id));
 

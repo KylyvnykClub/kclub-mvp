@@ -134,7 +134,9 @@ describe('member capability policies', () => {
       hasBusiness: false,
       businessPublished: false,
     });
-    expect(getUserContext({ subscriptionStatus: 'CANCELED', businessStatus: 'UNDER_REVIEW' })).toEqual({
+    expect(
+      getUserContext({ subscriptionStatus: 'CANCELED', businessStatus: 'UNDER_REVIEW' }),
+    ).toEqual({
       isVip: true,
       hasBusiness: true,
       businessPublished: false,
@@ -146,29 +148,41 @@ describe('member capability policies', () => {
     });
   });
 
-  test('dashboard tabs: introductions unlocked by VIP or business; business tab by hasBusiness', () => {
+  test('dashboard tabs: introductions and business are VIP-only', () => {
     const baseTabs = ['details', 'subscription', 'settings'] as const;
     const member = getUserContext({ subscriptionStatus: 'NONE' });
     const vip = getUserContext({ subscriptionStatus: 'ACTIVE' });
-    const memberWithBusiness = getUserContext({ subscriptionStatus: 'NONE', businessStatus: 'APPROVED' });
-    const vipWithBusiness = getUserContext({ subscriptionStatus: 'ACTIVE', businessStatus: 'PUBLISHED' });
+    const memberWithBusiness = getUserContext({
+      subscriptionStatus: 'NONE',
+      businessStatus: 'APPROVED',
+    });
+    const vipWithBusiness = getUserContext({
+      subscriptionStatus: 'ACTIVE',
+      businessStatus: 'PUBLISHED',
+    });
+
+    const vipTabs = [...baseTabs, 'introductions', 'business'] as const;
 
     expect(getVisibleDashboardTabs(member)).toEqual(baseTabs);
-    expect(getVisibleDashboardTabs(vip)).toEqual([...baseTabs, 'introductions'] as const);
-    expect(getVisibleDashboardTabs(memberWithBusiness)).toEqual([...baseTabs, 'introductions', 'business'] as const);
-    expect(getVisibleDashboardTabs(vipWithBusiness)).toEqual([...baseTabs, 'introductions', 'business'] as const);
+    expect(getVisibleDashboardTabs(vip)).toEqual(vipTabs);
+    expect(getVisibleDashboardTabs(memberWithBusiness)).toEqual(baseTabs);
+    expect(getVisibleDashboardTabs(vipWithBusiness)).toEqual(vipTabs);
 
     expect(canAccessDashboardTab(member, 'business')).toBe(false);
     expect(canAccessDashboardTab(member, 'introductions')).toBe(false);
     expect(canAccessDashboardTab(vip, 'introductions')).toBe(true);
-    expect(canAccessDashboardTab(memberWithBusiness, 'business')).toBe(true);
-    expect(canAccessDashboardTab(memberWithBusiness, 'introductions')).toBe(true);
+    expect(canAccessDashboardTab(vip, 'business')).toBe(true);
+    expect(canAccessDashboardTab(memberWithBusiness, 'business')).toBe(false);
+    expect(canAccessDashboardTab(memberWithBusiness, 'introductions')).toBe(false);
   });
 
   test('introduction requires VIP; business submit requires no existing business', () => {
     const member = getUserContext({ subscriptionStatus: 'NONE' });
     const vip = getUserContext({ subscriptionStatus: 'ACTIVE' });
-    const vipWithBusiness = getUserContext({ subscriptionStatus: 'ACTIVE', businessStatus: 'PUBLISHED' });
+    const vipWithBusiness = getUserContext({
+      subscriptionStatus: 'ACTIVE',
+      businessStatus: 'PUBLISHED',
+    });
 
     expect(canSubmitIntroduction(member)).toBe(false);
     expect(canSubmitIntroduction(vip)).toBe(true);
@@ -184,8 +198,14 @@ describe('member capability policies', () => {
     for (const tab of MEMBER_DASHBOARD_TABS) {
       expect(typeof tab).toBe('string');
     }
-    expect(getMemberCapabilities(getUserContext({ subscriptionStatus: 'NONE' }))).toContain('BUSINESS_SUBMIT' as never);
-    expect(getMemberCapabilities(getUserContext({ subscriptionStatus: 'NONE', businessStatus: 'APPROVED' }))).not.toContain('BUSINESS_SUBMIT' as never);
+    expect(getMemberCapabilities(getUserContext({ subscriptionStatus: 'NONE' }))).toContain(
+      'BUSINESS_SUBMIT' as never,
+    );
+    expect(
+      getMemberCapabilities(
+        getUserContext({ subscriptionStatus: 'NONE', businessStatus: 'APPROVED' }),
+      ),
+    ).not.toContain('BUSINESS_SUBMIT' as never);
   });
 
   test('subscription status enum assumptions remain covered', () => {

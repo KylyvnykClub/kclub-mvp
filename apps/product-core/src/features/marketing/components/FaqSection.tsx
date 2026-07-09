@@ -18,12 +18,8 @@ export function FaqSection() {
     <section className="kclub-border kclub-section-py border-b bg-surface-muted dark:bg-surface-muted">
       <div className="kclub-shell grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
-          <p className="kclub-section-eyebrow">
-            {t('faq.eyebrow')}
-          </p>
-          <h2 className="kclub-section-title mt-5">
-            {t('faq.title')}
-          </h2>
+          <p className="kclub-section-eyebrow">{t('faq.eyebrow')}</p>
+          <h2 className="kclub-section-title mt-5">{t('faq.title')}</h2>
         </div>
         <div className="kclub-border-strong border-t bg-white dark:bg-surface">
           {items.map((item, index) => {

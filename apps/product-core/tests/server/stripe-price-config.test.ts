@@ -1,9 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import {
-  parseAdminConfigPriceId,
-  resolveStripePriceIdFromEnv,
-} from '@/server/stripe/price-config';
+import { parseAdminConfigPriceId, resolveStripePriceIdFromEnv } from '@/server/stripe/price-config';
 
 describe('stripe price config', () => {
   test('resolveStripePriceIdFromEnv reads legacy annual env names', () => {

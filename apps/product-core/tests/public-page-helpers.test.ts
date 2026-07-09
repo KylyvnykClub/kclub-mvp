@@ -31,6 +31,9 @@ function createPublicBusiness(
     featuredTop: flags.featuredTop ?? false,
     featuredRecommended: flags.featuredRecommended ?? false,
     memberDiscountPercent: null,
+    coverImageUrl: null,
+    logoUrl: null,
+    discountMuted: false,
   };
 }
 
@@ -105,6 +108,9 @@ describe('public business list PII safety', () => {
       featuredTop: false,
       featuredRecommended: false,
       memberDiscountPercent: null,
+      coverImageUrl: null,
+      logoUrl: null,
+      discountMuted: false,
     };
 
     expect(isPublicBusinessListPiiSafe(business)).toBe(true);
@@ -145,6 +151,9 @@ describe('public business detail PII safety', () => {
       featuredTop: false,
       featuredRecommended: false,
       memberDiscountPercent: null,
+      coverImageUrl: null,
+      logoUrl: null,
+      discountMuted: false,
       description: null,
       representativeName: 'Rep',
       publishedAt: null,
@@ -167,6 +176,9 @@ describe('public business detail PII safety', () => {
       featuredTop: false,
       featuredRecommended: false,
       memberDiscountPercent: null,
+      coverImageUrl: null,
+      logoUrl: null,
+      discountMuted: false,
       description: null,
       representativeName: 'Rep',
       publishedAt: null,

@@ -13,15 +13,25 @@ type Params = { params: Promise<{ id: string }> };
 export async function POST(request: NextRequest, { params }: Params) {
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
+    const {
+      data: { user: supabaseUser },
+      error,
+    } = await supabase.auth.getUser();
 
     if (error || !supabaseUser) {
-      return jsonError({ code: ERROR_CODES.AUTH_SESSION_REQUIRED, message: 'Authentication required' }, undefined, { status: 401 });
+      return jsonError(
+        { code: ERROR_CODES.AUTH_SESSION_REQUIRED, message: 'Authentication required' },
+        undefined,
+        { status: 401 },
+      );
     }
 
     const localUser = await getMemberBySupabaseUserId(supabaseUser.id);
     const { id } = await params;
-    const context = createRequestContext({ actor: { kind: 'member', userId: localUser.id }, headers: request.headers });
+    const context = createRequestContext({
+      actor: { kind: 'member', userId: localUser.id },
+      headers: request.headers,
+    });
 
     const result = await approveIntroduction(id, context);
     return jsonSuccess(result);

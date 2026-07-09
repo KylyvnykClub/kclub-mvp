@@ -183,10 +183,8 @@ export function SubscriptionsTable({ subscriptions, staffRole }: SubscriptionsTa
               <div key={sub.id} className="space-y-3 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {sub.user?.displayName ?? 'N/A'}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <p className="truncate text-sm font-medium">{sub.user?.displayName ?? 'N/A'}</p>
+                    <div className="mt-1 flex items-center gap-2">
                       <Badge variant="outline">
                         {sub.kind === 'VIP_MEMBERSHIP' ? 'VIP' : 'Business Placement'}
                       </Badge>
@@ -199,12 +197,15 @@ export function SubscriptionsTable({ subscriptions, staffRole }: SubscriptionsTa
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <div className="text-muted-foreground">
-                    Ends: {sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toLocaleDateString() : '—'}
+                    Ends:{' '}
+                    {sub.currentPeriodEnd
+                      ? new Date(sub.currentPeriodEnd).toLocaleDateString()
+                      : '—'}
                   </div>
                   {sub.cancelAtPeriodEnd && <Badge variant="destructive">Canceling</Badge>}
                 </div>
                 {showCancel && !sub.cancelAtPeriodEnd && sub.status === 'ACTIVE' && (
-                  <div className="flex justify-end border-t pt-3 mt-1">
+                  <div className="mt-1 flex justify-end border-t pt-3">
                     <CancelDialog id={sub.id} onAction={() => router.refresh()} />
                   </div>
                 )}

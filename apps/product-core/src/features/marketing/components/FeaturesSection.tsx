@@ -4,7 +4,7 @@ import { BadgeCheck, Building2, Globe2, Handshake, QrCode, ShieldCheck } from 'l
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { cn } from '@kclub/ui';
-import {type CSSProperties } from 'react';
+import { type CSSProperties } from 'react';
 import heroBg from '@/assets/images/hero-bg.png';
 type FeatureItem = {
   title: string;
@@ -28,10 +28,7 @@ export function FeaturesSection() {
         className="absolute inset-x-0 top-0 h-[480px] bg-gradient-to-b from-transparent to-surface-muted sm:hidden"
         aria-hidden="true"
       />
-      <div
-        className="absolute inset-0 bg-background/60 dark:bg-background/40"
-        aria-hidden="true"
-      />
+      <div className="bg-background/60 dark:bg-background/40 absolute inset-0" aria-hidden="true" />
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
         <motion.div
           className="mb-12 grid gap-4 lg:items-end"

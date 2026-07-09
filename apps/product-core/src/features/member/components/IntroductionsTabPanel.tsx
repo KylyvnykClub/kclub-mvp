@@ -4,7 +4,10 @@ import type { Locale } from '@/i18n/routing';
 import { getDbClient, schema } from '@/server/db';
 import { and, asc, eq } from 'drizzle-orm';
 import { BusinessSubmitWizard } from '@/features/member/components/BusinessSubmitWizard';
-import type { CityTaxonomyOption, TaxonomyOption } from '@/features/member/components/BusinessPanel';
+import type {
+  CityTaxonomyOption,
+  TaxonomyOption,
+} from '@/features/member/components/BusinessPanel';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 
 type IntroductionsTabPanelProps = {
@@ -22,10 +25,7 @@ export async function IntroductionsTabPanel({ locale }: IntroductionsTabPanelPro
       orderBy: [asc(schema.countries.name)],
     }),
     db.query.categories.findMany({
-      where: and(
-        eq(schema.categories.is_active, true),
-        eq(schema.categories.is_high_risk, false)
-      ),
+      where: and(eq(schema.categories.is_active, true), eq(schema.categories.is_high_risk, false)),
       orderBy: [asc(schema.categories.name)],
     }),
     db.query.cities.findMany({

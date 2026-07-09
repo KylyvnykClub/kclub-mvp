@@ -13,7 +13,11 @@ import {
 import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
-import { cabinetContentClasses, cabinetFieldLabelClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
+import {
+  cabinetContentClasses,
+  cabinetFieldLabelClasses,
+  cabinetGridPanelClasses,
+} from '@/features/member/components/cabinet/styles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,10 +41,7 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   CANCELED: 'statusCanceled',
 };
 
-const STATUS_BADGE_VARIANTS: Record<
-  string,
-  'default' | 'outline' | 'success' | 'destructive'
-> = {
+const STATUS_BADGE_VARIANTS: Record<string, 'default' | 'outline' | 'success' | 'destructive'> = {
   SUBMITTED: 'outline',
   IN_REVIEW: 'outline',
   APPROVED: 'success',
@@ -93,7 +94,10 @@ export function IntroductionsPanel({
         const introsRes = await fetch(MEMBER_API_ROUTES.INTRODUCTIONS);
         const introsResult = await parseAuthResponse<MemberIntroductionDto[]>(introsRes);
         if (!isMounted) return;
-        if (!introsResult.success) { setError(tCommon('genericError')); return; }
+        if (!introsResult.success) {
+          setError(tCommon('genericError'));
+          return;
+        }
         setIntroductions(introsResult.data ?? []);
       } catch {
         if (isMounted) setError(tCommon('genericError'));
@@ -200,7 +204,9 @@ export function IntroductionsPanel({
 
   return (
     <div className={cabinetContentClasses}>
-      <p className="mb-9 max-w-2xl text-sm leading-relaxed text-muted-foreground">{t('description')}</p>
+      <p className="mb-9 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        {t('description')}
+      </p>
 
       {error && (
         <Alert variant="destructive">
@@ -316,7 +322,9 @@ export function IntroductionsPanel({
                       {t('rejectionReasonLabel')}: {intro.rejectionReason}
                     </p>
                   )}
-                  <p className="text-xs text-muted">{new Date(intro.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted">
+                    {new Date(intro.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <Badge variant={getStatusBadgeVariant(intro.status)}>

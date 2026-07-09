@@ -46,11 +46,11 @@ This document defines the environment contract for KCLUB MVP v4. Never commit re
 
 ## Shared Operational Variables
 
-| Variable               | Required                 | Environment | Purpose                                 |
-| ---------------------- | ------------------------ | ----------- | --------------------------------------- |
-| `NODE_ENV`             | Yes                      | all         | Runtime mode                            |
-| `APP_ENV`              | Yes                      | all         | `development`, `staging`, `production`  |
-| `RATE_LIMIT_REDIS_URL` | Optional but recommended | server only | Abuse/rate-limit backend if used        |
+| Variable               | Required                 | Environment | Purpose                                |
+| ---------------------- | ------------------------ | ----------- | -------------------------------------- |
+| `NODE_ENV`             | Yes                      | all         | Runtime mode                           |
+| `APP_ENV`              | Yes                      | all         | `development`, `staging`, `production` |
+| `RATE_LIMIT_REDIS_URL` | Optional but recommended | server only | Abuse/rate-limit backend if used       |
 
 ## Ownership
 

@@ -281,9 +281,7 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div>
-                    {cat.isHighRisk && <Badge variant="destructive">High Risk</Badge>}
-                  </div>
+                  <div>{cat.isHighRisk && <Badge variant="destructive">High Risk</Badge>}</div>
                   <div className="flex items-center gap-1">
                     <CategoryFormDialog
                       mode="edit"

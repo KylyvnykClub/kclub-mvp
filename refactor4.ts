@@ -1,7 +1,9 @@
 import { Project } from 'ts-morph';
 
 const project = new Project();
-const sourceFile = project.addSourceFileAtPath('apps/product-core/src/server/services/admin-service.ts');
+const sourceFile = project.addSourceFileAtPath(
+  'apps/product-core/src/server/services/admin-service.ts',
+);
 
 function replaceFunction(name: string, newBodyText: string) {
   const func = sourceFile.getFunction(name);
@@ -12,24 +14,32 @@ function replaceFunction(name: string, newBodyText: string) {
   }
 }
 
-replaceFunction('listSubscriptions', `
+replaceFunction(
+  'listSubscriptions',
+  `
   const db = getDbClient();
   const subs = await db.query.vipSubscriptions.findMany({
     orderBy: [desc(schema.vipSubscriptions.created_at)],
   });
   return subs.map(toSubscriptionDto);
-`);
+`,
+);
 
-replaceFunction('listAdminSubscriptions', `
+replaceFunction(
+  'listAdminSubscriptions',
+  `
   const db = getDbClient();
   const subs = await db.query.subscriptions.findMany({
     with: ADMIN_SUBSCRIPTION_INCLUDE,
     orderBy: [desc(schema.subscriptions.created_at)],
   });
   return subs.map(toAdminSubscriptionListItem);
-`);
+`,
+);
 
-replaceFunction('getAdminSubscriptionDetail', `
+replaceFunction(
+  'getAdminSubscriptionDetail',
+  `
   const db = getDbClient();
   const sub = await db.query.subscriptions.findFirst({
     where: eq(schema.subscriptions.id, subscriptionId),
@@ -43,9 +53,12 @@ replaceFunction('getAdminSubscriptionDetail', `
     });
   }
   return toAdminSubscriptionListItem(sub);
-`);
+`,
+);
 
-replaceFunction('getSubscriptionDetail', `
+replaceFunction(
+  'getSubscriptionDetail',
+  `
   const db = getDbClient();
   const sub = await db.query.vipSubscriptions.findFirst({ where: eq(schema.vipSubscriptions.id, subscriptionId) });
   if (!sub) {
@@ -56,9 +69,12 @@ replaceFunction('getSubscriptionDetail', `
     });
   }
   return toSubscriptionDto(sub);
-`);
+`,
+);
 
-replaceFunction('adminCancelSubscription', `
+replaceFunction(
+  'adminCancelSubscription',
+  `
   const db = getDbClient();
   const sub = await db.query.subscriptions.findFirst({
     where: eq(schema.subscriptions.id, subscriptionId),
@@ -94,9 +110,12 @@ replaceFunction('adminCancelSubscription', `
   );
 
   return toAdminSubscriptionListItem(updatedWithRelations!);
-`);
+`,
+);
 
-replaceFunction('listAuditLogs', `
+replaceFunction(
+  'listAuditLogs',
+  `
   const db = getDbClient();
   const conditions = [];
 
@@ -136,9 +155,12 @@ replaceFunction('listAuditLogs', `
     })),
     total,
   };
-`);
+`,
+);
 
-replaceFunction('getStripePrices', `
+replaceFunction(
+  'getStripePrices',
+  `
   const db = getDbClient();
   const configs = await db.query.adminConfigs.findMany({
     where: inArray(schema.adminConfigs.key, STRIPE_PRICE_KEYS as unknown as string[]),
@@ -154,9 +176,12 @@ replaceFunction('getStripePrices', `
   }
 
   return result;
-`);
+`,
+);
 
-replaceFunction('updateStripePrices', `
+replaceFunction(
+  'updateStripePrices',
+  `
   const db = getDbClient();
 
   for (const [key, priceId] of Object.entries(input)) {
@@ -178,9 +203,12 @@ replaceFunction('updateStripePrices', `
   }
 
   return getStripePrices();
-`);
+`,
+);
 
-replaceFunction('getAdminConfig', `
+replaceFunction(
+  'getAdminConfig',
+  `
   const db = getDbClient();
   const config = await db.query.adminConfigs.findFirst({ where: eq(schema.adminConfigs.key, key) });
   if (!config) {
@@ -191,9 +219,12 @@ replaceFunction('getAdminConfig', `
     });
   }
   return toAdminConfigEntry(config);
-`);
+`,
+);
 
-replaceFunction('updateAdminConfig', `
+replaceFunction(
+  'updateAdminConfig',
+  `
   const db = getDbClient();
   const existing = await db.query.adminConfigs.findFirst({ where: eq(schema.adminConfigs.key, key) });
 
@@ -213,9 +244,12 @@ replaceFunction('updateAdminConfig', `
     result = created;
   }
   return toAdminConfigEntry(result);
-`);
+`,
+);
 
-replaceFunction('getMembershipPlans', `
+replaceFunction(
+  'getMembershipPlans',
+  `
   const db = getDbClient();
   const configs = await db.query.adminConfigs.findMany({
     where: inArray(schema.adminConfigs.key, ['vip_membership_monthly', 'business_placement_monthly']),
@@ -225,17 +259,23 @@ replaceFunction('getMembershipPlans', `
     value: c.value,
     description: c.description,
   }));
-`);
+`,
+);
 
-replaceFunction('listStaff', `
+replaceFunction(
+  'listStaff',
+  `
   const db = getDbClient();
   const staff = await db.query.adminUsers.findMany({
     orderBy: [asc(schema.adminUsers.created_at)],
   });
   return staff.map(toAdminStaffListItem);
-`);
+`,
+);
 
-replaceFunction('getStaffDetail', `
+replaceFunction(
+  'getStaffDetail',
+  `
   assertValidUuid(staffId, 'staff');
   const db = getDbClient();
   const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
@@ -247,9 +287,12 @@ replaceFunction('getStaffDetail', `
     });
   }
   return toAdminStaffListItem(staff);
-`);
+`,
+);
 
-replaceFunction('updateStaffRole', `
+replaceFunction(
+  'updateStaffRole',
+  `
   assertValidUuid(staffId, 'staff');
   const db = getDbClient();
   const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
@@ -278,9 +321,12 @@ replaceFunction('updateStaffRole', `
   );
 
   return toAdminStaffListItem(updated);
-`);
+`,
+);
 
-replaceFunction('deactivateStaff', `
+replaceFunction(
+  'deactivateStaff',
+  `
   assertValidUuid(staffId, 'staff');
   const db = getDbClient();
   const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
@@ -317,7 +363,8 @@ replaceFunction('deactivateStaff', `
   );
 
   return toAdminStaffListItem(updated);
-`);
+`,
+);
 
 project.saveSync();
 console.log('Part 4 complete');

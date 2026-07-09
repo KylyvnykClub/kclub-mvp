@@ -5,10 +5,7 @@ import type { CurrentMemberProfileDto, UserContext } from '@kclub/contracts';
 import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-tabs';
-import {
-  getDashboardTabLockLabel,
-  isDashboardTabLocked,
-} from '@/features/member/dashboard-tabs';
+import { getDashboardTabLockLabel, isDashboardTabLocked } from '@/features/member/dashboard-tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/reui/badge';
@@ -63,11 +60,7 @@ function renderTabTriggers({
     const lockLabel = getDashboardTabLockLabel(tab);
 
     return (
-      <TabsTrigger
-        key={tab}
-        value={tab}
-        className={cn(itemClassName, locked && 'text-muted')}
-      >
+      <TabsTrigger key={tab} value={tab} className={cn(itemClassName, locked && 'text-muted')}>
         <span>{tabLabels[tab]}</span>
         {locked && lockLabel ? (
           <Badge variant="outline" size="xs">
@@ -105,7 +98,7 @@ export function MemberCabinetShell({
       {/* Unified header spanning full width */}
       <header className="sticky top-0 z-20 col-span-full flex w-full shrink-0 items-center justify-between gap-4 border-b border-border bg-surface px-6 py-4 sm:px-10 lg:order-first lg:col-span-full">
         <div className="flex items-center gap-3">
-          <Avatar size="lg" className="border border-accent/30 bg-surface-muted">
+          <Avatar size="lg" className="border-accent/30 border bg-surface-muted">
             <AvatarFallback className="bg-transparent text-sm font-bold text-accent">
               {getInitials(displayName)}
             </AvatarFallback>

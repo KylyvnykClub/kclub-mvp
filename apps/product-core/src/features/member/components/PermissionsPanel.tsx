@@ -58,8 +58,7 @@ export async function PermissionsPanel({ locale: _locale, userContext }: Permiss
     <div className={cabinetContentClasses}>
       <div className="mb-6">
         <p className="text-sm text-muted-foreground">
-          Your access level:{' '}
-          <span className="font-semibold text-foreground">{accessLabel}</span>
+          Your access level: <span className="font-semibold text-foreground">{accessLabel}</span>
         </p>
       </div>
 

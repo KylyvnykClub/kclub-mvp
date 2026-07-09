@@ -48,7 +48,7 @@ export async function submitBusiness(
   const existingActiveBusiness = await db.query.businessProfiles.findFirst({
     where: and(
       eq(schema.businessProfiles.user_id, userId),
-      ne(schema.businessProfiles.status, 'REJECTED')
+      ne(schema.businessProfiles.status, 'REJECTED'),
     ),
   });
 
@@ -96,21 +96,24 @@ export async function submitBusiness(
 
   const slug = generateSlug(input.name);
 
-  const [newBusinessData] = await db.insert(schema.businessProfiles).values({
-    user_id: userId,
-    slug,
-    name: input.name,
-    representative_name: input.representativeName,
-    representative_email: input.representativeEmail,
-    representative_phone: input.representativePhone,
-    country_id: input.countryId,
-    city_id: input.cityId,
-    category_id: input.categoryId,
-    website_url: input.websiteUrl ?? null,
-    social_url: input.socialUrl ?? null,
-    brief_description: input.briefDescription ?? null,
-    status: 'UNDER_REVIEW',
-  }).returning();
+  const [newBusinessData] = await db
+    .insert(schema.businessProfiles)
+    .values({
+      user_id: userId,
+      slug,
+      name: input.name,
+      representative_name: input.representativeName,
+      representative_email: input.representativeEmail,
+      representative_phone: input.representativePhone,
+      country_id: input.countryId,
+      city_id: input.cityId,
+      category_id: input.categoryId,
+      website_url: input.websiteUrl ?? null,
+      social_url: input.socialUrl ?? null,
+      brief_description: input.briefDescription ?? null,
+      status: 'UNDER_REVIEW',
+    })
+    .returning();
 
   const newBusiness = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, newBusinessData.id),
@@ -181,7 +184,7 @@ export async function updateBusiness(
   // Optional category/city checks
   if (input.categoryId && input.categoryId !== business.category_id) {
     const category = await db.query.categories.findFirst({
-      where: eq(schema.categories.id, input.categoryId)
+      where: eq(schema.categories.id, input.categoryId),
     });
     if (!category || !category.is_active) {
       throw new AppError({
@@ -203,7 +206,7 @@ export async function updateBusiness(
     const targetCityId = input.cityId ?? business.city_id;
     const targetCountryId = input.countryId ?? business.country_id;
     const city = await db.query.cities.findFirst({
-      where: eq(schema.cities.id, targetCityId)
+      where: eq(schema.cities.id, targetCityId),
     });
     if (!city || city.country_id !== targetCountryId) {
       throw new AppError({
@@ -245,7 +248,8 @@ export async function updateBusiness(
   dataToUpdate.status = 'UNDER_REVIEW';
   dataToUpdate.approved_at = null;
 
-  await db.update(schema.businessProfiles)
+  await db
+    .update(schema.businessProfiles)
     .set(dataToUpdate)
     .where(eq(schema.businessProfiles.id, businessId));
 

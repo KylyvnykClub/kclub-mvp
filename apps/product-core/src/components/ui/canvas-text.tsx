@@ -1,6 +1,6 @@
-"use client";
-import { cn } from "@kclub/ui";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+'use client';
+import { cn } from '@kclub/ui';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 interface CanvasTextProps {
   text: string;
@@ -15,11 +15,9 @@ interface CanvasTextProps {
 }
 
 function resolveColor(color: string): string {
-  if (color.startsWith("var(")) {
+  if (color.startsWith('var(')) {
     const varName = color.slice(4, -1).trim();
-    const resolved = getComputedStyle(document.documentElement)
-      .getPropertyValue(varName)
-      .trim();
+    const resolved = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
     return resolved || color;
   }
   return color;
@@ -27,9 +25,9 @@ function resolveColor(color: string): string {
 
 export function CanvasText({
   text,
-  className = "",
-  backgroundClassName = "bg-white dark:bg-neutral-950",
-  colors = ["#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#ffeaa7", "#dfe6e9"],
+  className = '',
+  backgroundClassName = 'bg-white dark:bg-neutral-950',
+  colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9'],
   animationDuration = 5,
   lineWidth = 1.5,
   lineGap = 10,
@@ -41,10 +39,10 @@ export function CanvasText({
   const bgRef = useRef<HTMLSpanElement>(null);
   const animationRef = useRef<number>(0);
   const startTimeRef = useRef<number>(0);
-  const [bgColor, setBgColor] = useState("#0a0a0a");
+  const [bgColor, setBgColor] = useState('#0a0a0a');
   const [resolvedColors, setResolvedColors] = useState<string[]>([]);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const [font, setFont] = useState("");
+  const [font, setFont] = useState('');
 
   const updateColors = useCallback(() => {
     if (bgRef.current) {
@@ -61,7 +59,7 @@ export function CanvasText({
     const observer = new MutationObserver(updateColors);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class"],
+      attributeFilter: ['class'],
     });
 
     return () => observer.disconnect();
@@ -78,9 +76,7 @@ export function CanvasText({
         width: Math.ceil(rect.width) || 400,
         height: Math.ceil(rect.height) || 200,
       });
-      setFont(
-        `${computed.fontWeight} ${computed.fontSize} ${computed.fontFamily}`,
-      );
+      setFont(`${computed.fontWeight} ${computed.fontSize} ${computed.fontFamily}`);
     };
 
     updateDimensions();
@@ -93,15 +89,9 @@ export function CanvasText({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (
-      !canvas ||
-      resolvedColors.length === 0 ||
-      dimensions.width === 0 ||
-      !font
-    )
-      return;
+    if (!canvas || resolvedColors.length === 0 || dimensions.width === 0 || !font) return;
 
-    const ctx = canvas.getContext("2d", { alpha: true });
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     const { width, height } = dimensions;
@@ -126,18 +116,18 @@ export function CanvasText({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      ctx.globalCompositeOperation = "source-over";
+      ctx.globalCompositeOperation = 'source-over';
       ctx.font = font;
-      ctx.textBaseline = "alphabetic";
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#000";
+      ctx.textBaseline = 'alphabetic';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#000';
       ctx.fillText(text, 0, baselineY);
 
-      ctx.globalCompositeOperation = "source-in";
+      ctx.globalCompositeOperation = 'source-in';
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, width, height);
 
-      ctx.globalCompositeOperation = "source-atop";
+      ctx.globalCompositeOperation = 'source-atop';
       for (let i = 0; i < numLines; i++) {
         const y = i * lineGap;
 
@@ -150,14 +140,7 @@ export function CanvasText({
 
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.bezierCurveTo(
-          width * 0.33,
-          y + curve1,
-          width * 0.66,
-          y + curve2,
-          width,
-          y,
-        );
+        ctx.bezierCurveTo(width * 0.33, y + curve1, width * 0.66, y + curve2, width, y);
         ctx.stroke();
       }
 
@@ -182,19 +165,10 @@ export function CanvasText({
   ]);
 
   return (
-    <span
-      className={cn(
-        "relative inline-block",
-        overlay && "absolute inset-0",
-        className,
-      )}
-    >
+    <span className={cn('relative inline-block', overlay && 'absolute inset-0', className)}>
       <span
         ref={bgRef}
-        className={cn(
-          "pointer-events-none absolute h-0 w-0 opacity-0",
-          backgroundClassName,
-        )}
+        className={cn('pointer-events-none absolute h-0 w-0 opacity-0', backgroundClassName)}
         aria-hidden="true"
       />
       <span ref={textRef} className="invisible inline-block" aria-hidden="true">
@@ -202,10 +176,10 @@ export function CanvasText({
       </span>
       <canvas
         ref={canvasRef}
-        className="pointer-events-none absolute top-0 left-0"
+        className="pointer-events-none absolute left-0 top-0"
         style={{
-          width: dimensions.width || "auto",
-          height: dimensions.height || "auto",
+          width: dimensions.width || 'auto',
+          height: dimensions.height || 'auto',
         }}
         aria-label={text}
         role="img"

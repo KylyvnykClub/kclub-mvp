@@ -32,5 +32,4 @@ export const cabinetLockedStateClasses =
 
 export const memberCabinetPanelClasses = cabinetPanelClasses;
 
-export const memberInfoTileClasses =
-  'border border-border bg-surface-muted p-4 text-foreground';
+export const memberInfoTileClasses = 'border border-border bg-surface-muted p-4 text-foreground';

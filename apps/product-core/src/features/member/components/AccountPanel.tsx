@@ -14,7 +14,10 @@ import type { Locale } from '@/i18n/routing';
 import { locales } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
 import { KylyvnykClubCard } from '@/features/member/components/KylyvnykClubCard';
-import { cabinetContentClasses, cabinetFieldLabelClasses } from '@/features/member/components/cabinet/styles';
+import {
+  cabinetContentClasses,
+  cabinetFieldLabelClasses,
+} from '@/features/member/components/cabinet/styles';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/reui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,7 +62,9 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [displayName, setDisplayName] = useState(profile.displayName ?? '');
-  const [localePreference, setLocalePreference] = useState<Locale>(profile.localePreference ?? locale);
+  const [localePreference, setLocalePreference] = useState<Locale>(
+    profile.localePreference ?? locale,
+  );
   const [country, setCountry] = useState(profile.country ?? '');
   const [city, setCity] = useState(profile.city ?? '');
   const [about, setAbout] = useState(profile.about ?? '');
@@ -149,7 +154,7 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
               className="group relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full"
             >
               <Avatar
-                className="border border-accent/25 bg-surface-muted"
+                className="border-accent/25 border bg-surface-muted"
                 style={{ width: '5rem', height: '5rem' }}
               >
                 {avatarUrl ? <AvatarImage src={avatarUrl} alt={memberName} /> : null}

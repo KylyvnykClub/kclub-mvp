@@ -20,6 +20,9 @@ describe('toPublicBusinessListItemDto', () => {
     featured_top: true,
     featured_recommended: false,
     member_discount_percent: 15,
+    cover_image_url: null,
+    logo_url: null,
+    discount_muted: false,
   };
 
   test('maps to public list item DTO correctly', () => {
@@ -38,6 +41,9 @@ describe('toPublicBusinessListItemDto', () => {
       featuredTop: true,
       featuredRecommended: false,
       memberDiscountPercent: 15,
+      coverImageUrl: null,
+      logoUrl: null,
+      discountMuted: false,
     });
   });
 });
@@ -56,6 +62,9 @@ describe('toPublicBusinessDetailDto', () => {
     featured_top: true,
     featured_recommended: false,
     member_discount_percent: null,
+    cover_image_url: null,
+    logo_url: null,
+    discount_muted: false,
     description: 'Full description',
     representative_name: 'Rep Name',
     published_at: new Date('2026-06-15T10:00:00.000Z'),
@@ -77,6 +86,9 @@ describe('toPublicBusinessDetailDto', () => {
       featuredTop: true,
       featuredRecommended: false,
       memberDiscountPercent: null,
+      coverImageUrl: null,
+      logoUrl: null,
+      discountMuted: false,
       description: 'Full description',
       representativeName: 'Rep Name',
       publishedAt: '2026-06-15T10:00:00.000Z',
@@ -98,6 +110,9 @@ describe('toMemberBusinessProfileDto', () => {
     featured_top: true,
     featured_recommended: false,
     member_discount_percent: null,
+    cover_image_url: null,
+    logo_url: null,
+    discount_muted: false,
     description: 'Full description',
     representative_name: 'Rep Name',
     published_at: null,
@@ -125,6 +140,9 @@ describe('toMemberBusinessProfileDto', () => {
       featuredTop: true,
       featuredRecommended: false,
       memberDiscountPercent: null,
+      coverImageUrl: null,
+      logoUrl: null,
+      discountMuted: false,
       description: 'Full description',
       representativeName: 'Rep Name',
       publishedAt: null,

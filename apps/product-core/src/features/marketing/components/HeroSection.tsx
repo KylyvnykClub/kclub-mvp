@@ -20,18 +20,18 @@ const Globe = dynamic(() => import('@/components/ui/globe').then((m) => m.World)
 
 const globeConfigDark = {
   pointSize: 4,
-  globeColor: "#3f3f46",       // zinc-700 — видимый тёмно-серый
+  globeColor: '#3f3f46', // zinc-700 — видимый тёмно-серый
   showAtmosphere: true,
-  atmosphereColor: "#71717a",  // zinc-500
+  atmosphereColor: '#71717a', // zinc-500
   atmosphereAltitude: 0.1,
-  emissive: "#27272a",         // zinc-800
+  emissive: '#27272a', // zinc-800
   emissiveIntensity: 0.15,
   shininess: 0.8,
-  polygonColor: "rgba(255,255,255,0.6)",
-  ambientLight: "#d4d4d8",
-  directionalLeftLight: "#a1a1aa",
-  directionalTopLight: "#ffffff",
-  pointLight: "#ffffff",
+  polygonColor: 'rgba(255,255,255,0.6)',
+  ambientLight: '#d4d4d8',
+  directionalLeftLight: '#a1a1aa',
+  directionalTopLight: '#ffffff',
+  pointLight: '#ffffff',
   arcTime: 1000,
   arcLength: 0.9,
   arcDashGap: 2,
@@ -44,18 +44,18 @@ const globeConfigDark = {
 
 const globeConfigLight = {
   pointSize: 4,
-  globeColor: "#71717a",       // zinc-500 — средне-серый
+  globeColor: '#71717a', // zinc-500 — средне-серый
   showAtmosphere: true,
-  atmosphereColor: "#a1a1aa",  // zinc-400
+  atmosphereColor: '#a1a1aa', // zinc-400
   atmosphereAltitude: 0.1,
-  emissive: "#52525b",         // zinc-600
+  emissive: '#52525b', // zinc-600
   emissiveIntensity: 0.08,
   shininess: 0.5,
-  polygonColor: "rgba(255,255,255,0.55)",
-  ambientLight: "#d4d4d8",
-  directionalLeftLight: "#a1a1aa",
-  directionalTopLight: "#e4e4e7",
-  pointLight: "#e4e4e7",
+  polygonColor: 'rgba(255,255,255,0.55)',
+  ambientLight: '#d4d4d8',
+  directionalLeftLight: '#a1a1aa',
+  directionalTopLight: '#e4e4e7',
+  pointLight: '#e4e4e7',
   arcTime: 1000,
   arcLength: 0.9,
   arcDashGap: 2,
@@ -67,14 +67,49 @@ const globeConfigLight = {
 };
 
 const baseGlobeData = [
-  { order: 1, startLat: 40.7128, startLng: -74.0060, endLat: 51.5072, endLng: -0.1276, arcAlt: 0.2 },
+  { order: 1, startLat: 40.7128, startLng: -74.006, endLat: 51.5072, endLng: -0.1276, arcAlt: 0.2 },
   { order: 2, startLat: 51.5072, startLng: -0.1276, endLat: 25.2048, endLng: 55.2708, arcAlt: 0.2 },
   { order: 3, startLat: 25.2048, startLng: 55.2708, endLat: 1.3521, endLng: 103.8198, arcAlt: 0.2 },
-  { order: 4, startLat: 1.3521, startLng: 103.8198, endLat: -33.8688, endLng: 151.2093, arcAlt: 0.3 },
-  { order: 5, startLat: -33.8688, startLng: 151.2093, endLat: 35.6762, endLng: 139.6503, arcAlt: 0.3 },
-  { order: 6, startLat: 35.6762, startLng: 139.6503, endLat: 37.7749, endLng: -122.4194, arcAlt: 0.3 },
-  { order: 7, startLat: 37.7749, startLng: -122.4194, endLat: 40.7128, endLng: -74.0060, arcAlt: 0.2 },
-  { order: 8, startLat: 51.5072, startLng: -0.1276, endLat: -23.5505, endLng: -46.6333, arcAlt: 0.3 },
+  {
+    order: 4,
+    startLat: 1.3521,
+    startLng: 103.8198,
+    endLat: -33.8688,
+    endLng: 151.2093,
+    arcAlt: 0.3,
+  },
+  {
+    order: 5,
+    startLat: -33.8688,
+    startLng: 151.2093,
+    endLat: 35.6762,
+    endLng: 139.6503,
+    arcAlt: 0.3,
+  },
+  {
+    order: 6,
+    startLat: 35.6762,
+    startLng: 139.6503,
+    endLat: 37.7749,
+    endLng: -122.4194,
+    arcAlt: 0.3,
+  },
+  {
+    order: 7,
+    startLat: 37.7749,
+    startLng: -122.4194,
+    endLat: 40.7128,
+    endLng: -74.006,
+    arcAlt: 0.2,
+  },
+  {
+    order: 8,
+    startLat: 51.5072,
+    startLng: -0.1276,
+    endLat: -23.5505,
+    endLng: -46.6333,
+    arcAlt: 0.3,
+  },
 ];
 
 const containerVariants = {
@@ -119,7 +154,10 @@ export function HeroSection({ locale }: { locale: Locale }) {
   return (
     <section className="kclub-premium-hero relative isolate flex min-h-[calc(100vh-112px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">
       <div className="kclub-premium-hero-tint absolute inset-0" aria-hidden="true" />
-      <div className="kclub-premium-hero-fade absolute bottom-0 left-0 right-0 h-24" aria-hidden="true" />
+      <div
+        className="kclub-premium-hero-fade absolute bottom-0 left-0 right-0 h-24"
+        aria-hidden="true"
+      />
       <div
         className="kclub-animate-draw-y absolute inset-y-0 right-[10%] hidden w-px bg-zinc-300/80 dark:bg-white/10 lg:block"
         aria-hidden="true"
@@ -131,7 +169,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
 
       {/* Globe Background */}
       <div
-        className={`absolute inset-0 z-0 flex items-center justify-center overflow-hidden pointer-events-none lg:justify-end ${
+        className={`pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden lg:justify-end ${
           isDark ? 'opacity-60 mix-blend-screen' : 'opacity-55 mix-blend-normal'
         }`}
       >
@@ -140,11 +178,11 @@ export function HeroSection({ locale }: { locale: Locale }) {
         </div>
 
         {/* Vignette overlays */}
-        <div className="absolute inset-0 pointer-events-none select-none bg-[radial-gradient(ellipse_at_center,transparent_10%,var(--background)_100%)] z-40" />
-        <div className="absolute w-full bottom-0 inset-x-0 h-40 bg-gradient-to-b pointer-events-none select-none from-transparent to-background z-40" />
+        <div className="pointer-events-none absolute inset-0 z-40 select-none bg-[radial-gradient(ellipse_at_center,transparent_10%,var(--background)_100%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-40 h-40 w-full select-none bg-gradient-to-b from-transparent to-background" />
       </div>
 
-      <div className="relative z-10 mx-auto flex flex-col min-h-0 w-full max-w-7xl flex-1 justify-center gap-11 px-4 py-16 sm:px-6 sm:py-20 lg:gap-20 lg:px-10 lg:py-[6.625rem]">
+      <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col justify-center gap-11 px-4 py-16 sm:px-6 sm:py-20 lg:gap-20 lg:px-10 lg:py-[6.625rem]">
         <motion.div
           className="min-w-0 max-w-3xl lg:pr-6"
           variants={containerVariants}
@@ -160,21 +198,19 @@ export function HeroSection({ locale }: { locale: Locale }) {
 
           <motion.h1
             variants={itemVariants}
-            className="w-full mb-11 text-5xl sm:text-6xl md:text-7xl lg:text-[90px] font-bold leading-[1.05] tracking-tight text-foreground uppercase font-[helvetica]"
+            className="mb-11 w-full font-[helvetica] text-5xl font-bold uppercase leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[90px]"
           >
-            <span className="block">
-              {t('hero.titleLine1')}
-            </span>
-            <span className="block mt-2">
+            <span className="block">{t('hero.titleLine1')}</span>
+            <span className="mt-2 block">
               {t('hero.titleLine2').toUpperCase().split(' ').slice(0, -1).join(' ')}{' '}
               <CanvasText
                 text={t('hero.titleLine2').toUpperCase().split(' ').pop() || ''}
                 backgroundClassName={isDark ? 'bg-[#0f0f0f]' : 'bg-background'}
                 colors={[
                   accentColor,
-                  isDark ? "#ffffff" : "#18181b",
+                  isDark ? '#ffffff' : '#18181b',
                   accentColor,
-                  isDark ? "#a1a1aa" : "#52525b",
+                  isDark ? '#a1a1aa' : '#52525b',
                 ]}
                 animationDuration={8}
                 lineGap={1}
@@ -184,19 +220,32 @@ export function HeroSection({ locale }: { locale: Locale }) {
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="kclub-hero-copy mt-11">{t('hero.subline')}</motion.p>
+          <motion.p variants={itemVariants} className="kclub-hero-copy mt-11">
+            {t('hero.subline')}
+          </motion.p>
 
-          <motion.div variants={itemVariants} className="mt-11 flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
+          <motion.div
+            variants={itemVariants}
+            className="mt-11 flex w-full flex-col gap-4 sm:w-auto sm:flex-row"
+          >
             <Link
               href={`/${locale}/sign-up`}
-              className={getButtonClasses({ color: 'brand', size: 'lg', className: 'w-full sm:w-auto' })}
+              className={getButtonClasses({
+                color: 'brand',
+                size: 'lg',
+                className: 'w-full sm:w-auto',
+              })}
             >
               <span>{t('hero.primaryCta')}</span>
               <ArrowUpRight aria-hidden="true" size={18} strokeWidth={2} />
             </Link>
             <Link
               href={`/${locale}/directory`}
-              className={getButtonClasses({ color: 'brand-secondary', size: 'lg', className: 'w-full sm:w-auto' })}
+              className={getButtonClasses({
+                color: 'brand-secondary',
+                size: 'lg',
+                className: 'w-full sm:w-auto',
+              })}
             >
               <span>{t('hero.secondaryCta')}</span>
               <ArrowUpRight aria-hidden="true" size={18} strokeWidth={2} />

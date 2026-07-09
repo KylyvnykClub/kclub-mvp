@@ -17,6 +17,7 @@
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "bun test",
     "db:generate": "drizzle-kit generate",
+    "db:migrate:deploy": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:seed": "bun run src/seeds/run-seed.ts",
     "db:seed:plan": "bun run src/seeds/seed-plan.ts"

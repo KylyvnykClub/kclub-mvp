@@ -109,8 +109,12 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
                   value={method}
                   className="h-auto flex-1 flex-col items-start gap-0.5 px-4 py-3.5 text-left"
                 >
-                  <p className="text-sm font-semibold">{t(`login${method === 'phone' ? 'Phone' : 'Email'}`)}</p>
-                  <p className="mt-0.5 text-xs opacity-70">{t(`login${method === 'phone' ? 'Phone' : 'Email'}Hint`)}</p>
+                  <p className="text-sm font-semibold">
+                    {t(`login${method === 'phone' ? 'Phone' : 'Email'}`)}
+                  </p>
+                  <p className="mt-0.5 text-xs opacity-70">
+                    {t(`login${method === 'phone' ? 'Phone' : 'Email'}Hint`)}
+                  </p>
                 </ToggleGroupItem>
               ))}
             </ToggleGroup>
@@ -249,7 +253,7 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
       </section>
 
       <section>
-        <h2 className="mb-6 border-b border-destructive/20 pb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-destructive">
+        <h2 className="border-destructive/20 mb-6 border-b pb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-destructive">
           {t('dangerSection')}
         </h2>
         <Alert variant="destructive" className="py-4">

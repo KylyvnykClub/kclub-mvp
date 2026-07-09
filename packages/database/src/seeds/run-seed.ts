@@ -128,14 +128,21 @@ function normalizePhone(phone: string): string {
 
 async function seedReferenceData(db: ReturnType<typeof getDbClient>): Promise<void> {
   for (const country of COUNTRY_SEED_PLAN) {
-    const existing = await db.select().from(schema.countries).where(eq(schema.countries.slug, country.slug)).limit(1);
+    const existing = await db
+      .select()
+      .from(schema.countries)
+      .where(eq(schema.countries.slug, country.slug))
+      .limit(1);
     if (existing.length > 0) {
-      await db.update(schema.countries).set({
-        code2: country.code2,
-        code3: country.code3,
-        name: country.name,
-        is_active: true,
-      }).where(eq(schema.countries.slug, country.slug));
+      await db
+        .update(schema.countries)
+        .set({
+          code2: country.code2,
+          code3: country.code3,
+          name: country.name,
+          is_active: true,
+        })
+        .where(eq(schema.countries.slug, country.slug));
     } else {
       await db.insert(schema.countries).values({
         code2: country.code2,
@@ -156,12 +163,19 @@ async function seedReferenceData(db: ReturnType<typeof getDbClient>): Promise<vo
       throw new Error(`Missing country for city seed: ${city.countrySlug}`);
     }
 
-    const existing = await db.select().from(schema.cities).where(and(eq(schema.cities.country_id, country.id), eq(schema.cities.slug, city.slug))).limit(1);
+    const existing = await db
+      .select()
+      .from(schema.cities)
+      .where(and(eq(schema.cities.country_id, country.id), eq(schema.cities.slug, city.slug)))
+      .limit(1);
     if (existing.length > 0) {
-      await db.update(schema.cities).set({
-        name: city.name,
-        is_active: true,
-      }).where(and(eq(schema.cities.country_id, country.id), eq(schema.cities.slug, city.slug)));
+      await db
+        .update(schema.cities)
+        .set({
+          name: city.name,
+          is_active: true,
+        })
+        .where(and(eq(schema.cities.country_id, country.id), eq(schema.cities.slug, city.slug)));
     } else {
       await db.insert(schema.cities).values({
         country_id: country.id,
@@ -173,13 +187,20 @@ async function seedReferenceData(db: ReturnType<typeof getDbClient>): Promise<vo
   }
 
   for (const category of CATEGORY_SEED_PLAN) {
-    const existing = await db.select().from(schema.categories).where(eq(schema.categories.slug, category.slug)).limit(1);
+    const existing = await db
+      .select()
+      .from(schema.categories)
+      .where(eq(schema.categories.slug, category.slug))
+      .limit(1);
     if (existing.length > 0) {
-      await db.update(schema.categories).set({
-        name: category.name,
-        is_high_risk: category.isHighRisk,
-        is_active: true,
-      }).where(eq(schema.categories.slug, category.slug));
+      await db
+        .update(schema.categories)
+        .set({
+          name: category.name,
+          is_high_risk: category.isHighRisk,
+          is_active: true,
+        })
+        .where(eq(schema.categories.slug, category.slug));
     } else {
       await db.insert(schema.categories).values({
         name: category.name,
@@ -191,7 +212,11 @@ async function seedReferenceData(db: ReturnType<typeof getDbClient>): Promise<vo
   }
 
   for (const key of CONFIG_SEED_PLAN.initialAdminConfigKeys) {
-    const existing = await db.select().from(schema.adminConfigs).where(eq(schema.adminConfigs.key, key)).limit(1);
+    const existing = await db
+      .select()
+      .from(schema.adminConfigs)
+      .where(eq(schema.adminConfigs.key, key))
+      .limit(1);
     if (existing.length === 0) {
       await db.insert(schema.adminConfigs).values({
         key,
@@ -205,11 +230,18 @@ async function seedReferenceData(db: ReturnType<typeof getDbClient>): Promise<vo
     const priceId = resolveStripePriceIdFromEnv(key);
     const valueObj = priceId ? { priceId } : {};
 
-    const existing = await db.select().from(schema.adminConfigs).where(eq(schema.adminConfigs.key, key)).limit(1);
+    const existing = await db
+      .select()
+      .from(schema.adminConfigs)
+      .where(eq(schema.adminConfigs.key, key))
+      .limit(1);
     if (existing.length > 0) {
-      await db.update(schema.adminConfigs).set({
-        value: valueObj,
-      }).where(eq(schema.adminConfigs.key, key));
+      await db
+        .update(schema.adminConfigs)
+        .set({
+          value: valueObj,
+        })
+        .where(eq(schema.adminConfigs.key, key));
     } else {
       await db.insert(schema.adminConfigs).values({
         key,
@@ -250,13 +282,20 @@ async function seedBootstrapOwner(db: ReturnType<typeof getDbClient>): Promise<v
   }
 
   const phone = normalizePhone(ownerPhone);
-  const existing = await db.select().from(schema.adminUsers).where(eq(schema.adminUsers.phone, phone)).limit(1);
+  const existing = await db
+    .select()
+    .from(schema.adminUsers)
+    .where(eq(schema.adminUsers.phone, phone))
+    .limit(1);
   if (existing.length > 0) {
-    await db.update(schema.adminUsers).set({
-      role: 'OWNER',
-      display_name: 'Bootstrap Owner',
-      is_active: true,
-    }).where(eq(schema.adminUsers.phone, phone));
+    await db
+      .update(schema.adminUsers)
+      .set({
+        role: 'OWNER',
+        display_name: 'Bootstrap Owner',
+        is_active: true,
+      })
+      .where(eq(schema.adminUsers.phone, phone));
   } else {
     await db.insert(schema.adminUsers).values({
       phone,
@@ -273,10 +312,12 @@ async function seedDemoBusinesses(db: ReturnType<typeof getDbClient>): Promise<v
   const categories = await db.select().from(schema.categories);
 
   const countryBySlug = new Map(countries.map((country) => [country.slug, country]));
-  const cityByKey = new Map(cities.map((city) => {
-    const c = countries.find(co => co.id === city.country_id);
-    return [`${c?.slug}:${city.slug}`, city];
-  }));
+  const cityByKey = new Map(
+    cities.map((city) => {
+      const c = countries.find((co) => co.id === city.country_id);
+      return [`${c?.slug}:${city.slug}`, city];
+    }),
+  );
   const categoryBySlug = new Map(categories.map((category) => [category.slug, category]));
 
   const now = new Date();
@@ -291,36 +332,62 @@ async function seedDemoBusinesses(db: ReturnType<typeof getDbClient>): Promise<v
     }
 
     let user;
-    const existingUsers = await db.select().from(schema.users).where(eq(schema.users.phone, demo.userPhone)).limit(1);
+    const existingUsers = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.phone, demo.userPhone))
+      .limit(1);
     if (existingUsers.length > 0) {
-      user = (await db.update(schema.users).set({
-        display_name: demo.userDisplayName,
-      }).where(eq(schema.users.phone, demo.userPhone)).returning())[0];
+      user = (
+        await db
+          .update(schema.users)
+          .set({
+            display_name: demo.userDisplayName,
+          })
+          .where(eq(schema.users.phone, demo.userPhone))
+          .returning()
+      )[0];
     } else {
-      user = (await db.insert(schema.users).values({
-        phone: demo.userPhone,
-        display_name: demo.userDisplayName,
-        locale_preference: 'en',
-        terms_accepted_at: now,
-      }).returning())[0];
+      user = (
+        await db
+          .insert(schema.users)
+          .values({
+            phone: demo.userPhone,
+            display_name: demo.userDisplayName,
+            locale_preference: 'en',
+            terms_accepted_at: now,
+          })
+          .returning()
+      )[0];
     }
 
     const demoDescription = 'description' in demo ? demo.description : undefined;
 
-    const existingBiz = await db.select().from(schema.businessProfiles).where(eq(schema.businessProfiles.slug, demo.slug)).limit(1);
+    const existingBiz = await db
+      .select()
+      .from(schema.businessProfiles)
+      .where(eq(schema.businessProfiles.slug, demo.slug))
+      .limit(1);
     if (existingBiz.length > 0) {
-      await db.update(schema.businessProfiles).set({
-        name: demo.name,
-        status: 'PUBLISHED',
-        brief_description: demo.briefDescription,
-        description: demoDescription,
-        cover_image_url: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=800&q=80',
-        logo_url: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(demo.name) + '&background=random',
-        featured_top: demo.featuredTop,
-        featured_recommended: demo.featuredRecommended,
-        member_discount_percent: demo.memberDiscountPercent,
-        published_at: now,
-      }).where(eq(schema.businessProfiles.slug, demo.slug));
+      await db
+        .update(schema.businessProfiles)
+        .set({
+          name: demo.name,
+          status: 'PUBLISHED',
+          brief_description: demo.briefDescription,
+          description: demoDescription,
+          cover_image_url:
+            'https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=800&q=80',
+          logo_url:
+            'https://ui-avatars.com/api/?name=' +
+            encodeURIComponent(demo.name) +
+            '&background=random',
+          featured_top: demo.featuredTop,
+          featured_recommended: demo.featuredRecommended,
+          member_discount_percent: demo.memberDiscountPercent,
+          published_at: now,
+        })
+        .where(eq(schema.businessProfiles.slug, demo.slug));
     } else {
       await db.insert(schema.businessProfiles).values({
         user_id: user.id,
@@ -335,8 +402,12 @@ async function seedDemoBusinesses(db: ReturnType<typeof getDbClient>): Promise<v
         status: 'PUBLISHED',
         brief_description: demo.briefDescription,
         description: demoDescription,
-        cover_image_url: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=800&q=80',
-        logo_url: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(demo.name) + '&background=random',
+        cover_image_url:
+          'https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=800&q=80',
+        logo_url:
+          'https://ui-avatars.com/api/?name=' +
+          encodeURIComponent(demo.name) +
+          '&background=random',
         featured_top: demo.featuredTop,
         featured_recommended: demo.featuredRecommended,
         member_discount_percent: demo.memberDiscountPercent,

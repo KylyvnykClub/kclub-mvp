@@ -70,8 +70,21 @@ import type { RequestContext } from '@/server/context';
 import { revokeCard, reissueCard, toMemberCardDto } from './card-service';
 import { getStripeClient } from '@/server/stripe/client';
 import { mapStripeStatusToLocal } from './webhook-service';
-import { getDbClient, schema } from "@/server/db";
-import { eq, inArray, or, and, ilike, desc, asc, not, isNull, count, sql, exists } from "drizzle-orm";
+import { getDbClient, schema } from '@/server/db';
+import {
+  eq,
+  inArray,
+  or,
+  and,
+  ilike,
+  desc,
+  asc,
+  not,
+  isNull,
+  count,
+  sql,
+  exists,
+} from 'drizzle-orm';
 
 const auditService = createDbAuditService();
 
@@ -90,40 +103,39 @@ function assertValidUuid(id: string, entityName: string): void {
 // ── Dashboard Metrics ──
 
 export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  const [
+    totalUsers,
+    blockedUsers,
+    activeSubs,
+    pastDueSubs,
+    expiredSubs,
+    businessesReview,
+    introductionsSubmitted,
+    introductionsInReview,
+  ] = await Promise.all([
+    db.$count(schema.users),
+    db.$count(schema.users, eq(schema.users.status, 'BLOCKED')),
+    db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'ACTIVE')),
+    db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'PAST_DUE')),
+    db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'EXPIRED')),
+    db.$count(schema.businessProfiles, eq(schema.businessProfiles.status, 'UNDER_REVIEW')),
+    db.$count(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'SUBMITTED')),
+    db.$count(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'IN_REVIEW')),
+  ]);
 
-      const [
-        totalUsers,
-        blockedUsers,
-        activeSubs,
-        pastDueSubs,
-        expiredSubs,
-        businessesReview,
-        introductionsSubmitted,
-        introductionsInReview,
-      ] = await Promise.all([
-        db.$count(schema.users),
-        db.$count(schema.users, eq(schema.users.status, 'BLOCKED')),
-        db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'ACTIVE')),
-        db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'PAST_DUE')),
-        db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'EXPIRED')),
-        db.$count(schema.businessProfiles, eq(schema.businessProfiles.status, 'UNDER_REVIEW')),
-        db.$count(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'SUBMITTED')),
-        db.$count(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'IN_REVIEW')),
-      ]);
-
-      return {
-        totalUsers,
-        activeUsers: totalUsers - blockedUsers,
-        blockedUsers,
-        activeSubscriptions: activeSubs,
-        pastDueSubscriptions: pastDueSubs,
-        expiredSubscriptions: expiredSubs,
-        businessesUnderReview: businessesReview,
-        introductionsSubmitted,
-        introductionsInReview,
-      };
+  return {
+    totalUsers,
+    activeUsers: totalUsers - blockedUsers,
+    blockedUsers,
+    activeSubscriptions: activeSubs,
+    pastDueSubscriptions: pastDueSubs,
+    expiredSubscriptions: expiredSubs,
+    businessesUnderReview: businessesReview,
+    introductionsSubmitted,
+    introductionsInReview,
+  };
 }
 
 // ── Users ──
@@ -131,170 +143,177 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
 export async function listUsers(
   params: AdminUserListInput,
 ): Promise<{ data: AdminUserListItemDto[]; total: number }> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  const conditions = [];
 
-      const conditions = [];
+  if (params.search) {
+    conditions.push(
+      or(
+        ilike(schema.users.phone, `%${params.search}%`),
+        ilike(schema.users.display_name, `%${params.search}%`),
+      ),
+    );
+  }
 
-      if (params.search) {
-        conditions.push(
-          or(
-            ilike(schema.users.phone, `%${params.search}%`),
-            ilike(schema.users.display_name, `%${params.search}%`)
-          )
-        );
-      }
+  if (params.status) {
+    conditions.push(eq(schema.users.status, params.status));
+  }
 
-      if (params.status) {
-        conditions.push(eq(schema.users.status, params.status));
-      }
+  if (params.membershipTier) {
+    conditions.push(eq(schema.users.membership_tier, params.membershipTier));
+  }
 
-      if (params.membershipTier) {
-        conditions.push(eq(schema.users.membership_tier, params.membershipTier));
-      }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
+  const [users, total] = await Promise.all([
+    db.query.users.findMany({
+      where: whereClause,
+      orderBy: [desc(schema.users.created_at)],
+      offset: (params.page - 1) * params.limit,
+      limit: params.limit,
+    }),
+    db.$count(schema.users, whereClause),
+  ]);
 
-
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-      const [users, total] = await Promise.all([
-        db.query.users.findMany({
-          where: whereClause,
-          orderBy: [desc(schema.users.created_at)],
-          offset: (params.page - 1) * params.limit,
-          limit: params.limit,
-        }),
-        db.$count(schema.users, whereClause),
-      ]);
-
-      return { data: users.map(toAdminUserListItem), total };
+  return { data: users.map(toAdminUserListItem), total };
 }
 
 export async function getUserDetail(userId: string): Promise<AdminUserDetailDto> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  const [user, cards, subscriptions, auditEntries] = await Promise.all([
+    db.query.users.findFirst({ where: eq(schema.users.id, userId) }),
+    db.query.memberCards.findMany({
+      where: eq(schema.memberCards.user_id, userId),
+      orderBy: [desc(schema.memberCards.issued_at)],
+    }),
+    db.query.vipSubscriptions.findMany({
+      where: eq(schema.vipSubscriptions.user_id, userId),
+      orderBy: [desc(schema.vipSubscriptions.created_at)],
+    }),
+    db.query.auditLogs.findMany({
+      where: eq(schema.auditLogs.entity_id, userId),
+      orderBy: [desc(schema.auditLogs.created_at)],
+      limit: 50,
+    }),
+  ]);
 
-      const [user, cards, subscriptions, auditEntries] = await Promise.all([
-        db.query.users.findFirst({ where: eq(schema.users.id, userId) }),
-        db.query.memberCards.findMany({
-          where: eq(schema.memberCards.user_id, userId),
-          orderBy: [desc(schema.memberCards.issued_at)],
-        }),
-        db.query.vipSubscriptions.findMany({
-          where: eq(schema.vipSubscriptions.user_id, userId),
-          orderBy: [desc(schema.vipSubscriptions.created_at)],
-        }),
-        db.query.auditLogs.findMany({
-          where: eq(schema.auditLogs.entity_id, userId),
-          orderBy: [desc(schema.auditLogs.created_at)],
-          limit: 50,
-        }),
-      ]);
+  if (!user) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'User not found',
+      status: 404,
+    });
+  }
 
-      if (!user) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'User not found',
-          status: 404,
-        });
-      }
-
-      return toAdminUserDetail(user, cards, subscriptions, auditEntries);
+  return toAdminUserDetail(user, cards, subscriptions, auditEntries);
 }
 
 export async function syncVipSubscriptionForUser(
   userId: string,
   context: RequestContext,
 ): Promise<AdminUserDetailDto> {
+  const db = getDbClient();
+  const stripe = getStripeClient();
 
-      const db = getDbClient();
-      const stripe = getStripeClient();
+  const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
+  if (!user) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'User not found',
+      status: 404,
+    });
+  }
 
-      const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
-      if (!user) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'User not found', status: 404 });
-      }
+  const existingLocal = await db.query.vipSubscriptions.findFirst({
+    where: eq(schema.vipSubscriptions.user_id, userId),
+    orderBy: [desc(schema.vipSubscriptions.created_at)],
+  });
 
-      const existingLocal = await db.query.vipSubscriptions.findFirst({
-        where: eq(schema.vipSubscriptions.user_id, userId),
-        orderBy: [desc(schema.vipSubscriptions.created_at)],
-      });
+  if (!existingLocal?.stripe_subscription_id && !existingLocal?.stripe_customer_id) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message:
+        'No Stripe identifiers found locally. Ask the user to revisit the checkout success page, or enter the subscription ID manually in Stripe dashboard.',
+      status: 404,
+    });
+  }
 
-      if (!existingLocal?.stripe_subscription_id && !existingLocal?.stripe_customer_id) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'No Stripe identifiers found locally. Ask the user to revisit the checkout success page, or enter the subscription ID manually in Stripe dashboard.',
-          status: 404,
-        });
-      }
+  let stripeSub;
+  if (existingLocal.stripe_subscription_id) {
+    stripeSub = await stripe.subscriptions.retrieve(existingLocal.stripe_subscription_id);
+  } else {
+    const list = await stripe.subscriptions.list({
+      customer: existingLocal.stripe_customer_id!,
+      limit: 5,
+    });
+    stripeSub = list.data[0];
+  }
 
-      let stripeSub;
-      if (existingLocal.stripe_subscription_id) {
-        stripeSub = await stripe.subscriptions.retrieve(existingLocal.stripe_subscription_id);
-      } else {
-        const list = await stripe.subscriptions.list({
-          customer: existingLocal.stripe_customer_id!,
-          limit: 5,
-        });
-        stripeSub = list.data[0];
-      }
+  if (!stripeSub) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'No Stripe subscription found for this user.',
+      status: 404,
+    });
+  }
 
-      if (!stripeSub) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'No Stripe subscription found for this user.',
-          status: 404,
-        });
-      }
+  const stripeSubPeriodEnd = (stripeSub as unknown as { current_period_end: number | null })
+    .current_period_end;
+  const newStatus = mapStripeStatusToLocal(stripeSub.status, stripeSubPeriodEnd) ?? 'ACTIVE';
 
-      const stripeSubPeriodEnd = (stripeSub as unknown as { current_period_end: number | null }).current_period_end;
-      const newStatus = mapStripeStatusToLocal(stripeSub.status, stripeSubPeriodEnd) ?? 'ACTIVE';
+  const resolvedCustomerId =
+    existingLocal?.stripe_customer_id ??
+    (typeof stripeSub.customer === 'string' ? stripeSub.customer : null);
 
-      const resolvedCustomerId = existingLocal?.stripe_customer_id
-        ?? (typeof stripeSub.customer === 'string' ? stripeSub.customer : null);
+  let localSub;
+  if (existingLocal) {
+    const [updated] = await db
+      .update(schema.vipSubscriptions)
+      .set({
+        status: newStatus,
+        stripe_customer_id: resolvedCustomerId,
+        stripe_subscription_id: stripeSub.id,
+        current_period_end: stripeSubPeriodEnd ? new Date(stripeSubPeriodEnd * 1000) : undefined,
+        cancel_at_period_end: stripeSub.cancel_at_period_end,
+      })
+      .where(eq(schema.vipSubscriptions.id, existingLocal.id))
+      .returning();
+    localSub = updated;
+  } else {
+    const [created] = await db
+      .insert(schema.vipSubscriptions)
+      .values({
+        user_id: userId,
+        status: newStatus,
+        stripe_customer_id: resolvedCustomerId,
+        stripe_subscription_id: stripeSub.id,
+        current_period_end: stripeSubPeriodEnd ? new Date(stripeSubPeriodEnd * 1000) : null,
+        cancel_at_period_end: stripeSub.cancel_at_period_end,
+      })
+      .returning();
+    localSub = created;
+  }
 
-      let localSub;
-      if (existingLocal) {
-        const [updated] = await db.update(schema.vipSubscriptions)
-          .set({
-            status: newStatus,
-            stripe_customer_id: resolvedCustomerId,
-            stripe_subscription_id: stripeSub.id,
-            current_period_end: stripeSubPeriodEnd ? new Date(stripeSubPeriodEnd * 1000) : undefined,
-            cancel_at_period_end: stripeSub.cancel_at_period_end,
-          })
-          .where(eq(schema.vipSubscriptions.id, existingLocal.id))
-          .returning();
-        localSub = updated;
-      } else {
-        const [created] = await db.insert(schema.vipSubscriptions)
-          .values({
-            user_id: userId,
-            status: newStatus,
-            stripe_customer_id: resolvedCustomerId,
-            stripe_subscription_id: stripeSub.id,
-            current_period_end: stripeSubPeriodEnd ? new Date(stripeSubPeriodEnd * 1000) : null,
-            cancel_at_period_end: stripeSub.cancel_at_period_end,
-          })
-          .returning();
-        localSub = created;
-      }
+  await db
+    .update(schema.users)
+    .set({ membership_tier: newStatus === 'ACTIVE' || newStatus === 'PAST_DUE' ? 'VIP' : 'MEMBER' })
+    .where(eq(schema.users.id, userId));
 
-      await db.update(schema.users).set({ membership_tier: newStatus === 'ACTIVE' || newStatus === 'PAST_DUE' ? 'VIP' : 'MEMBER' }).where(eq(schema.users.id, userId));
+  await auditService.log(
+    {
+      action: 'STRIPE_WEBHOOK_REPLAYED',
+      entityType: 'VipSubscription',
+      entityId: userId,
+      after: { subscriptionId: localSub.id, status: newStatus },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'STRIPE_WEBHOOK_REPLAYED',
-          entityType: 'VipSubscription',
-          entityId: userId,
-          after: { subscriptionId: localSub.id, status: newStatus },
-        },
-        context,
-      );
+  revalidateTag('users');
 
-      revalidateTag('users');
-
-      return getUserDetail(userId);
+  return getUserDetail(userId);
 }
 
 export async function blockUser(
@@ -302,55 +321,56 @@ export async function blockUser(
   input: BlockUserInput,
   context: RequestContext,
 ): Promise<AdminUserDetailDto> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
+  if (!user) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'User not found',
+      status: 404,
+    });
+  }
 
-      const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
-      if (!user) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'User not found',
-          status: 404,
-        });
-      }
+  if (user.status === 'BLOCKED') {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_CONFLICT,
+      message: 'User is already blocked',
+      status: 409,
+    });
+  }
 
-      if (user.status === 'BLOCKED') {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_CONFLICT,
-          message: 'User is already blocked',
-          status: 409,
-        });
-      }
+  const [updated] = await db.transaction(async (tx) => {
+    await tx
+      .update(schema.memberCards)
+      .set({
+        status: 'REVOKED',
+        revoked_at: new Date(),
+        revoked_reason: input.reason ?? 'User blocked',
+      })
+      .where(and(eq(schema.memberCards.user_id, userId), eq(schema.memberCards.status, 'ACTIVE')));
 
-      const [updated] = await db.transaction(async (tx) => {
-        await tx.update(schema.memberCards)
-          .set({
-            status: 'REVOKED',
-            revoked_at: new Date(),
-            revoked_reason: input.reason ?? 'User blocked',
-          })
-          .where(and(eq(schema.memberCards.user_id, userId), eq(schema.memberCards.status, 'ACTIVE')));
+    const [u] = await tx
+      .update(schema.users)
+      .set({ status: 'BLOCKED' })
+      .where(eq(schema.users.id, userId))
+      .returning();
 
-        const [u] = await tx.update(schema.users)
-          .set({ status: 'BLOCKED' })
-          .where(eq(schema.users.id, userId))
-          .returning();
+    return [u];
+  });
 
-        return [u];
-      });
+  await auditService.log(
+    {
+      action: 'USER_BLOCKED',
+      entityType: 'User',
+      entityId: userId,
+      before: { status: user.status },
+      after: { status: updated.status },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'USER_BLOCKED',
-          entityType: 'User',
-          entityId: userId,
-          before: { status: user.status },
-          after: { status: updated.status },
-        },
-        context,
-      );
-
-      return toAdminUserDetail(updated);
+  return toAdminUserDetail(updated);
 }
 
 export async function unblockUser(
@@ -358,43 +378,43 @@ export async function unblockUser(
   input: UnblockUserInput,
   context: RequestContext,
 ): Promise<AdminUserDetailDto> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
+  if (!user) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'User not found',
+      status: 404,
+    });
+  }
 
-      const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
-      if (!user) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'User not found',
-          status: 404,
-        });
-      }
+  if (user.status !== 'BLOCKED') {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_CONFLICT,
+      message: 'User is not blocked',
+      status: 409,
+    });
+  }
 
-      if (user.status !== 'BLOCKED') {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_CONFLICT,
-          message: 'User is not blocked',
-          status: 409,
-        });
-      }
+  const [updated] = await db
+    .update(schema.users)
+    .set({ status: 'ACTIVE' })
+    .where(eq(schema.users.id, userId))
+    .returning();
 
-      const [updated] = await db.update(schema.users)
-        .set({ status: 'ACTIVE' })
-        .where(eq(schema.users.id, userId))
-        .returning();
+  await auditService.log(
+    {
+      action: 'USER_UNBLOCKED',
+      entityType: 'User',
+      entityId: userId,
+      before: { status: user.status },
+      after: { status: updated.status },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'USER_UNBLOCKED',
-          entityType: 'User',
-          entityId: userId,
-          before: { status: user.status },
-          after: { status: updated.status },
-        },
-        context,
-      );
-
-      return toAdminUserDetail(updated);
+  return toAdminUserDetail(updated);
 }
 
 // ── Cards ──
@@ -402,70 +422,69 @@ export async function unblockUser(
 export async function listCards(
   params: AdminCardListInput,
 ): Promise<{ data: AdminCardListItemDto[]; total: number }> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  const conditions = [];
 
-      const conditions = [];
+  if (params.status) {
+    conditions.push(eq(schema.memberCards.status, params.status));
+  }
 
-      if (params.status) {
-        conditions.push(eq(schema.memberCards.status, params.status));
-      }
+  if (params.membershipTier) {
+    conditions.push(eq(schema.memberCards.membership_tier, params.membershipTier));
+  }
 
-      if (params.membershipTier) {
-        conditions.push(eq(schema.memberCards.membership_tier, params.membershipTier));
-      }
+  if (params.search) {
+    // We need to join users to search by user phone or display_name
+    // But we are using query API which filters on relations using the nested syntax in Prisma, but in Drizzle we can't easily filter by relation fields in query API without a join.
+    // Instead, we will use a subquery or join.
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(schema.users)
+          .where(
+            and(
+              eq(schema.users.id, schema.memberCards.user_id),
+              or(
+                ilike(schema.users.phone, `%${params.search}%`),
+                ilike(schema.users.display_name, `%${params.search}%`),
+              ),
+            ),
+          ),
+      ),
+    );
+  }
 
-      if (params.search) {
-        // We need to join users to search by user phone or display_name
-        // But we are using query API which filters on relations using the nested syntax in Prisma, but in Drizzle we can't easily filter by relation fields in query API without a join.
-        // Instead, we will use a subquery or join.
-        conditions.push(
-          exists(
-            db.select()
-              .from(schema.users)
-              .where(
-                and(
-                  eq(schema.users.id, schema.memberCards.user_id),
-                  or(
-                    ilike(schema.users.phone, `%${params.search}%`),
-                    ilike(schema.users.display_name, `%${params.search}%`)
-                  )
-                )
-              )
-          )
-        );
-      }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const [cards, total] = await Promise.all([
+    // Note: To use with: { user: true }, relations must be defined in relations.ts
+    // We assume they are or will be added.
+    db.query.memberCards.findMany({
+      where: whereClause,
+      with: { user: { columns: { phone: true, display_name: true } } },
+      orderBy: [desc(schema.memberCards.issued_at)],
+      offset: (params.page - 1) * params.limit,
+      limit: params.limit,
+    }),
+    db.$count(schema.memberCards, whereClause),
+  ]);
 
-      const [cards, total] = await Promise.all([
-        // Note: To use with: { user: true }, relations must be defined in relations.ts
-        // We assume they are or will be added.
-        db.query.memberCards.findMany({
-          where: whereClause,
-          with: { user: { columns: { phone: true, display_name: true } } },
-          orderBy: [desc(schema.memberCards.issued_at)],
-          offset: (params.page - 1) * params.limit,
-          limit: params.limit,
-        }),
-        db.$count(schema.memberCards, whereClause),
-      ]);
-
-      return { data: cards.map(toAdminCardListItem), total };
+  return { data: cards.map(toAdminCardListItem), total };
 }
 
 export async function getCardDetail(cardId: string): Promise<MemberCardDto> {
-
-      const db = getDbClient();
-      const card = await db.query.memberCards.findFirst({ where: eq(schema.memberCards.id, cardId) });
-      if (!card) {
-        throw new AppError({
-          code: ERROR_CODES.CARD_NOT_FOUND,
-          message: 'Card not found',
-          status: 404,
-        });
-      }
-      return toMemberCardDto(card);
+  const db = getDbClient();
+  const card = await db.query.memberCards.findFirst({ where: eq(schema.memberCards.id, cardId) });
+  if (!card) {
+    throw new AppError({
+      code: ERROR_CODES.CARD_NOT_FOUND,
+      message: 'Card not found',
+      status: 404,
+    });
+  }
+  return toMemberCardDto(card);
 }
 
 export async function adminRevokeCard(
@@ -473,31 +492,30 @@ export async function adminRevokeCard(
   input: RevokeCardInput,
   context: RequestContext,
 ): Promise<MemberCardDto> {
+  const db = getDbClient();
+  const card = await db.query.memberCards.findFirst({ where: eq(schema.memberCards.id, cardId) });
+  if (!card) {
+    throw new AppError({
+      code: ERROR_CODES.CARD_NOT_FOUND,
+      message: 'Card not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const card = await db.query.memberCards.findFirst({ where: eq(schema.memberCards.id, cardId) });
-      if (!card) {
-        throw new AppError({
-          code: ERROR_CODES.CARD_NOT_FOUND,
-          message: 'Card not found',
-          status: 404,
-        });
-      }
+  const updated = await revokeCard(cardId, input.reason);
 
-      const updated = await revokeCard(cardId, input.reason);
+  await auditService.log(
+    {
+      action: 'CARD_REVOKED',
+      entityType: 'MemberCard',
+      entityId: cardId,
+      before: { status: card.status, userId: card.user_id },
+      after: { status: updated.status },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'CARD_REVOKED',
-          entityType: 'MemberCard',
-          entityId: cardId,
-          before: { status: card.status, userId: card.user_id },
-          after: { status: updated.status },
-        },
-        context,
-      );
-
-      return toMemberCardDto(updated);
+  return toMemberCardDto(updated);
 }
 
 export async function adminReissueCard(
@@ -505,129 +523,126 @@ export async function adminReissueCard(
   input: ReissueCardInput,
   context: RequestContext,
 ): Promise<MemberCardDto> {
+  const db = getDbClient();
+  const card = await db.query.memberCards.findFirst({ where: eq(schema.memberCards.id, cardId) });
+  if (!card) {
+    throw new AppError({
+      code: ERROR_CODES.CARD_NOT_FOUND,
+      message: 'Card not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const card = await db.query.memberCards.findFirst({ where: eq(schema.memberCards.id, cardId) });
-      if (!card) {
-        throw new AppError({
-          code: ERROR_CODES.CARD_NOT_FOUND,
-          message: 'Card not found',
-          status: 404,
-        });
-      }
+  const newCard = await reissueCard(card.user_id, card.membership_tier, cardId, input.reason);
 
-      const newCard = await reissueCard(card.user_id, card.membership_tier, cardId, input.reason);
+  await auditService.log(
+    {
+      action: 'CARD_ISSUED',
+      entityType: 'MemberCard',
+      entityId: newCard.id,
+      before: { revokedCardId: cardId },
+      after: { cardNumber: newCard.card_number, status: newCard.status },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'CARD_ISSUED',
-          entityType: 'MemberCard',
-          entityId: newCard.id,
-          before: { revokedCardId: cardId },
-          after: { cardNumber: newCard.card_number, status: newCard.status },
-        },
-        context,
-      );
-
-      return toMemberCardDto(newCard);
+  return toMemberCardDto(newCard);
 }
 
 // ── Businesses ──
 
 const BUSINESS_LIST_INCLUDE = {
-          category: true,
-          country: true,
-          city: true,
-          user: {
-            columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
-          },
-          subscriptions: {
-            where: (subs: any, { eq }: any) => eq(subs.kind, 'BUSINESS_PLACEMENT'),
-            orderBy: (subs: any, { desc }: any) => [desc(subs.created_at)],
-            limit: 1,
-          },
-        };
+  category: true,
+  country: true,
+  city: true,
+  user: {
+    columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
+  },
+  subscriptions: {
+    where: (subs: any, { eq }: any) => eq(subs.kind, 'BUSINESS_PLACEMENT'),
+    orderBy: (subs: any, { desc }: any) => [desc(subs.created_at)],
+    limit: 1,
+  },
+};
 
 export async function listBusinesses(
   params: AdminBusinessListInput,
 ): Promise<{ data: AdminBusinessListItemDto[]; total: number }> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  const conditions = [];
+  if (params.status) {
+    conditions.push(eq(schema.businessProfiles.status, params.status));
+  }
 
-      const conditions = [];
-      if (params.status) {
-        conditions.push(eq(schema.businessProfiles.status, params.status));
-      }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const [businesses, total] = await Promise.all([
+    db.query.businessProfiles.findMany({
+      where: whereClause,
+      with: BUSINESS_LIST_INCLUDE as any,
+      orderBy: [desc(schema.businessProfiles.created_at)],
+      offset: (params.page - 1) * params.limit,
+      limit: params.limit,
+    }),
+    db.$count(schema.businessProfiles, whereClause),
+  ]);
 
-      const [businesses, total] = await Promise.all([
-        db.query.businessProfiles.findMany({
-          where: whereClause,
-          with: BUSINESS_LIST_INCLUDE as any,
-          orderBy: [desc(schema.businessProfiles.created_at)],
-          offset: (params.page - 1) * params.limit,
-          limit: params.limit,
-        }),
-        db.$count(schema.businessProfiles, whereClause),
-      ]);
-
-      return { data: businesses.map(toAdminBusinessListItem), total };
+  return { data: businesses.map(toAdminBusinessListItem), total };
 }
 
 const BUSINESS_MUTATION_INCLUDE = {
-          category: true,
-          country: true,
-          city: true,
-          user: {
-            columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
-          },
-          subscriptions: {
-            where: (subs: any, { eq }: any) => eq(subs.kind, 'BUSINESS_PLACEMENT'),
-            orderBy: (subs: any, { desc }: any) => [desc(subs.created_at)],
-            limit: 1,
-          },
-        };
+  category: true,
+  country: true,
+  city: true,
+  user: {
+    columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
+  },
+  subscriptions: {
+    where: (subs: any, { eq }: any) => eq(subs.kind, 'BUSINESS_PLACEMENT'),
+    orderBy: (subs: any, { desc }: any) => [desc(subs.created_at)],
+    limit: 1,
+  },
+};
 
 const BUSINESS_DETAIL_INCLUDE = {
-          category: true,
-          country: true,
-          city: true,
-          user: {
-            columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
-          },
-          subscriptions: {
-            where: (subs: any, { eq }: any) => eq(subs.kind, 'BUSINESS_PLACEMENT'),
-            orderBy: (subs: any, { desc }: any) => [desc(subs.created_at)],
-            limit: 1,
-          },
-        };
+  category: true,
+  country: true,
+  city: true,
+  user: {
+    columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
+  },
+  subscriptions: {
+    where: (subs: any, { eq }: any) => eq(subs.kind, 'BUSINESS_PLACEMENT'),
+    orderBy: (subs: any, { desc }: any) => [desc(subs.created_at)],
+    limit: 1,
+  },
+};
 
 export async function getBusinessDetail(businessId: string): Promise<AdminBusinessDetailDto> {
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_DETAIL_INCLUDE as any,
+  });
+  if (!business) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const business = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_DETAIL_INCLUDE as any,
-      });
-      if (!business) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Business not found',
-          status: 404,
-        });
-      }
+  const auditEntries = await db.query.auditLogs.findMany({
+    where: and(
+      eq(schema.auditLogs.entity_type, 'BusinessProfile'),
+      eq(schema.auditLogs.entity_id, businessId),
+    ),
+    orderBy: [desc(schema.auditLogs.created_at)],
+    limit: 50,
+  });
 
-      const auditEntries = await db.query.auditLogs.findMany({
-        where: and(
-          eq(schema.auditLogs.entity_type, 'BusinessProfile'),
-          eq(schema.auditLogs.entity_id, businessId)
-        ),
-        orderBy: [desc(schema.auditLogs.created_at)],
-        limit: 50,
-      });
-
-      return toAdminBusinessDetail(business, auditEntries);
+  return toAdminBusinessDetail(business, auditEntries);
 }
 
 export async function adminUpdateBusiness(
@@ -635,53 +650,62 @@ export async function adminUpdateBusiness(
   input: AdminBusinessUpdateInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const business = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  if (!business) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business not found',
+      status: 404,
+    });
+  }
 
-      if (!business) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Business not found',
-          status: 404,
-        });
-      }
+  const [updated] = await db
+    .update(schema.businessProfiles)
+    .set({
+      ...(input.name !== undefined && { name: input.name }),
+      ...(input.representativeName !== undefined && {
+        representative_name: input.representativeName,
+      }),
+      ...(input.representativeEmail !== undefined && {
+        representative_email: input.representativeEmail,
+      }),
+      ...(input.representativePhone !== undefined && {
+        representative_phone: input.representativePhone,
+      }),
+      ...(input.websiteUrl !== undefined && { website_url: input.websiteUrl }),
+      ...(input.socialUrl !== undefined && { social_url: input.socialUrl }),
+      ...(input.briefDescription !== undefined && { brief_description: input.briefDescription }),
+      updated_at: new Date(),
+    })
+    .where(eq(schema.businessProfiles.id, businessId))
+    .returning();
 
-      const [updated] = await db.update(schema.businessProfiles).set({
-        ...(input.name !== undefined && { name: input.name }),
-        ...(input.representativeName !== undefined && { representative_name: input.representativeName }),
-        ...(input.representativeEmail !== undefined && { representative_email: input.representativeEmail }),
-        ...(input.representativePhone !== undefined && { representative_phone: input.representativePhone }),
-        ...(input.websiteUrl !== undefined && { website_url: input.websiteUrl }),
-        ...(input.socialUrl !== undefined && { social_url: input.socialUrl }),
-        ...(input.briefDescription !== undefined && { brief_description: input.briefDescription }),
-        updated_at: new Date(),
-      }).where(eq(schema.businessProfiles.id, businessId)).returning();
+  const updatedWithRelations = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const updatedWithRelations = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  await auditService.log(
+    {
+      action: 'BUSINESS_UPDATED',
+      entityType: 'BusinessProfile',
+      entityId: businessId,
+      before: {
+        name: business.name,
+        representativeEmail: business.representative_email,
+      },
+      after: { name: updated.name, representativeEmail: updated.representative_email },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'BUSINESS_UPDATED',
-          entityType: 'BusinessProfile',
-          entityId: businessId,
-          before: {
-            name: business.name,
-            representativeEmail: business.representative_email,
-          },
-          after: { name: updated.name, representativeEmail: updated.representative_email },
-        },
-        context,
-      );
-
-      return toAdminBusinessDetail(updatedWithRelations!);
+  return toAdminBusinessDetail(updatedWithRelations!);
 }
 
 export async function approveBusiness(
@@ -689,127 +713,133 @@ export async function approveBusiness(
   input: BusinessApproveInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const db = getDbClient();
-      const business = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  if (!business) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business not found',
+      status: 404,
+    });
+  }
 
-      if (!business) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Business not found',
-          status: 404,
-        });
-      }
+  if (!canTransitionBusinessStatus(business.status as BusinessStatus, 'APPROVED')) {
+    throw new AppError({
+      code: ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION,
+      message: `Cannot approve business with status ${business.status}`,
+      status: 409,
+    });
+  }
 
-      if (!canTransitionBusinessStatus(business.status as BusinessStatus, 'APPROVED')) {
-        throw new AppError({
-          code: ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION,
-          message: `Cannot approve business with status ${business.status}`,
-          status: 409,
-        });
-      }
+  const [updated] = await db
+    .update(schema.businessProfiles)
+    .set({
+      status: 'APPROVED',
+      approved_at: new Date(),
+      internal_notes: input.notes ?? business.internal_notes,
+    })
+    .where(eq(schema.businessProfiles.id, businessId))
+    .returning();
 
-      const [updated] = await db.update(schema.businessProfiles).set({
-        status: 'APPROVED',
-        approved_at: new Date(),
-        internal_notes: input.notes ?? business.internal_notes,
-      }).where(eq(schema.businessProfiles.id, businessId)).returning();
+  const updatedWithRelations = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const updatedWithRelations = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  await auditService.log(
+    {
+      action: 'BUSINESS_APPROVED',
+      entityType: 'BusinessProfile',
+      entityId: businessId,
+      before: { status: business.status },
+      after: { status: updated.status },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'BUSINESS_APPROVED',
-          entityType: 'BusinessProfile',
-          entityId: businessId,
-          before: { status: business.status },
-          after: { status: updated.status },
-        },
-        context,
-      );
+  revalidateTag('businesses');
+  revalidateTag('public-businesses');
 
-      revalidateTag('businesses');
-      revalidateTag('public-businesses');
+  const auditEntries = await db.query.auditLogs.findMany({
+    where: and(
+      eq(schema.auditLogs.entity_type, 'BusinessProfile'),
+      eq(schema.auditLogs.entity_id, businessId),
+    ),
+    orderBy: [desc(schema.auditLogs.created_at)],
+    limit: 50,
+  });
 
-      const auditEntries = await db.query.auditLogs.findMany({
-        where: and(
-          eq(schema.auditLogs.entity_type, 'BusinessProfile'),
-          eq(schema.auditLogs.entity_id, businessId)
-        ),
-        orderBy: [desc(schema.auditLogs.created_at)],
-        limit: 50,
-      });
-
-      return toAdminBusinessDetail(updatedWithRelations!, auditEntries);
+  return toAdminBusinessDetail(updatedWithRelations!, auditEntries);
 }
 
 export async function publishBusiness(
   businessId: string,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const db = getDbClient();
-      const business = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  if (!business) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business not found',
+      status: 404,
+    });
+  }
 
-      if (!business) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Business not found',
-          status: 404,
-        });
-      }
+  if (!canTransitionBusinessStatus(business.status as BusinessStatus, 'PUBLISHED')) {
+    throw new AppError({
+      code: ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION,
+      message: `Cannot publish business with status ${business.status}`,
+      status: 409,
+    });
+  }
 
-      if (!canTransitionBusinessStatus(business.status as BusinessStatus, 'PUBLISHED')) {
-        throw new AppError({
-          code: ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION,
-          message: `Cannot publish business with status ${business.status}`,
-          status: 409,
-        });
-      }
+  const [updated] = await db
+    .update(schema.businessProfiles)
+    .set({
+      status: 'PUBLISHED',
+      published_at: new Date(),
+    })
+    .where(eq(schema.businessProfiles.id, businessId))
+    .returning();
 
-      const [updated] = await db.update(schema.businessProfiles).set({
-        status: 'PUBLISHED',
-        published_at: new Date(),
-      }).where(eq(schema.businessProfiles.id, businessId)).returning();
+  const updatedWithRelations = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const updatedWithRelations = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  await auditService.log(
+    {
+      action: 'BUSINESS_PUBLISHED',
+      entityType: 'BusinessProfile',
+      entityId: businessId,
+      before: { status: business.status },
+      after: { status: updated.status },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'BUSINESS_PUBLISHED',
-          entityType: 'BusinessProfile',
-          entityId: businessId,
-          before: { status: business.status },
-          after: { status: updated.status },
-        },
-        context,
-      );
+  revalidateTag('businesses');
+  revalidateTag('public-businesses');
 
-      revalidateTag('businesses');
-      revalidateTag('public-businesses');
+  const auditEntries = await db.query.auditLogs.findMany({
+    where: and(
+      eq(schema.auditLogs.entity_type, 'BusinessProfile'),
+      eq(schema.auditLogs.entity_id, businessId),
+    ),
+    orderBy: [desc(schema.auditLogs.created_at)],
+    limit: 50,
+  });
 
-      const auditEntries = await db.query.auditLogs.findMany({
-        where: and(
-          eq(schema.auditLogs.entity_type, 'BusinessProfile'),
-          eq(schema.auditLogs.entity_id, businessId)
-        ),
-        orderBy: [desc(schema.auditLogs.created_at)],
-        limit: 50,
-      });
-
-      return toAdminBusinessDetail(updatedWithRelations!, auditEntries);
+  return toAdminBusinessDetail(updatedWithRelations!, auditEntries);
 }
 
 export async function rejectBusiness(
@@ -817,55 +847,58 @@ export async function rejectBusiness(
   input: BusinessRejectInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const db = getDbClient();
-      const business = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  if (!business) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business not found',
+      status: 404,
+    });
+  }
 
-      if (!business) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Business not found',
-          status: 404,
-        });
-      }
+  if (!canTransitionBusinessStatus(business.status as BusinessStatus, 'REJECTED')) {
+    throw new AppError({
+      code: ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION,
+      message: `Cannot reject business with status ${business.status}`,
+      status: 409,
+    });
+  }
 
-      if (!canTransitionBusinessStatus(business.status as BusinessStatus, 'REJECTED')) {
-        throw new AppError({
-          code: ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION,
-          message: `Cannot reject business with status ${business.status}`,
-          status: 409,
-        });
-      }
+  const [updated] = await db
+    .update(schema.businessProfiles)
+    .set({
+      status: 'REJECTED',
+      rejection_reason: input.reason,
+      rejected_at: new Date(),
+    })
+    .where(eq(schema.businessProfiles.id, businessId))
+    .returning();
 
-      const [updated] = await db.update(schema.businessProfiles).set({
-        status: 'REJECTED',
-        rejection_reason: input.reason,
-        rejected_at: new Date(),
-      }).where(eq(schema.businessProfiles.id, businessId)).returning();
+  const updatedWithRelations = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const updatedWithRelations = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  await auditService.log(
+    {
+      action: 'BUSINESS_REJECTED',
+      entityType: 'BusinessProfile',
+      entityId: businessId,
+      before: { status: business.status },
+      after: { status: updated.status, reason: input.reason },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'BUSINESS_REJECTED',
-          entityType: 'BusinessProfile',
-          entityId: businessId,
-          before: { status: business.status },
-          after: { status: updated.status, reason: input.reason },
-        },
-        context,
-      );
+  revalidateTag('businesses');
+  revalidateTag('public-businesses');
 
-      revalidateTag('businesses');
-      revalidateTag('public-businesses');
-
-      return toAdminBusinessDetail(updatedWithRelations!);
+  return toAdminBusinessDetail(updatedWithRelations!);
 }
 
 export async function hideBusiness(
@@ -873,60 +906,63 @@ export async function hideBusiness(
   input: BusinessHideInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
+  const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const db = getDbClient();
-      const business = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  if (!business) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business not found',
+      status: 404,
+    });
+  }
 
-      if (!business) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Business not found',
-          status: 404,
-        });
-      }
+  if (!canTransitionBusinessStatus(business.status as BusinessStatus, 'HIDDEN')) {
+    throw new AppError({
+      code: ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION,
+      message: `Cannot hide business with status ${business.status}`,
+      status: 409,
+    });
+  }
 
-      if (!canTransitionBusinessStatus(business.status as BusinessStatus, 'HIDDEN')) {
-        throw new AppError({
-          code: ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION,
-          message: `Cannot hide business with status ${business.status}`,
-          status: 409,
-        });
-      }
+  const [updated] = await db
+    .update(schema.businessProfiles)
+    .set({
+      status: 'HIDDEN',
+      hidden_at: new Date(),
+      featured_top: false,
+      featured_recommended: false,
+    })
+    .where(eq(schema.businessProfiles.id, businessId))
+    .returning();
 
-      const [updated] = await db.update(schema.businessProfiles).set({
-        status: 'HIDDEN',
-        hidden_at: new Date(),
-        featured_top: false,
-        featured_recommended: false,
-      }).where(eq(schema.businessProfiles.id, businessId)).returning();
+  const updatedWithRelations = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const updatedWithRelations = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  await auditService.log(
+    {
+      action: 'BUSINESS_HIDDEN',
+      entityType: 'BusinessProfile',
+      entityId: businessId,
+      before: {
+        status: business.status,
+        featuredTop: business.featured_top,
+        featuredRecommended: business.featured_recommended,
+      },
+      after: { status: updated.status, featuredTop: false, featuredRecommended: false },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'BUSINESS_HIDDEN',
-          entityType: 'BusinessProfile',
-          entityId: businessId,
-          before: {
-            status: business.status,
-            featuredTop: business.featured_top,
-            featuredRecommended: business.featured_recommended,
-          },
-          after: { status: updated.status, featuredTop: false, featuredRecommended: false },
-        },
-        context,
-      );
+  revalidateTag('businesses');
+  revalidateTag('public-businesses');
 
-      revalidateTag('businesses');
-      revalidateTag('public-businesses');
-
-      return toAdminBusinessDetail(updatedWithRelations!);
+  return toAdminBusinessDetail(updatedWithRelations!);
 }
 
 export async function updateBusinessFeatured(
@@ -934,144 +970,175 @@ export async function updateBusinessFeatured(
   input: BusinessFeaturedInput,
   context: RequestContext,
 ): Promise<AdminBusinessDetailDto> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      const business = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  if (!business) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business not found',
+      status: 404,
+    });
+  }
 
-      if (!business) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Business not found',
-          status: 404,
-        });
-      }
+  const setTop = input.featuredTop;
+  const setRecommended = input.featuredRecommended;
+  const setDiscount = input.memberDiscountPercent;
+  const setDiscountMuted = input.discountMuted;
 
-      const setTop = input.featuredTop;
-      const setRecommended = input.featuredRecommended;
-      const setDiscount = input.memberDiscountPercent;
-      const setDiscountMuted = input.discountMuted;
+  if (
+    (setTop !== undefined || setRecommended !== undefined) &&
+    !canFeatureBusiness(business.status as BusinessStatus)
+  ) {
+    throw new AppError({
+      code: ERROR_CODES.FEATURED_BUSINESS_NOT_PUBLISHED,
+      message: 'Only PUBLISHED businesses can be featured',
+      status: 409,
+    });
+  }
 
-      if ((setTop !== undefined || setRecommended !== undefined) && !canFeatureBusiness(business.status as BusinessStatus)) {
-        throw new AppError({
-          code: ERROR_CODES.FEATURED_BUSINESS_NOT_PUBLISHED,
-          message: 'Only PUBLISHED businesses can be featured',
-          status: 409,
-        });
-      }
-
-      const [updated] = await db.transaction(async (tx) => {
-        if (setTop !== undefined && setTop !== business.featured_top) {
-          if (setTop) {
-            const currentTopCount = await tx.$count(schema.businessProfiles, and(eq(schema.businessProfiles.featured_top, true), not(eq(schema.businessProfiles.id, businessId))));
-            if (!canSetFeaturedFlag(business.status as BusinessStatus, true, currentTopCount, FEATURED_TOP_MAX)) {
-              throw new AppError({
-                code: ERROR_CODES.FEATURED_LIMIT_REACHED,
-                message: `Maximum ${FEATURED_TOP_MAX} featured_top businesses reached`,
-                status: 409,
-              });
-            }
-          }
+  const [updated] = await db.transaction(async (tx) => {
+    if (setTop !== undefined && setTop !== business.featured_top) {
+      if (setTop) {
+        const currentTopCount = await tx.$count(
+          schema.businessProfiles,
+          and(
+            eq(schema.businessProfiles.featured_top, true),
+            not(eq(schema.businessProfiles.id, businessId)),
+          ),
+        );
+        if (
+          !canSetFeaturedFlag(
+            business.status as BusinessStatus,
+            true,
+            currentTopCount,
+            FEATURED_TOP_MAX,
+          )
+        ) {
+          throw new AppError({
+            code: ERROR_CODES.FEATURED_LIMIT_REACHED,
+            message: `Maximum ${FEATURED_TOP_MAX} featured_top businesses reached`,
+            status: 409,
+          });
         }
+      }
+    }
 
-        if (setRecommended !== undefined && setRecommended !== business.featured_recommended) {
-          if (setRecommended) {
-            const currentRecommendedCount = await tx.$count(schema.businessProfiles, and(eq(schema.businessProfiles.featured_recommended, true), not(eq(schema.businessProfiles.id, businessId))));
-            if (!canSetFeaturedFlag(business.status as BusinessStatus, true, currentRecommendedCount, FEATURED_RECOMMENDED_MAX)) {
-              throw new AppError({
-                code: ERROR_CODES.FEATURED_LIMIT_REACHED,
-                message: `Maximum ${FEATURED_RECOMMENDED_MAX} featured_recommended businesses reached`,
-                status: 409,
-              });
-            }
-          }
+    if (setRecommended !== undefined && setRecommended !== business.featured_recommended) {
+      if (setRecommended) {
+        const currentRecommendedCount = await tx.$count(
+          schema.businessProfiles,
+          and(
+            eq(schema.businessProfiles.featured_recommended, true),
+            not(eq(schema.businessProfiles.id, businessId)),
+          ),
+        );
+        if (
+          !canSetFeaturedFlag(
+            business.status as BusinessStatus,
+            true,
+            currentRecommendedCount,
+            FEATURED_RECOMMENDED_MAX,
+          )
+        ) {
+          throw new AppError({
+            code: ERROR_CODES.FEATURED_LIMIT_REACHED,
+            message: `Maximum ${FEATURED_RECOMMENDED_MAX} featured_recommended businesses reached`,
+            status: 409,
+          });
         }
+      }
+    }
 
-        const [b] = await tx.update(schema.businessProfiles).set({
-          featured_top: setTop !== undefined ? setTop : business.featured_top,
-          featured_recommended: setRecommended !== undefined ? setRecommended : business.featured_recommended,
-          ...(setDiscount !== undefined ? { member_discount_percent: setDiscount } : {}),
-          ...(setDiscountMuted !== undefined ? { discount_muted: setDiscountMuted } : {}),
-        }).where(eq(schema.businessProfiles.id, businessId)).returning();
+    const [b] = await tx
+      .update(schema.businessProfiles)
+      .set({
+        featured_top: setTop !== undefined ? setTop : business.featured_top,
+        featured_recommended:
+          setRecommended !== undefined ? setRecommended : business.featured_recommended,
+        ...(setDiscount !== undefined ? { member_discount_percent: setDiscount } : {}),
+        ...(setDiscountMuted !== undefined ? { discount_muted: setDiscountMuted } : {}),
+      })
+      .where(eq(schema.businessProfiles.id, businessId))
+      .returning();
 
-        return [b];
-      });
+    return [b];
+  });
 
-      const updatedWithRelations = await db.query.businessProfiles.findFirst({
-        where: eq(schema.businessProfiles.id, businessId),
-        with: BUSINESS_MUTATION_INCLUDE as any,
-      });
+  const updatedWithRelations = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+    with: BUSINESS_MUTATION_INCLUDE as any,
+  });
 
-      await auditService.log(
-        {
-          action: 'BUSINESS_FEATURED_UPDATED',
-          entityType: 'BusinessProfile',
-          entityId: businessId,
-          before: {
-            featuredTop: business.featured_top,
-            featuredRecommended: business.featured_recommended,
-            memberDiscountPercent: business.member_discount_percent,
-            discountMuted: business.discount_muted,
-          },
-          after: {
-            featuredTop: updated.featured_top,
-            featuredRecommended: updated.featured_recommended,
-            memberDiscountPercent: updated.member_discount_percent,
-            discountMuted: updated.discount_muted,
-          },
-        },
-        context,
-      );
+  await auditService.log(
+    {
+      action: 'BUSINESS_FEATURED_UPDATED',
+      entityType: 'BusinessProfile',
+      entityId: businessId,
+      before: {
+        featuredTop: business.featured_top,
+        featuredRecommended: business.featured_recommended,
+        memberDiscountPercent: business.member_discount_percent,
+        discountMuted: business.discount_muted,
+      },
+      after: {
+        featuredTop: updated.featured_top,
+        featuredRecommended: updated.featured_recommended,
+        memberDiscountPercent: updated.member_discount_percent,
+        discountMuted: updated.discount_muted,
+      },
+    },
+    context,
+  );
 
-      revalidateTag('businesses');
-      revalidateTag('public-businesses');
+  revalidateTag('businesses');
+  revalidateTag('public-businesses');
 
-      return toAdminBusinessDetail(updatedWithRelations!);
+  return toAdminBusinessDetail(updatedWithRelations!);
 }
 
 // ── Introductions ──
 
 const INTRODUCTION_LIST_INCLUDE = {
-          requesterUser: { columns: { id: true, phone: true, display_name: true } },
-          requesterBusiness: { columns: { id: true, name: true, slug: true } },
-          targetBusiness: { columns: { id: true, name: true, slug: true } },
-        };
+  requesterUser: { columns: { id: true, phone: true, display_name: true } },
+  requesterBusiness: { columns: { id: true, name: true, slug: true } },
+  targetBusiness: { columns: { id: true, name: true, slug: true } },
+};
 
 export async function listIntroductions(opts?: {
   targetBusinessId?: string;
 }): Promise<AdminIntroductionListItemDto[]> {
-
-      const db = getDbClient();
-      const introductions = await db.query.businessIntroductions.findMany({
-        with: INTRODUCTION_LIST_INCLUDE as any,
-        orderBy: [desc(schema.businessIntroductions.created_at)],
-        ...(opts?.targetBusinessId
-          ? { where: eq(schema.businessIntroductions.target_business_id, opts.targetBusinessId) }
-          : {}),
-      });
-      return introductions.map(toAdminIntroductionListItem);
+  const db = getDbClient();
+  const introductions = await db.query.businessIntroductions.findMany({
+    with: INTRODUCTION_LIST_INCLUDE as any,
+    orderBy: [desc(schema.businessIntroductions.created_at)],
+    ...(opts?.targetBusinessId
+      ? { where: eq(schema.businessIntroductions.target_business_id, opts.targetBusinessId) }
+      : {}),
+  });
+  return introductions.map(toAdminIntroductionListItem);
 }
 
 export async function getIntroductionDetail(
   introductionId: string,
 ): Promise<AdminIntroductionListItemDto> {
-
-      const db = getDbClient();
-      const intro = await db.query.businessIntroductions.findFirst({
-        where: eq(schema.businessIntroductions.id, introductionId),
-        with: INTRODUCTION_LIST_INCLUDE as any,
-      });
-      if (!intro) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Introduction not found',
-          status: 404,
-        });
-      }
-      return toAdminIntroductionListItem(intro);
+  const db = getDbClient();
+  const intro = await db.query.businessIntroductions.findFirst({
+    where: eq(schema.businessIntroductions.id, introductionId),
+    with: INTRODUCTION_LIST_INCLUDE as any,
+  });
+  if (!intro) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Introduction not found',
+      status: 404,
+    });
+  }
+  return toAdminIntroductionListItem(intro);
 }
 
 export async function approveIntroduction(
@@ -1079,43 +1146,45 @@ export async function approveIntroduction(
   input: IntroductionApproveInput,
   context: RequestContext,
 ): Promise<IntroductionDto> {
+  const db = getDbClient();
+  const intro = await db.query.businessIntroductions.findFirst({
+    where: eq(schema.businessIntroductions.id, introductionId),
+  });
+  if (!intro) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Introduction not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const intro = await db.query.businessIntroductions.findFirst({ where: eq(schema.businessIntroductions.id, introductionId) });
-      if (!intro) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Introduction not found',
-          status: 404,
-        });
-      }
+  const current = intro.status as IntroductionStatus;
+  if (current !== 'SUBMITTED' && current !== 'IN_REVIEW') {
+    throw new AppError({
+      code: ERROR_CODES.INTRODUCTION_INVALID_STATUS_TRANSITION,
+      message: `Cannot approve introduction with status ${current}`,
+      status: 409,
+    });
+  }
 
-      const current = intro.status as IntroductionStatus;
-      if (current !== 'SUBMITTED' && current !== 'IN_REVIEW') {
-        throw new AppError({
-          code: ERROR_CODES.INTRODUCTION_INVALID_STATUS_TRANSITION,
-          message: `Cannot approve introduction with status ${current}`,
-          status: 409,
-        });
-      }
+  const [updated] = await db
+    .update(schema.businessIntroductions)
+    .set({ status: 'APPROVED' })
+    .where(eq(schema.businessIntroductions.id, introductionId))
+    .returning();
 
-      const [updated] = await db.update(schema.businessIntroductions)
-        .set({ status: 'APPROVED' })
-        .where(eq(schema.businessIntroductions.id, introductionId))
-        .returning();
+  await auditService.log(
+    {
+      action: 'INTRODUCTION_APPROVED',
+      entityType: 'BusinessIntroduction',
+      entityId: introductionId,
+      before: { status: current },
+      after: { status: 'APPROVED' },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'INTRODUCTION_APPROVED',
-          entityType: 'BusinessIntroduction',
-          entityId: introductionId,
-          before: { status: current },
-          after: { status: 'APPROVED' },
-        },
-        context,
-      );
-
-      return toIntroductionDto(updated);
+  return toIntroductionDto(updated);
 }
 
 export async function rejectIntroduction(
@@ -1123,395 +1192,460 @@ export async function rejectIntroduction(
   input: IntroductionRejectInput,
   context: RequestContext,
 ): Promise<IntroductionDto> {
+  const db = getDbClient();
+  const intro = await db.query.businessIntroductions.findFirst({
+    where: eq(schema.businessIntroductions.id, introductionId),
+  });
+  if (!intro) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Introduction not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const intro = await db.query.businessIntroductions.findFirst({ where: eq(schema.businessIntroductions.id, introductionId) });
-      if (!intro) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Introduction not found',
-          status: 404,
-        });
-      }
+  const current = intro.status as IntroductionStatus;
+  if (current !== 'SUBMITTED' && current !== 'IN_REVIEW') {
+    throw new AppError({
+      code: ERROR_CODES.INTRODUCTION_INVALID_STATUS_TRANSITION,
+      message: `Cannot reject introduction with status ${current}`,
+      status: 409,
+    });
+  }
 
-      const current = intro.status as IntroductionStatus;
-      if (current !== 'SUBMITTED' && current !== 'IN_REVIEW') {
-        throw new AppError({
-          code: ERROR_CODES.INTRODUCTION_INVALID_STATUS_TRANSITION,
-          message: `Cannot reject introduction with status ${current}`,
-          status: 409,
-        });
-      }
+  const [updated] = await db
+    .update(schema.businessIntroductions)
+    .set({ status: 'REJECTED', rejection_reason: input.reason })
+    .where(eq(schema.businessIntroductions.id, introductionId))
+    .returning();
 
-      const [updated] = await db.update(schema.businessIntroductions)
-        .set({ status: 'REJECTED', rejection_reason: input.reason })
-        .where(eq(schema.businessIntroductions.id, introductionId))
-        .returning();
+  await auditService.log(
+    {
+      action: 'INTRODUCTION_REJECTED',
+      entityType: 'BusinessIntroduction',
+      entityId: introductionId,
+      before: { status: current },
+      after: { status: 'REJECTED', reason: input.reason },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'INTRODUCTION_REJECTED',
-          entityType: 'BusinessIntroduction',
-          entityId: introductionId,
-          before: { status: current },
-          after: { status: 'REJECTED', reason: input.reason },
-        },
-        context,
-      );
-
-      return toIntroductionDto(updated);
+  return toIntroductionDto(updated);
 }
 
 export async function completeIntroduction(
   introductionId: string,
   context: RequestContext,
 ): Promise<IntroductionDto> {
+  const db = getDbClient();
+  const intro = await db.query.businessIntroductions.findFirst({
+    where: eq(schema.businessIntroductions.id, introductionId),
+  });
+  if (!intro) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Introduction not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const intro = await db.query.businessIntroductions.findFirst({ where: eq(schema.businessIntroductions.id, introductionId) });
-      if (!intro) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Introduction not found',
-          status: 404,
-        });
-      }
+  if (intro.status !== 'APPROVED') {
+    throw new AppError({
+      code: ERROR_CODES.INTRODUCTION_INVALID_STATUS_TRANSITION,
+      message: `Cannot complete introduction with status ${intro.status}`,
+      status: 409,
+    });
+  }
 
-      if (intro.status !== 'APPROVED') {
-        throw new AppError({
-          code: ERROR_CODES.INTRODUCTION_INVALID_STATUS_TRANSITION,
-          message: `Cannot complete introduction with status ${intro.status}`,
-          status: 409,
-        });
-      }
+  const [updated] = await db
+    .update(schema.businessIntroductions)
+    .set({ status: 'COMPLETED' })
+    .where(eq(schema.businessIntroductions.id, introductionId))
+    .returning();
 
-      const [updated] = await db.update(schema.businessIntroductions)
-        .set({ status: 'COMPLETED' })
-        .where(eq(schema.businessIntroductions.id, introductionId))
-        .returning();
+  await auditService.log(
+    {
+      action: 'INTRODUCTION_COMPLETED',
+      entityType: 'BusinessIntroduction',
+      entityId: introductionId,
+      before: { status: 'APPROVED' },
+      after: { status: 'COMPLETED' },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'INTRODUCTION_COMPLETED',
-          entityType: 'BusinessIntroduction',
-          entityId: introductionId,
-          before: { status: 'APPROVED' },
-          after: { status: 'COMPLETED' },
-        },
-        context,
-      );
-
-      return toIntroductionDto(updated);
+  return toIntroductionDto(updated);
 }
 
 // ── Taxonomy ──
 
 export async function listCategories(): Promise<CategoryDto[]> {
-
-      const db = getDbClient();
-      const categories = await db.query.categories.findMany({ orderBy: [asc(schema.categories.name)] });
-      return categories.map(toCategoryDto);
+  const db = getDbClient();
+  const categories = await db.query.categories.findMany({ orderBy: [asc(schema.categories.name)] });
+  return categories.map(toCategoryDto);
 }
 
 export async function getCategory(categoryId: string): Promise<CategoryDto> {
-
-      const db = getDbClient();
-      const category = await db.query.categories.findFirst({ where: eq(schema.categories.id, categoryId) });
-      if (!category) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Category not found', status: 404 });
-      }
-      return toCategoryDto(category);
+  const db = getDbClient();
+  const category = await db.query.categories.findFirst({
+    where: eq(schema.categories.id, categoryId),
+  });
+  if (!category) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Category not found',
+      status: 404,
+    });
+  }
+  return toCategoryDto(category);
 }
 
 export async function createCategory(input: CategoryCreateInput): Promise<CategoryDto> {
-
-      const db = getDbClient();
-      const [category] = await db.insert(schema.categories).values({
-        name: input.name,
-        slug: input.slug,
-        is_high_risk: input.isHighRisk ?? false,
-        is_active: input.isActive ?? true,
-      }).returning();
-      revalidateTag('categories');
-      return toCategoryDto(category);
+  const db = getDbClient();
+  const [category] = await db
+    .insert(schema.categories)
+    .values({
+      name: input.name,
+      slug: input.slug,
+      is_high_risk: input.isHighRisk ?? false,
+      is_active: input.isActive ?? true,
+    })
+    .returning();
+  revalidateTag('categories');
+  return toCategoryDto(category);
 }
 
 export async function updateCategory(
   categoryId: string,
   input: CategoryUpdateInput,
 ): Promise<CategoryDto> {
+  const db = getDbClient();
+  const existing = await db.query.categories.findFirst({
+    where: eq(schema.categories.id, categoryId),
+  });
+  if (!existing) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Category not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const existing = await db.query.categories.findFirst({ where: eq(schema.categories.id, categoryId) });
-      if (!existing) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Category not found', status: 404 });
-      }
-
-      const [category] = await db.update(schema.categories).set({
-        ...(input.name !== undefined ? { name: input.name } : {}),
-        ...(input.slug !== undefined ? { slug: input.slug } : {}),
-        ...(input.isHighRisk !== undefined ? { is_high_risk: input.isHighRisk } : {}),
-        ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
-      }).where(eq(schema.categories.id, categoryId)).returning();
-      revalidateTag('categories');
-      return toCategoryDto(category);
+  const [category] = await db
+    .update(schema.categories)
+    .set({
+      ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(input.slug !== undefined ? { slug: input.slug } : {}),
+      ...(input.isHighRisk !== undefined ? { is_high_risk: input.isHighRisk } : {}),
+      ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
+    })
+    .where(eq(schema.categories.id, categoryId))
+    .returning();
+  revalidateTag('categories');
+  return toCategoryDto(category);
 }
 
 export async function deleteCategory(categoryId: string): Promise<void> {
-
-      const db = getDbClient();
-      const existing = await db.query.categories.findFirst({ where: eq(schema.categories.id, categoryId) });
-      if (!existing) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Category not found', status: 404 });
-      }
-      await db.delete(schema.categories).where(eq(schema.categories.id, categoryId));
-      revalidateTag('categories');
+  const db = getDbClient();
+  const existing = await db.query.categories.findFirst({
+    where: eq(schema.categories.id, categoryId),
+  });
+  if (!existing) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Category not found',
+      status: 404,
+    });
+  }
+  await db.delete(schema.categories).where(eq(schema.categories.id, categoryId));
+  revalidateTag('categories');
 }
 
 export async function listCountries(): Promise<CountryDto[]> {
-
-      const db = getDbClient();
-      const countries = await db.query.countries.findMany({ orderBy: [asc(schema.countries.name)] });
-      return countries.map(toCountryDto);
+  const db = getDbClient();
+  const countries = await db.query.countries.findMany({ orderBy: [asc(schema.countries.name)] });
+  return countries.map(toCountryDto);
 }
 
 export async function getCountry(countryId: string): Promise<CountryDto> {
-
-      const db = getDbClient();
-      const country = await db.query.countries.findFirst({ where: eq(schema.countries.id, countryId) });
-      if (!country) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Country not found', status: 404 });
-      }
-      return toCountryDto(country);
+  const db = getDbClient();
+  const country = await db.query.countries.findFirst({ where: eq(schema.countries.id, countryId) });
+  if (!country) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Country not found',
+      status: 404,
+    });
+  }
+  return toCountryDto(country);
 }
 
 export async function createCountry(input: CountryCreateInput): Promise<CountryDto> {
-
-      const db = getDbClient();
-      const [country] = await db.insert(schema.countries).values({
-        code2: input.code2,
-        code3: input.code3 ?? null,
-        name: input.name,
-        slug: input.slug,
-        is_active: input.isActive ?? true,
-      }).returning();
-      return toCountryDto(country);
+  const db = getDbClient();
+  const [country] = await db
+    .insert(schema.countries)
+    .values({
+      code2: input.code2,
+      code3: input.code3 ?? null,
+      name: input.name,
+      slug: input.slug,
+      is_active: input.isActive ?? true,
+    })
+    .returning();
+  return toCountryDto(country);
 }
 
 export async function updateCountry(
   countryId: string,
   input: CountryUpdateInput,
 ): Promise<CountryDto> {
+  const db = getDbClient();
+  const existing = await db.query.countries.findFirst({
+    where: eq(schema.countries.id, countryId),
+  });
+  if (!existing) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Country not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const existing = await db.query.countries.findFirst({ where: eq(schema.countries.id, countryId) });
-      if (!existing) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Country not found', status: 404 });
-      }
-
-      const [country] = await db.update(schema.countries).set({
-        ...(input.code2 !== undefined ? { code2: input.code2 } : {}),
-        ...(input.code3 !== undefined ? { code3: input.code3 } : {}),
-        ...(input.name !== undefined ? { name: input.name } : {}),
-        ...(input.slug !== undefined ? { slug: input.slug } : {}),
-        ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
-      }).where(eq(schema.countries.id, countryId)).returning();
-      return toCountryDto(country);
+  const [country] = await db
+    .update(schema.countries)
+    .set({
+      ...(input.code2 !== undefined ? { code2: input.code2 } : {}),
+      ...(input.code3 !== undefined ? { code3: input.code3 } : {}),
+      ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(input.slug !== undefined ? { slug: input.slug } : {}),
+      ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
+    })
+    .where(eq(schema.countries.id, countryId))
+    .returning();
+  return toCountryDto(country);
 }
 
 export async function deleteCountry(countryId: string): Promise<void> {
-
-      const db = getDbClient();
-      const existing = await db.query.countries.findFirst({ where: eq(schema.countries.id, countryId) });
-      if (!existing) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Country not found', status: 404 });
-      }
-      await db.delete(schema.countries).where(eq(schema.countries.id, countryId));
+  const db = getDbClient();
+  const existing = await db.query.countries.findFirst({
+    where: eq(schema.countries.id, countryId),
+  });
+  if (!existing) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Country not found',
+      status: 404,
+    });
+  }
+  await db.delete(schema.countries).where(eq(schema.countries.id, countryId));
 }
 
 export async function listCities(): Promise<CityDto[]> {
-
-      const db = getDbClient();
-      const cities = await db.query.cities.findMany({
-        with: { country: { columns: { id: true, name: true } } },
-        orderBy: [asc(schema.cities.name)],
-      });
-      return cities.map(toCityDto);
+  const db = getDbClient();
+  const cities = await db.query.cities.findMany({
+    with: { country: { columns: { id: true, name: true } } },
+    orderBy: [asc(schema.cities.name)],
+  });
+  return cities.map(toCityDto);
 }
 
 export async function getCity(cityId: string): Promise<CityDto> {
-
-      const db = getDbClient();
-      const city = await db.query.cities.findFirst({
-        where: eq(schema.cities.id, cityId),
-        with: { country: { columns: { id: true, name: true } } },
-      });
-      if (!city) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'City not found', status: 404 });
-      }
-      return toCityDto(city);
+  const db = getDbClient();
+  const city = await db.query.cities.findFirst({
+    where: eq(schema.cities.id, cityId),
+    with: { country: { columns: { id: true, name: true } } },
+  });
+  if (!city) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'City not found',
+      status: 404,
+    });
+  }
+  return toCityDto(city);
 }
 
 export async function createCity(input: CityCreateInput): Promise<CityDto> {
+  const db = getDbClient();
+  const country = await db.query.countries.findFirst({
+    where: eq(schema.countries.id, input.countryId),
+  });
+  if (!country) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Country not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const country = await db.query.countries.findFirst({ where: eq(schema.countries.id, input.countryId) });
-      if (!country) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Country not found', status: 404 });
-      }
+  const [inserted] = await db
+    .insert(schema.cities)
+    .values({
+      country_id: input.countryId,
+      name: input.name,
+      slug: input.slug,
+      is_active: input.isActive ?? true,
+    })
+    .returning();
 
-      const [inserted] = await db.insert(schema.cities).values({
-        country_id: input.countryId,
-        name: input.name,
-        slug: input.slug,
-        is_active: input.isActive ?? true,
-      }).returning();
-
-      const city = await db.query.cities.findFirst({
-        where: eq(schema.cities.id, inserted.id),
-        with: { country: { columns: { id: true, name: true } } },
-      });
-      return toCityDto(city!);
+  const city = await db.query.cities.findFirst({
+    where: eq(schema.cities.id, inserted.id),
+    with: { country: { columns: { id: true, name: true } } },
+  });
+  return toCityDto(city!);
 }
 
 export async function updateCity(cityId: string, input: CityUpdateInput): Promise<CityDto> {
+  const db = getDbClient();
+  const existing = await db.query.cities.findFirst({ where: eq(schema.cities.id, cityId) });
+  if (!existing) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'City not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const existing = await db.query.cities.findFirst({ where: eq(schema.cities.id, cityId) });
-      if (!existing) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'City not found', status: 404 });
-      }
-
-      if (input.countryId !== undefined) {
-        const country = await db.query.countries.findFirst({ where: eq(schema.countries.id, input.countryId) });
-        if (!country) {
-          throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Country not found', status: 404 });
-        }
-      }
-
-      await db.update(schema.cities).set({
-        ...(input.countryId !== undefined ? { country_id: input.countryId } : {}),
-        ...(input.name !== undefined ? { name: input.name } : {}),
-        ...(input.slug !== undefined ? { slug: input.slug } : {}),
-        ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
-      }).where(eq(schema.cities.id, cityId));
-
-      const city = await db.query.cities.findFirst({
-        where: eq(schema.cities.id, cityId),
-        with: { country: { columns: { id: true, name: true } } },
+  if (input.countryId !== undefined) {
+    const country = await db.query.countries.findFirst({
+      where: eq(schema.countries.id, input.countryId),
+    });
+    if (!country) {
+      throw new AppError({
+        code: ERROR_CODES.RESOURCE_NOT_FOUND,
+        message: 'Country not found',
+        status: 404,
       });
-      return toCityDto(city!);
+    }
+  }
+
+  await db
+    .update(schema.cities)
+    .set({
+      ...(input.countryId !== undefined ? { country_id: input.countryId } : {}),
+      ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(input.slug !== undefined ? { slug: input.slug } : {}),
+      ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
+    })
+    .where(eq(schema.cities.id, cityId));
+
+  const city = await db.query.cities.findFirst({
+    where: eq(schema.cities.id, cityId),
+    with: { country: { columns: { id: true, name: true } } },
+  });
+  return toCityDto(city!);
 }
 
 export async function deleteCity(cityId: string): Promise<void> {
-
-      const db = getDbClient();
-      const existing = await db.query.cities.findFirst({ where: eq(schema.cities.id, cityId) });
-      if (!existing) {
-        throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'City not found', status: 404 });
-      }
-      await db.delete(schema.cities).where(eq(schema.cities.id, cityId));
+  const db = getDbClient();
+  const existing = await db.query.cities.findFirst({ where: eq(schema.cities.id, cityId) });
+  if (!existing) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'City not found',
+      status: 404,
+    });
+  }
+  await db.delete(schema.cities).where(eq(schema.cities.id, cityId));
 }
 
 // ── Subscriptions (Admin Read) ──
 
 export async function listSubscriptions(): Promise<SubscriptionDto[]> {
-
-      const db = getDbClient();
-      const subs = await db.query.vipSubscriptions.findMany({
-        orderBy: [desc(schema.vipSubscriptions.created_at)],
-      });
-      return subs.map(toSubscriptionDto);
+  const db = getDbClient();
+  const subs = await db.query.vipSubscriptions.findMany({
+    orderBy: [desc(schema.vipSubscriptions.created_at)],
+  });
+  return subs.map(toSubscriptionDto);
 }
 
 const ADMIN_SUBSCRIPTION_INCLUDE = {
-          user: { columns: { id: true, phone: true, display_name: true, membership_tier: true } },
-          businessProfile: { columns: { name: true } },
-        };
+  user: { columns: { id: true, phone: true, display_name: true, membership_tier: true } },
+  businessProfile: { columns: { name: true } },
+};
 
 export async function listAdminSubscriptions(): Promise<AdminSubscriptionListItemDto[]> {
-
-      const db = getDbClient();
-      const subs = await db.query.subscriptions.findMany({
-        with: ADMIN_SUBSCRIPTION_INCLUDE as any,
-        orderBy: [desc(schema.subscriptions.created_at)],
-      });
-      return subs.map(toAdminSubscriptionListItem);
+  const db = getDbClient();
+  const subs = await db.query.subscriptions.findMany({
+    with: ADMIN_SUBSCRIPTION_INCLUDE as any,
+    orderBy: [desc(schema.subscriptions.created_at)],
+  });
+  return subs.map(toAdminSubscriptionListItem);
 }
 
 export async function getAdminSubscriptionDetail(
   subscriptionId: string,
 ): Promise<AdminSubscriptionListItemDto> {
-
-      const db = getDbClient();
-      const sub = await db.query.subscriptions.findFirst({
-        where: eq(schema.subscriptions.id, subscriptionId),
-        with: ADMIN_SUBSCRIPTION_INCLUDE as any,
-      });
-      if (!sub) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Subscription not found',
-          status: 404,
-        });
-      }
-      return toAdminSubscriptionListItem(sub);
+  const db = getDbClient();
+  const sub = await db.query.subscriptions.findFirst({
+    where: eq(schema.subscriptions.id, subscriptionId),
+    with: ADMIN_SUBSCRIPTION_INCLUDE as any,
+  });
+  if (!sub) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Subscription not found',
+      status: 404,
+    });
+  }
+  return toAdminSubscriptionListItem(sub);
 }
 
 export async function getSubscriptionDetail(subscriptionId: string): Promise<SubscriptionDto> {
-
-      const db = getDbClient();
-      const sub = await db.query.vipSubscriptions.findFirst({ where: eq(schema.vipSubscriptions.id, subscriptionId) });
-      if (!sub) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Subscription not found',
-          status: 404,
-        });
-      }
-      return toSubscriptionDto(sub);
+  const db = getDbClient();
+  const sub = await db.query.vipSubscriptions.findFirst({
+    where: eq(schema.vipSubscriptions.id, subscriptionId),
+  });
+  if (!sub) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Subscription not found',
+      status: 404,
+    });
+  }
+  return toSubscriptionDto(sub);
 }
 
 export async function adminCancelSubscription(
   subscriptionId: string,
   context: RequestContext,
 ): Promise<AdminSubscriptionListItemDto> {
+  const db = getDbClient();
+  const sub = await db.query.subscriptions.findFirst({
+    where: eq(schema.subscriptions.id, subscriptionId),
+    with: ADMIN_SUBSCRIPTION_INCLUDE as any,
+  });
+  if (!sub) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Subscription not found',
+      status: 404,
+    });
+  }
 
-      const db = getDbClient();
-      const sub = await db.query.subscriptions.findFirst({
-        where: eq(schema.subscriptions.id, subscriptionId),
-        with: ADMIN_SUBSCRIPTION_INCLUDE as any,
-      });
-      if (!sub) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Subscription not found',
-          status: 404,
-        });
-      }
+  const [updated] = await db
+    .update(schema.subscriptions)
+    .set({ cancel_at_period_end: true, canceled_at: new Date() })
+    .where(eq(schema.subscriptions.id, subscriptionId))
+    .returning();
 
-      const [updated] = await db.update(schema.subscriptions)
-        .set({ cancel_at_period_end: true, canceled_at: new Date() })
-        .where(eq(schema.subscriptions.id, subscriptionId))
-        .returning();
+  const updatedWithRelations = await db.query.subscriptions.findFirst({
+    where: eq(schema.subscriptions.id, subscriptionId),
+    with: ADMIN_SUBSCRIPTION_INCLUDE as any,
+  });
 
-      const updatedWithRelations = await db.query.subscriptions.findFirst({
-        where: eq(schema.subscriptions.id, subscriptionId),
-        with: ADMIN_SUBSCRIPTION_INCLUDE as any,
-      });
+  await auditService.log(
+    {
+      action: 'SUBSCRIPTION_CANCELED',
+      entityType: 'Subscription',
+      entityId: subscriptionId,
+      before: { cancelAtPeriodEnd: sub.cancel_at_period_end },
+      after: { cancelAtPeriodEnd: true },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'SUBSCRIPTION_CANCELED',
-          entityType: 'Subscription',
-          entityId: subscriptionId,
-          before: { cancelAtPeriodEnd: sub.cancel_at_period_end },
-          after: { cancelAtPeriodEnd: true },
-        },
-        context,
-      );
-
-      return toAdminSubscriptionListItem(updatedWithRelations!);
+  return toAdminSubscriptionListItem(updatedWithRelations!);
 }
 
 // ── Audit Log ──
@@ -1519,46 +1653,46 @@ export async function adminCancelSubscription(
 export async function listAuditLogs(
   filters: Partial<AuditLogListInput> = {},
 ): Promise<{ data: AuditLogDto[]; total: number }> {
+  const db = getDbClient();
+  const conditions = [];
 
-      const db = getDbClient();
-      const conditions = [];
+  if (filters.action) conditions.push(eq(schema.auditLogs.action, filters.action));
+  if (filters.actorRole) conditions.push(eq(schema.auditLogs.actor_role, filters.actorRole as any));
+  if (filters.entityType)
+    conditions.push(ilike(schema.auditLogs.entity_type, `%${filters.entityType}%`));
+  if (filters.dateFrom) conditions.push(sql`${schema.auditLogs.created_at} >= ${filters.dateFrom}`);
+  if (filters.dateTo) conditions.push(sql`${schema.auditLogs.created_at} <= ${filters.dateTo}`);
 
-      if (filters.action) conditions.push(eq(schema.auditLogs.action, filters.action));
-      if (filters.actorRole) conditions.push(eq(schema.auditLogs.actor_role, filters.actorRole as any));
-      if (filters.entityType) conditions.push(ilike(schema.auditLogs.entity_type, `%${filters.entityType}%`));
-      if (filters.dateFrom) conditions.push(sql`${schema.auditLogs.created_at} >= ${filters.dateFrom}`);
-      if (filters.dateTo) conditions.push(sql`${schema.auditLogs.created_at} <= ${filters.dateTo}`);
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const page = filters.page ?? 1;
+  const limit = filters.limit ?? 20;
 
-      const page = filters.page ?? 1;
-      const limit = filters.limit ?? 20;
+  const [logs, total] = await Promise.all([
+    db.query.auditLogs.findMany({
+      where: whereClause,
+      orderBy: [desc(schema.auditLogs.created_at)],
+      offset: (page - 1) * limit,
+      limit: limit,
+    }),
+    db.$count(schema.auditLogs, whereClause),
+  ]);
 
-      const [logs, total] = await Promise.all([
-        db.query.auditLogs.findMany({
-          where: whereClause,
-          orderBy: [desc(schema.auditLogs.created_at)],
-          offset: (page - 1) * limit,
-          limit: limit,
-        }),
-        db.$count(schema.auditLogs, whereClause),
-      ]);
-
-      return {
-        data: logs.map((log: any) => ({
-          id: log.id,
-          actorStaffId: log.actor_staff_id ?? null,
-          actorRole: log.actor_role as any,
-          action: log.action as any,
-          entityType: log.entity_type,
-          entityId: log.entity_id,
-          before: log.before_data as Record<string, unknown> | null,
-          after: log.after_data as Record<string, unknown> | null,
-          ipAddress: log.ip_address ?? null,
-          createdAt: log.created_at?.toISOString() ?? new Date().toISOString(),
-        })),
-        total,
-      };
+  return {
+    data: logs.map((log: any) => ({
+      id: log.id,
+      actorStaffId: log.actor_staff_id ?? null,
+      actorRole: log.actor_role as any,
+      action: log.action as any,
+      entityType: log.entity_type,
+      entityId: log.entity_id,
+      before: log.before_data as Record<string, unknown> | null,
+      after: log.after_data as Record<string, unknown> | null,
+      ipAddress: log.ip_address ?? null,
+      createdAt: log.created_at?.toISOString() ?? new Date().toISOString(),
+    })),
+    total,
+  };
 }
 
 // ── Stripe Price Config (OWNER) ──
@@ -1573,127 +1707,134 @@ export type StripePriceKey = (typeof STRIPE_PRICE_KEYS)[number];
 export type StripePricesMap = Record<StripePriceKey, string | null>;
 
 export async function getStripePrices(): Promise<StripePricesMap> {
+  const db = getDbClient();
+  const configs = await db.query.adminConfigs.findMany({
+    where: inArray(schema.adminConfigs.key, STRIPE_PRICE_KEYS as unknown as string[]),
+  });
 
-      const db = getDbClient();
-      const configs = await db.query.adminConfigs.findMany({
-        where: inArray(schema.adminConfigs.key, STRIPE_PRICE_KEYS as unknown as string[]),
-      });
+  const result: StripePricesMap = {
+    stripe_price_vip_membership_monthly: null,
+    stripe_price_business_placement_monthly: null,
+  };
 
-      const result: StripePricesMap = {
-        stripe_price_vip_membership_monthly: null,
-        stripe_price_business_placement_monthly: null,
-      };
+  for (const config of configs) {
+    result[config.key as StripePriceKey] = (config.value as { priceId?: string })?.priceId ?? null;
+  }
 
-      for (const config of configs) {
-        result[config.key as StripePriceKey] = (config.value as { priceId?: string })?.priceId ?? null;
-      }
-
-      return result;
+  return result;
 }
 
 export async function updateStripePrices(
   input: Partial<StripePricesMap>,
   context: RequestContext,
 ): Promise<StripePricesMap> {
+  const db = getDbClient();
 
-      const db = getDbClient();
+  for (const [key, priceId] of Object.entries(input)) {
+    if (!STRIPE_PRICE_KEYS.includes(key as StripePriceKey)) continue;
 
-      for (const [key, priceId] of Object.entries(input)) {
-        if (!STRIPE_PRICE_KEYS.includes(key as StripePriceKey)) continue;
+    const existing = await db.query.adminConfigs.findFirst({
+      where: eq(schema.adminConfigs.key, key),
+    });
+    if (existing) {
+      await db
+        .update(schema.adminConfigs)
+        .set({ value: { priceId } })
+        .where(eq(schema.adminConfigs.key, key));
+    } else {
+      await db.insert(schema.adminConfigs).values({
+        key,
+        value: { priceId },
+        description: `Stripe Price ID for ${key.replace('stripe_price_', '')}`,
+      });
+    }
+  }
 
-        const existing = await db.query.adminConfigs.findFirst({ where: eq(schema.adminConfigs.key, key) });
-        if (existing) {
-          await db.update(schema.adminConfigs)
-            .set({ value: { priceId } })
-            .where(eq(schema.adminConfigs.key, key));
-        } else {
-          await db.insert(schema.adminConfigs)
-            .values({
-              key,
-              value: { priceId },
-              description: `Stripe Price ID for ${key.replace('stripe_price_', '')}`,
-            });
-        }
-      }
-
-      return getStripePrices();
+  return getStripePrices();
 }
 
 export async function getAdminConfig(key: string): Promise<AdminConfigEntryDto> {
-
-      const db = getDbClient();
-      const config = await db.query.adminConfigs.findFirst({ where: eq(schema.adminConfigs.key, key) });
-      if (!config) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Config not found',
-          status: 404,
-        });
-      }
-      return toAdminConfigEntry(config);
+  const db = getDbClient();
+  const config = await db.query.adminConfigs.findFirst({ where: eq(schema.adminConfigs.key, key) });
+  if (!config) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Config not found',
+      status: 404,
+    });
+  }
+  return toAdminConfigEntry(config);
 }
 
 export async function updateAdminConfig(
   key: string,
   input: AdminConfigUpdateInput,
 ): Promise<AdminConfigEntryDto> {
+  const db = getDbClient();
+  const existing = await db.query.adminConfigs.findFirst({
+    where: eq(schema.adminConfigs.key, key),
+  });
 
-      const db = getDbClient();
-      const existing = await db.query.adminConfigs.findFirst({ where: eq(schema.adminConfigs.key, key) });
-
-      let result;
-      if (existing) {
-        const [updated] = await db.update(schema.adminConfigs).set({
-          value: input.value,
-          description: input.description ?? existing.description,
-        }).where(eq(schema.adminConfigs.key, key)).returning();
-        result = updated;
-      } else {
-        const [created] = await db.insert(schema.adminConfigs).values({
-          key,
-          value: input.value,
-          description: input.description ?? null,
-        }).returning();
-        result = created;
-      }
-      return toAdminConfigEntry(result);
+  let result;
+  if (existing) {
+    const [updated] = await db
+      .update(schema.adminConfigs)
+      .set({
+        value: input.value,
+        description: input.description ?? existing.description,
+      })
+      .where(eq(schema.adminConfigs.key, key))
+      .returning();
+    result = updated;
+  } else {
+    const [created] = await db
+      .insert(schema.adminConfigs)
+      .values({
+        key,
+        value: input.value,
+        description: input.description ?? null,
+      })
+      .returning();
+    result = created;
+  }
+  return toAdminConfigEntry(result);
 }
 
 export async function getMembershipPlans(): Promise<MembershipPlanDto[]> {
-
-      const db = getDbClient();
-      const configs = await db.query.adminConfigs.findMany({
-        where: inArray(schema.adminConfigs.key, ['vip_membership_monthly', 'business_placement_monthly']),
-      });
-      return configs.map((c: any) => ({
-        key: c.key,
-        value: c.value,
-        description: c.description,
-      }));
+  const db = getDbClient();
+  const configs = await db.query.adminConfigs.findMany({
+    where: inArray(schema.adminConfigs.key, [
+      'vip_membership_monthly',
+      'business_placement_monthly',
+    ]),
+  });
+  return configs.map((c: any) => ({
+    key: c.key,
+    value: c.value,
+    description: c.description,
+  }));
 }
 
 export async function listStaff(context: RequestContext): Promise<AdminStaffListItemDto[]> {
-
-      const db = getDbClient();
-      const staff = await db.query.adminUsers.findMany({
-        orderBy: [asc(schema.adminUsers.created_at)],
-      });
-      return staff.map(toAdminStaffListItem);
+  const db = getDbClient();
+  const staff = await db.query.adminUsers.findMany({
+    orderBy: [asc(schema.adminUsers.created_at)],
+  });
+  return staff.map(toAdminStaffListItem);
 }
 
 export async function getStaffDetail(staffId: string): Promise<AdminStaffListItemDto> {
-
-      assertValidUuid(staffId, 'staff');
-      const db = getDbClient();
-      const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
-      if (!staff) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Staff not found',
-          status: 404,
-        });
-      }
-      return toAdminStaffListItem(staff);
+  assertValidUuid(staffId, 'staff');
+  const db = getDbClient();
+  const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
+  if (!staff) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Staff not found',
+      status: 404,
+    });
+  }
+  return toAdminStaffListItem(staff);
 }
 
 export async function updateStaffRole(
@@ -1701,35 +1842,35 @@ export async function updateStaffRole(
   input: StaffRoleUpdateInput,
   context: RequestContext,
 ): Promise<AdminStaffListItemDto> {
+  assertValidUuid(staffId, 'staff');
+  const db = getDbClient();
+  const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
+  if (!staff) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Staff not found',
+      status: 404,
+    });
+  }
 
-      assertValidUuid(staffId, 'staff');
-      const db = getDbClient();
-      const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
-      if (!staff) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Staff not found',
-          status: 404,
-        });
-      }
+  const [updated] = await db
+    .update(schema.adminUsers)
+    .set({ role: input.role as any })
+    .where(eq(schema.adminUsers.id, staffId))
+    .returning();
 
-      const [updated] = await db.update(schema.adminUsers)
-        .set({ role: input.role as any })
-        .where(eq(schema.adminUsers.id, staffId))
-        .returning();
+  await auditService.log(
+    {
+      action: 'STAFF_ROLE_UPDATED',
+      entityType: 'AdminUser',
+      entityId: staffId,
+      before: { role: staff.role },
+      after: { role: updated.role },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'STAFF_ROLE_UPDATED',
-          entityType: 'AdminUser',
-          entityId: staffId,
-          before: { role: staff.role },
-          after: { role: updated.role },
-        },
-        context,
-      );
-
-      return toAdminStaffListItem(updated);
+  return toAdminStaffListItem(updated);
 }
 
 export async function deactivateStaff(
@@ -1737,43 +1878,43 @@ export async function deactivateStaff(
   input: StaffDeactivateInput,
   context: RequestContext,
 ): Promise<AdminStaffListItemDto> {
+  assertValidUuid(staffId, 'staff');
+  const db = getDbClient();
+  const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
+  if (!staff) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Staff not found',
+      status: 404,
+    });
+  }
 
-      assertValidUuid(staffId, 'staff');
-      const db = getDbClient();
-      const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
-      if (!staff) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_NOT_FOUND,
-          message: 'Staff not found',
-          status: 404,
-        });
-      }
+  if (!staff.is_active) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_CONFLICT,
+      message: 'Staff is already inactive',
+      status: 409,
+    });
+  }
 
-      if (!staff.is_active) {
-        throw new AppError({
-          code: ERROR_CODES.RESOURCE_CONFLICT,
-          message: 'Staff is already inactive',
-          status: 409,
-        });
-      }
+  const [updated] = await db
+    .update(schema.adminUsers)
+    .set({ is_active: false })
+    .where(eq(schema.adminUsers.id, staffId))
+    .returning();
 
-      const [updated] = await db.update(schema.adminUsers)
-        .set({ is_active: false })
-        .where(eq(schema.adminUsers.id, staffId))
-        .returning();
+  await auditService.log(
+    {
+      action: 'STAFF_ROLE_UPDATED',
+      entityType: 'AdminUser',
+      entityId: staffId,
+      before: { isActive: true },
+      after: { isActive: false, reason: input.reason ?? null },
+    },
+    context,
+  );
 
-      await auditService.log(
-        {
-          action: 'STAFF_ROLE_UPDATED',
-          entityType: 'AdminUser',
-          entityId: staffId,
-          before: { isActive: true },
-          after: { isActive: false, reason: input.reason ?? null },
-        },
-        context,
-      );
-
-      return toAdminStaffListItem(updated);
+  return toAdminStaffListItem(updated);
 }
 
 // ── DTO Helpers ──
@@ -1932,7 +2073,7 @@ function toIntroductionDto(intro: any): IntroductionDto {
 }
 
 function toAdminIntroductionListItem(intro: any): AdminIntroductionListItemDto {
-    return {
+  return {
     id: intro.id,
     requesterUserId: intro.requester_user_id,
     requesterBusinessId: intro.requester_business_id,
@@ -1957,7 +2098,7 @@ function toAdminIntroductionListItem(intro: any): AdminIntroductionListItemDto {
       name: intro.target_business?.name ?? '',
       slug: intro.target_business?.slug ?? '',
     },
-    };
+  };
 }
 
 function toSubscriptionDto(sub: any): SubscriptionDto {
@@ -1976,7 +2117,7 @@ function toSubscriptionDto(sub: any): SubscriptionDto {
 }
 
 function toAdminSubscriptionListItem(sub: any): AdminSubscriptionListItemDto {
-    return {
+  return {
     id: sub.id,
     userId: sub.user_id ?? null,
     kind: sub.kind as SubscriptionKind,
@@ -1998,7 +2139,7 @@ function toAdminSubscriptionListItem(sub: any): AdminSubscriptionListItemDto {
         }
       : null,
     businessName: sub.business_profile?.name ?? null,
-    };
+  };
 }
 
 function toCategoryDto(cat: any): CategoryDto {

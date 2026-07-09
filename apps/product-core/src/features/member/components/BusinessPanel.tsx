@@ -1,10 +1,17 @@
 import { getTranslations } from 'next-intl/server';
 
-import type { BusinessIncomingIntroductionDto, CurrentMemberProfileDto, MemberBusinessProfileDto } from '@kclub/contracts';
+import type {
+  BusinessIncomingIntroductionDto,
+  CurrentMemberProfileDto,
+  MemberBusinessProfileDto,
+} from '@kclub/contracts';
 
 import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
-import { cabinetContentClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
+import {
+  cabinetContentClasses,
+  cabinetGridPanelClasses,
+} from '@/features/member/components/cabinet/styles';
 import { getOwnBusinesses } from '@/server/services/business-service';
 import { getIncomingIntroductions } from '@/server/services/introduction-service';
 import { getDbClient, schema } from '@/server/db';
@@ -31,10 +38,7 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   HIDDEN: 'hidden',
 };
 
-const STATUS_BADGE_VARIANTS: Record<
-  string,
-  'default' | 'outline' | 'success' | 'destructive'
-> = {
+const STATUS_BADGE_VARIANTS: Record<string, 'default' | 'outline' | 'success' | 'destructive'> = {
   UNDER_REVIEW: 'outline',
   APPROVED: 'success',
   PUBLISHED: 'success',
@@ -63,10 +67,7 @@ export async function BusinessPanel({
       orderBy: [asc(schema.countries.name)],
     }),
     db.query.categories.findMany({
-      where: and(
-        eq(schema.categories.is_active, true),
-        eq(schema.categories.is_high_risk, false)
-      ),
+      where: and(eq(schema.categories.is_active, true), eq(schema.categories.is_high_risk, false)),
       orderBy: [asc(schema.categories.name)],
     }),
   ]);
@@ -94,7 +95,9 @@ export async function BusinessPanel({
 
   return (
     <div className={cabinetContentClasses}>
-      <p className="mb-9 max-w-2xl text-sm leading-relaxed text-muted-foreground">{t('description')}</p>
+      <p className="mb-9 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        {t('description')}
+      </p>
 
       {ownBusinesses.length > 0 && (
         <div className="space-y-4">
@@ -278,7 +281,9 @@ function BusinessStatusBanner({
     return (
       <Alert variant="destructive">
         <AlertTitle>{t('statusBannerRejected')}</AlertTitle>
-        {business.rejectionReason && <AlertDescription>{business.rejectionReason}</AlertDescription>}
+        {business.rejectionReason && (
+          <AlertDescription>{business.rejectionReason}</AlertDescription>
+        )}
       </Alert>
     );
   }

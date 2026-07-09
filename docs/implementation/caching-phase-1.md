@@ -15,22 +15,26 @@ Implemented ISR (Incremental Static Regeneration) with tag-based revalidation fo
 - Tags: `businesses`, `public-businesses`, `public-business-detail`
 
 **Created**: `src/server/cache/index.ts`
+
 - Re-exports for cache functions
 
 ### 2. ISR for Marketing Pages
 
 **Modified**: `src/app/[locale]/(marketing)/page.tsx`
+
 - Added `export const revalidate = 60`
 - Added `generateStaticParams()` for en/ru/uk locales
 - Switched to `getCachedPublicBusinesses()`
 
 **Modified**: `src/app/[locale]/(marketing)/directory/page.tsx`
+
 - Added `export const revalidate = 60`
 - Added `generateStaticParams()` for en/ru/uk locales
 - Switched to `getCachedPublicBusinesses()`
 - Updated `DirectorySection` type signature
 
 **Modified**: `src/app/[locale]/(marketing)/directory/[slug]/page.tsx`
+
 - Added `export const revalidate = 60`
 - Added `generateStaticParams()` that fetches all published business slugs
 - Switched to `getCachedPublicBusinessBySlug()`
@@ -38,6 +42,7 @@ Implemented ISR (Incremental Static Regeneration) with tag-based revalidation fo
 ### 3. Tag-Based Revalidation
 
 **Modified**: `src/server/services/admin-service.ts`
+
 - Added `revalidateTag('businesses')` and `revalidateTag('public-businesses')` to:
   - `approveBusiness()`
   - `rejectBusiness()`
@@ -45,6 +50,7 @@ Implemented ISR (Incremental Static Regeneration) with tag-based revalidation fo
   - `updateBusinessFeatured()`
 
 **Modified**: `src/server/services/webhook-service.ts`
+
 - Added `revalidateTag('businesses')` and `revalidateTag('public-businesses')` to:
   - `handlePlacementCheckoutCompleted()`
 
@@ -72,11 +78,13 @@ Implemented ISR (Incremental Static Regeneration) with tag-based revalidation fo
 ## Testing
 
 Run typecheck:
+
 ```bash
 bun run typecheck
 ```
 
 Verify cache headers in production:
+
 ```bash
 curl -I https://your-domain.com/en
 # Look for: x-nextjs-cache: HIT | STALE | MISS
