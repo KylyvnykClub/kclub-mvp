@@ -1,16 +1,13 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 
+import { mockCookieStore, resetMockCookieStore } from '../test-helpers/mock-cookies';
+
 const mockRedirect = mock(() => {
   throw new Error('REDIRECT');
 });
-const mockCookies = mock();
 
 mock.module('next/navigation', () => ({
   redirect: mockRedirect,
-}));
-
-mock.module('next/headers', () => ({
-  cookies: mockCookies,
 }));
 
 const originalFetch = globalThis.fetch;
@@ -18,13 +15,13 @@ const originalFetch = globalThis.fetch;
 describe('auth actions', () => {
   beforeEach(() => {
     mockRedirect.mockClear();
-    mockCookies.mockReset();
+    resetMockCookieStore();
     process.env.PRODUCT_CORE_API_BASE_URL = 'http://localhost:3000';
   });
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
-    mockCookies.mockReset();
+    resetMockCookieStore();
     delete process.env.PRODUCT_CORE_API_BASE_URL;
   });
 
@@ -104,11 +101,6 @@ describe('auth actions', () => {
     });
 
     test('redirects to dashboard when OTP verified and state is AUTHENTICATED', async () => {
-      mockCookies.mockResolvedValue({
-        get: () => undefined,
-        set: mock(),
-      });
-
       globalThis.fetch = mock(async () => ({
         ok: true,
         json: async () => ({
@@ -138,11 +130,6 @@ describe('auth actions', () => {
     });
 
     test('redirects to 2fa-required when state is TOTP_REQUIRED', async () => {
-      mockCookies.mockResolvedValue({
-        get: () => undefined,
-        set: mock(),
-      });
-
       globalThis.fetch = mock(async () => ({
         ok: true,
         json: async () => ({
@@ -172,11 +159,6 @@ describe('auth actions', () => {
     });
 
     test('redirects to /auth/totp-setup when state is TOTP_SETUP_REQUIRED', async () => {
-      mockCookies.mockResolvedValue({
-        get: () => undefined,
-        set: mock(),
-      });
-
       globalThis.fetch = mock(async () => ({
         ok: true,
         json: async () => ({
@@ -208,10 +190,6 @@ describe('auth actions', () => {
 
   describe('verifyStaffTotpAction', () => {
     test('redirects to sign-in when no session exists', async () => {
-      mockCookies.mockResolvedValue({
-        get: () => undefined,
-      });
-
       const { verifyStaffTotpAction } = await import('../../src/server/auth/actions');
 
       const formData = new FormData();
@@ -227,10 +205,9 @@ describe('auth actions', () => {
     });
 
     test('redirects with error when TOTP is invalid', async () => {
-      mockCookies.mockResolvedValue({
-        get: () => ({ value: 'pre-totp-token' }),
-        set: mock(),
-      });
+      mockCookieStore.get.mockImplementation((name: string) =>
+        name === 'kclub_staff_session' ? { value: 'pre-totp-token' } : undefined,
+      );
 
       globalThis.fetch = mock(async () => ({
         ok: false,
@@ -255,10 +232,9 @@ describe('auth actions', () => {
     });
 
     test('redirects to dashboard on successful TOTP verification', async () => {
-      mockCookies.mockResolvedValue({
-        get: () => ({ value: 'pre-totp-token' }),
-        set: mock(),
-      });
+      mockCookieStore.get.mockImplementation((name: string) =>
+        name === 'kclub_staff_session' ? { value: 'pre-totp-token' } : undefined,
+      );
 
       globalThis.fetch = mock(async () => ({
         ok: true,
@@ -290,11 +266,9 @@ describe('auth actions', () => {
 
   describe('logoutAction', () => {
     test('clears session and redirects to sign-in', async () => {
-      const setCookie = mock();
-      mockCookies.mockResolvedValue({
-        get: () => ({ value: 'test-token' }),
-        set: setCookie,
-      });
+      mockCookieStore.get.mockImplementation((name: string) =>
+        name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
+      );
 
       globalThis.fetch = mock(async () => ({
         ok: true,
@@ -309,7 +283,7 @@ describe('auth actions', () => {
         // redirect throws
       }
 
-      expect(setCookie).toHaveBeenCalledWith(
+      expect(mockCookieStore.set).toHaveBeenCalledWith(
         'kclub_staff_session',
         '',
         expect.objectContaining({ maxAge: 0 }),
@@ -318,12 +292,9 @@ describe('auth actions', () => {
     });
 
     test('calls product-core logout endpoint before clearing cookie', async () => {
-      const setCookie = mock();
-      mockCookies.mockResolvedValue({
-        get: (name: string) =>
-          name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
-        set: setCookie,
-      });
+      mockCookieStore.get.mockImplementation((name: string) =>
+        name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
+      );
 
       const fetchMock = mock(async () => ({
         ok: true,

@@ -1,23 +1,17 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
 import { adminApiFetch } from '../../src/server/proxy/admin-client';
-
-const mockReadStaffSession = mock();
-
-mock.module('../../src/server/auth/session', () => ({
-  readStaffSession: mockReadStaffSession,
-}));
+import { mockCookieStore, resetMockCookieStore } from '../test-helpers/mock-cookies';
 
 describe('admin-client', () => {
   const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
-    mockReadStaffSession.mockReset();
+    resetMockCookieStore();
     globalThis.fetch = originalFetch;
   });
 
   test('returns 401 when no session exists', async () => {
-    mockReadStaffSession.mockResolvedValue(null);
     const result = await adminApiFetch('/test');
     expect(result.ok).toBe(false);
     expect(result.status).toBe(401);
@@ -25,7 +19,9 @@ describe('admin-client', () => {
   });
 
   test('makes authenticated request when session exists', async () => {
-    mockReadStaffSession.mockResolvedValue({ token: 'test-token' });
+    mockCookieStore.get.mockImplementation((name: string) =>
+      name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
+    );
 
     const mockResponse = {
       ok: true,
@@ -51,7 +47,9 @@ describe('admin-client', () => {
   });
 
   test('handles API errors correctly', async () => {
-    mockReadStaffSession.mockResolvedValue({ token: 'test-token' });
+    mockCookieStore.get.mockImplementation((name: string) =>
+      name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
+    );
 
     const mockResponse = {
       ok: false,

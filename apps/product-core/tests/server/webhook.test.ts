@@ -4,14 +4,22 @@ const mockStripeConstructEvent = mock(() => {
   throw new Error('Unmocked');
 });
 
-mock.module('stripe', () => {
-  const StripeMock = class {
-    webhooks = {
+// mock.module leaks across test files in the same bun process; mock the
+// app-level facade (matching webhook-route*.test.ts) instead of the raw
+// 'stripe' package, so stripe-errors.test.ts still sees the real SDK.
+mock.module('@/server/stripe/client', () => ({
+  getStripeClient: () => ({
+    webhooks: {
       constructEvent: mockStripeConstructEvent,
-    };
-  };
-  return { default: StripeMock };
-});
+    },
+  }),
+}));
+
+// Re-export the real env module (rather than leaving it unmocked) so this
+// file's own STRIPE_WEBHOOK_SECRET assertions can't inherit a stale
+// always-present mock left behind by webhook-route*.test.ts.
+const realStripeEnv = await import('../../src/server/stripe/env');
+mock.module('@/server/stripe/env', () => realStripeEnv);
 
 function mockPrismaFindUnique(returnValue: unknown) {
   return mock(async () => returnValue);

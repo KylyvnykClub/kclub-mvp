@@ -1,4 +1,16 @@
+import { mock } from 'bun:test';
 import { JSDOM } from 'jsdom';
+
+import { mockCookieStore } from './test-helpers/mock-cookies';
+
+// Registered once here (preloaded before every test file) so `next/headers`
+// resolves consistently across files. Bun's `mock.module` permanently
+// overrides a specifier's resolution for the rest of the process the moment
+// it's called — a second registration in an individual test file would win
+// and silently break every other file that relies on this one.
+mock.module('next/headers', () => ({
+  cookies: () => Promise.resolve(mockCookieStore),
+}));
 
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
   url: 'http://localhost:3001',

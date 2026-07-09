@@ -46,7 +46,7 @@ export default defineConfig({
       },
     },
     {
-      command: 'bun run --filter @kclub/admin-app start:e2e',
+      command: 'bun run --filter @kclub/admin-app-legacy start:e2e',
       port: 3001,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
