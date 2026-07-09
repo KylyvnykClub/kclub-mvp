@@ -1,0 +1,17 @@
+{
+  "remoteName": "origin",
+  "projects": [
+    {
+      "id": "prj_LvwIyrZbdgLVQCtx5WWr2SkeOfjm",
+      "name": "product-core",
+      "directory": "apps/product-core",
+      "orgId": "team_hU8bEdW8zNJGFYDH90CG1hyz"
+    },
+    {
+      "id": "prj_Rb4jcRZ0UY4yYGg2MKw1ouFG1T6p",
+      "name": "admin-app",
+      "directory": "apps/admin-app",
+      "orgId": "team_hU8bEdW8zNJGFYDH90CG1hyz"
+    }
+  ]
+}

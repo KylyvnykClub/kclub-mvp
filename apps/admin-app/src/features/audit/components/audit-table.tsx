@@ -8,7 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -144,7 +150,7 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
           />
         </div>
         <Button size="sm" onClick={applyFilters} className="mb-0.5">
-          <Search className="h-4 w-4 mr-1" />
+          <Search className="mr-1 h-4 w-4" />
           Apply
         </Button>
       </AdminListFilters>
@@ -208,7 +214,10 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{log.entityType}</p>
-                    <p className="font-mono text-xs text-muted-foreground truncate" title={log.entityId}>
+                    <p
+                      className="truncate font-mono text-xs text-muted-foreground"
+                      title={log.entityId}
+                    >
                       {log.entityId}
                     </p>
                   </div>
@@ -218,9 +227,7 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
                   <div>
                     <span>{log.actorRole ?? 'System'}</span>
                     {log.actorStaffId && (
-                      <span className="ml-1 opacity-70">
-                        ({log.actorStaffId.slice(0, 8)}...)
-                      </span>
+                      <span className="ml-1 opacity-70">({log.actorStaffId.slice(0, 8)}...)</span>
                     )}
                   </div>
                   <span>{new Date(log.createdAt).toLocaleString()}</span>

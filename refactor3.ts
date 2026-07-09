@@ -1,7 +1,9 @@
 import { Project } from 'ts-morph';
 
 const project = new Project();
-const sourceFile = project.addSourceFileAtPath('apps/product-core/src/server/services/admin-service.ts');
+const sourceFile = project.addSourceFileAtPath(
+  'apps/product-core/src/server/services/admin-service.ts',
+);
 
 function replaceFunction(name: string, newBodyText: string) {
   const func = sourceFile.getFunction(name);
@@ -12,16 +14,21 @@ function replaceFunction(name: string, newBodyText: string) {
   }
 }
 
-replaceFunction('listIntroductions', `
+replaceFunction(
+  'listIntroductions',
+  `
   const db = getDbClient();
   const introductions = await db.query.businessIntroductions.findMany({
     with: INTRODUCTION_LIST_INCLUDE,
     orderBy: [desc(schema.businessIntroductions.created_at)],
   });
   return introductions.map(toAdminIntroductionListItem);
-`);
+`,
+);
 
-replaceFunction('getIntroductionDetail', `
+replaceFunction(
+  'getIntroductionDetail',
+  `
   const db = getDbClient();
   const intro = await db.query.businessIntroductions.findFirst({
     where: eq(schema.businessIntroductions.id, introductionId),
@@ -35,9 +42,12 @@ replaceFunction('getIntroductionDetail', `
     });
   }
   return toAdminIntroductionListItem(intro);
-`);
+`,
+);
 
-replaceFunction('approveIntroduction', `
+replaceFunction(
+  'approveIntroduction',
+  `
   const db = getDbClient();
   const intro = await db.query.businessIntroductions.findFirst({ where: eq(schema.businessIntroductions.id, introductionId) });
   if (!intro) {
@@ -74,9 +84,12 @@ replaceFunction('approveIntroduction', `
   );
 
   return toIntroductionDto(updated);
-`);
+`,
+);
 
-replaceFunction('rejectIntroduction', `
+replaceFunction(
+  'rejectIntroduction',
+  `
   const db = getDbClient();
   const intro = await db.query.businessIntroductions.findFirst({ where: eq(schema.businessIntroductions.id, introductionId) });
   if (!intro) {
@@ -113,9 +126,12 @@ replaceFunction('rejectIntroduction', `
   );
 
   return toIntroductionDto(updated);
-`);
+`,
+);
 
-replaceFunction('completeIntroduction', `
+replaceFunction(
+  'completeIntroduction',
+  `
   const db = getDbClient();
   const intro = await db.query.businessIntroductions.findFirst({ where: eq(schema.businessIntroductions.id, introductionId) });
   if (!intro) {
@@ -151,24 +167,33 @@ replaceFunction('completeIntroduction', `
   );
 
   return toIntroductionDto(updated);
-`);
+`,
+);
 
-replaceFunction('listCategories', `
+replaceFunction(
+  'listCategories',
+  `
   const db = getDbClient();
   const categories = await db.query.categories.findMany({ orderBy: [asc(schema.categories.name)] });
   return categories.map(toCategoryDto);
-`);
+`,
+);
 
-replaceFunction('getCategory', `
+replaceFunction(
+  'getCategory',
+  `
   const db = getDbClient();
   const category = await db.query.categories.findFirst({ where: eq(schema.categories.id, categoryId) });
   if (!category) {
     throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Category not found', status: 404 });
   }
   return toCategoryDto(category);
-`);
+`,
+);
 
-replaceFunction('createCategory', `
+replaceFunction(
+  'createCategory',
+  `
   const db = getDbClient();
   const [category] = await db.insert(schema.categories).values({
     name: input.name,
@@ -178,9 +203,12 @@ replaceFunction('createCategory', `
   }).returning();
   revalidateTag('categories');
   return toCategoryDto(category);
-`);
+`,
+);
 
-replaceFunction('updateCategory', `
+replaceFunction(
+  'updateCategory',
+  `
   const db = getDbClient();
   const existing = await db.query.categories.findFirst({ where: eq(schema.categories.id, categoryId) });
   if (!existing) {
@@ -195,9 +223,12 @@ replaceFunction('updateCategory', `
   }).where(eq(schema.categories.id, categoryId)).returning();
   revalidateTag('categories');
   return toCategoryDto(category);
-`);
+`,
+);
 
-replaceFunction('deleteCategory', `
+replaceFunction(
+  'deleteCategory',
+  `
   const db = getDbClient();
   const existing = await db.query.categories.findFirst({ where: eq(schema.categories.id, categoryId) });
   if (!existing) {
@@ -205,24 +236,33 @@ replaceFunction('deleteCategory', `
   }
   await db.delete(schema.categories).where(eq(schema.categories.id, categoryId));
   revalidateTag('categories');
-`);
+`,
+);
 
-replaceFunction('listCountries', `
+replaceFunction(
+  'listCountries',
+  `
   const db = getDbClient();
   const countries = await db.query.countries.findMany({ orderBy: [asc(schema.countries.name)] });
   return countries.map(toCountryDto);
-`);
+`,
+);
 
-replaceFunction('getCountry', `
+replaceFunction(
+  'getCountry',
+  `
   const db = getDbClient();
   const country = await db.query.countries.findFirst({ where: eq(schema.countries.id, countryId) });
   if (!country) {
     throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Country not found', status: 404 });
   }
   return toCountryDto(country);
-`);
+`,
+);
 
-replaceFunction('createCountry', `
+replaceFunction(
+  'createCountry',
+  `
   const db = getDbClient();
   const [country] = await db.insert(schema.countries).values({
     code2: input.code2,
@@ -232,9 +272,12 @@ replaceFunction('createCountry', `
     is_active: input.isActive ?? true,
   }).returning();
   return toCountryDto(country);
-`);
+`,
+);
 
-replaceFunction('updateCountry', `
+replaceFunction(
+  'updateCountry',
+  `
   const db = getDbClient();
   const existing = await db.query.countries.findFirst({ where: eq(schema.countries.id, countryId) });
   if (!existing) {
@@ -249,27 +292,36 @@ replaceFunction('updateCountry', `
     ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
   }).where(eq(schema.countries.id, countryId)).returning();
   return toCountryDto(country);
-`);
+`,
+);
 
-replaceFunction('deleteCountry', `
+replaceFunction(
+  'deleteCountry',
+  `
   const db = getDbClient();
   const existing = await db.query.countries.findFirst({ where: eq(schema.countries.id, countryId) });
   if (!existing) {
     throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'Country not found', status: 404 });
   }
   await db.delete(schema.countries).where(eq(schema.countries.id, countryId));
-`);
+`,
+);
 
-replaceFunction('listCities', `
+replaceFunction(
+  'listCities',
+  `
   const db = getDbClient();
   const cities = await db.query.cities.findMany({
     with: { country: { columns: { id: true, name: true } } },
     orderBy: [asc(schema.cities.name)],
   });
   return cities.map(toCityDto);
-`);
+`,
+);
 
-replaceFunction('getCity', `
+replaceFunction(
+  'getCity',
+  `
   const db = getDbClient();
   const city = await db.query.cities.findFirst({
     where: eq(schema.cities.id, cityId),
@@ -279,9 +331,12 @@ replaceFunction('getCity', `
     throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'City not found', status: 404 });
   }
   return toCityDto(city);
-`);
+`,
+);
 
-replaceFunction('createCity', `
+replaceFunction(
+  'createCity',
+  `
   const db = getDbClient();
   const country = await db.query.countries.findFirst({ where: eq(schema.countries.id, input.countryId) });
   if (!country) {
@@ -300,9 +355,12 @@ replaceFunction('createCity', `
     with: { country: { columns: { id: true, name: true } } },
   });
   return toCityDto(city!);
-`);
+`,
+);
 
-replaceFunction('updateCity', `
+replaceFunction(
+  'updateCity',
+  `
   const db = getDbClient();
   const existing = await db.query.cities.findFirst({ where: eq(schema.cities.id, cityId) });
   if (!existing) {
@@ -328,16 +386,20 @@ replaceFunction('updateCity', `
     with: { country: { columns: { id: true, name: true } } },
   });
   return toCityDto(city!);
-`);
+`,
+);
 
-replaceFunction('deleteCity', `
+replaceFunction(
+  'deleteCity',
+  `
   const db = getDbClient();
   const existing = await db.query.cities.findFirst({ where: eq(schema.cities.id, cityId) });
   if (!existing) {
     throw new AppError({ code: ERROR_CODES.RESOURCE_NOT_FOUND, message: 'City not found', status: 404 });
   }
   await db.delete(schema.cities).where(eq(schema.cities.id, cityId));
-`);
+`,
+);
 
 project.saveSync();
 console.log('Part 3 complete');

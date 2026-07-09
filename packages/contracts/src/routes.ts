@@ -70,8 +70,7 @@ export const ADMIN_API_ROUTES = {
 export type MemberApiRouteKey = keyof typeof MEMBER_API_ROUTES;
 export type AdminApiRouteKey = keyof typeof ADMIN_API_ROUTES;
 export type ApiRoutePattern =
-  | (typeof MEMBER_API_ROUTES)[MemberApiRouteKey]
-  | (typeof ADMIN_API_ROUTES)[AdminApiRouteKey];
+  (typeof MEMBER_API_ROUTES)[MemberApiRouteKey] | (typeof ADMIN_API_ROUTES)[AdminApiRouteKey];
 
 export function buildApiRoute(
   pattern: ApiRoutePattern,

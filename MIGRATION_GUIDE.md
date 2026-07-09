@@ -56,18 +56,19 @@
 
 Создан новый проект в организации **KylyvnykClub's Org** (`shphsulmbqbykszwtjdo`):
 
-| | |
-|---|---|
-| Project ref | `ozuljiczwojkrwjmxaec` |
-| Name | `kclub_mvp` |
-| Region | `eu-central-1` |
-| URL | `https://ozuljiczwojkrwjmxaec.supabase.co` |
+|                 |                                                  |
+| --------------- | ------------------------------------------------ |
+| Project ref     | `ozuljiczwojkrwjmxaec`                           |
+| Name            | `kclub_mvp`                                      |
+| Region          | `eu-central-1`                                   |
+| URL             | `https://ozuljiczwojkrwjmxaec.supabase.co`       |
 | Publishable key | `sb_publishable_xviRGJGVlzh9glqGh0gOaw_X0ko3R5F` |
-| Стоимость | $0/мес (free tier) |
+| Стоимость       | $0/мес (free tier)                               |
 
 Применена начальная схема из `packages/database/drizzle/0000_sharp_vulcan.sql` (15 таблиц, все enum-типы, индексы, внешние ключи) — **без данных**, как вы и просили.
 
 ### Осталось получить из Supabase Dashboard вручную (я не могу их прочитать через MCP):
+
 - **Database password / connection string** → Project Settings → Database → Connection string (Transaction pooler порт 6543 и Session pooler порт 5432)
 - **service_role key** → Project Settings → API
 - **JWT secret** → Project Settings → API
@@ -83,6 +84,7 @@
 Репозиторий — монорепо на Bun/Turborepo с двумя Next.js приложениями. Нужно **два отдельных Vercel-проекта**, оба смотрят на один и тот же GitHub-репозиторий, но с разным Root Directory:
 
 ### Проект 1 — admin-app
+
 - Import Git Repository → выбрать `KylyvnykClub/kclub-mvp` (после пункта 1)
 - Root Directory: `apps/admin-app`
 - Framework Preset: Next.js (автоопределится)
@@ -92,6 +94,7 @@
   `ADMIN_APP_URL`, `ADMIN_JWT_SECRET`, `LOG_LEVEL`, `NEXT_PUBLIC_ADMIN_APP_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `PRODUCT_CORE_API_BASE_URL`, `TOTP_ENCRYPTION_KEY`
 
 ### Проект 2 — product-core
+
 - Import того же репозитория ещё раз как отдельный проект
 - Root Directory: `apps/product-core`
 - Production Branch: `main`

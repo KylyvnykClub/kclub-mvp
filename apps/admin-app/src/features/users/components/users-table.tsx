@@ -26,7 +26,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -214,24 +220,29 @@ function UserRowActions({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm" />}>
+        <DropdownMenuTrigger
+          render={<Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm" />}
+        >
           <MoreHorizontal className="h-4 w-4" />
           <span className="sr-only">Open menu</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40 rounded-sm">
-          <DropdownMenuItem render={<Link href={`/dashboard/users/${user.id}`} />} className="focus:bg-muted rounded-sm">
+          <DropdownMenuItem
+            render={<Link href={`/dashboard/users/${user.id}`} />}
+            className="rounded-sm focus:bg-muted"
+          >
             View
           </DropdownMenuItem>
           {canMutate && user.status === 'ACTIVE' && (
             <DropdownMenuItem
-              className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-sm"
+              className="focus:bg-destructive/10 rounded-sm text-destructive focus:text-destructive"
               onSelect={() => setShowBlock(true)}
             >
               Block
             </DropdownMenuItem>
           )}
           {canMutate && user.status === 'BLOCKED' && (
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="rounded-sm focus:bg-muted"
               onSelect={() => setShowUnblock(true)}
             >
@@ -312,7 +323,7 @@ export function UsersTable({
   return (
     <AdminList>
       <AdminListFilters as="form" onSubmit={handleSearch}>
-        <div className="relative max-w-sm flex-1 min-w-[200px]">
+        <div className="relative min-w-[200px] max-w-sm flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             className="pl-8"
@@ -346,77 +357,88 @@ export function UsersTable({
         </Button>
       </AdminListFilters>
 
-      <div className={isPending ? 'pointer-events-none opacity-60 transition-opacity' : 'transition-opacity'}>
-
-      <AdminTableCard>
-        <AdminTableDesktop>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Registered</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.length === 0 ? (
+      <div
+        className={
+          isPending ? 'pointer-events-none opacity-60 transition-opacity' : 'transition-opacity'
+        }
+      >
+        <AdminTableCard>
+          <AdminTableDesktop>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                    No users found
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tier</TableHead>
+                  <TableHead>Registered</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.displayName ?? '—'}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={user.status} />
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={user.membershipTier} />
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <UserRowActions user={user} canMutate={canMutate} onAction={() => router.refresh()} />
+              </TableHeader>
+              <TableBody>
+                {users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                      No users found
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </AdminTableDesktop>
+                ) : (
+                  users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>{user.displayName ?? '—'}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={user.status} />
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={user.membershipTier} />
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <UserRowActions
+                          user={user}
+                          canMutate={canMutate}
+                          onAction={() => router.refresh()}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </AdminTableDesktop>
 
-        <AdminTableMobile>
-          {users.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">No users found</div>
-          ) : (
-            users.map((user) => (
-              <div key={user.id} className="space-y-3 p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{user.displayName ?? '—'}</p>
+          <AdminTableMobile>
+            {users.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">No users found</div>
+            ) : (
+              users.map((user) => (
+                <div key={user.id} className="space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{user.displayName ?? '—'}</p>
+                    </div>
+                    <StatusBadge status={user.status} />
                   </div>
-                  <StatusBadge status={user.status} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <UserRowActions user={user} canMutate={canMutate} onAction={() => router.refresh()} />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <UserRowActions
+                        user={user}
+                        canMutate={canMutate}
+                        onAction={() => router.refresh()}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </AdminTableMobile>
-      </AdminTableCard>
+              ))
+            )}
+          </AdminTableMobile>
+        </AdminTableCard>
 
-      <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
+        <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
       </div>
     </AdminList>
   );

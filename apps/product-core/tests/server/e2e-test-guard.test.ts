@@ -1,5 +1,9 @@
 import { describe, expect, test, mock } from 'bun:test';
 
+// mock.module leaks across test files in the same bun process; spread the real
+// module so other suites importing named exports (getDbClient, schema) keep them
+const realDb = await import('../../src/server/db');
+
 mock.module('@/server/db', () => {
   const mockPrisma = {
     user: {
@@ -50,6 +54,7 @@ mock.module('@/server/db', () => {
     $transaction: mock(async (fn: Function) => fn({})),
   };
   return {
+    ...realDb,
     getPrismaClient: () => mockPrisma,
   };
 });

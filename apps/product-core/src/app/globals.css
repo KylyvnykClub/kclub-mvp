@@ -64,7 +64,6 @@ a {
   outline: none;
 }
 
-
 .container {
   @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10;
 }
@@ -488,7 +487,6 @@ a {
       ),
       var(--hero-bg-image) center right / cover no-repeat,
       linear-gradient(135deg, rgba(244, 244, 245, 0.96) 0%, rgba(228, 228, 231, 0.72) 100%);
-     
   }
 
   .dark .kclub-hero-visual {
@@ -601,19 +599,23 @@ a {
     transform-origin: left;
     transform: scaleX(0);
   }
-  
+
   .kclub-animate-draw-y {
     animation: kclub-draw-y 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     transform-origin: top;
     transform: scaleY(0);
   }
-  
+
   @keyframes kclub-draw-x {
-    to { transform: scaleX(1); }
+    to {
+      transform: scaleX(1);
+    }
   }
-  
+
   @keyframes kclub-draw-y {
-    to { transform: scaleY(1); }
+    to {
+      transform: scaleY(1);
+    }
   }
 }
 

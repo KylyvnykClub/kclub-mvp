@@ -10,7 +10,7 @@ export default function Loading() {
           <Skeleton className="h-4 w-20 rounded-full" />
         </div>
       </div>
-      <div className="rounded-lg border bg-card">
+      <div className="bg-card rounded-lg border">
         <div className="border-b p-4 pb-0">
           <div className="flex gap-4">
             {Array.from({ length: 5 }).map((_, i) => (

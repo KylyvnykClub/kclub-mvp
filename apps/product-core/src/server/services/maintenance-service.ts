@@ -28,24 +28,31 @@ export async function runDailyMaintenance(): Promise<DailyMaintenanceResult> {
 }
 
 async function expireCards(db: ReturnType<typeof getDbClient>, now: Date): Promise<number> {
-  const result = await db.update(schema.memberCards)
+  const result = await db
+    .update(schema.memberCards)
     .set({ status: 'EXPIRED' })
-    .where(and(eq(schema.memberCards.status, 'ACTIVE'), isNotNull(schema.memberCards.expires_at), lte(schema.memberCards.expires_at, now)))
+    .where(
+      and(
+        eq(schema.memberCards.status, 'ACTIVE'),
+        isNotNull(schema.memberCards.expires_at),
+        lte(schema.memberCards.expires_at, now),
+      ),
+    )
     .returning({ id: schema.memberCards.id });
   return result.length;
 }
 
-async function expireSubscriptions(
-  db: ReturnType<typeof getDbClient>,
-  now: Date,
-): Promise<number> {
-  const result = await db.update(schema.vipSubscriptions)
+async function expireSubscriptions(db: ReturnType<typeof getDbClient>, now: Date): Promise<number> {
+  const result = await db
+    .update(schema.vipSubscriptions)
     .set({ status: 'EXPIRED', expires_at: now })
-    .where(and(
-      not(eq(schema.vipSubscriptions.status, 'EXPIRED')),
-      isNotNull(schema.vipSubscriptions.current_period_end),
-      lte(schema.vipSubscriptions.current_period_end, now)
-    ))
+    .where(
+      and(
+        not(eq(schema.vipSubscriptions.status, 'EXPIRED')),
+        isNotNull(schema.vipSubscriptions.current_period_end),
+        lte(schema.vipSubscriptions.current_period_end, now),
+      ),
+    )
     .returning({ id: schema.vipSubscriptions.id });
   return result.length;
 }
@@ -54,16 +61,25 @@ async function hideExpiredBusinesses(
   db: ReturnType<typeof getDbClient>,
   now: Date,
 ): Promise<number> {
-  const expiredVipUserIds = await db.selectDistinct({ user_id: schema.vipSubscriptions.user_id })
+  const expiredVipUserIds = await db
+    .selectDistinct({ user_id: schema.vipSubscriptions.user_id })
     .from(schema.vipSubscriptions)
-    .where(and(eq(schema.vipSubscriptions.status, 'EXPIRED'), isNotNull(schema.vipSubscriptions.user_id)));
+    .where(
+      and(
+        eq(schema.vipSubscriptions.status, 'EXPIRED'),
+        isNotNull(schema.vipSubscriptions.user_id),
+      ),
+    );
 
   if (expiredVipUserIds.length === 0) return 0;
 
   const userIds = expiredVipUserIds.map((s) => s.user_id).filter((id): id is string => id !== null);
 
   const businessesToHide = await db.query.businessProfiles.findMany({
-    where: and(inArray(schema.businessProfiles.user_id, userIds), eq(schema.businessProfiles.status, 'PUBLISHED')),
+    where: and(
+      inArray(schema.businessProfiles.user_id, userIds),
+      eq(schema.businessProfiles.status, 'PUBLISHED'),
+    ),
   });
 
   if (businessesToHide.length === 0) return 0;
@@ -71,7 +87,8 @@ async function hideExpiredBusinesses(
   const businessIds = businessesToHide.map((b) => b.id);
 
   await db.transaction(async (tx) => {
-    await tx.update(schema.businessProfiles)
+    await tx
+      .update(schema.businessProfiles)
       .set({
         status: 'HIDDEN',
         hidden_at: now,
@@ -102,7 +119,8 @@ async function cleanOldWebhookEvents(
   now: Date,
 ): Promise<number> {
   const cutoff = new Date(now.getTime() - WEBHOOK_RETENTION_DAYS * 24 * 60 * 60 * 1000);
-  const result = await db.delete(schema.stripeWebhookEvents)
+  const result = await db
+    .delete(schema.stripeWebhookEvents)
     .where(lte(schema.stripeWebhookEvents.created_at, cutoff))
     .returning({ id: schema.stripeWebhookEvents.id });
   return result.length;

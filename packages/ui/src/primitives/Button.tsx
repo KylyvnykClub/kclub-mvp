@@ -1,9 +1,20 @@
 import { cn } from '../classes';
 
-type ButtonColor = 'primary' | 'secondary' | 'outline' | 'brand' | 'brand-secondary' | 'destructive' | 'ghost';
+type ButtonColor =
+  'primary' | 'secondary' | 'outline' | 'brand' | 'brand-secondary' | 'destructive' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-export function getButtonClasses({ color = 'primary', size = 'md', fullWidth, className }: { color?: ButtonColor; size?: ButtonSize; fullWidth?: boolean; className?: string }) {
+export function getButtonClasses({
+  color = 'primary',
+  size = 'md',
+  fullWidth,
+  className,
+}: {
+  color?: ButtonColor;
+  size?: ButtonSize;
+  fullWidth?: boolean;
+  className?: string;
+}) {
   return cn(
     'focus-visible:ring-focus focus-visible:ring-offset-focus relative inline-flex items-center justify-center font-semibold uppercase transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     {
@@ -17,9 +28,9 @@ export function getButtonClasses({ color = 'primary', size = 'md', fullWidth, cl
         color === 'brand',
       'bg-transparent text-foreground border border-accent hover:bg-accent/10 [&>svg:last-child]:absolute [&>svg:last-child]:top-1.5 [&>svg:last-child]:right-1.5 [&>svg:last-child]:shrink-0 pr-10':
         color === 'brand-secondary',
-      'bg-red-600 text-white border border-transparent shadow-sm hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 rounded-md': 
+      'bg-red-600 text-white border border-transparent shadow-sm hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 rounded-md':
         color === 'destructive',
-      'text-muted-foreground hover:text-foreground border border-transparent rounded-md': 
+      'text-muted-foreground hover:text-foreground border border-transparent rounded-md':
         color === 'ghost',
     },
     {
@@ -43,10 +54,5 @@ export function Button({
   size?: ButtonSize;
   fullWidth?: boolean;
 }) {
-  return (
-    <button
-      className={getButtonClasses({ color, size, fullWidth, className })}
-      {...props}
-    />
-  );
+  return <button className={getButtonClasses({ color, size, fullWidth, className })} {...props} />;
 }

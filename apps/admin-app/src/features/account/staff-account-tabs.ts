@@ -1,4 +1,10 @@
-export const STAFF_ACCOUNT_TABS = ['details', 'security', 'activity', 'permissions', 'settings'] as const;
+export const STAFF_ACCOUNT_TABS = [
+  'details',
+  'security',
+  'activity',
+  'permissions',
+  'settings',
+] as const;
 
 export type StaffAccountTab = (typeof STAFF_ACCOUNT_TABS)[number];
 
@@ -12,9 +18,7 @@ export const STAFF_ACCOUNT_TAB_LABELS: Record<StaffAccountTab, string> = {
   settings: 'Settings',
 };
 
-export function normalizeAccountTab(
-  tab: string | undefined,
-): StaffAccountTab {
+export function normalizeAccountTab(tab: string | undefined): StaffAccountTab {
   if (tab && (STAFF_ACCOUNT_TABS as readonly string[]).includes(tab)) {
     return tab as StaffAccountTab;
   }

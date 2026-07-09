@@ -2,7 +2,11 @@ import type { ReactNode } from 'react';
 
 import { getTranslations } from 'next-intl/server';
 
-import type { CurrentMemberProfileDto, PublicBusinessListItemDto, UserContext } from '@kclub/contracts';
+import type {
+  CurrentMemberProfileDto,
+  PublicBusinessListItemDto,
+  UserContext,
+} from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
 import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-tabs';

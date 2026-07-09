@@ -10,7 +10,8 @@ import { authLimiter, checkRateLimit } from '@/server/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
+    const ip =
+      request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
     const rateLimited = await checkRateLimit(authLimiter, ip);
     if (rateLimited) return rateLimited;
     const body = await request.json();

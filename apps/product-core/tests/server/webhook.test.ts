@@ -26,17 +26,21 @@ function mockPrismaUpdate(returnValue: unknown) {
 }
 
 describe('webhook route guard logic', () => {
-  test('returns 500 when STRIPE_WEBHOOK_SECRET is not set', async () => {
+  test('returns 400 when STRIPE_WEBHOOK_SECRET is not set', async () => {
     const original = process.env.STRIPE_WEBHOOK_SECRET;
     delete process.env.STRIPE_WEBHOOK_SECRET;
     process.env.STRIPE_SECRET_KEY = 'sk_test';
 
     const { POST } = await import('../../src/app/api/stripe/webhook/route');
-    const request = new Request('http://localhost/api/stripe/webhook', { method: 'POST' });
+    const request = new Request('http://localhost/api/stripe/webhook', {
+      method: 'POST',
+      headers: { 'stripe-signature': 't=1,v1=abc' },
+      body: '{}',
+    });
     const response = await POST(request);
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
     const body = await response.json();
-    expect(body.error.code).toBe('SERVER_ERROR');
+    expect(body.error.message).toContain('Invalid stripe signature');
 
     process.env.STRIPE_WEBHOOK_SECRET = original;
   });
@@ -72,6 +76,6 @@ describe('webhook route guard logic', () => {
     const response = await POST(request);
     expect(response.status).toBe(400);
     const body = await response.json();
-    expect(body.error.message).toContain('Invalid webhook signature');
+    expect(body.error.message).toContain('Invalid stripe signature');
   });
 });

@@ -253,7 +253,11 @@ export function CountriesTable({ countries }: CountriesTableProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <CountryFormDialog mode="edit" country={c} onAction={() => router.refresh()} />
+                        <CountryFormDialog
+                          mode="edit"
+                          country={c}
+                          onAction={() => router.refresh()}
+                        />
                         <DeleteCountryDialog
                           id={c.id}
                           name={c.name}
@@ -270,9 +274,7 @@ export function CountriesTable({ countries }: CountriesTableProps) {
 
         <AdminTableMobile>
           {countries.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              No countries found
-            </div>
+            <div className="py-8 text-center text-sm text-muted-foreground">No countries found</div>
           ) : (
             countries.map((c) => (
               <div key={c.id} className="space-y-3 p-4">
@@ -291,7 +293,11 @@ export function CountriesTable({ countries }: CountriesTableProps) {
                   <span className="text-muted-foreground">{c.slug}</span>
                   <div className="flex items-center gap-1">
                     <CountryFormDialog mode="edit" country={c} onAction={() => router.refresh()} />
-                    <DeleteCountryDialog id={c.id} name={c.name} onAction={() => router.refresh()} />
+                    <DeleteCountryDialog
+                      id={c.id}
+                      name={c.name}
+                      onAction={() => router.refresh()}
+                    />
                   </div>
                 </div>
               </div>

@@ -87,7 +87,6 @@ export function enrichStaffContext(profile: StaffProfileDto, request: Request): 
   });
 }
 
-
 export async function adminGuard(
   request: Request,
   permission: StaffPermission,

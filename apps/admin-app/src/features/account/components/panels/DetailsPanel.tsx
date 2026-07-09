@@ -18,7 +18,13 @@ type DetailsPanelProps = {
   staffInitials: string;
 };
 
-export function DetailsPanel({ staffId, staffName, staffPhone, staffRole, staffInitials }: DetailsPanelProps) {
+export function DetailsPanel({
+  staffId,
+  staffName,
+  staffPhone,
+  staffRole,
+  staffInitials,
+}: DetailsPanelProps) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState(staffName);
   const [saving, setSaving] = useState(false);
@@ -40,8 +46,8 @@ export function DetailsPanel({ staffId, staffName, staffPhone, staffRole, staffI
   };
 
   return (
-    <div className="p-6 sm:p-8 space-y-6">
-      <div className="rounded-lg border bg-card p-6">
+    <div className="space-y-6 p-6 sm:p-8">
+      <div className="bg-card rounded-lg border p-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16">
             <AvatarFallback className="text-lg">{staffInitials}</AvatarFallback>
@@ -53,35 +59,35 @@ export function DetailsPanel({ staffId, staffName, staffPhone, staffRole, staffI
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card p-6">
+      <div className="bg-card rounded-lg border p-6">
         <h3 className="mb-4 text-sm font-semibold">Personal Information</h3>
         <div className="space-y-4">
-            <div>
-              <Label htmlFor="displayName">Display Name</Label>
-              <Input
-                id="displayName"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="mt-1"
-              />
-            </div>
           <div>
-            <p className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone</p>
+            <Label htmlFor="displayName">Display Name</Label>
+            <Input
+              id="displayName"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <p className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Phone
+            </p>
             <p className="text-sm">{staffPhone}</p>
           </div>
           <div>
-            <p className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Staff ID</p>
+            <p className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Staff ID
+            </p>
             <p className="font-mono text-xs text-muted-foreground">{staffId}</p>
           </div>
-            <Button
-              onClick={handleSave}
-              disabled={saving || displayName === staffName}
-              size="sm"
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
+          <Button onClick={handleSave} disabled={saving || displayName === staffName} size="sm">
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
         </div>
       </div>
+    </div>
   );
 }

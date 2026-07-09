@@ -115,12 +115,15 @@ export async function issueCardForUser(
     try {
       const cardNumber = await generateNextCardNumber(tierPrefix);
 
-      const [card] = await db.insert(schema.memberCards).values({
-        user_id: userId,
-        card_number: cardNumber,
-        membership_tier: membershipTier as MemberTier,
-        qr_payload_url: `/verify-card/${cardNumber}`,
-      }).returning();
+      const [card] = await db
+        .insert(schema.memberCards)
+        .values({
+          user_id: userId,
+          card_number: cardNumber,
+          membership_tier: membershipTier as MemberTier,
+          qr_payload_url: `/verify-card/${cardNumber}`,
+        })
+        .returning();
 
       return card as CardRecord;
     } catch (error: any) {
@@ -175,11 +178,15 @@ export async function revokeCard(cardId: string, reason?: string): Promise<CardR
     });
   }
 
-  const [updated] = await db.update(schema.memberCards).set({
+  const [updated] = await db
+    .update(schema.memberCards)
+    .set({
       status: 'REVOKED',
       revoked_at: new Date(),
       revoked_reason: reason ?? null,
-    }).where(eq(schema.memberCards.id, cardId)).returning();
+    })
+    .where(eq(schema.memberCards.id, cardId))
+    .returning();
 
   return updated as CardRecord;
 }
@@ -218,21 +225,27 @@ export async function reissueCard(
           });
         }
 
-        await tx.update(schema.memberCards).set({
+        await tx
+          .update(schema.memberCards)
+          .set({
             status: 'REVOKED',
             revoked_at: new Date(),
             revoked_reason: revokeReason ?? null,
-          }).where(eq(schema.memberCards.id, currentCardId));
+          })
+          .where(eq(schema.memberCards.id, currentCardId));
 
         const tierPrefix = cardNumberToTierPrefix(membershipTier as 'MEMBER' | 'VIP');
         const cardNumber = await generateNextCardNumber(tierPrefix);
 
-        const [newCardRecord] = await tx.insert(schema.memberCards).values({
+        const [newCardRecord] = await tx
+          .insert(schema.memberCards)
+          .values({
             user_id: userId,
             card_number: cardNumber,
             membership_tier: membershipTier as MemberTier,
             qr_payload_url: `/verify-card/${cardNumber}`,
-          }).returning();
+          })
+          .returning();
 
         return [newCardRecord];
       });

@@ -34,7 +34,7 @@ export function BusinessCard({
   return (
     <article
       className={cn(
-        'group relative flex w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-md dark:border-white/10 dark:bg-[#1c1c1e] dark:text-white transition-all hover:shadow-lg',
+        'group relative flex w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-md transition-all hover:shadow-lg dark:border-white/10 dark:bg-[#1c1c1e] dark:text-white',
         'flex-row sm:flex-col',
         compact ? 'min-h-[160px]' : 'min-h-[180px]',
       )}
@@ -42,10 +42,20 @@ export function BusinessCard({
       {/* Discount Ribbon */}
       {business.memberDiscountPercent ? (
         <div className="absolute right-0 top-0 z-10 w-12 sm:w-16">
-          <svg viewBox="0 0 100 120" className="h-auto w-full fill-[#EBB34F] drop-shadow-md" preserveAspectRatio="none">
+          <svg
+            viewBox="0 0 100 120"
+            className="h-auto w-full fill-[#EBB34F] drop-shadow-md"
+            preserveAspectRatio="none"
+          >
             <path d="M0,0 L100,0 L100,90 L50,120 L0,90 Z" />
             {business.discountMuted ? null /* TODO: muted label — MUTED_LABEL[locale] */ : (
-              <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle" className="text-[28px] font-black fill-black">
+              <text
+                x="50%"
+                y="45%"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="fill-black text-[28px] font-black"
+              >
                 -{business.memberDiscountPercent}%
               </text>
             )}
@@ -54,9 +64,13 @@ export function BusinessCard({
       ) : null}
 
       {/* Cover Image */}
-      <div className="relative w-2/5 sm:w-full shrink-0 sm:h-[220px] bg-zinc-200 dark:bg-zinc-800">
+      <div className="relative w-2/5 shrink-0 bg-zinc-200 dark:bg-zinc-800 sm:h-[220px] sm:w-full">
         {business.coverImageUrl ? (
-          <img src={business.coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img
+            src={business.coverImageUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
         ) : (
           <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-800 dark:to-zinc-900" />
         )}
@@ -66,7 +80,7 @@ export function BusinessCard({
       <div className="flex flex-1 flex-col p-4 sm:p-5 lg:p-6">
         <div className="flex items-start gap-3 sm:gap-4">
           <div className="flex-1 pr-10 sm:pr-14">
-            <h3 className="line-clamp-2 text-base font-bold leading-tight tracking-tight text-zinc-950 dark:text-white sm:text-2xl sm:uppercase sm:font-black">
+            <h3 className="line-clamp-2 text-base font-bold leading-tight tracking-tight text-zinc-950 dark:text-white sm:text-2xl sm:font-black sm:uppercase">
               {business.name}
             </h3>
             <p className="mt-2 flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400 sm:text-sm">
@@ -79,7 +93,7 @@ export function BusinessCard({
           </div>
         </div>
 
-        <div className="mt-auto pt-5 flex flex-col gap-3">
+        <div className="mt-auto flex flex-col gap-3 pt-5">
           <Link
             className="group inline-flex w-fit items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-accent transition hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus"
             href={href}
@@ -95,7 +109,7 @@ export function BusinessCard({
               href={externalUrl}
               target="_blank"
               rel="noreferrer"
-              className="mx-auto inline-flex items-center gap-1.5 text-[11px] sm:text-sm font-medium text-zinc-500 transition hover:text-zinc-800 hover:underline dark:text-white/58 dark:hover:text-white/85 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus"
+              className="dark:text-white/58 mx-auto inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 transition hover:text-zinc-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus dark:hover:text-white/85 sm:text-sm"
             >
               <ExternalLink aria-hidden="true" size={14} strokeWidth={1.5} />
               {externalLabel}

@@ -1,19 +1,36 @@
 import { Project } from 'ts-morph';
 
 const project = new Project();
-const sourceFile = project.addSourceFileAtPath('apps/product-core/src/server/services/admin-service.ts');
+const sourceFile = project.addSourceFileAtPath(
+  'apps/product-core/src/server/services/admin-service.ts',
+);
 
-const prismaImport = sourceFile.getImportDeclaration(decl => decl.getModuleSpecifierValue() === '@/server/db');
+const prismaImport = sourceFile.getImportDeclaration(
+  (decl) => decl.getModuleSpecifierValue() === '@/server/db',
+);
 if (prismaImport) {
   prismaImport.remove();
 }
 sourceFile.addImportDeclaration({
   namedImports: ['getDbClient', 'schema'],
-  moduleSpecifier: '@/server/db'
+  moduleSpecifier: '@/server/db',
 });
 sourceFile.addImportDeclaration({
-  namedImports: ['eq', 'inArray', 'or', 'and', 'ilike', 'desc', 'asc', 'not', 'isNull', 'count', 'sql', 'exists'],
-  moduleSpecifier: 'drizzle-orm'
+  namedImports: [
+    'eq',
+    'inArray',
+    'or',
+    'and',
+    'ilike',
+    'desc',
+    'asc',
+    'not',
+    'isNull',
+    'count',
+    'sql',
+    'exists',
+  ],
+  moduleSpecifier: 'drizzle-orm',
 });
 
 function replaceFunction(name: string, newBodyText: string) {
@@ -25,7 +42,9 @@ function replaceFunction(name: string, newBodyText: string) {
   }
 }
 
-replaceFunction('getDashboardMetrics', `
+replaceFunction(
+  'getDashboardMetrics',
+  `
   const db = getDbClient();
 
   const [
@@ -59,9 +78,12 @@ replaceFunction('getDashboardMetrics', `
     introductionsSubmitted,
     introductionsInReview,
   };
-`);
+`,
+);
 
-replaceFunction('listUsers', `
+replaceFunction(
+  'listUsers',
+  `
   const db = getDbClient();
 
   const conditions = [];
@@ -112,9 +134,12 @@ replaceFunction('listUsers', `
   ]);
 
   return { data: users.map(toAdminUserListItem), total };
-`);
+`,
+);
 
-replaceFunction('getUserDetail', `
+replaceFunction(
+  'getUserDetail',
+  `
   const db = getDbClient();
 
   const [user, cards, subscriptions, auditEntries] = await Promise.all([
@@ -143,9 +168,12 @@ replaceFunction('getUserDetail', `
   }
 
   return toAdminUserDetail(user, cards, subscriptions, auditEntries);
-`);
+`,
+);
 
-replaceFunction('syncVipSubscriptionForUser', `
+replaceFunction(
+  'syncVipSubscriptionForUser',
+  `
   const db = getDbClient();
   const stripe = getStripeClient();
 
@@ -234,9 +262,12 @@ replaceFunction('syncVipSubscriptionForUser', `
   revalidateTag('users');
 
   return getUserDetail(userId);
-`);
+`,
+);
 
-replaceFunction('blockUser', `
+replaceFunction(
+  'blockUser',
+  `
   const db = getDbClient();
 
   const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
@@ -285,9 +316,12 @@ replaceFunction('blockUser', `
   );
 
   return toAdminUserDetail(updated);
-`);
+`,
+);
 
-replaceFunction('unblockUser', `
+replaceFunction(
+  'unblockUser',
+  `
   const db = getDbClient();
 
   const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
@@ -324,9 +358,12 @@ replaceFunction('unblockUser', `
   );
 
   return toAdminUserDetail(updated);
-`);
+`,
+);
 
-replaceFunction('listCards', `
+replaceFunction(
+  'listCards',
+  `
   const db = getDbClient();
 
   const conditions = [];
@@ -376,9 +413,12 @@ replaceFunction('listCards', `
   ]);
 
   return { data: cards.map(toAdminCardListItem), total };
-`);
+`,
+);
 
-replaceFunction('getCardDetail', `
+replaceFunction(
+  'getCardDetail',
+  `
   const db = getDbClient();
   const card = await db.query.memberCards.findFirst({ where: eq(schema.memberCards.id, cardId) });
   if (!card) {
@@ -389,9 +429,12 @@ replaceFunction('getCardDetail', `
     });
   }
   return toMemberCardDto(card);
-`);
+`,
+);
 
-replaceFunction('adminRevokeCard', `
+replaceFunction(
+  'adminRevokeCard',
+  `
   const db = getDbClient();
   const card = await db.query.memberCards.findFirst({ where: eq(schema.memberCards.id, cardId) });
   if (!card) {
@@ -416,9 +459,12 @@ replaceFunction('adminRevokeCard', `
   );
 
   return toMemberCardDto(updated);
-`);
+`,
+);
 
-replaceFunction('adminReissueCard', `
+replaceFunction(
+  'adminReissueCard',
+  `
   const db = getDbClient();
   const card = await db.query.memberCards.findFirst({ where: eq(schema.memberCards.id, cardId) });
   if (!card) {
@@ -443,7 +489,8 @@ replaceFunction('adminReissueCard', `
   );
 
   return toMemberCardDto(newCard);
-`);
+`,
+);
 
 project.saveSync();
 console.log('Part 1 complete');

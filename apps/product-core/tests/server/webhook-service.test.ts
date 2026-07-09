@@ -133,11 +133,9 @@ describe('validatePlacementCheckout', () => {
     );
   });
 
-  test('throws when business is HIDDEN', () => {
+  test('allows re-publish when business is HIDDEN', () => {
     const hiddenBusiness = { status: 'HIDDEN' as const, user_id: 'user-1' };
-    expect(() => validatePlacementCheckout(validMetadata, hiddenBusiness, activeVipSub)).toThrow(
-      'HIDDEN',
-    );
+    expect(validatePlacementCheckout(validMetadata, hiddenBusiness, activeVipSub)).toBe('VALID');
   });
 
   test('throws when no VIP subscription exists', () => {

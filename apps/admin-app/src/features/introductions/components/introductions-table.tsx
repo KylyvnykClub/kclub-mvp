@@ -268,9 +268,7 @@ export function IntroductionsTable({ introductions, staffRole }: IntroductionsTa
                     <TableCell>
                       <StatusBadge status={intro.status} />
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {intro.message ?? '—'}
-                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">{intro.message ?? '—'}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {new Date(intro.createdAt).toLocaleDateString()}
                     </TableCell>
@@ -306,16 +304,12 @@ export function IntroductionsTable({ introductions, staffRole }: IntroductionsTa
               <div key={intro.id} className="space-y-3 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {intro.requesterBusiness.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      → {intro.targetBusiness.name}
-                    </p>
+                    <p className="truncate text-sm font-medium">{intro.requesterBusiness.name}</p>
+                    <p className="text-xs text-muted-foreground">→ {intro.targetBusiness.name}</p>
                   </div>
                   <StatusBadge status={intro.status} />
                 </div>
-                <div className="text-sm text-muted-foreground truncate">
+                <div className="truncate text-sm text-muted-foreground">
                   {intro.message ? `"${intro.message}"` : 'No message'}
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">

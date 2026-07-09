@@ -33,7 +33,12 @@ mock.module('@/server/stripe/env', () => ({
 
 const mockProcessStripeEvent = mock(async () => {});
 
+// mock.module leaks across test files in the same bun process; spread the real
+// module so other suites importing named exports keep seeing them
+const realWebhookService = await import('../../src/server/services/webhook-service');
+
 mock.module('@/server/services/webhook-service', () => ({
+  ...realWebhookService,
   processStripeEvent: mockProcessStripeEvent,
 }));
 

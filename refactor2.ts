@@ -1,7 +1,9 @@
 import { Project } from 'ts-morph';
 
 const project = new Project();
-const sourceFile = project.addSourceFileAtPath('apps/product-core/src/server/services/admin-service.ts');
+const sourceFile = project.addSourceFileAtPath(
+  'apps/product-core/src/server/services/admin-service.ts',
+);
 
 function replaceFunction(name: string, newBodyText: string) {
   const func = sourceFile.getFunction(name);
@@ -18,7 +20,11 @@ for (const v of variables) {
   const declarations = v.getDeclarations();
   for (const d of declarations) {
     const name = d.getName();
-    if (['BUSINESS_LIST_INCLUDE', 'BUSINESS_MUTATION_INCLUDE', 'BUSINESS_DETAIL_INCLUDE'].includes(name)) {
+    if (
+      ['BUSINESS_LIST_INCLUDE', 'BUSINESS_MUTATION_INCLUDE', 'BUSINESS_DETAIL_INCLUDE'].includes(
+        name,
+      )
+    ) {
       d.setInitializer(`{
   category: true,
   country: true,
@@ -48,7 +54,9 @@ for (const v of variables) {
   // Let's rename them if needed, but it's fine to keep the original constant names and pass them to "with".
 }
 
-replaceFunction('listBusinesses', `
+replaceFunction(
+  'listBusinesses',
+  `
   const db = getDbClient();
 
   const conditions = [];
@@ -70,9 +78,12 @@ replaceFunction('listBusinesses', `
   ]);
 
   return { data: businesses.map(toAdminBusinessListItem), total };
-`);
+`,
+);
 
-replaceFunction('getBusinessDetail', `
+replaceFunction(
+  'getBusinessDetail',
+  `
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
@@ -96,9 +107,12 @@ replaceFunction('getBusinessDetail', `
   });
 
   return toAdminBusinessDetail(business, auditEntries);
-`);
+`,
+);
 
-replaceFunction('adminUpdateBusiness', `
+replaceFunction(
+  'adminUpdateBusiness',
+  `
   const db = getDbClient();
 
   const business = await db.query.businessProfiles.findFirst({
@@ -145,9 +159,12 @@ replaceFunction('adminUpdateBusiness', `
   );
 
   return toAdminBusinessDetail(updatedWithRelations!);
-`);
+`,
+);
 
-replaceFunction('approveBusiness', `
+replaceFunction(
+  'approveBusiness',
+  `
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
@@ -205,9 +222,12 @@ replaceFunction('approveBusiness', `
   });
 
   return toAdminBusinessDetail(updatedWithRelations!, auditEntries);
-`);
+`,
+);
 
-replaceFunction('publishBusiness', `
+replaceFunction(
+  'publishBusiness',
+  `
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
@@ -264,9 +284,12 @@ replaceFunction('publishBusiness', `
   });
 
   return toAdminBusinessDetail(updatedWithRelations!, auditEntries);
-`);
+`,
+);
 
-replaceFunction('rejectBusiness', `
+replaceFunction(
+  'rejectBusiness',
+  `
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
@@ -315,9 +338,12 @@ replaceFunction('rejectBusiness', `
   revalidateTag('public-businesses');
 
   return toAdminBusinessDetail(updatedWithRelations!);
-`);
+`,
+);
 
-replaceFunction('hideBusiness', `
+replaceFunction(
+  'hideBusiness',
+  `
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
@@ -371,9 +397,12 @@ replaceFunction('hideBusiness', `
   revalidateTag('public-businesses');
 
   return toAdminBusinessDetail(updatedWithRelations!);
-`);
+`,
+);
 
-replaceFunction('updateBusinessFeatured', `
+replaceFunction(
+  'updateBusinessFeatured',
+  `
   const db = getDbClient();
 
   const business = await db.query.businessProfiles.findFirst({
@@ -461,7 +490,8 @@ replaceFunction('updateBusinessFeatured', `
   revalidateTag('public-businesses');
 
   return toAdminBusinessDetail(updatedWithRelations!);
-`);
+`,
+);
 
 // The "include" keyword needs to be replaced with "with" in the variable replacements as well
 // But actually I just updated the variable initializer string, and when passing it down, I changed "include" to "with". Let's check:
@@ -474,14 +504,20 @@ replaceFunction('updateBusinessFeatured', `
 const dtoMapperCode = sourceFile.getFunction('toAdminIntroductionListItem')?.getBodyText() || '';
 if (dtoMapperCode) {
   sourceFile.getFunction('toAdminIntroductionListItem')?.setBodyText(
-    dtoMapperCode.replace(/intro\\.requester_user/g, 'intro.requesterUser').replace(/intro\\.requester_business/g, 'intro.requesterBusiness').replace(/intro\\.target_business/g, 'intro.targetBusiness')
+    dtoMapperCode
+      .replace(/intro\\.requester_user/g, 'intro.requesterUser')
+      .replace(/intro\\.requester_business/g, 'intro.requesterBusiness')
+      .replace(/intro\\.target_business/g, 'intro.targetBusiness'),
   );
 }
-const toAdminSubscriptionListItemCode = sourceFile.getFunction('toAdminSubscriptionListItem')?.getBodyText() || '';
+const toAdminSubscriptionListItemCode =
+  sourceFile.getFunction('toAdminSubscriptionListItem')?.getBodyText() || '';
 if (toAdminSubscriptionListItemCode) {
-  sourceFile.getFunction('toAdminSubscriptionListItem')?.setBodyText(
-    toAdminSubscriptionListItemCode.replace(/sub\\.business_profile/g, 'sub.businessProfile')
-  );
+  sourceFile
+    .getFunction('toAdminSubscriptionListItem')
+    ?.setBodyText(
+      toAdminSubscriptionListItemCode.replace(/sub\\.business_profile/g, 'sub.businessProfile'),
+    );
 }
 
 project.saveSync();

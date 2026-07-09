@@ -12,7 +12,12 @@ import {
   type StaffRole,
   type StaffTotpSetupDto,
 } from '@kclub/contracts';
-import { parseWithValidation, staffPhoneOtpSendSchema, staffPhoneOtpVerifySchema, staffTotpCodeSchema } from '@kclub/validation';
+import {
+  parseWithValidation,
+  staffPhoneOtpSendSchema,
+  staffPhoneOtpVerifySchema,
+  staffTotpCodeSchema,
+} from '@kclub/validation';
 import { getDbClient, schema } from '@/server/db';
 import { encryptSecret, decryptSecret } from '@/server/totp-crypto';
 import { and, eq, isNull } from 'drizzle-orm';
@@ -145,12 +150,15 @@ async function validateDbSession(token: string): Promise<boolean> {
 async function revokeDbSession(token: string): Promise<void> {
   try {
     const db = getDbClient();
-    await db.update(schema.adminSessions)
+    await db
+      .update(schema.adminSessions)
       .set({ revoked_at: new Date() })
-      .where(and(
-        eq(schema.adminSessions.session_token_hash, hashSessionToken(token)),
-        isNull(schema.adminSessions.revoked_at)
-      ));
+      .where(
+        and(
+          eq(schema.adminSessions.session_token_hash, hashSessionToken(token)),
+          isNull(schema.adminSessions.revoked_at),
+        ),
+      );
   } catch {
     // DB unavailable
   }
@@ -379,10 +387,12 @@ export async function handleStaffTotpVerify(request: Request): Promise<Response>
 
       if (isValidCode && !twoFactor.verified_at) {
         await db.transaction(async (tx) => {
-          await tx.update(schema.admin2fa)
+          await tx
+            .update(schema.admin2fa)
             .set({ verified_at: new Date() })
             .where(eq(schema.admin2fa.id, twoFactor.id));
-          await tx.update(schema.adminUsers)
+          await tx
+            .update(schema.adminUsers)
             .set({ totp_verified_at: new Date() })
             .where(eq(schema.adminUsers.id, staff.id));
         });

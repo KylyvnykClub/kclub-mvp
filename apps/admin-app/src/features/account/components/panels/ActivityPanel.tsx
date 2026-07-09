@@ -32,63 +32,66 @@ function formatDate(iso: string): string {
 }
 
 function formatAction(action: string): string {
-  return action.replace(/_/g, ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+  return action
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/^\w/, (c) => c.toUpperCase());
 }
 
 export function ActivityPanel({ logs }: ActivityPanelProps) {
   return (
     <div className="p-6 sm:p-8">
       {logs.length === 0 ? (
-          <p className="py-8 text-center text-muted-foreground">No activity recorded yet.</p>
-        ) : (
-          <AdminList>
-            <AdminTableCard>
-              <AdminTableDesktop>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Action</TableHead>
-                      <TableHead>Entity</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {logs.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell>
-                          <Badge variant="outline">{formatAction(log.action)}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {log.entityType}
-                          {log.entityId ? ` #${log.entityId.slice(0, 8)}` : ''}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(log.createdAt)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </AdminTableDesktop>
-              <AdminTableMobile>
-                {logs.map((log) => (
-                  <div key={log.id} className="space-y-1 p-4">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline">{formatAction(log.action)}</Badge>
-                      <span className="text-xs text-muted-foreground">
+        <p className="py-8 text-center text-muted-foreground">No activity recorded yet.</p>
+      ) : (
+        <AdminList>
+          <AdminTableCard>
+            <AdminTableDesktop>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Entity</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {logs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell>
+                        <Badge variant="outline">{formatAction(log.action)}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {log.entityType}
+                        {log.entityId ? ` #${log.entityId.slice(0, 8)}` : ''}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
                         {formatDate(log.createdAt)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {log.entityType}
-                      {log.entityId ? ` #${log.entityId.slice(0, 8)}` : ''}
-                    </p>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </AdminTableDesktop>
+            <AdminTableMobile>
+              {logs.map((log) => (
+                <div key={log.id} className="space-y-1 p-4">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline">{formatAction(log.action)}</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(log.createdAt)}
+                    </span>
                   </div>
-                ))}
-              </AdminTableMobile>
-            </AdminTableCard>
-          </AdminList>
-        )}
+                  <p className="text-xs text-muted-foreground">
+                    {log.entityType}
+                    {log.entityId ? ` #${log.entityId.slice(0, 8)}` : ''}
+                  </p>
+                </div>
+              ))}
+            </AdminTableMobile>
+          </AdminTableCard>
+        </AdminList>
+      )}
     </div>
   );
 }

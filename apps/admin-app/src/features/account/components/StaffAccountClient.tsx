@@ -41,7 +41,9 @@ export function StaffAccountClient({
           </Avatar>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{staffName}</h1>
-            <Badge variant="secondary" className="mt-0.5">{staffRole}</Badge>
+            <Badge variant="secondary" className="mt-0.5">
+              {staffRole}
+            </Badge>
           </div>
         </div>
         <Button variant="outline" onClick={() => logoutAction()}>
@@ -50,7 +52,7 @@ export function StaffAccountClient({
         </Button>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="bg-card rounded-lg border">
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as StaffAccountTab)}

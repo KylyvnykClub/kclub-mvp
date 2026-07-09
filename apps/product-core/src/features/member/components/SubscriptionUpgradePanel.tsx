@@ -6,8 +6,15 @@ import type { CurrentMemberProfileDto } from '@kclub/contracts';
 
 import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
-import { cabinetContentClasses, cabinetGridPanelClasses } from '@/features/member/components/cabinet/styles';
-import { getOwnSubscriptions, getOwnInvoices, type InvoiceDto } from '@/server/services/subscription-service';
+import {
+  cabinetContentClasses,
+  cabinetGridPanelClasses,
+} from '@/features/member/components/cabinet/styles';
+import {
+  getOwnSubscriptions,
+  getOwnInvoices,
+  type InvoiceDto,
+} from '@/server/services/subscription-service';
 import { Button, getButtonClasses } from '@kclub/ui';
 
 import { UpgradeToVipButton } from './UpgradeToVipButton';
@@ -62,7 +69,9 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
               {t('currentPlanBadge')}
             </p>
           ) : null}
-          <p className="mb-3.5 text-xl font-semibold uppercase tracking-[0.14em] text-accent">VIP</p>
+          <p className="mb-3.5 text-xl font-semibold uppercase tracking-[0.14em] text-accent">
+            VIP
+          </p>
           <div className="mb-1 flex items-baseline gap-1">
             <span className="text-5xl font-bold leading-none text-foreground">$19</span>
             <span className="self-start pt-2 text-xl font-semibold text-foreground">.99</span>
@@ -106,7 +115,10 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
           <p className="mb-8 text-sm leading-relaxed text-muted">{t('businessPriceHint')}</p>
           <ul className="mb-0 flex-1 space-y-3">
             {businessFeatures.map((feature) => (
-              <li key={feature.label} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+              <li
+                key={feature.label}
+                className="flex items-start gap-2.5 text-sm text-muted-foreground"
+              >
                 <Check size={14} className="mt-0.5 shrink-0 text-accent" aria-hidden />
                 {feature.label}
               </li>
@@ -140,9 +152,7 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
             {invoices.map((inv) => (
               <div key={inv.id} className="flex items-center justify-between gap-4 px-4 py-3">
                 <div className="min-w-0 space-y-0.5">
-                  <p className="text-sm font-medium text-foreground">
-                    {inv.number ?? inv.id}
-                  </p>
+                  <p className="text-sm font-medium text-foreground">{inv.number ?? inv.id}</p>
                   <p className="text-xs text-muted-foreground">
                     {inv.periodStart
                       ? new Date(inv.periodStart).toLocaleDateString(locale)

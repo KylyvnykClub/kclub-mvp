@@ -34,7 +34,8 @@ export default async function CheckoutSuccessPage({
         const db = getDbClient();
         const userId = profile.id;
         const stripeCustomerId = typeof session.customer === 'string' ? session.customer : null;
-        const stripeSubscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
+        const stripeSubscriptionId =
+          typeof session.subscription === 'string' ? session.subscription : null;
 
         const existing = await db.query.vipSubscriptions.findFirst({
           where: eq(schema.vipSubscriptions.user_id, userId),
@@ -57,14 +58,12 @@ export default async function CheckoutSuccessPage({
               })
               .where(eq(schema.vipSubscriptions.id, existing.id));
           } else {
-            await tx
-              .insert(schema.vipSubscriptions)
-              .values({
-                user_id: userId,
-                status: 'ACTIVE',
-                stripe_customer_id: stripeCustomerId,
-                stripe_subscription_id: stripeSubscriptionId,
-              });
+            await tx.insert(schema.vipSubscriptions).values({
+              user_id: userId,
+              status: 'ACTIVE',
+              stripe_customer_id: stripeCustomerId,
+              stripe_subscription_id: stripeSubscriptionId,
+            });
           }
         });
       }

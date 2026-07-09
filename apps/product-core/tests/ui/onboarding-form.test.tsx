@@ -77,7 +77,7 @@ describe('OnboardingForm', () => {
           }),
         }),
       );
-      expect(replace).toHaveBeenCalledWith('/en/m/dashboard?tab=account');
+      expect(replace).toHaveBeenCalledWith('/en/m/dashboard?tab=details');
       expect(refresh).toHaveBeenCalled();
     });
   });

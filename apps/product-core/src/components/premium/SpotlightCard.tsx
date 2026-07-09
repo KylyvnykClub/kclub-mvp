@@ -30,7 +30,7 @@ export function SpotlightCard({ children, className }: SpotlightCardProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        'bg-card hover:border-kclub-gold-500/30 dark:border-kclub-navy-700 dark:bg-kclub-navy-900 group relative overflow-hidden rounded-xl border border-border transition duration-200',
+        'hover:border-kclub-gold-500/30 dark:border-kclub-navy-700 dark:bg-kclub-navy-900 group relative overflow-hidden rounded-xl border border-border bg-card transition duration-200',
         className,
       )}
     >

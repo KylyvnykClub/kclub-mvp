@@ -50,7 +50,10 @@ export async function POST(request: NextRequest) {
 
     await issueCardForUserIfNoneActive(user.id, user.membership_tier);
 
-    const context = createRequestContext({ actor: { kind: 'member', userId: user.id }, headers: request.headers });
+    const context = createRequestContext({
+      actor: { kind: 'member', userId: user.id },
+      headers: request.headers,
+    });
     await auditService.log(
       { action: 'USER_ONBOARDING_COMPLETED', entityType: 'User', entityId: user.id },
       context,

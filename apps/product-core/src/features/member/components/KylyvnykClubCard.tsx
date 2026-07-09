@@ -55,7 +55,12 @@ export function KylyvnykClubCard({
             </feComponentTransfer>
           </filter>
         </defs>
-        <rect width="100%" height="100%" filter="url(#brushed-metal)" style={{ mixBlendMode: 'overlay' }} />
+        <rect
+          width="100%"
+          height="100%"
+          filter="url(#brushed-metal)"
+          style={{ mixBlendMode: 'overlay' }}
+        />
       </svg>
 
       {/* Concentric shine rings */}
@@ -81,7 +86,6 @@ export function KylyvnykClubCard({
 
       <div className="absolute inset-0 p-2">
         <div className="relative flex h-full w-full flex-col justify-between rounded-xl border border-[#e6c975] shadow-[inset_0_0_15px_rgba(0,0,0,0.2)]">
-
           {/* Logo and Branding */}
           <div className="mt-4 flex flex-col items-center">
             <Image
@@ -89,7 +93,7 @@ export function KylyvnykClubCard({
               alt="Kylyvnyk Club Logo"
               className="h-16 w-16 object-contain drop-shadow-md"
             />
-            <div className="mt-2 text-3xl font-serif tracking-widest">
+            <div className="mt-2 font-serif text-3xl tracking-widest">
               <span
                 style={{
                   color: '#4a3210',
@@ -101,7 +105,7 @@ export function KylyvnykClubCard({
               </span>
             </div>
             <div
-              className="mt-1 text-[10px] font-sans font-bold uppercase tracking-[0.3em]"
+              className="mt-1 font-sans text-[10px] font-bold uppercase tracking-[0.3em]"
               style={{
                 color: '#4a3510',
                 textShadow: '0 1px 0 rgba(220,190,90,0.7), 0 -1px 0 rgba(30,20,5,0.4)',

@@ -76,23 +76,37 @@ async function seedScenario(
   const getBusinessRelations = async () => {
     let category = await db.query.categories.findFirst();
     if (!category) {
-      [category] = await db.insert(schema.categories).values({
-        name: `E2E Category ${timestamp}`, slug: `e2e-category-${timestamp}`
-      }).returning();
+      [category] = await db
+        .insert(schema.categories)
+        .values({
+          name: `E2E Category ${timestamp}`,
+          slug: `e2e-category-${timestamp}`,
+        })
+        .returning();
     }
 
     let country = await db.query.countries.findFirst();
     if (!country) {
-      [country] = await db.insert(schema.countries).values({
-        code2: 'US', name: 'United States', slug: 'united-states'
-      }).returning();
+      [country] = await db
+        .insert(schema.countries)
+        .values({
+          code2: 'US',
+          name: 'United States',
+          slug: 'united-states',
+        })
+        .returning();
     }
 
     let city = await db.query.cities.findFirst();
     if (!city) {
-      [city] = await db.insert(schema.cities).values({
-        country_id: country.id, name: 'New York', slug: 'new-york'
-      }).returning();
+      [city] = await db
+        .insert(schema.cities)
+        .values({
+          country_id: country.id,
+          name: 'New York',
+          slug: 'new-york',
+        })
+        .returning();
     }
 
     return { categoryId: category.id, countryId: country.id, cityId: city.id };
@@ -109,23 +123,29 @@ async function seedScenario(
     }
 
     case 'member-with-card': {
-      const [user] = await db.insert(schema.users).values({
-        phone: testPhone,
-        display_name: `E2E Member ${timestamp}`,
-        locale_preference: 'en',
-        terms_accepted_at: new Date(),
-        status: 'ACTIVE',
-        supabase_auth_user_id: crypto.randomUUID(),
-      }).returning();
+      const [user] = await db
+        .insert(schema.users)
+        .values({
+          phone: testPhone,
+          display_name: `E2E Member ${timestamp}`,
+          locale_preference: 'en',
+          terms_accepted_at: new Date(),
+          status: 'ACTIVE',
+          supabase_auth_user_id: crypto.randomUUID(),
+        })
+        .returning();
 
-      const [card] = await db.insert(schema.memberCards).values({
-        user_id: user.id,
-        card_number: `MEM-${timestamp.toString().slice(-6)}`,
-        membership_tier: 'MEMBER',
-        status: 'ACTIVE',
-        issued_at: new Date(),
-        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-      }).returning();
+      const [card] = await db
+        .insert(schema.memberCards)
+        .values({
+          user_id: user.id,
+          card_number: `MEM-${timestamp.toString().slice(-6)}`,
+          membership_tier: 'MEMBER',
+          status: 'ACTIVE',
+          issued_at: new Date(),
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        })
+        .returning();
 
       return {
         userId: user.id,
@@ -135,15 +155,18 @@ async function seedScenario(
     }
 
     case 'vip-member': {
-      const [user] = await db.insert(schema.users).values({
-        phone: testPhone,
-        display_name: `E2E VIP ${timestamp}`,
-        locale_preference: 'en',
-        terms_accepted_at: new Date(),
-        status: 'ACTIVE',
-        membership_tier: 'VIP',
-        supabase_auth_user_id: crypto.randomUUID(),
-      }).returning();
+      const [user] = await db
+        .insert(schema.users)
+        .values({
+          phone: testPhone,
+          display_name: `E2E VIP ${timestamp}`,
+          locale_preference: 'en',
+          terms_accepted_at: new Date(),
+          status: 'ACTIVE',
+          membership_tier: 'VIP',
+          supabase_auth_user_id: crypto.randomUUID(),
+        })
+        .returning();
 
       await createActiveVipSubscription(user.id, `vip-member-${timestamp}`);
       await createActiveCard(user.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
@@ -152,33 +175,39 @@ async function seedScenario(
     }
 
     case 'vip-with-business': {
-      const [user] = await db.insert(schema.users).values({
-        phone: testPhone,
-        display_name: `E2E VIP Biz ${timestamp}`,
-        locale_preference: 'en',
-        terms_accepted_at: new Date(),
-        status: 'ACTIVE',
-        membership_tier: 'VIP',
-        supabase_auth_user_id: crypto.randomUUID(),
-      }).returning();
+      const [user] = await db
+        .insert(schema.users)
+        .values({
+          phone: testPhone,
+          display_name: `E2E VIP Biz ${timestamp}`,
+          locale_preference: 'en',
+          terms_accepted_at: new Date(),
+          status: 'ACTIVE',
+          membership_tier: 'VIP',
+          supabase_auth_user_id: crypto.randomUUID(),
+        })
+        .returning();
 
       await createActiveVipSubscription(user.id, `vip-business-${timestamp}`);
       await createActiveCard(user.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
 
       const relations = await getBusinessRelations();
 
-      const [business] = await db.insert(schema.businessProfiles).values({
-        user_id: user.id,
-        name: `E2E Business ${timestamp}`,
-        slug: `e2e-business-${timestamp}`,
-        representative_name: 'E2E Representative',
-        representative_email: `e2e-${timestamp}@test.com`,
-        representative_phone: testPhone,
-        country_id: relations.countryId,
-        city_id: relations.cityId,
-        category_id: relations.categoryId,
-        status: 'UNDER_REVIEW',
-      }).returning();
+      const [business] = await db
+        .insert(schema.businessProfiles)
+        .values({
+          user_id: user.id,
+          name: `E2E Business ${timestamp}`,
+          slug: `e2e-business-${timestamp}`,
+          representative_name: 'E2E Representative',
+          representative_email: `e2e-${timestamp}@test.com`,
+          representative_phone: testPhone,
+          country_id: relations.countryId,
+          city_id: relations.cityId,
+          category_id: relations.categoryId,
+          status: 'UNDER_REVIEW',
+        })
+        .returning();
 
       return {
         userId: user.id,
@@ -189,33 +218,39 @@ async function seedScenario(
     }
 
     case 'vip-with-published-business': {
-      const [user] = await db.insert(schema.users).values({
-        phone: testPhone,
-        display_name: `E2E VIP Published ${timestamp}`,
-        locale_preference: 'en',
-        terms_accepted_at: new Date(),
-        status: 'ACTIVE',
-        membership_tier: 'VIP',
-        supabase_auth_user_id: crypto.randomUUID(),
-      }).returning();
+      const [user] = await db
+        .insert(schema.users)
+        .values({
+          phone: testPhone,
+          display_name: `E2E VIP Published ${timestamp}`,
+          locale_preference: 'en',
+          terms_accepted_at: new Date(),
+          status: 'ACTIVE',
+          membership_tier: 'VIP',
+          supabase_auth_user_id: crypto.randomUUID(),
+        })
+        .returning();
 
       await createActiveVipSubscription(user.id, `vip-published-${timestamp}`);
       await createActiveCard(user.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
 
       const relations = await getBusinessRelations();
 
-      const [business] = await db.insert(schema.businessProfiles).values({
-        user_id: user.id,
-        name: `E2E Published Business ${timestamp}`,
-        slug: `e2e-published-${timestamp}`,
-        representative_name: 'E2E Rep',
-        representative_email: `e2e-pub-${timestamp}@test.com`,
-        representative_phone: testPhone,
-        country_id: relations.countryId,
-        city_id: relations.cityId,
-        category_id: relations.categoryId,
-        status: 'PUBLISHED',
-      }).returning();
+      const [business] = await db
+        .insert(schema.businessProfiles)
+        .values({
+          user_id: user.id,
+          name: `E2E Published Business ${timestamp}`,
+          slug: `e2e-published-${timestamp}`,
+          representative_name: 'E2E Rep',
+          representative_email: `e2e-pub-${timestamp}@test.com`,
+          representative_phone: testPhone,
+          country_id: relations.countryId,
+          city_id: relations.cityId,
+          category_id: relations.categoryId,
+          status: 'PUBLISHED',
+        })
+        .returning();
 
       return {
         userId: user.id,
@@ -244,28 +279,34 @@ async function seedScenario(
 
       const businesses = await Promise.all(
         ['Alpha', 'Beta', 'Gamma'].map(async (name, i) => {
-          const [owner] = await db.insert(schema.users).values({
-            phone: `+1${(timestamp + i).toString().slice(-10)}`,
-            display_name: `E2E Directory Owner ${name} ${timestamp}`,
-            locale_preference: 'en',
-            terms_accepted_at: new Date(),
-            status: 'ACTIVE',
-            membership_tier: 'VIP',
-            supabase_auth_user_id: crypto.randomUUID(),
-          }).returning();
+          const [owner] = await db
+            .insert(schema.users)
+            .values({
+              phone: `+1${(timestamp + i).toString().slice(-10)}`,
+              display_name: `E2E Directory Owner ${name} ${timestamp}`,
+              locale_preference: 'en',
+              terms_accepted_at: new Date(),
+              status: 'ACTIVE',
+              membership_tier: 'VIP',
+              supabase_auth_user_id: crypto.randomUUID(),
+            })
+            .returning();
 
-          const [bp] = await db.insert(schema.businessProfiles).values({
-            user_id: owner.id,
-            name: `E2E ${name} Business`,
-            slug: `e2e-${name.toLowerCase()}-${timestamp}`,
-            representative_name: `${name} Rep`,
-            representative_email: `e2e-${name.toLowerCase()}-${timestamp}@test.com`,
-            representative_phone: owner.phone,
-            country_id: relations.countryId,
-            city_id: relations.cityId,
-            category_id: relations.categoryId,
-            status: 'PUBLISHED',
-          }).returning();
+          const [bp] = await db
+            .insert(schema.businessProfiles)
+            .values({
+              user_id: owner.id,
+              name: `E2E ${name} Business`,
+              slug: `e2e-${name.toLowerCase()}-${timestamp}`,
+              representative_name: `${name} Rep`,
+              representative_email: `e2e-${name.toLowerCase()}-${timestamp}@test.com`,
+              representative_phone: owner.phone,
+              country_id: relations.countryId,
+              city_id: relations.cityId,
+              category_id: relations.categoryId,
+              status: 'PUBLISHED',
+            })
+            .returning();
           return bp;
         }),
       );
@@ -339,25 +380,29 @@ async function seedScenario(
     if (metadata?.type === 'vip' && metadata.userId) {
       const userId = metadata.userId;
       await db.transaction(async (tx) => {
-        await tx.update(schema.users)
+        await tx
+          .update(schema.users)
           .set({ membership_tier: 'VIP' })
           .where(eq(schema.users.id, userId));
-          
-        await tx.insert(schema.vipSubscriptions).values({
-          user_id: userId,
-          status: 'ACTIVE',
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          stripe_price_id: 'price_e2e_vip',
-          current_period_start: new Date(),
-          current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-        }).onConflictDoUpdate({
-          target: schema.vipSubscriptions.stripe_subscription_id,
-          set: {
+
+        await tx
+          .insert(schema.vipSubscriptions)
+          .values({
+            user_id: userId,
             status: 'ACTIVE',
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            stripe_price_id: 'price_e2e_vip',
+            current_period_start: new Date(),
             current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-          }
-        });
+          })
+          .onConflictDoUpdate({
+            target: schema.vipSubscriptions.stripe_subscription_id,
+            set: {
+              status: 'ACTIVE',
+              current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            },
+          });
       });
       return;
     }
@@ -366,27 +411,31 @@ async function seedScenario(
       const userId = metadata.userId;
       const businessProfileId = metadata.businessProfileId;
       await db.transaction(async (tx) => {
-        await tx.update(schema.businessProfiles)
+        await tx
+          .update(schema.businessProfiles)
           .set({ status: 'PUBLISHED', published_at: new Date() })
           .where(eq(schema.businessProfiles.id, businessProfileId));
 
-        await tx.insert(schema.subscriptions).values({
-          user_id: userId,
-          business_profile_id: businessProfileId,
-          kind: 'BUSINESS_PLACEMENT',
-          status: 'ACTIVE',
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          stripe_price_id: 'price_e2e_business',
-          current_period_start: new Date(),
-          current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-        }).onConflictDoUpdate({
-          target: schema.subscriptions.stripe_subscription_id,
-          set: {
+        await tx
+          .insert(schema.subscriptions)
+          .values({
+            user_id: userId,
+            business_profile_id: businessProfileId,
+            kind: 'BUSINESS_PLACEMENT',
             status: 'ACTIVE',
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            stripe_price_id: 'price_e2e_business',
+            current_period_start: new Date(),
             current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-          }
-        });
+          })
+          .onConflictDoUpdate({
+            target: schema.subscriptions.stripe_subscription_id,
+            set: {
+              status: 'ACTIVE',
+              current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            },
+          });
       });
       return;
     }

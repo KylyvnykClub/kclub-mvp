@@ -73,7 +73,9 @@ export function AuditPanel({ locale }: AuditPanelProps) {
               className="flex items-start justify-between gap-4 border border-border bg-surface-muted p-4"
             >
               <div>
-                <p className="text-sm font-semibold text-foreground">{formatAction(entry.action)}</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {formatAction(entry.action)}
+                </p>
                 {entry.after ? (
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {Object.entries(entry.after)
@@ -82,10 +84,7 @@ export function AuditPanel({ locale }: AuditPanelProps) {
                   </p>
                 ) : null}
               </div>
-              <time
-                className="shrink-0 text-xs text-muted-foreground"
-                dateTime={entry.createdAt}
-              >
+              <time className="shrink-0 text-xs text-muted-foreground" dateTime={entry.createdAt}>
                 {new Date(entry.createdAt).toLocaleDateString(locale, {
                   day: 'numeric',
                   month: 'short',

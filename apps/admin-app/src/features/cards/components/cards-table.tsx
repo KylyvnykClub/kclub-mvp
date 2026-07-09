@@ -18,7 +18,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -242,7 +248,7 @@ export function CardsTable({
   return (
     <AdminList>
       <AdminListFilters as="form" onSubmit={handleSearch}>
-        <div className="relative max-w-sm flex-1 min-w-[200px]">
+        <div className="relative min-w-[200px] max-w-sm flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             className="pl-8"

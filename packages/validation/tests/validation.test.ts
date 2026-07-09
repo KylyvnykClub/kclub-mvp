@@ -216,10 +216,11 @@ describe('introduction schemas', () => {
     expectInvalidField(
       introductionSubmitSchema,
       {
-        requesterBusinessId: 'bad',
-        targetBusinessId: secondUuid,
+        targetBusinessId: 'bad',
+        clientName: 'John Doe',
+        clientContact: 'john@example.com',
       },
-      'requesterBusinessId',
+      'targetBusinessId',
     );
     expectInvalidField(introductionCancelSchema, { id: uuid, reason: '<script />' }, 'reason');
   });

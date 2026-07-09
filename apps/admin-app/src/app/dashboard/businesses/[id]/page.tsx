@@ -34,7 +34,11 @@ export default async function BusinessDetailsPage({ params }: BusinessDetailsPag
 
   return (
     <Suspense fallback={<BusinessDetailFallback />}>
-      <BusinessDetailClient business={business} staffRole={profile.role} introductions={introductions} />
+      <BusinessDetailClient
+        business={business}
+        staffRole={profile.role}
+        introductions={introductions}
+      />
     </Suspense>
   );
 }

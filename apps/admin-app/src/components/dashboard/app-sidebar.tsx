@@ -34,7 +34,7 @@ export function AppSidebar({ className, staffRole }: AppSidebarProps) {
               className={cn(
                 'flex min-h-[44px] w-full items-center gap-2 rounded-md px-3 py-2.5 text-sm transition-colors',
                 active
-                  ? ' font-medium text-primary'
+                  ? 'font-medium text-primary'
                   : 'text-muted-foreground hover:bg-muted hover:text-zinc-950',
               )}
             >

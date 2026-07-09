@@ -62,7 +62,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import type { AdminBusinessDetailDto, AdminIntroductionListItemDto, AuditLogDto, StaffRole } from '@kclub/contracts';
+import type {
+  AdminBusinessDetailDto,
+  AdminIntroductionListItemDto,
+  AuditLogDto,
+  StaffRole,
+} from '@kclub/contracts';
 import { PhoneInput } from '@kclub/ui';
 import { IntroductionsTable } from '@/features/introductions/components/introductions-table';
 
@@ -158,7 +163,12 @@ async function updateBusiness(
 
 async function updateBusinessSettings(
   businessId: string,
-  data: { featuredTop?: boolean; featuredRecommended?: boolean; memberDiscountPercent?: number | null; discountMuted?: boolean },
+  data: {
+    featuredTop?: boolean;
+    featuredRecommended?: boolean;
+    memberDiscountPercent?: number | null;
+    discountMuted?: boolean;
+  },
 ): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(`/api/proxy/businesses/${businessId}/featured`, {
     method: 'POST',
@@ -190,7 +200,11 @@ type BusinessDetailClientProps = {
   introductions: AdminIntroductionListItemDto[];
 };
 
-export function BusinessDetailClient({ business, staffRole, introductions }: BusinessDetailClientProps) {
+export function BusinessDetailClient({
+  business,
+  staffRole,
+  introductions,
+}: BusinessDetailClientProps) {
   const router = useRouter();
   const action = canSeeAction(business.status, staffRole);
   const canEdit = canMutateBusiness(staffRole);
@@ -378,9 +392,10 @@ export function BusinessDetailClient({ business, staffRole, introductions }: Bus
                         },
                         {
                           label: 'Member discount',
-                          value: business.memberDiscountPercent != null
-                            ? `${business.memberDiscountPercent}%`
-                            : '—',
+                          value:
+                            business.memberDiscountPercent != null
+                              ? `${business.memberDiscountPercent}%`
+                              : '—',
                         },
                         {
                           label: 'Published',
@@ -582,7 +597,12 @@ export function BusinessDetailClient({ business, staffRole, introductions }: Bus
                       <p className="text-sm text-muted-foreground">{business.owner.phone}</p>
                       <div className="flex flex-wrap items-center gap-2 pt-1">
                         <StatusBadge status={business.owner.status} />
-                        <Badge variant="default" className="border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30">VIP</Badge>
+                        <Badge
+                          variant="default"
+                          className="border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30"
+                        >
+                          VIP
+                        </Badge>
                       </div>
                     </div>
                   </div>
@@ -597,7 +617,14 @@ export function BusinessDetailClient({ business, staffRole, introductions }: Bus
                       { label: 'Display name', value: business.owner.displayName ?? '—' },
                       {
                         label: 'Membership',
-                        value: <Badge variant="default" className="border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30">VIP</Badge>,
+                        value: (
+                          <Badge
+                            variant="default"
+                            className="border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30"
+                          >
+                            VIP
+                          </Badge>
+                        ),
                       },
                       {
                         label: 'Status',
@@ -767,9 +794,7 @@ function EditProfileTab({ business, onSaved }: EditProfileTabProps) {
               id="edit-representativePhone"
               name="representativePhone"
               value={fields.representativePhone}
-              onChange={(value) =>
-                setFields((prev) => ({ ...prev, representativePhone: value }))
-              }
+              onChange={(value) => setFields((prev) => ({ ...prev, representativePhone: value }))}
               required
               inputClassName={ADMIN_PHONE_INPUT_CLASSNAME}
               triggerClassName={ADMIN_PHONE_TRIGGER_CLASSNAME}
@@ -832,7 +857,9 @@ type SettingsTabProps = {
 function SettingsTab({ business, onSaved }: SettingsTabProps) {
   const [loading, setLoading] = useState(false);
   const [featuredTop, setFeaturedTop] = useState(business.featuredTop ?? false);
-  const [featuredRecommended, setFeaturedRecommended] = useState(business.featuredRecommended ?? false);
+  const [featuredRecommended, setFeaturedRecommended] = useState(
+    business.featuredRecommended ?? false,
+  );
   const [discountInput, setDiscountInput] = useState(
     business.memberDiscountPercent != null ? String(business.memberDiscountPercent) : '',
   );
@@ -842,8 +869,7 @@ function SettingsTab({ business, onSaved }: SettingsTabProps) {
     e.preventDefault();
     setLoading(true);
 
-    const memberDiscountPercent =
-      discountInput === '' ? null : parseInt(discountInput, 10);
+    const memberDiscountPercent = discountInput === '' ? null : parseInt(discountInput, 10);
 
     const result = await updateBusinessSettings(business.id, {
       featuredTop,
@@ -891,27 +917,17 @@ function SettingsTab({ business, onSaved }: SettingsTabProps) {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Top</Label>
-                <p className="text-sm text-muted-foreground">
-                  Show in the Top featured section.
-                </p>
+                <p className="text-sm text-muted-foreground">Show in the Top featured section.</p>
               </div>
-              <Switch
-                checked={featuredTop}
-                onCheckedChange={setFeaturedTop}
-              />
+              <Switch checked={featuredTop} onCheckedChange={setFeaturedTop} />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Recommended</Label>
-                <p className="text-sm text-muted-foreground">
-                  Show in the Recommended section.
-                </p>
+                <p className="text-sm text-muted-foreground">Show in the Recommended section.</p>
               </div>
-              <Switch
-                checked={featuredRecommended}
-                onCheckedChange={setFeaturedRecommended}
-              />
+              <Switch checked={featuredRecommended} onCheckedChange={setFeaturedRecommended} />
             </div>
           </CardContent>
         </Card>
@@ -947,10 +963,7 @@ function SettingsTab({ business, onSaved }: SettingsTabProps) {
                   Blur the discount ribbon on the card.
                 </p>
               </div>
-              <Switch
-                checked={discountMuted}
-                onCheckedChange={setDiscountMuted}
-              />
+              <Switch checked={discountMuted} onCheckedChange={setDiscountMuted} />
             </div>
           </CardContent>
         </Card>
@@ -974,7 +987,11 @@ type LogsTabProps = {
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return (
+    d.toLocaleDateString() +
+    ' ' +
+    d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  );
 }
 
 function formatRequest(entityType: string, entityId: string): string {
@@ -1095,7 +1112,11 @@ function LogsTab({ entries, onRefresh }: LogsTabProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => { setActionFilter('all'); setDateFrom(''); setDateTo(''); }}
+            onClick={() => {
+              setActionFilter('all');
+              setDateFrom('');
+              setDateTo('');
+            }}
           >
             Clear
           </Button>
@@ -1152,10 +1173,7 @@ function LogsTab({ entries, onRefresh }: LogsTabProps) {
                     {formatDateTime(entry.createdAt)}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={entry.actorRole ? 'secondary' : 'outline'}
-                      className="text-xs"
-                    >
+                    <Badge variant={entry.actorRole ? 'secondary' : 'outline'} className="text-xs">
                       {entry.actorRole ?? 'System'}
                     </Badge>
                   </TableCell>

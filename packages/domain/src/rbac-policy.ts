@@ -20,10 +20,7 @@ export function hasStaffPermission(role: StaffRole, permission: StaffPermission)
   return (STAFF_ROLE_PERMISSIONS[role] as readonly StaffPermission[]).includes(permission);
 }
 
-export function isStaffRoleAtLeast(
-  role: StaffRole,
-  minimumRole: StaffRole,
-): boolean {
+export function isStaffRoleAtLeast(role: StaffRole, minimumRole: StaffRole): boolean {
   return STAFF_ROLE_RANK[role] >= STAFF_ROLE_RANK[minimumRole];
 }
 
@@ -62,9 +59,7 @@ export function hasMemberCapability(ctx: UserContext, capability: MemberCapabili
 }
 
 export function getVisibleDashboardTabs(ctx: UserContext): readonly MemberDashboardTab[] {
-  const tabs: MemberDashboardTab[] = [
-    'details', 'subscription', 'settings',
-  ];
+  const tabs: MemberDashboardTab[] = ['details', 'subscription', 'settings'];
   if (ctx.isVip) tabs.push('introductions');
   if (ctx.isVip) tabs.push('business');
   return tabs;

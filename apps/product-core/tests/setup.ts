@@ -1,8 +1,21 @@
 import { mock } from 'bun:test';
 import { JSDOM } from 'jsdom';
+import { createElement } from 'react';
 
 // server-only throws when window is defined; mock it so server modules load in tests
 mock.module('server-only', () => ({}));
+
+// bun resolves static image imports to a path string without width/height metadata,
+// which next/image rejects; render a plain <img> in tests instead
+mock.module('next/image', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => {
+    const { src, alt = '', priority: _priority, fill: _fill, ...rest } = props;
+    const resolvedSrc =
+      typeof src === 'string' ? src : ((src as { src?: string } | undefined)?.src ?? '');
+    return createElement('img', { src: resolvedSrc, alt, ...rest });
+  },
+}));
 
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
   url: 'http://localhost:3000/en',

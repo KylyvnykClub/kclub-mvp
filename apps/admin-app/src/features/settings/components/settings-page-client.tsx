@@ -8,12 +8,7 @@ import { StaffTable } from '@/features/staff/components/staff-table';
 import { AuditTable } from '@/features/audit/components/audit-table';
 import { CategoriesTable } from '@/features/categories/components/categories-table';
 import type { AuditLogSearchParams } from '@/features/audit/api';
-import type {
-  AdminStaffListItemDto,
-  AuditLogDto,
-  CategoryDto,
-  StaffRole,
-} from '@kclub/contracts';
+import type { AdminStaffListItemDto, AuditLogDto, CategoryDto, StaffRole } from '@kclub/contracts';
 
 type SettingsPageClientProps = {
   staffRole: StaffRole;
@@ -53,7 +48,11 @@ export function SettingsPageClient({
   const [activeSection, setActiveSection] = useState(() => normalizeSection(initialSection));
 
   return (
-    <PageShell title="Settings" description="Staff, audit logs, categories, and platform configuration." roleScope="ADMIN">
+    <PageShell
+      title="Settings"
+      description="Staff, audit logs, categories, and platform configuration."
+      roleScope="ADMIN"
+    >
       <div className="space-y-6">
         <SubTabs tabs={SETTINGS_TABS} activeTab={activeSection} onTabChange={setActiveSection} />
         {activeSection === 'staff' && <StaffTable staff={staff} />}

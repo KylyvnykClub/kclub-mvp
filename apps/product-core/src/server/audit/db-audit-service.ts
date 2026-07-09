@@ -19,16 +19,19 @@ export function createDbAuditService(): AuditService {
       const staffId = staffActor?.staffId ?? null;
       const actorStaffId = staffId && UUID_RE.test(staffId) ? staffId : null;
 
-      const [record] = await db.insert(schema.auditLogs).values({
-        actor_staff_id: actorStaffId,
-        actor_role: staffActor?.role ?? null,
-        action: command.action,
-        entity_type: command.entityType,
-        entity_id: command.entityId,
-        before_data: command.before as any,
-        after_data: command.after as any,
-        ip_address: context.ipAddress ?? null,
-      }).returning();
+      const [record] = await db
+        .insert(schema.auditLogs)
+        .values({
+          actor_staff_id: actorStaffId,
+          actor_role: staffActor?.role ?? null,
+          action: command.action,
+          entity_type: command.entityType,
+          entity_id: command.entityId,
+          before_data: command.before as any,
+          after_data: command.after as any,
+          ip_address: context.ipAddress ?? null,
+        })
+        .returning();
 
       return toAuditLogDto(record);
     },

@@ -173,7 +173,7 @@ export function BusinessSubmitWizard({
                     done
                       ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950'
                       : active
-                        ? 'ring-2 ring-zinc-950 text-zinc-950 dark:ring-white dark:text-white'
+                        ? 'text-zinc-950 ring-2 ring-zinc-950 dark:text-white dark:ring-white'
                         : 'bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-white/30'
                   }`}
                 >
@@ -187,7 +187,7 @@ export function BusinessSubmitWizard({
           <h2 className="text-lg font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white">
             {stepTitles[step - 1]}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-white/56">
+          <p className="dark:text-white/56 mt-1 text-sm text-zinc-500">
             {stepDescriptions[step - 1]}
           </p>
         </div>
@@ -377,7 +377,7 @@ export function BusinessSubmitWizard({
           <div className="kclub-panel-soft space-y-4 p-5">
             <SummaryRow label={t('summaryBusiness')}>
               <p className="text-sm font-medium text-zinc-950 dark:text-white">{data.name}</p>
-              <p className="text-xs text-zinc-500 dark:text-white/48">
+              <p className="dark:text-white/48 text-xs text-zinc-500">
                 {categoryOptions.find((c) => c.id === data.categoryId)?.name ?? data.categoryId}
               </p>
             </SummaryRow>
@@ -385,7 +385,7 @@ export function BusinessSubmitWizard({
               <p className="text-sm font-medium text-zinc-950 dark:text-white">
                 {data.representativeName}
               </p>
-              <p className="text-xs text-zinc-500 dark:text-white/48">
+              <p className="dark:text-white/48 text-xs text-zinc-500">
                 {data.representativeEmail} · {data.representativePhone}
               </p>
             </SummaryRow>
@@ -395,7 +395,7 @@ export function BusinessSubmitWizard({
                 {countryOptions.find((c) => c.id === data.countryId)?.name ?? '—'}
               </p>
               {(data.websiteUrl || data.socialUrl) && (
-                <p className="text-xs text-zinc-500 dark:text-white/48">
+                <p className="dark:text-white/48 text-xs text-zinc-500">
                   {data.websiteUrl || data.socialUrl}
                 </p>
               )}
@@ -410,7 +410,7 @@ export function BusinessSubmitWizard({
                 onChange={(e) => set('confirmAuthority', e.target.checked)}
                 className="kclub-checkbox mt-0.5 shrink-0"
               />
-              <span className="text-sm text-zinc-700 dark:text-white/72">
+              <span className="dark:text-white/72 text-sm text-zinc-700">
                 {t('confirmAuthority')}
               </span>
             </label>
@@ -421,7 +421,7 @@ export function BusinessSubmitWizard({
                 onChange={(e) => set('acceptLegal', e.target.checked)}
                 className="kclub-checkbox mt-0.5 shrink-0"
               />
-              <span className="text-sm text-zinc-700 dark:text-white/72">{t('acceptLegal')}</span>
+              <span className="dark:text-white/72 text-sm text-zinc-700">{t('acceptLegal')}</span>
             </label>
           </div>
 
@@ -434,7 +434,7 @@ export function BusinessSubmitWizard({
           type="button"
           onClick={handleBack}
           disabled={step === 1 || isSubmitting}
-          className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500 transition hover:text-zinc-950 disabled:invisible dark:text-white/48 dark:hover:text-white"
+          className="dark:text-white/48 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500 transition hover:text-zinc-950 disabled:invisible dark:hover:text-white"
         >
           ← {t('back')}
         </button>
@@ -464,13 +464,7 @@ export function BusinessSubmitWizard({
   );
 }
 
-function SummaryRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function SummaryRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
       <p className="mb-1 text-xs uppercase tracking-[0.14em] text-zinc-400 dark:text-white/30">

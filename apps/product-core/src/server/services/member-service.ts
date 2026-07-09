@@ -68,9 +68,9 @@ export function toCurrentMemberProfileDto(user: UserRecord): CurrentMemberProfil
 export async function getMemberBySupabaseUserId(supabaseUserId: string): Promise<UserRecord> {
   const db = getDbClient();
 
-  const user = await db.query.users.findFirst({
+  const user = (await db.query.users.findFirst({
     where: eq(schema.users.supabase_auth_user_id, supabaseUserId),
-  }) as UserRecord | undefined;
+  })) as UserRecord | undefined;
 
   if (!user) {
     throw new AppError({
@@ -108,7 +108,8 @@ export async function updateMemberProfile(
   if (input.about !== undefined) data.about = input.about ?? null;
   if (input.avatarUrl !== undefined) data.avatar_url = input.avatarUrl ?? null;
 
-  const [updated] = await db.update(schema.users)
+  const [updated] = await db
+    .update(schema.users)
     .set(data)
     .where(eq(schema.users.id, user.id))
     .returning();
@@ -132,7 +133,8 @@ export async function completeMemberOnboarding(
     });
   }
 
-  const [updated] = await db.update(schema.users)
+  const [updated] = await db
+    .update(schema.users)
     .set({
       display_name: input.displayName,
       locale_preference: input.localePreference,

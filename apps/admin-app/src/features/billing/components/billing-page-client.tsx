@@ -7,7 +7,12 @@ import { SubTabs, type SubTabItem } from '@/components/sub-tabs';
 import { SubscriptionsTable } from '@/features/subscriptions/components/subscriptions-table';
 import { MembershipsView } from '@/features/memberships/components/memberships-view';
 import { StripePricesForm } from '@/features/stripe-prices/components/stripe-prices-form';
-import type { AdminSubscriptionListItemDto, MembershipPlanDto, AdminConfigEntryDto, StaffRole } from '@kclub/contracts';
+import type {
+  AdminSubscriptionListItemDto,
+  MembershipPlanDto,
+  AdminConfigEntryDto,
+  StaffRole,
+} from '@kclub/contracts';
 
 type BillingPageClientProps = {
   staffRole: StaffRole;
@@ -44,7 +49,11 @@ export function BillingPageClient({
   const [activeSection, setActiveSection] = useState(() => normalizeSection(initialSection, tabs));
 
   return (
-    <PageShell title="Billing" description="Subscriptions, memberships, and pricing." roleScope="ADMIN">
+    <PageShell
+      title="Billing"
+      description="Subscriptions, memberships, and pricing."
+      roleScope="ADMIN"
+    >
       <div className="space-y-6">
         <SubTabs tabs={tabs} activeTab={activeSection} onTabChange={setActiveSection} />
         {activeSection === 'subscriptions' && (

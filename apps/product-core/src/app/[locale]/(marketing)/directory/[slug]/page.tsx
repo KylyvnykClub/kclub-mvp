@@ -128,7 +128,12 @@ export default async function BusinessDetailPage({ params }: Params) {
                 href={externalUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={getButtonClasses({ color: 'brand', size: 'md', fullWidth: true, className: 'mt-8' })}
+                className={getButtonClasses({
+                  color: 'brand',
+                  size: 'md',
+                  fullWidth: true,
+                  className: 'mt-8',
+                })}
               >
                 <ExternalLink aria-hidden="true" size={16} strokeWidth={1.5} />
                 {t('website')}

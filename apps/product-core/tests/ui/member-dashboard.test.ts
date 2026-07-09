@@ -21,7 +21,11 @@ describe('member dashboard tabs', () => {
   });
 
   test('VIP sees base tabs + introductions + business', () => {
-    expect(getImplementedDashboardTabs(vipCtx)).toEqual([...BASE_TABS, 'introductions', 'business']);
+    expect(getImplementedDashboardTabs(vipCtx)).toEqual([
+      ...BASE_TABS,
+      'introductions',
+      'business',
+    ]);
   });
 
   test('member with business (not VIP) sees only base tabs', () => {
@@ -29,7 +33,11 @@ describe('member dashboard tabs', () => {
   });
 
   test('VIP with business sees base tabs + introductions + business', () => {
-    expect(getImplementedDashboardTabs(vipBusinessCtx)).toEqual([...BASE_TABS, 'introductions', 'business']);
+    expect(getImplementedDashboardTabs(vipBusinessCtx)).toEqual([
+      ...BASE_TABS,
+      'introductions',
+      'business',
+    ]);
   });
 
   test('no tab is locked', () => {

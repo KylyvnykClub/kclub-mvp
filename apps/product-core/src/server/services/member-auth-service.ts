@@ -146,8 +146,8 @@ export async function verifyPhoneOtp(
 
   if (input.purpose === 'sign-up') {
     await db.insert(schema.users).values({
-        supabase_auth_user_id: supabaseUserId,
-        phone: input.phone,
+      supabase_auth_user_id: supabaseUserId,
+      phone: input.phone,
     });
   }
 
