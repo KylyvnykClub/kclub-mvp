@@ -1,0 +1,1 @@
+ALTER TABLE "business_profiles" ADD COLUMN "discount_muted" boolean DEFAULT false NOT NULL;
