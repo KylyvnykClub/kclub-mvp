@@ -262,7 +262,9 @@
       "eyebrow": "Trusted Elite Brands",
       "title": "Top Kylyvnyk Partners",
       "subtitle": "Curated blue-chip collaborations with unprecedented conditions secured for our private club holders",
-      "viewSpecial": "View Special"
+      "viewSpecial": "View Special",
+      "emptyTitle": "No top partners yet",
+      "emptyDescription": "Top partner offers will appear here after moderation and placement approval."
     }
   },
   "auth": {

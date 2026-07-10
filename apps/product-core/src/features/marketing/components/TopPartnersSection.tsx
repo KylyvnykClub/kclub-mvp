@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 
 import type { PublicBusinessListItemDto } from '@kclub/contracts';
+import { EmptyState } from '@kclub/ui';
 
 import { getTopPartners } from '@/features/public/public-page-helpers';
 import { Locale } from '@/i18n/routing';
@@ -14,12 +15,22 @@ type TopPartnersSectionProps = {
 
 export async function TopPartnersSection({ locale, businesses }: TopPartnersSectionProps) {
   const partners = getTopPartners(businesses);
+  const t = await getTranslations({ locale, namespace: 'home' });
 
   if (partners.length === 0) {
-    return null;
+    return (
+      <section className="kclub-border border-b bg-surface-muted py-16 dark:bg-surface-muted sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+          <div className="kclub-border-strong border bg-white p-8 dark:bg-surface">
+            <EmptyState
+              description={t('partners.emptyDescription')}
+              title={t('partners.emptyTitle')}
+            />
+          </div>
+        </div>
+      </section>
+    );
   }
-
-  const t = await getTranslations({ locale, namespace: 'home' });
 
   return (
     <section className="kclub-border border-b bg-surface-muted py-16 dark:bg-surface-muted sm:py-24">
