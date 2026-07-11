@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import * as realNextIntl from 'next-intl';
 
 const replace = mock();
 const refresh = mock();
@@ -14,6 +15,14 @@ mock.module('next/navigation', () => ({
 mock.module('next-intl', () => ({
   useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
 }));
+
+// bun's mock.module() replaces the module registry for the whole test run, not just
+// this file, so restore the real implementation once this file's tests are done —
+// otherwise later files that render <NextIntlClientProvider> with real messages
+// (e.g. about-section.test.tsx) would get this stub instead.
+afterAll(() => {
+  mock.module('next-intl', () => realNextIntl);
+});
 
 import { OnboardingForm } from '@/features/member/components/OnboardingForm';
 import { SkipOnboardingButton } from '@/features/member/components/SkipOnboardingButton';
