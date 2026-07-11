@@ -192,7 +192,7 @@ export const privacyPolicy: LegalDocByLocale = {
               'account login history',
               'account settings',
               'account change history',
-              "data voluntarily added by the user to their profile",
+              'data voluntarily added by the user to their profile',
             ],
           },
           {
@@ -385,7 +385,7 @@ export const privacyPolicy: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Restricting access to geolocation data may affect the availability of certain platform features, including the display of local offers, Business Profile verification, partner recommendations, and other location-dependent features.",
+            text: 'Restricting access to geolocation data may affect the availability of certain platform features, including the display of local offers, Business Profile verification, partner recommendations, and other location-dependent features.',
           },
         ],
       },
@@ -776,7 +776,7 @@ export const privacyPolicy: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "KYLYVNYK CLUB does not knowingly collect the personal data of children.",
+            text: 'KYLYVNYK CLUB does not knowingly collect the personal data of children.',
           },
           {
             type: 'paragraph',
@@ -784,7 +784,7 @@ export const privacyPolicy: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Parents or legal guardians may contact kylyvnykclub@gmail.com with any questions relating to the processing of the data of minors.",
+            text: 'Parents or legal guardians may contact kylyvnykclub@gmail.com with any questions relating to the processing of the data of minors.',
           },
         ],
       },
@@ -1714,11 +1714,11 @@ export const privacyPolicy: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Залежно від характеру обробки окремі постачальники послуг, платіжні провайдери, хостинг-провайдери, аналітичні сервіси, сервіси безпеки, поштові сервіси, хмарні сервіси та інші треті особи можуть виступати обробниками даних (Data Processors), постачальниками послуг (Service Providers) або самостійними операторами даних відповідно до застосовного законодавства.",
+            text: 'Залежно від характеру обробки окремі постачальники послуг, платіжні провайдери, хостинг-провайдери, аналітичні сервіси, сервіси безпеки, поштові сервіси, хмарні сервіси та інші треті особи можуть виступати обробниками даних (Data Processors), постачальниками послуг (Service Providers) або самостійними операторами даних відповідно до застосовного законодавства.',
           },
           {
             type: 'paragraph',
-            text: "Платформа має право залучати підрядників і технологічних партнерів, що перебувають як у Сполучених Штатах Америки, так і в інших країнах світу, якщо це необхідно для надання сервісів платформи, забезпечення безпеки, обробки платежів, аналітики, технічної підтримки або дотримання законодавства.",
+            text: 'Платформа має право залучати підрядників і технологічних партнерів, що перебувають як у Сполучених Штатах Америки, так і в інших країнах світу, якщо це необхідно для надання сервісів платформи, забезпечення безпеки, обробки платежів, аналітики, технічної підтримки або дотримання законодавства.',
           },
         ],
       },
@@ -1817,7 +1817,7 @@ export const privacyPolicy: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: "Під час реєстрації, використання платформи або взаємодії із сервісами KYLYVNYK CLUB платформа може збирати та обробляти такі дані користувача:",
+            text: 'Під час реєстрації, використання платформи або взаємодії із сервісами KYLYVNYK CLUB платформа може збирати та обробляти такі дані користувача:',
           },
           {
             type: 'list',
@@ -1856,7 +1856,7 @@ export const privacyPolicy: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "KYLYVNYK CLUB має право запитувати додаткову інформацію, якщо це необхідно для перевірки облікового запису, запобігання шахрайству, дотримання законодавства, захисту платформи або розгляду звернення користувача.",
+            text: 'KYLYVNYK CLUB має право запитувати додаткову інформацію, якщо це необхідно для перевірки облікового запису, запобігання шахрайству, дотримання законодавства, захисту платформи або розгляду звернення користувача.',
           },
           {
             type: 'paragraph',
@@ -1904,7 +1904,7 @@ export const privacyPolicy: LegalDocByLocale = {
               'бонуси',
               'строки дії пропозицій',
               'обмеження пропозицій',
-              "вимоги щодо попереднього запису",
+              'вимоги щодо попереднього запису',
               'мінімальні суми замовлення',
               'години роботи',
               'дані про співробітників або представників, якщо вони добровільно зазначаються користувачем',
@@ -2040,7 +2040,7 @@ export const privacyPolicy: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Обмеження доступу до геолокаційних даних може вплинути на доступність окремих функцій платформи, включно з відображенням локальних пропозицій, перевіркою бізнес-профілю, рекомендаціями партнерів та іншими функціями, що залежать від місцезнаходження.",
+            text: 'Обмеження доступу до геолокаційних даних може вплинути на доступність окремих функцій платформи, включно з відображенням локальних пропозицій, перевіркою бізнес-профілю, рекомендаціями партнерів та іншими функціями, що залежать від місцезнаходження.',
           },
         ],
       },
@@ -2049,7 +2049,7 @@ export const privacyPolicy: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: "Під час використання платформи KYLYVNYK CLUB платформа може автоматично збирати технічну інформацію про користувача, його пристрій та взаємодію із сервісами платформи.",
+            text: 'Під час використання платформи KYLYVNYK CLUB платформа може автоматично збирати технічну інформацію про користувача, його пристрій та взаємодію із сервісами платформи.',
           },
           { type: 'paragraph', text: 'Така інформація може включати:' },
           {
@@ -2222,7 +2222,7 @@ export const privacyPolicy: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Відмова користувача надати запитувані відомості може призвести до обмеження окремих функцій платформи, відмови в публікації бізнес-профілю, обмеження доступу до певних сервісів або припинення доступу до окремих функцій платформи.",
+            text: 'Відмова користувача надати запитувані відомості може призвести до обмеження окремих функцій платформи, відмови в публікації бізнес-профілю, обмеження доступу до певних сервісів або припинення доступу до окремих функцій платформи.',
           },
         ],
       },

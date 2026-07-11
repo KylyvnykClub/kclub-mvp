@@ -66,7 +66,10 @@ export const disclaimer: LegalDocByLocale = {
       {
         heading: '3. No Professional Advice',
         blocks: [
-          { type: 'paragraph', text: 'The information posted on the platform does not constitute:' },
+          {
+            type: 'paragraph',
+            text: 'The information posted on the platform does not constitute:',
+          },
           {
             type: 'list',
             items: [
@@ -130,7 +133,10 @@ export const disclaimer: LegalDocByLocale = {
       {
         heading: '5. Partners and Third Parties',
         blocks: [
-          { type: 'paragraph', text: 'Platform partners and other third parties are independent parties.' },
+          {
+            type: 'paragraph',
+            text: 'Platform partners and other third parties are independent parties.',
+          },
           {
             type: 'paragraph',
             text: 'The posting of information about a partner, business, product, service, or other person does not constitute:',
@@ -221,7 +227,7 @@ export const disclaimer: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "The platform has the right, but not the obligation, to review, moderate, restrict access to, or remove user content.",
+            text: 'The platform has the right, but not the obligation, to review, moderate, restrict access to, or remove user content.',
           },
           {
             type: 'paragraph',
@@ -240,7 +246,10 @@ export const disclaimer: LegalDocByLocale = {
             type: 'paragraph',
             text: 'The platform may contain links to third-party websites, services, applications, social networks, or other external resources.',
           },
-          { type: 'paragraph', text: 'Such links are provided solely for the convenience of users.' },
+          {
+            type: 'paragraph',
+            text: 'Such links are provided solely for the convenience of users.',
+          },
           {
             type: 'paragraph',
             text: 'KYLYVNYK CLUB does not control the content of third-party resources and is not liable for:',
@@ -546,7 +555,10 @@ export const disclaimer: LegalDocByLocale = {
       {
         heading: '5. Партнёры и третьи лица',
         blocks: [
-          { type: 'paragraph', text: 'Партнёры платформы и иные третьи лица являются независимыми лицами.' },
+          {
+            type: 'paragraph',
+            text: 'Партнёры платформы и иные третьи лица являются независимыми лицами.',
+          },
           {
             type: 'paragraph',
             text: 'Размещение информации о партнёре, бизнесе, товаре, услуге либо ином лице не означает:',
@@ -592,7 +604,10 @@ export const disclaimer: LegalDocByLocale = {
             type: 'paragraph',
             text: 'Business Introduction представляет собой содействие установлению делового контакта между участниками, партнёрами либо иными пользователями платформы.',
           },
-          { type: 'paragraph', text: 'Платформа не гарантирует, что любое Business Introduction приведёт к:' },
+          {
+            type: 'paragraph',
+            text: 'Платформа не гарантирует, что любое Business Introduction приведёт к:',
+          },
           {
             type: 'list',
             items: [
@@ -653,7 +668,10 @@ export const disclaimer: LegalDocByLocale = {
             type: 'paragraph',
             text: 'Платформа может содержать ссылки на сторонние веб-сайты, сервисы, приложения, социальные сети либо иные внешние ресурсы.',
           },
-          { type: 'paragraph', text: 'Такие ссылки предоставляются исключительно для удобства пользователей.' },
+          {
+            type: 'paragraph',
+            text: 'Такие ссылки предоставляются исключительно для удобства пользователей.',
+          },
           {
             type: 'paragraph',
             text: 'KYLYVNYK CLUB не контролирует содержание сторонних ресурсов и не несёт ответственности за:',
@@ -786,7 +804,10 @@ export const disclaimer: LegalDocByLocale = {
       {
         heading: '13. Изменение Disclaimer',
         blocks: [
-          { type: 'paragraph', text: 'KYLYVNYK CLUB вправе периодически изменять настоящий Disclaimer.' },
+          {
+            type: 'paragraph',
+            text: 'KYLYVNYK CLUB вправе периодически изменять настоящий Disclaimer.',
+          },
           {
             type: 'paragraph',
             text: 'Обновлённая редакция публикуется на платформе с указанием новой даты вступления в силу либо даты последнего обновления.',
@@ -863,7 +884,7 @@ export const disclaimer: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "У разі суперечності між цим Disclaimer та Terms of Use переважну силу мають Terms of Use, якщо інше прямо не передбачено застосовним законодавством.",
+            text: 'У разі суперечності між цим Disclaimer та Terms of Use переважну силу мають Terms of Use, якщо інше прямо не передбачено застосовним законодавством.',
           },
         ],
       },
@@ -907,9 +928,9 @@ export const disclaimer: LegalDocByLocale = {
               'медичною консультацією',
               'страховою консультацією',
               'кадровою консультацією',
-              "консультацією з питань працевлаштування",
-              "консультацією з питань імміграції",
-              "консультацією з питань ліцензування бізнесу",
+              'консультацією з питань працевлаштування',
+              'консультацією з питань імміграції',
+              'консультацією з питань ліцензування бізнесу',
               'іншою професійною консультацією',
             ],
           },
@@ -959,7 +980,10 @@ export const disclaimer: LegalDocByLocale = {
       {
         heading: '5. Партнери та треті особи',
         blocks: [
-          { type: 'paragraph', text: 'Партнери платформи та інші треті особи є незалежними особами.' },
+          {
+            type: 'paragraph',
+            text: 'Партнери платформи та інші треті особи є незалежними особами.',
+          },
           {
             type: 'paragraph',
             text: 'Розміщення інформації про партнера, бізнес, товар, послугу або іншу особу не означає:',
@@ -1005,7 +1029,10 @@ export const disclaimer: LegalDocByLocale = {
             type: 'paragraph',
             text: 'Business Introduction являє собою сприяння встановленню ділового контакту між учасниками, партнерами або іншими користувачами платформи.',
           },
-          { type: 'paragraph', text: 'Платформа не гарантує, що будь-який Business Introduction призведе до:' },
+          {
+            type: 'paragraph',
+            text: 'Платформа не гарантує, що будь-який Business Introduction призведе до:',
+          },
           {
             type: 'list',
             items: [
@@ -1066,7 +1093,10 @@ export const disclaimer: LegalDocByLocale = {
             type: 'paragraph',
             text: 'Платформа може містити посилання на сторонні веб-сайти, сервіси, застосунки, соціальні мережі або інші зовнішні ресурси.',
           },
-          { type: 'paragraph', text: 'Такі посилання надаються виключно для зручності користувачів.' },
+          {
+            type: 'paragraph',
+            text: 'Такі посилання надаються виключно для зручності користувачів.',
+          },
           {
             type: 'paragraph',
             text: 'KYLYVNYK CLUB не контролює зміст сторонніх ресурсів і не несе відповідальності за:',
@@ -1188,7 +1218,7 @@ export const disclaimer: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Використання платформи не звільняє користувачів від обов\'язку дотримуватися законодавства країни проживання, країни ведення діяльності та інших застосовних юрисдикцій.',
+            text: "Використання платформи не звільняє користувачів від обов'язку дотримуватися законодавства країни проживання, країни ведення діяльності та інших застосовних юрисдикцій.",
           },
           {
             type: 'paragraph',
@@ -1199,7 +1229,10 @@ export const disclaimer: LegalDocByLocale = {
       {
         heading: '13. Зміна Disclaimer',
         blocks: [
-          { type: 'paragraph', text: 'KYLYVNYK CLUB має право періодично змінювати цей Disclaimer.' },
+          {
+            type: 'paragraph',
+            text: 'KYLYVNYK CLUB має право періодично змінювати цей Disclaimer.',
+          },
           {
             type: 'paragraph',
             text: 'Оновлена редакція публікується на платформі із зазначенням нової дати набрання чинності або дати останнього оновлення.',

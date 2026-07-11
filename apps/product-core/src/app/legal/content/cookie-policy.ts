@@ -17,7 +17,7 @@ export const cookiePolicy: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: "This Cookie Policy explains how the KYLYVNYK CLUB platform uses cookies and similar technologies.",
+            text: 'This Cookie Policy explains how the KYLYVNYK CLUB platform uses cookies and similar technologies.',
           },
           {
             type: 'paragraph',

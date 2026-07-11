@@ -33,11 +33,11 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Use of the Business Introductions features constitutes the user\'s full and unconditional agreement to these Rules.',
+            text: "Use of the Business Introductions features constitutes the user's full and unconditional agreement to these Rules.",
           },
           {
             type: 'paragraph',
-            text: 'In the event of a conflict between these Rules and the Terms of Use, the Terms of Use shall prevail unless expressly provided otherwise by the platform\'s documents.',
+            text: "In the event of a conflict between these Rules and the Terms of Use, the Terms of Use shall prevail unless expressly provided otherwise by the platform's documents.",
           },
           {
             type: 'paragraph',
@@ -115,7 +115,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'The platform may refuse to grant access to Business Introductions or may restrict such access based on the results of internal checks, complaints, violations of the platform\'s documents, or other circumstances that the platform reasonably considers material.',
+            text: "The platform may refuse to grant access to Business Introductions or may restrict such access based on the results of internal checks, complaints, violations of the platform's documents, or other circumstances that the platform reasonably considers material.",
           },
           {
             type: 'paragraph',
@@ -239,7 +239,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Any results depend on numerous factors beyond the platform\'s control.',
+            text: "Any results depend on numerous factors beyond the platform's control.",
           },
         ],
       },
@@ -256,11 +256,11 @@ export const businessIntroductionRules: LegalDocByLocale = {
               'using Business Introductions for fraudulent purposes;',
               'providing false information;',
               'impersonating another person;',
-              'using another person\'s contact information without permission;',
+              "using another person's contact information without permission;",
               'using Business Introductions to send spam;',
-              'using Business Introductions for the mass promotion of goods, services, investments, or other commercial offers without the recipients\' consent;',
+              "using Business Introductions for the mass promotion of goods, services, investments, or other commercial offers without the recipients' consent;",
               'abusing the trust of other members;',
-              'collecting members\' personal data in violation of applicable law;',
+              "collecting members' personal data in violation of applicable law;",
               'using Business Introductions for unlawful activity;',
               'using Business Introductions for harassment, pressure, threats, or other forms of bad-faith conduct;',
               'using contacts obtained contrary to a previously expressed refusal by the other party to continue communication;',
@@ -295,7 +295,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
               'investment intermediation;',
               'brokerage;',
               'partnership;',
-              'any other relationship not expressly provided for in the platform\'s documents.',
+              "any other relationship not expressly provided for in the platform's documents.",
             ],
           },
           {
@@ -304,7 +304,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'The platform does not participate in negotiations, the determination of transaction terms, settlements between parties, or the performance of the parties\' obligations, unless expressly provided otherwise by the platform\'s documents.',
+            text: "The platform does not participate in negotiations, the determination of transaction terms, settlements between parties, or the performance of the parties' obligations, unless expressly provided otherwise by the platform's documents.",
           },
         ],
       },
@@ -317,7 +317,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'The platform may facilitate the exchange of contact information solely to the extent provided for by the platform\'s documents and applicable law.',
+            text: "The platform may facilitate the exchange of contact information solely to the extent provided for by the platform's documents and applicable law.",
           },
           {
             type: 'paragraph',
@@ -338,7 +338,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'The use of personal data is governed by the platform\'s Privacy Policy.',
+            text: "The use of personal data is governed by the platform's Privacy Policy.",
           },
           {
             type: 'paragraph',
@@ -380,11 +380,11 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'The platform\'s maximum aggregate liability for any claims related to the use of Business Introductions is limited to the amount actually paid by the member to the platform during the three (3) calendar months immediately preceding the occurrence of the relevant claim.',
+            text: "The platform's maximum aggregate liability for any claims related to the use of Business Introductions is limited to the amount actually paid by the member to the platform during the three (3) calendar months immediately preceding the occurrence of the relevant claim.",
           },
           {
             type: 'paragraph',
-            text: 'If the member did not pay for the platform\'s services during the specified period, the platform shall bear no monetary liability to the maximum extent permitted by law.',
+            text: "If the member did not pay for the platform's services during the specified period, the platform shall bear no monetary liability to the maximum extent permitted by law.",
           },
         ],
       },
@@ -408,7 +408,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
               'request explanations from members or partners;',
               'temporarily restrict certain Business Introductions features during the review period;',
               'temporarily restrict access to certain categories of members, programs, events, or platform features during the review period;',
-              'take measures provided for in the platform\'s documents.',
+              "take measures provided for in the platform's documents.",
             ],
           },
           {
@@ -417,7 +417,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'The fact that an inquiry has been reviewed does not constitute an acknowledgment of anyone\'s rightness or fault.',
+            text: "The fact that an inquiry has been reviewed does not constitute an acknowledgment of anyone's rightness or fault.",
           },
           {
             type: 'paragraph',
@@ -434,7 +434,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB may restrict, suspend, or terminate a user\'s access to the Business Introductions features, in whole or in part, in cases of:',
+            text: "KYLYVNYK CLUB may restrict, suspend, or terminate a user's access to the Business Introductions features, in whole or in part, in cases of:",
           },
           {
             type: 'list',
@@ -443,7 +443,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
               'violation of other platform documents;',
               'violation of applicable law;',
               'the provision of inaccurate information;',
-              'refusal to undergo identity verification or another check provided for in the platform\'s documents;',
+              "refusal to undergo identity verification or another check provided for in the platform's documents;",
               'abuse of the Business Introductions features;',
               'complaints from members or partners;',
               'the creation of legal, financial, operational, or reputational risks for the platform;',
@@ -498,7 +498,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Continued use of the Business Introductions features after the amendments take effect constitutes the user\'s agreement to the updated version of the Rules, to the extent permitted by applicable law.',
+            text: "Continued use of the Business Introductions features after the amendments take effect constitutes the user's agreement to the updated version of the Rules, to the extent permitted by applicable law.",
           },
           {
             type: 'paragraph',
@@ -519,7 +519,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'In the event of a conflict between these Business Introduction Rules and the Terms of Use, the Terms of Use shall prevail unless expressly provided otherwise by the platform\'s documents.',
+            text: "In the event of a conflict between these Business Introduction Rules and the Terms of Use, the Terms of Use shall prevail unless expressly provided otherwise by the platform's documents.",
           },
           {
             type: 'paragraph',
@@ -1275,7 +1275,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Надання доступу до Business Introductions не створює обов\'язку платформи зберігати такий доступ безстроково.',
+            text: "Надання доступу до Business Introductions не створює обов'язку платформи зберігати такий доступ безстроково.",
           },
         ],
       },
@@ -1312,7 +1312,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Платформа не зобов\'язана надавати Business Introductions усім учасникам або щодо всіх запитів.',
+            text: "Платформа не зобов'язана надавати Business Introductions усім учасникам або щодо всіх запитів.",
           },
           {
             type: 'paragraph',
@@ -1329,7 +1329,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Жоден учасник не зобов\'язаний:',
+            text: "Жоден учасник не зобов'язаний:",
           },
           {
             type: 'list',
@@ -1357,7 +1357,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB не контролює і не зобов\'язана контролювати подальші відносини між учасниками після здійснення Business Introduction.',
+            text: "KYLYVNYK CLUB не контролює і не зобов'язана контролювати подальші відносини між учасниками після здійснення Business Introduction.",
           },
         ],
       },
@@ -1414,7 +1414,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
               'видавати себе за іншу особу;',
               'використовувати чужі контактні дані без дозволу;',
               'використовувати Business Introductions для розсилання спаму;',
-              'використовувати Business Introductions для масового нав\'язування товарів, послуг, інвестицій або інших комерційних пропозицій без згоди отримувачів;',
+              "використовувати Business Introductions для масового нав'язування товарів, послуг, інвестицій або інших комерційних пропозицій без згоди отримувачів;",
               'зловживати довірою інших учасників;',
               'збирати персональні дані учасників з порушенням законодавства;',
               'використовувати Business Introductions для незаконної діяльності;',
@@ -1460,7 +1460,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Платформа не бере участі в переговорах, визначенні умов угод, розрахунках між сторонами або виконанні зобов\'язань сторін, якщо інше прямо не передбачено документами платформи.',
+            text: "Платформа не бере участі в переговорах, визначенні умов угод, розрахунках між сторонами або виконанні зобов'язань сторін, якщо інше прямо не передбачено документами платформи.",
           },
         ],
       },
@@ -1536,7 +1536,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Максимальна сукупна відповідальність платформи за будь-якими вимогами, пов\'язаними з використанням Business Introductions, обмежується сумою, фактично сплаченою учасником платформі за останні три (3) календарні місяці, що безпосередньо передують виникненню відповідної вимоги.',
+            text: "Максимальна сукупна відповідальність платформи за будь-якими вимогами, пов'язаними з використанням Business Introductions, обмежується сумою, фактично сплаченою учасником платформі за останні три (3) календарні місяці, що безпосередньо передують виникненню відповідної вимоги.",
           },
           {
             type: 'paragraph',
@@ -1549,11 +1549,11 @@ export const businessIntroductionRules: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'Учасники мають право надсилати платформі скарги, звернення та повідомлення про можливі порушення, пов\'язані з використанням Business Introductions.',
+            text: "Учасники мають право надсилати платформі скарги, звернення та повідомлення про можливі порушення, пов'язані з використанням Business Introductions.",
           },
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB має право, але не зобов\'язана:',
+            text: "KYLYVNYK CLUB має право, але не зобов'язана:",
           },
           {
             type: 'list',
@@ -1569,7 +1569,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Платформа не зобов\'язана виступати арбітром, посередником або представником будь-якої сторони спору.',
+            text: "Платформа не зобов'язана виступати арбітром, посередником або представником будь-якої сторони спору.",
           },
           {
             type: 'paragraph',
@@ -1581,7 +1581,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Платформа не зобов\'язана розкривати внутрішні матеріали перевірки, внутрішні процедури прийняття рішень або інформацію, отриману від третіх осіб.',
+            text: "Платформа не зобов'язана розкривати внутрішні матеріали перевірки, внутрішні процедури прийняття рішень або інформацію, отриману від третіх осіб.",
           },
         ],
       },
@@ -1612,7 +1612,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Припинення доступу до Business Introductions не створює обов\'язку платформи надавати будь-які компенсації, виплати або гарантувати збереження доступу до функції в майбутньому.',
+            text: "Припинення доступу до Business Introductions не створює обов'язку платформи надавати будь-які компенсації, виплати або гарантувати збереження доступу до функції в майбутньому.",
           },
           {
             type: 'paragraph',
@@ -1625,7 +1625,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'Учасники зобов\'язані дотримуватися застосовного законодавства країни свого проживання, країни ведення діяльності та інших юрисдикцій, законодавство яких застосовується до їхніх дій.',
+            text: "Учасники зобов'язані дотримуватися застосовного законодавства країни свого проживання, країни ведення діяльності та інших юрисдикцій, законодавство яких застосовується до їхніх дій.",
           },
           {
             type: 'paragraph',
@@ -1658,7 +1658,7 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Якщо користувач не згоден зі змінами, він зобов\'язаний припинити використання функцій Business Introductions.',
+            text: "Якщо користувач не згоден зі змінами, він зобов'язаний припинити використання функцій Business Introductions.",
           },
         ],
       },
@@ -1724,11 +1724,11 @@ export const businessIntroductionRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'З питань, пов\'язаних із використанням функцій Business Introductions, користувач може звертатися за зазначеними контактними даними.',
+            text: "З питань, пов'язаних із використанням функцій Business Introductions, користувач може звертатися за зазначеними контактними даними.",
           },
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB має право самостійно визначати порядок, строки та обсяг відповідей на звернення користувачів, якщо інше не передбачено обов\'язковими вимогами законодавства.',
+            text: "KYLYVNYK CLUB має право самостійно визначати порядок, строки та обсяг відповідей на звернення користувачів, якщо інше не передбачено обов'язковими вимогами законодавства.",
           },
         ],
       },

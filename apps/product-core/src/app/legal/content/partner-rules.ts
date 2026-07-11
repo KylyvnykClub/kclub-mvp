@@ -12,7 +12,7 @@ export const partnerRules: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: "These Partner Rules (the \"Partner Rules\") govern the participation of business partners in the KYLYVNYK CLUB platform, the procedure for publishing business profiles, publishing special offers, interacting with club members, and the use of the partner features of the platform.",
+            text: 'These Partner Rules (the "Partner Rules") govern the participation of business partners in the KYLYVNYK CLUB platform, the procedure for publishing business profiles, publishing special offers, interacting with club members, and the use of the partner features of the platform.',
           },
           { type: 'paragraph', text: 'These Rules supplement:' },
           {
@@ -106,7 +106,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "The partner is solely responsible for its own activities, goods, services, licenses, permits, prices, warranties, marketing materials, and compliance with law.",
+            text: 'The partner is solely responsible for its own activities, goods, services, licenses, permits, prices, warranties, marketing materials, and compliance with law.',
           },
         ],
       },
@@ -399,7 +399,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "KYLYVNYK CLUB may apply the above measures either temporarily or for an indefinite period, depending on the nature of the violation, the degree of risk to the platform, users, partners, and other circumstances of the particular case.",
+            text: 'KYLYVNYK CLUB may apply the above measures either temporarily or for an indefinite period, depending on the nature of the violation, the degree of risk to the platform, users, partners, and other circumstances of the particular case.',
           },
           {
             type: 'paragraph',
@@ -411,7 +411,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "These Rules do not provide for contractual penalties, financial sanctions, guaranteed compensation for losses, or any obligation of the platform to reimburse any expenses of the partner related to the application of enforcement measures.",
+            text: 'These Rules do not provide for contractual penalties, financial sanctions, guaranteed compensation for losses, or any obligation of the platform to reimburse any expenses of the partner related to the application of enforcement measures.',
           },
         ],
       },
@@ -529,7 +529,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "The partner may not use the KYLYVNYK CLUB brand, the KYLYVNYK brand, logos, or other intellectual property of the platform without prior written permission.",
+            text: 'The partner may not use the KYLYVNYK CLUB brand, the KYLYVNYK brand, logos, or other intellectual property of the platform without prior written permission.',
           },
           {
             type: 'paragraph',
@@ -583,7 +583,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "The maximum aggregate liability of KYLYVNYK CLUB to the partner for any claims, demands, disputes, or lawsuits is limited to the amount actually paid by the partner to the platform during the three (3) calendar months immediately preceding the occurrence of the relevant claim.",
+            text: 'The maximum aggregate liability of KYLYVNYK CLUB to the partner for any claims, demands, disputes, or lawsuits is limited to the amount actually paid by the partner to the platform during the three (3) calendar months immediately preceding the occurrence of the relevant claim.',
           },
           {
             type: 'paragraph',
@@ -685,7 +685,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "KYLYVNYK CLUB may independently determine the manner, timing, and scope of responses to partner inquiries, unless otherwise provided by mandatory legal requirements.",
+            text: 'KYLYVNYK CLUB may independently determine the manner, timing, and scope of responses to partner inquiries, unless otherwise provided by mandatory legal requirements.',
           },
         ],
       },
@@ -875,7 +875,10 @@ export const partnerRules: LegalDocByLocale = {
             type: 'paragraph',
             text: 'Партнёр обязуется сотрудничать с платформой при проведении проверок и своевременно предоставлять разумно запрашиваемую информацию.',
           },
-          { type: 'paragraph', text: 'Отказ предоставить информацию либо документы может привести к:' },
+          {
+            type: 'paragraph',
+            text: 'Отказ предоставить информацию либо документы может привести к:',
+          },
           {
             type: 'list',
             items: [
@@ -1321,7 +1324,10 @@ export const partnerRules: LegalDocByLocale = {
       {
         heading: '17. Изменение правил',
         blocks: [
-          { type: 'paragraph', text: 'KYLYVNYK CLUB вправе периодически изменять настоящие Partner Rules.' },
+          {
+            type: 'paragraph',
+            text: 'KYLYVNYK CLUB вправе периодически изменять настоящие Partner Rules.',
+          },
           {
             type: 'paragraph',
             text: 'Обновлённая редакция публикуется на платформе с указанием новой даты вступления в силу либо даты последнего обновления.',
@@ -1406,7 +1412,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Використання партнерських функцій платформи означає повну та безумовну згоду партнера з цими Правилами.",
+            text: 'Використання партнерських функцій платформи означає повну та безумовну згоду партнера з цими Правилами.',
           },
           {
             type: 'paragraph',
@@ -1588,7 +1594,7 @@ export const partnerRules: LegalDocByLocale = {
               'опис діяльності',
               'логотипи',
               'фотографії',
-              "контактну інформацію",
+              'контактну інформацію',
               'посилання на веб-сайти',
               'посилання на соціальні мережі',
               'інформацію про ліцензії та сертифікати',
@@ -1613,7 +1619,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Публікація бізнес-профілю не є рекомендацією, сертифікацією, гарантією якості, ліцензуванням чи підтвердженням діяльності партнера з боку платформи.",
+            text: 'Публікація бізнес-профілю не є рекомендацією, сертифікацією, гарантією якості, ліцензуванням чи підтвердженням діяльності партнера з боку платформи.',
           },
           {
             type: 'paragraph',
@@ -1634,7 +1640,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Кожен партнер самостійно визначає зміст своїх пропозицій і несе повну відповідальність за їх законність, достовірність, актуальність та виконання.",
+            text: 'Кожен партнер самостійно визначає зміст своїх пропозицій і несе повну відповідальність за їх законність, достовірність, актуальність та виконання.',
           },
           {
             type: 'paragraph',
@@ -1642,7 +1648,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Якщо партнер розміщує, публікує чи підтверджує спеціальну умову на платформі KYLYVNYK CLUB, партнер зобов\'язується дотримуватися такої умови стосовно учасника клубу, який:',
+            text: "Якщо партнер розміщує, публікує чи підтверджує спеціальну умову на платформі KYLYVNYK CLUB, партнер зобов'язується дотримуватися такої умови стосовно учасника клубу, який:",
           },
           {
             type: 'list',
@@ -1654,7 +1660,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Партнер не має права свавільно відмовляти учаснику клубу в наданні опублікованої спеціальної умови за умови дотримання учасником усіх вимог пропозиції.",
+            text: 'Партнер не має права свавільно відмовляти учаснику клубу в наданні опублікованої спеціальної умови за умови дотримання учасником усіх вимог пропозиції.',
           },
           {
             type: 'paragraph',
@@ -1675,7 +1681,7 @@ export const partnerRules: LegalDocByLocale = {
         ],
       },
       {
-        heading: '8. Обов\'язки партнера',
+        heading: "8. Обов'язки партнера",
         blocks: [
           { type: 'paragraph', text: "Партнер зобов'язаний:" },
           {
@@ -1693,7 +1699,10 @@ export const partnerRules: LegalDocByLocale = {
               'не вводити користувачів в оману щодо своїх товарів, послуг, цін, ліцензій, дозволів чи спеціальних умов',
             ],
           },
-          { type: 'paragraph', text: "Партнер зобов'язується невідкладно повідомляти платформу про:" },
+          {
+            type: 'paragraph',
+            text: "Партнер зобов'язується невідкладно повідомляти платформу про:",
+          },
           {
             type: 'list',
             items: [
@@ -1703,7 +1712,7 @@ export const partnerRules: LegalDocByLocale = {
               'істотну зміну пропонованих товарів чи послуг',
               'припинення дії спеціальних умов',
               'зміну контактних даних',
-              "інші обставини, здатні вплинути на користувачів платформи чи діяльність партнера на платформі",
+              'інші обставини, здатні вплинути на користувачів платформи чи діяльність партнера на платформі',
             ],
           },
         ],
@@ -1776,7 +1785,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Застосування одного заходу не обмежує право платформи застосувати додаткові заходи в майбутньому.",
+            text: 'Застосування одного заходу не обмежує право платформи застосувати додаткові заходи в майбутньому.',
           },
           {
             type: 'paragraph',
@@ -1830,7 +1839,7 @@ export const partnerRules: LegalDocByLocale = {
           { type: 'paragraph', text: 'Партнери платформи є незалежними третіми особами.' },
           {
             type: 'paragraph',
-            text: "Участь у програмі партнерів не створює між партнером та KYLYVNYK CLUB відносин:",
+            text: 'Участь у програмі партнерів не створює між партнером та KYLYVNYK CLUB відносин:',
           },
           {
             type: 'list',
@@ -1849,7 +1858,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Партнер не має права робити заяви чи створювати враження, що він діє від імені KYLYVNYK CLUB.",
+            text: 'Партнер не має права робити заяви чи створювати враження, що він діє від імені KYLYVNYK CLUB.',
           },
           {
             type: 'paragraph',
@@ -1906,7 +1915,7 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Розміщення бізнес-профілю не надає партнеру жодних прав на інтелектуальну власність платформи.",
+            text: 'Розміщення бізнес-профілю не надає партнеру жодних прав на інтелектуальну власність платформи.',
           },
           {
             type: 'paragraph',
@@ -1999,21 +2008,24 @@ export const partnerRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Припинення участі партнера не створює обов\'язку платформи здійснювати повернення раніше сплачених платежів, крім випадків, прямо передбачених застосовним законодавством чи окремими письмовими угодами між сторонами.',
+            text: "Припинення участі партнера не створює обов'язку платформи здійснювати повернення раніше сплачених платежів, крім випадків, прямо передбачених застосовним законодавством чи окремими письмовими угодами між сторонами.",
           },
         ],
       },
       {
         heading: '17. Зміна правил',
         blocks: [
-          { type: 'paragraph', text: 'KYLYVNYK CLUB має право періодично змінювати ці Partner Rules.' },
+          {
+            type: 'paragraph',
+            text: 'KYLYVNYK CLUB має право періодично змінювати ці Partner Rules.',
+          },
           {
             type: 'paragraph',
             text: 'Оновлена редакція публікується на платформі із зазначенням нової дати набрання чинності або дати останнього оновлення.',
           },
           {
             type: 'paragraph',
-            text: "Продовження використання платформи після набрання змінами чинності означає згоду партнера з оновленою редакцією Правил у межах, що допускаються застосовним законодавством.",
+            text: 'Продовження використання платформи після набрання змінами чинності означає згоду партнера з оновленою редакцією Правил у межах, що допускаються застосовним законодавством.',
           },
           {
             type: 'paragraph',
@@ -2060,6 +2072,6 @@ export const partnerRules: LegalDocByLocale = {
         ],
       },
     ],
-    note: "Ці Partner Rules можуть перекладатися на інші мови виключно для зручності користувачів і партнерів. У разі будь-яких розбіжностей, суперечностей чи відмінностей між перекладами переважну юридичну силу має офіційна англомовна версія документа.",
+    note: 'Ці Partner Rules можуть перекладатися на інші мови виключно для зручності користувачів і партнерів. У разі будь-яких розбіжностей, суперечностей чи відмінностей між перекладами переважну юридичну силу має офіційна англомовна версія документа.',
   },
 };

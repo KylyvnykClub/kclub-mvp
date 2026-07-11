@@ -1,12 +1,5 @@
 import { useTranslations } from 'next-intl';
-import {
-  BadgeCheck,
-  Building2,
-  Globe2,
-  Handshake,
-  QrCode,
-  ShieldCheck,
-} from 'lucide-react';
+import { BadgeCheck, Building2, Globe2, Handshake, QrCode, ShieldCheck } from 'lucide-react';
 
 import { Surface } from '@kclub/ui';
 
@@ -26,7 +19,11 @@ export function AboutSection(): React.ReactElement {
   const t = useTranslations('home');
 
   return (
-    <section id="about" aria-labelledby="about-title" className="kclub-border kclub-section-py border-b bg-surface-muted">
+    <section
+      id="about"
+      aria-labelledby="about-title"
+      className="kclub-border kclub-section-py border-b bg-surface-muted"
+    >
       <div className="kclub-shell">
         <div className="max-w-4xl">
           <p className="kclub-section-eyebrow">{t('about.eyebrow')}</p>

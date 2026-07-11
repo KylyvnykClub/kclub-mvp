@@ -13,7 +13,7 @@ export const termsOfUse: LegalDocByLocale = {
       },
       {
         type: 'paragraph',
-        text: "By using the platform, the digital club card, the partner catalog, partner special terms, Business Introductions, VIP features, and other services of the platform, the user confirms agreement with these Terms of Use.",
+        text: 'By using the platform, the digital club card, the partner catalog, partner special terms, Business Introductions, VIP features, and other services of the platform, the user confirms agreement with these Terms of Use.',
       },
       {
         type: 'paragraph',
@@ -26,7 +26,7 @@ export const termsOfUse: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: "These Terms of Use govern access to the KYLYVNYK CLUB platform, the use of its services, the digital club card, the partner catalog, VIP subscriptions, the Business Introductions features, and other capabilities of the platform.",
+            text: 'These Terms of Use govern access to the KYLYVNYK CLUB platform, the use of its services, the digital club card, the partner catalog, VIP subscriptions, the Business Introductions features, and other capabilities of the platform.',
           },
           {
             type: 'paragraph',
@@ -47,7 +47,7 @@ export const termsOfUse: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: "KYLYVNYK CLUB is an independent Private Membership Platform created to bring together club members, develop business connections, and provide access to the special terms of independent partners.",
+            text: 'KYLYVNYK CLUB is an independent Private Membership Platform created to bring together club members, develop business connections, and provide access to the special terms of independent partners.',
           },
           { type: 'paragraph', text: 'The platform may provide:' },
           {
@@ -144,7 +144,15 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'VIP status does not guarantee:' },
           {
             type: 'list',
-            items: ['clients', 'contracts', 'income', 'profit', 'cost savings', 'business growth', 'commercial results'],
+            items: [
+              'clients',
+              'contracts',
+              'income',
+              'profit',
+              'cost savings',
+              'business growth',
+              'commercial results',
+            ],
           },
           {
             type: 'paragraph',
@@ -197,7 +205,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "KYLYVNYK CLUB has the right, at its sole discretion, to refuse to publish, temporarily hide, or delete any Business Profile without stating a reason, if the administration considers that such profile may create a legal, reputational, financial, operational, or other risk.",
+            text: 'KYLYVNYK CLUB has the right, at its sole discretion, to refuse to publish, temporarily hide, or delete any Business Profile without stating a reason, if the administration considers that such profile may create a legal, reputational, financial, operational, or other risk.',
           },
           {
             type: 'paragraph',
@@ -458,7 +466,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "KYLYVNYK CLUB may, at its sole discretion, review individual user requests, but is not obligated to issue a refund unless such refund is required by law.",
+            text: 'KYLYVNYK CLUB may, at its sole discretion, review individual user requests, but is not obligated to issue a refund unless such refund is required by law.',
           },
         ],
       },
@@ -551,7 +559,13 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'The card may contain:' },
           {
             type: 'list',
-            items: ["the user's name", 'card number', 'membership status', 'membership type', 'validity period'],
+            items: [
+              "the user's name",
+              'card number',
+              'membership status',
+              'membership type',
+              'validity period',
+            ],
           },
           {
             type: 'paragraph',
@@ -586,7 +600,15 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Each partner is solely responsible for:' },
           {
             type: 'list',
-            items: ['its goods', 'its services', 'licenses', 'permits', 'warranties', 'customer service', 'compliance with the law'],
+            items: [
+              'its goods',
+              'its services',
+              'licenses',
+              'permits',
+              'warranties',
+              'customer service',
+              'compliance with the law',
+            ],
           },
           {
             type: 'paragraph',
@@ -650,7 +672,10 @@ export const termsOfUse: LegalDocByLocale = {
             type: 'paragraph',
             text: 'Use of the platform does not grant the user any ownership rights to any intellectual property.',
           },
-          { type: 'paragraph', text: "Without the rights holder's prior written permission, it is prohibited to:" },
+          {
+            type: 'paragraph',
+            text: "Without the rights holder's prior written permission, it is prohibited to:",
+          },
           {
             type: 'list',
             items: [
@@ -688,7 +713,10 @@ export const termsOfUse: LegalDocByLocale = {
               'the content does not contain defamatory, discriminatory, unlawful, fraudulent, or misleading information',
             ],
           },
-          { type: 'paragraph', text: 'The user retains the rights to content that belongs to them.' },
+          {
+            type: 'paragraph',
+            text: 'The user retains the rights to content that belongs to them.',
+          },
           {
             type: 'paragraph',
             text: 'By posting content on the platform, the user grants KYLYVNYK CLUB a non-exclusive, worldwide, royalty-free right to use, display, publish, store, and technically process such content solely for the purposes of operating the platform.',
@@ -766,7 +794,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'If the user has not paid for the platform\'s services during the specified period, KYLYVNYK CLUB bears no monetary liability, to the maximum extent permitted by law.',
+            text: "If the user has not paid for the platform's services during the specified period, KYLYVNYK CLUB bears no monetary liability, to the maximum extent permitted by law.",
           },
           {
             type: 'paragraph',
@@ -783,7 +811,7 @@ export const termsOfUse: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: "The user undertakes to defend, indemnify, and hold harmless KYLYVNYK CLUB, Kylyvnyk Consulting LLC, its owners, employees, contractors, representatives, and affiliates from any claims, demands, costs, losses, penalties, and liabilities arising out of:",
+            text: 'The user undertakes to defend, indemnify, and hold harmless KYLYVNYK CLUB, Kylyvnyk Consulting LLC, its owners, employees, contractors, representatives, and affiliates from any claims, demands, costs, losses, penalties, and liabilities arising out of:',
           },
           {
             type: 'list',
@@ -836,7 +864,12 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Notices may be sent through:' },
           {
             type: 'list',
-            items: ['email', 'messages in the personal account', 'platform notifications', 'other electronic means of communication'],
+            items: [
+              'email',
+              'messages in the personal account',
+              'platform notifications',
+              'other electronic means of communication',
+            ],
           },
           {
             type: 'paragraph',
@@ -1054,7 +1087,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "KYLYVNYK CLUB may independently determine the manner, timing, and extent of its responses to user inquiries, unless otherwise required by mandatory provisions of applicable law.",
+            text: 'KYLYVNYK CLUB may independently determine the manner, timing, and extent of its responses to user inquiries, unless otherwise required by mandatory provisions of applicable law.',
           },
         ],
       },
@@ -1222,10 +1255,17 @@ export const termsOfUse: LegalDocByLocale = {
       {
         heading: '4. Типы участников',
         blocks: [
-          { type: 'paragraph', text: 'На платформе могут существовать следующие категории доступа:' },
+          {
+            type: 'paragraph',
+            text: 'На платформе могут существовать следующие категории доступа:',
+          },
           {
             type: 'list',
-            items: ['Бесплатный участник (Free Member)', 'VIP-участник (VIP Member)', 'Бизнес-партнёр (Business Profile)'],
+            items: [
+              'Бесплатный участник (Free Member)',
+              'VIP-участник (VIP Member)',
+              'Бизнес-партнёр (Business Profile)',
+            ],
           },
           {
             type: 'paragraph',
@@ -1262,7 +1302,15 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'VIP-статус не гарантирует:' },
           {
             type: 'list',
-            items: ['клиентов', 'контракты', 'доход', 'прибыль', 'экономию средств', 'развитие бизнеса', 'коммерческий результат'],
+            items: [
+              'клиентов',
+              'контракты',
+              'доход',
+              'прибыль',
+              'экономию средств',
+              'развитие бизнеса',
+              'коммерческий результат',
+            ],
           },
           {
             type: 'paragraph',
@@ -1273,7 +1321,10 @@ export const termsOfUse: LegalDocByLocale = {
       {
         heading: '7. Бизнес-профили',
         blocks: [
-          { type: 'paragraph', text: 'Пользователь может подать заявку на размещение бизнес-профиля.' },
+          {
+            type: 'paragraph',
+            text: 'Пользователь может подать заявку на размещение бизнес-профиля.',
+          },
           {
             type: 'paragraph',
             text: 'Администрация платформы вправе проводить проверку информации и принимать решение о публикации.',
@@ -1286,7 +1337,13 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Администрация вправе:' },
           {
             type: 'list',
-            items: ['отказать в публикации', 'скрыть профиль', 'удалить профиль', 'приостановить публикацию', 'запросить дополнительную информацию'],
+            items: [
+              'отказать в публикации',
+              'скрыть профиль',
+              'удалить профиль',
+              'приостановить публикацию',
+              'запросить дополнительную информацию',
+            ],
           },
           {
             type: 'paragraph',
@@ -1653,11 +1710,20 @@ export const termsOfUse: LegalDocByLocale = {
       {
         heading: '17. Цифровая клубная карта',
         blocks: [
-          { type: 'paragraph', text: 'Платформа может предоставлять цифровую клубную карту участника.' },
+          {
+            type: 'paragraph',
+            text: 'Платформа может предоставлять цифровую клубную карту участника.',
+          },
           { type: 'paragraph', text: 'Карта может содержать:' },
           {
             type: 'list',
-            items: ['имя пользователя', 'номер карты', 'статус участника', 'тип членства', 'срок действия'],
+            items: [
+              'имя пользователя',
+              'номер карты',
+              'статус участника',
+              'тип членства',
+              'срок действия',
+            ],
           },
           {
             type: 'paragraph',
@@ -1666,7 +1732,14 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Карта не является:' },
           {
             type: 'list',
-            items: ['банковской картой', 'дебетовой картой', 'кредитной картой', 'платёжным инструментом', 'электронным кошельком', 'финансовым продуктом'],
+            items: [
+              'банковской картой',
+              'дебетовой картой',
+              'кредитной картой',
+              'платёжным инструментом',
+              'электронным кошельком',
+              'финансовым продуктом',
+            ],
           },
           {
             type: 'paragraph',
@@ -1685,7 +1758,15 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Каждый партнёр самостоятельно отвечает за:' },
           {
             type: 'list',
-            items: ['свои товары', 'свои услуги', 'лицензии', 'разрешения', 'гарантии', 'обслуживание клиентов', 'соблюдение законодательства'],
+            items: [
+              'свои товары',
+              'свои услуги',
+              'лицензии',
+              'разрешения',
+              'гарантии',
+              'обслуживание клиентов',
+              'соблюдение законодательства',
+            ],
           },
           {
             type: 'paragraph',
@@ -1708,7 +1789,10 @@ export const termsOfUse: LegalDocByLocale = {
       {
         heading: '19. Сторонние сайты',
         blocks: [
-          { type: 'paragraph', text: 'Платформа может содержать ссылки на сайты, приложения и сервисы третьих лиц.' },
+          {
+            type: 'paragraph',
+            text: 'Платформа может содержать ссылки на сайты, приложения и сервисы третьих лиц.',
+          },
           { type: 'paragraph', text: 'Такие ресурсы находятся вне контроля KYLYVNYK CLUB.' },
           {
             type: 'paragraph',
@@ -1717,7 +1801,13 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'KYLYVNYK CLUB не несёт ответственности за:' },
           {
             type: 'list',
-            items: ['содержание сторонних сайтов', 'безопасность сторонних сайтов', 'доступность сторонних сайтов', 'действия владельцев сторонних ресурсов', 'товары и услуги третьих лиц'],
+            items: [
+              'содержание сторонних сайтов',
+              'безопасность сторонних сайтов',
+              'доступность сторонних сайтов',
+              'действия владельцев сторонних ресурсов',
+              'товары и услуги третьих лиц',
+            ],
           },
           {
             type: 'paragraph',
@@ -1740,7 +1830,10 @@ export const termsOfUse: LegalDocByLocale = {
             type: 'paragraph',
             text: 'Использование платформы не предоставляет пользователю каких-либо прав собственности на объекты интеллектуальной собственности.',
           },
-          { type: 'paragraph', text: 'Без предварительного письменного разрешения правообладателя запрещается:' },
+          {
+            type: 'paragraph',
+            text: 'Без предварительного письменного разрешения правообладателя запрещается:',
+          },
           {
             type: 'list',
             items: [
@@ -1926,7 +2019,12 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Уведомления могут направляться посредством:' },
           {
             type: 'list',
-            items: ['электронной почты', 'сообщений в личном кабинете', 'уведомлений платформы', 'иных электронных средств связи'],
+            items: [
+              'электронной почты',
+              'сообщений в личном кабинете',
+              'уведомлений платформы',
+              'иных электронных средств связи',
+            ],
           },
           {
             type: 'paragraph',
@@ -2066,7 +2164,10 @@ export const termsOfUse: LegalDocByLocale = {
             type: 'paragraph',
             text: 'После прекращения использования платформы, отмены подписки либо удаления аккаунта продолжают действовать положения, которые по своему характеру должны сохранять юридическую силу после прекращения отношений между сторонами.',
           },
-          { type: 'paragraph', text: 'К таким положениям относятся, включая, но не ограничиваясь:' },
+          {
+            type: 'paragraph',
+            text: 'К таким положениям относятся, включая, но не ограничиваясь:',
+          },
           {
             type: 'list',
             items: [
@@ -2086,7 +2187,10 @@ export const termsOfUse: LegalDocByLocale = {
       {
         heading: '35. Изменение условий',
         blocks: [
-          { type: 'paragraph', text: 'KYLYVNYK CLUB вправе в любое время изменять настоящие Условия использования.' },
+          {
+            type: 'paragraph',
+            text: 'KYLYVNYK CLUB вправе в любое время изменять настоящие Условия использования.',
+          },
           {
             type: 'paragraph',
             text: 'Обновлённая версия публикуется на сайте с указанием новой даты вступления в силу либо даты последнего обновления.',
@@ -2186,7 +2290,15 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Платформа не гарантирует:' },
           {
             type: 'list',
-            items: ['получение клиентов', 'получение дохода', 'получение прибыли', 'получение контрактов', 'получение скидок', 'развитие бизнеса', 'достижение коммерческих результатов'],
+            items: [
+              'получение клиентов',
+              'получение дохода',
+              'получение прибыли',
+              'получение контрактов',
+              'получение скидок',
+              'развитие бизнеса',
+              'достижение коммерческих результатов',
+            ],
           },
           {
             type: 'paragraph',
@@ -2213,7 +2325,7 @@ export const termsOfUse: LegalDocByLocale = {
       },
       {
         type: 'paragraph',
-        text: "Використовуючи платформу, цифрову клубну картку, каталог партнерів, спеціальні умови партнерів, Business Introductions, VIP-функції та інші сервіси платформи, користувач підтверджує згоду з цими Умовами використання.",
+        text: 'Використовуючи платформу, цифрову клубну картку, каталог партнерів, спеціальні умови партнерів, Business Introductions, VIP-функції та інші сервіси платформи, користувач підтверджує згоду з цими Умовами використання.',
       },
       {
         type: 'paragraph',
@@ -2307,7 +2419,11 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'На платформі можуть існувати такі категорії доступу:' },
           {
             type: 'list',
-            items: ['Безкоштовний учасник (Free Member)', 'VIP-учасник (VIP Member)', 'Бізнес-партнер (Business Profile)'],
+            items: [
+              'Безкоштовний учасник (Free Member)',
+              'VIP-учасник (VIP Member)',
+              'Бізнес-партнер (Business Profile)',
+            ],
           },
           {
             type: 'paragraph',
@@ -2344,7 +2460,15 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'VIP-статус не гарантує:' },
           {
             type: 'list',
-            items: ['клієнтів', 'контракти', 'дохід', 'прибуток', 'економію коштів', 'розвиток бізнесу', 'комерційний результат'],
+            items: [
+              'клієнтів',
+              'контракти',
+              'дохід',
+              'прибуток',
+              'економію коштів',
+              'розвиток бізнесу',
+              'комерційний результат',
+            ],
           },
           {
             type: 'paragraph',
@@ -2355,7 +2479,10 @@ export const termsOfUse: LegalDocByLocale = {
       {
         heading: '7. Бізнес-профілі',
         blocks: [
-          { type: 'paragraph', text: 'Користувач може подати заявку на розміщення бізнес-профілю.' },
+          {
+            type: 'paragraph',
+            text: 'Користувач може подати заявку на розміщення бізнес-профілю.',
+          },
           {
             type: 'paragraph',
             text: 'Адміністрація платформи має право проводити перевірку інформації та приймати рішення щодо публікації.',
@@ -2368,7 +2495,13 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Адміністрація має право:' },
           {
             type: 'list',
-            items: ['відмовити в публікації', 'приховати профіль', 'видалити профіль', 'призупинити публікацію', 'запросити додаткову інформацію'],
+            items: [
+              'відмовити в публікації',
+              'приховати профіль',
+              'видалити профіль',
+              'призупинити публікацію',
+              'запросити додаткову інформацію',
+            ],
           },
           {
             type: 'paragraph',
@@ -2376,7 +2509,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Бізнес-партнер самостійно несе відповідальність за достовірність інформації, розміщеної у своєму бізнес-профілі, включно з описом послуг, цінами, спеціальними умовами, знижками, строками дії пропозицій, обмеженнями та іншими істотними умовами.",
+            text: 'Бізнес-партнер самостійно несе відповідальність за достовірність інформації, розміщеної у своєму бізнес-профілі, включно з описом послуг, цінами, спеціальними умовами, знижками, строками дії пропозицій, обмеженнями та іншими істотними умовами.',
           },
           {
             type: 'paragraph',
@@ -2405,7 +2538,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Кожен бізнес-партнер самостійно визначає умови своїх пропозицій і несе повну відповідальність за їхній зміст, законність, актуальність та виконання.",
+            text: 'Кожен бізнес-партнер самостійно визначає умови своїх пропозицій і несе повну відповідальність за їхній зміст, законність, актуальність та виконання.',
           },
           {
             type: 'paragraph',
@@ -2460,7 +2593,7 @@ export const termsOfUse: LegalDocByLocale = {
               'наявність товарів або послуг',
               'якість товарів або послуг',
               'збереження пропозицій у майбутньому',
-              'виконання зобов\'язань партнером',
+              "виконання зобов'язань партнером",
             ],
           },
           {
@@ -2483,7 +2616,7 @@ export const termsOfUse: LegalDocByLocale = {
               'знайомство учасників',
               'передачу контактної інформації за згодою сторін',
               'рекомендації ділового характеру',
-              'інші форми встановлення ділових зв\'язків',
+              "інші форми встановлення ділових зв'язків",
             ],
           },
           { type: 'paragraph', text: 'Business Introductions не є:' },
@@ -2593,7 +2726,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Продовження використання підписки після чергового списання вважається підтвердженням згоди користувача на подальше використання послуги.",
+            text: 'Продовження використання підписки після чергового списання вважається підтвердженням згоди користувача на подальше використання послуги.',
           },
           {
             type: 'paragraph',
@@ -2628,7 +2761,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: "Видалення облікового запису не вважається автоматичним скасуванням підписки, якщо інше прямо не передбачено функціоналом платформи.",
+            text: 'Видалення облікового запису не вважається автоматичним скасуванням підписки, якщо інше прямо не передбачено функціоналом платформи.',
           },
           {
             type: 'paragraph',
@@ -2649,12 +2782,12 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB має право на власний розсуд розглядати окремі звернення користувачів, однак не зобов\'язана здійснювати повернення коштів, якщо таке повернення не передбачено законом.',
+            text: "KYLYVNYK CLUB має право на власний розсуд розглядати окремі звернення користувачів, однак не зобов'язана здійснювати повернення коштів, якщо таке повернення не передбачено законом.",
           },
         ],
       },
       {
-        heading: '14. Обов\'язки користувача',
+        heading: "14. Обов'язки користувача",
         blocks: [
           { type: 'paragraph', text: "Користувач зобов'язується:" },
           {
@@ -2712,7 +2845,7 @@ export const termsOfUse: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'Користувач зобов\'язаний використовувати надійний пароль і забезпечувати конфіденційність даних для входу.',
+            text: "Користувач зобов'язаний використовувати надійний пароль і забезпечувати конфіденційність даних для входу.",
           },
           {
             type: 'paragraph',
@@ -2724,7 +2857,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'У разі підозри на несанкціонований доступ користувач зобов\'язаний негайно змінити пароль і повідомити адміністрацію платформи.',
+            text: "У разі підозри на несанкціонований доступ користувач зобов'язаний негайно змінити пароль і повідомити адміністрацію платформи.",
           },
           {
             type: 'paragraph',
@@ -2739,7 +2872,13 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Картка може містити:' },
           {
             type: 'list',
-            items: ["ім'я користувача", 'номер картки', 'статус учасника', 'тип членства', 'строк дії'],
+            items: [
+              "ім'я користувача",
+              'номер картки',
+              'статус учасника',
+              'тип членства',
+              'строк дії',
+            ],
           },
           {
             type: 'paragraph',
@@ -2748,7 +2887,14 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Картка не є:' },
           {
             type: 'list',
-            items: ['банківською карткою', 'дебетовою карткою', 'кредитною карткою', 'платіжним інструментом', 'електронним гаманцем', 'фінансовим продуктом'],
+            items: [
+              'банківською карткою',
+              'дебетовою карткою',
+              'кредитною карткою',
+              'платіжним інструментом',
+              'електронним гаманцем',
+              'фінансовим продуктом',
+            ],
           },
           {
             type: 'paragraph',
@@ -2767,7 +2913,15 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Кожен партнер самостійно відповідає за:' },
           {
             type: 'list',
-            items: ['свої товари', 'свої послуги', 'ліцензії', 'дозволи', 'гарантії', 'обслуговування клієнтів', 'дотримання законодавства'],
+            items: [
+              'свої товари',
+              'свої послуги',
+              'ліцензії',
+              'дозволи',
+              'гарантії',
+              'обслуговування клієнтів',
+              'дотримання законодавства',
+            ],
           },
           {
             type: 'paragraph',
@@ -2779,18 +2933,21 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Будь-які угоди, переговори, платежі, зобов\'язання або спори між користувачем і партнером виникають виключно між зазначеними сторонами.',
+            text: "Будь-які угоди, переговори, платежі, зобов'язання або спори між користувачем і партнером виникають виключно між зазначеними сторонами.",
           },
           {
             type: 'paragraph',
-            text: 'Незважаючи на обов\'язок партнера дотримуватися опублікованих спеціальних умов відповідно до цих Умов використання та Partner Rules, KYLYVNYK CLUB не є гарантом виконання зобов\'язань партнера і не несе відповідальності за відмову партнера надати товари, послуги, знижки, бонуси або інші спеціальні умови.',
+            text: "Незважаючи на обов'язок партнера дотримуватися опублікованих спеціальних умов відповідно до цих Умов використання та Partner Rules, KYLYVNYK CLUB не є гарантом виконання зобов'язань партнера і не несе відповідальності за відмову партнера надати товари, послуги, знижки, бонуси або інші спеціальні умови.",
           },
         ],
       },
       {
         heading: '19. Сторонні сайти',
         blocks: [
-          { type: 'paragraph', text: 'Платформа може містити посилання на сайти, застосунки і сервіси третіх осіб.' },
+          {
+            type: 'paragraph',
+            text: 'Платформа може містити посилання на сайти, застосунки і сервіси третіх осіб.',
+          },
           { type: 'paragraph', text: 'Такі ресурси перебувають поза контролем KYLYVNYK CLUB.' },
           {
             type: 'paragraph',
@@ -2799,7 +2956,13 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'KYLYVNYK CLUB не несе відповідальності за:' },
           {
             type: 'list',
-            items: ['зміст сторонніх сайтів', 'безпеку сторонніх сайтів', 'доступність сторонніх сайтів', 'дії власників сторонніх ресурсів', 'товари та послуги третіх осіб'],
+            items: [
+              'зміст сторонніх сайтів',
+              'безпеку сторонніх сайтів',
+              'доступність сторонніх сайтів',
+              'дії власників сторонніх ресурсів',
+              'товари та послуги третіх осіб',
+            ],
           },
           {
             type: 'paragraph',
@@ -2816,13 +2979,16 @@ export const termsOfUse: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: "Усі права на платформу KYLYVNYK CLUB, включно з програмним забезпеченням, дизайном, інтерфейсом, структурою сайту, текстами, зображеннями, логотипами, фірмовим стилем, цифровими клубними картками, базами даних, графічними елементами, торговельними позначеннями та іншими матеріалами, належать KYLYVNYK CLUB, Kylyvnyk Consulting LLC або відповідним правовласникам.",
+            text: 'Усі права на платформу KYLYVNYK CLUB, включно з програмним забезпеченням, дизайном, інтерфейсом, структурою сайту, текстами, зображеннями, логотипами, фірмовим стилем, цифровими клубними картками, базами даних, графічними елементами, торговельними позначеннями та іншими матеріалами, належать KYLYVNYK CLUB, Kylyvnyk Consulting LLC або відповідним правовласникам.',
           },
           {
             type: 'paragraph',
             text: "Використання платформи не надає користувачу жодних прав власності на об'єкти інтелектуальної власності.",
           },
-          { type: 'paragraph', text: 'Без попереднього письмового дозволу правовласника забороняється:' },
+          {
+            type: 'paragraph',
+            text: 'Без попереднього письмового дозволу правовласника забороняється:',
+          },
           {
             type: 'list',
             items: [
@@ -2942,11 +3108,11 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Зазначені обмеження відповідальності застосовуються незалежно від правової теорії відповідальності, включно з договірною відповідальністю, деліктною відповідальністю, необережністю, гарантійними зобов\'язаннями та іншими підставами відповідальності.',
+            text: "Зазначені обмеження відповідальності застосовуються незалежно від правової теорії відповідальності, включно з договірною відповідальністю, деліктною відповідальністю, необережністю, гарантійними зобов'язаннями та іншими підставами відповідальності.",
           },
           {
             type: 'paragraph',
-            text: 'Обмеження відповідальності також поширюється на будь-які претензії, пов\'язані з наданням або ненаданням партнером спеціальних умов, знижок, бонусів, пропозицій або інших переваг, розміщених на платформі.',
+            text: "Обмеження відповідальності також поширюється на будь-які претензії, пов'язані з наданням або ненаданням партнером спеціальних умов, знижок, бонусів, пропозицій або інших переваг, розміщених на платформі.",
           },
         ],
       },
@@ -2955,7 +3121,7 @@ export const termsOfUse: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'Користувач зобов\'язується захищати, відшкодовувати збитки і звільняти від відповідальності KYLYVNYK CLUB, Kylyvnyk Consulting LLC, її власників, працівників, підрядників, представників та афілійованих осіб за претензіями, вимогами, витратами, збитками, штрафами та зобов\'язаннями, що виникають внаслідок:',
+            text: "Користувач зобов'язується захищати, відшкодовувати збитки і звільняти від відповідальності KYLYVNYK CLUB, Kylyvnyk Consulting LLC, її власників, працівників, підрядників, представників та афілійованих осіб за претензіями, вимогами, витратами, збитками, штрафами та зобов'язаннями, що виникають внаслідок:",
           },
           {
             type: 'list',
@@ -2975,7 +3141,7 @@ export const termsOfUse: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB не несе відповідальності за невиконання або затримку виконання зобов\'язань унаслідок обставин, що перебувають поза розумним контролем платформи.',
+            text: "KYLYVNYK CLUB не несе відповідальності за невиконання або затримку виконання зобов'язань унаслідок обставин, що перебувають поза розумним контролем платформи.",
           },
           { type: 'paragraph', text: 'До таких обставин належать:' },
           {
@@ -3008,7 +3174,12 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Повідомлення можуть надсилатися за допомогою:' },
           {
             type: 'list',
-            items: ['електронної пошти', 'повідомлень в особистому кабінеті', 'повідомлень платформи', 'інших електронних засобів зв\'язку'],
+            items: [
+              'електронної пошти',
+              'повідомлень в особистому кабінеті',
+              'повідомлень платформи',
+              "інших електронних засобів зв'язку",
+            ],
           },
           {
             type: 'paragraph',
@@ -3055,11 +3226,11 @@ export const termsOfUse: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'Будь-які спори, розбіжності або вимоги, що виникають у зв\'язку з використанням платформи, цими Умовами, підписками, Business Introductions або діяльністю KYLYVNYK CLUB, підлягають вирішенню шляхом обов\'язкового індивідуального арбітражу в максимально допустимій законом мірі.',
+            text: "Будь-які спори, розбіжності або вимоги, що виникають у зв'язку з використанням платформи, цими Умовами, підписками, Business Introductions або діяльністю KYLYVNYK CLUB, підлягають вирішенню шляхом обов'язкового індивідуального арбітражу в максимально допустимій законом мірі.",
           },
           {
             type: 'paragraph',
-            text: 'До звернення до арбітражу сторони зобов\'язуються докласти розумних зусиль для врегулювання спору шляхом переговорів.',
+            text: "До звернення до арбітражу сторони зобов'язуються докласти розумних зусиль для врегулювання спору шляхом переговорів.",
           },
           {
             type: 'paragraph',
@@ -3067,7 +3238,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Кожна сторона самостійно несе свої витрати на участь в арбітражі, якщо інше не буде передбачено рішенням арбітра або обов\'язковими нормами права.',
+            text: "Кожна сторона самостійно несе свої витрати на участь в арбітражі, якщо інше не буде передбачено рішенням арбітра або обов'язковими нормами права.",
           },
           {
             type: 'paragraph',
@@ -3106,11 +3277,11 @@ export const termsOfUse: LegalDocByLocale = {
         ],
       },
       {
-        heading: '32. Передача прав та обов\'язків',
+        heading: "32. Передача прав та обов'язків",
         blocks: [
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB і Kylyvnyk Consulting LLC мають право повністю або частково передавати свої права та обов\'язки за цими Умовами:',
+            text: "KYLYVNYK CLUB і Kylyvnyk Consulting LLC мають право повністю або частково передавати свої права та обов'язки за цими Умовами:",
           },
           {
             type: 'list',
@@ -3124,7 +3295,7 @@ export const termsOfUse: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Користувач не має права передавати свої права та обов\'язки за цими Умовами без попередньої письмової згоди KYLYVNYK CLUB.',
+            text: "Користувач не має права передавати свої права та обов'язки за цими Умовами без попередньої письмової згоди KYLYVNYK CLUB.",
           },
         ],
       },
@@ -3168,7 +3339,10 @@ export const termsOfUse: LegalDocByLocale = {
       {
         heading: '35. Зміна умов',
         blocks: [
-          { type: 'paragraph', text: 'KYLYVNYK CLUB має право в будь-який час змінювати ці Умови використання.' },
+          {
+            type: 'paragraph',
+            text: 'KYLYVNYK CLUB має право в будь-який час змінювати ці Умови використання.',
+          },
           {
             type: 'paragraph',
             text: 'Оновлена версія публікується на сайті із зазначенням нової дати набрання чинності або дати останнього оновлення.',
@@ -3235,7 +3409,7 @@ export const termsOfUse: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: "KYLYVNYK CLUB є незалежною приватною членською платформою, що керується компанією Kylyvnyk Consulting LLC.",
+            text: 'KYLYVNYK CLUB є незалежною приватною членською платформою, що керується компанією Kylyvnyk Consulting LLC.',
           },
           { type: 'paragraph', text: 'KYLYVNYK CLUB не є:' },
           {
@@ -3268,7 +3442,15 @@ export const termsOfUse: LegalDocByLocale = {
           { type: 'paragraph', text: 'Платформа не гарантує:' },
           {
             type: 'list',
-            items: ['отримання клієнтів', 'отримання доходу', 'отримання прибутку', 'отримання контрактів', 'отримання знижок', 'розвиток бізнесу', 'досягнення комерційних результатів'],
+            items: [
+              'отримання клієнтів',
+              'отримання доходу',
+              'отримання прибутку',
+              'отримання контрактів',
+              'отримання знижок',
+              'розвиток бізнесу',
+              'досягнення комерційних результатів',
+            ],
           },
           {
             type: 'paragraph',
@@ -3281,6 +3463,6 @@ export const termsOfUse: LegalDocByLocale = {
         ],
       },
     ],
-    note: "Цей документ може перекладатися на інші мови виключно для зручності користувачів. У разі будь-яких розбіжностей, суперечностей чи відмінностей між перекладами переважну юридичну силу має офіційна англомовна версія документа.",
+    note: 'Цей документ може перекладатися на інші мови виключно для зручності користувачів. У разі будь-яких розбіжностей, суперечностей чи відмінностей між перекладами переважну юридичну силу має офіційна англомовна версія документа.',
   },
 };

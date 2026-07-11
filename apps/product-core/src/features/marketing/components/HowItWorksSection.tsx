@@ -10,10 +10,7 @@ export function HowItWorksSection(): React.ReactElement {
   const steps = t.raw('howItWorks.steps') as Step[];
 
   return (
-    <section
-      id="how-it-works"
-      className="kclub-border kclub-section-py border-b bg-surface-muted"
-    >
+    <section id="how-it-works" className="kclub-border kclub-section-py border-b bg-surface-muted">
       <div className="kclub-shell">
         <p className="kclub-section-eyebrow">{t('howItWorks.eyebrow')}</p>
         <h2 className="kclub-section-title mt-5 max-w-3xl">{t('howItWorks.title')}</h2>
@@ -26,9 +23,7 @@ export function HowItWorksSection(): React.ReactElement {
               </div>
               <div className="pt-1">
                 <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {step.description}
-                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.description}</p>
               </div>
             </li>
           ))}

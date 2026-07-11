@@ -30,7 +30,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Use of the platform constitutes the member\'s full and unconditional agreement with these Rules.',
+            text: "Use of the platform constitutes the member's full and unconditional agreement with these Rules.",
           },
           {
             type: 'paragraph',
@@ -38,7 +38,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'In the event of a conflict between these Rules and the Terms of Use, the Terms of Use shall prevail unless the platform\'s documents expressly provide otherwise.',
+            text: "In the event of a conflict between these Rules and the Terms of Use, the Terms of Use shall prevail unless the platform's documents expressly provide otherwise.",
           },
           {
             type: 'paragraph',
@@ -51,11 +51,11 @@ export const clubRules: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'Any individual who meets the platform\'s requirements and accepts the platform\'s documents may become a member of KYLYVNYK CLUB.',
+            text: "Any individual who meets the platform's requirements and accepts the platform's documents may become a member of KYLYVNYK CLUB.",
           },
           {
             type: 'paragraph',
-            text: 'Use of the platform is permitted only to persons who have reached the age of 18 or the age of majority established by the law of the user\'s country of residence.',
+            text: "Use of the platform is permitted only to persons who have reached the age of 18 or the age of majority established by the law of the user's country of residence.",
           },
           {
             type: 'paragraph',
@@ -71,7 +71,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Registration on the platform does not create an obligation for the platform to preserve the user\'s access to the platform indefinitely.',
+            text: "Registration on the platform does not create an obligation for the platform to preserve the user's access to the platform indefinitely.",
           },
         ],
       },
@@ -119,9 +119,9 @@ export const clubRules: LegalDocByLocale = {
               'registration on the platform;',
               'creation of an account;',
               'obtaining a digital club card;',
-              'use of the platform\'s core functions;',
+              "use of the platform's core functions;",
               'browsing the partner catalog;',
-              'viewing partners\' special offers;',
+              "viewing partners' special offers;",
               'participation in open platform events;',
               'receiving platform informational materials;',
               'use of other free functions available at the time of using the platform.',
@@ -139,7 +139,7 @@ export const clubRules: LegalDocByLocale = {
           { type: 'paragraph', text: 'VIP Member is an extended participation category.' },
           {
             type: 'paragraph',
-            text: 'VIP Membership may be provided on a paid, free, promotional, trial, or other basis at the platform\'s discretion.',
+            text: "VIP Membership may be provided on a paid, free, promotional, trial, or other basis at the platform's discretion.",
           },
           {
             type: 'paragraph',
@@ -232,7 +232,7 @@ export const clubRules: LegalDocByLocale = {
               'use the platform in good faith;',
               'observe the rules of communication and business ethics;',
               'not create obstacles to the operation of the platform;',
-              'not abuse the platform\'s functions;',
+              "not abuse the platform's functions;",
               'not use the platform for manipulation, artificially influencing the reputation of members or partners, publishing fake reviews, or other unfair practices.',
             ],
           },
@@ -263,14 +263,14 @@ export const clubRules: LegalDocByLocale = {
             items: [
               'use false information;',
               'impersonate another person;',
-              'use someone else\'s data without permission;',
+              "use someone else's data without permission;",
               'create fictitious accounts;',
               'create accounts on behalf of organizations without the necessary authority.',
             ],
           },
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB may request documents or additional information to verify the user\'s identity or confirm the information provided.',
+            text: "KYLYVNYK CLUB may request documents or additional information to verify the user's identity or confirm the information provided.",
           },
           {
             type: 'paragraph',
@@ -282,7 +282,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Providing documents or undergoing verification does not mean approval, recommendation, guarantee, or acceptance by the platform of responsibility for the user\'s activities.',
+            text: "Providing documents or undergoing verification does not mean approval, recommendation, guarantee, or acceptance by the platform of responsibility for the user's activities.",
           },
         ],
       },
@@ -329,7 +329,7 @@ export const clubRules: LegalDocByLocale = {
           {
             type: 'list',
             items: [
-              'the user\'s name;',
+              "the user's name;",
               'card number;',
               'member status;',
               'participation category;',
@@ -367,7 +367,7 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '8. INTERACTION WITH PARTNERS',
         blocks: [
-          { type: 'paragraph', text: 'The platform\'s partners are independent third parties.' },
+          { type: 'paragraph', text: "The platform's partners are independent third parties." },
           {
             type: 'paragraph',
             text: 'The member independently decides whether to interact with platform partners.',
@@ -383,7 +383,7 @@ export const clubRules: LegalDocByLocale = {
               'the cost of goods and services;',
               'the presence of licenses and permits;',
               'the quality of goods and services;',
-              'the partner\'s reputation;',
+              "the partner's reputation;",
               'other material circumstances.',
             ],
           },
@@ -478,7 +478,7 @@ export const clubRules: LegalDocByLocale = {
               'temporarily restrict individual platform functions during the review period;',
               'temporarily restrict access to individual sections of the platform during the review period;',
               'request explanations from members or partners;',
-              'take measures provided for by the platform\'s documents.',
+              "take measures provided for by the platform's documents.",
             ],
           },
           {
@@ -487,7 +487,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'The fact that an inquiry has been reviewed does not mean an admission of anyone\'s rightness or fault.',
+            text: "The fact that an inquiry has been reviewed does not mean an admission of anyone's rightness or fault.",
           },
           {
             type: 'paragraph',
@@ -510,19 +510,19 @@ export const clubRules: LegalDocByLocale = {
               'using the platform for fraudulent purposes;',
               'posting false or misleading information;',
               'impersonating another person;',
-              'using someone else\'s data without permission;',
+              "using someone else's data without permission;",
               'creating fictitious accounts;',
               'using automated tools for unauthorized access to the platform;',
               'distributing malicious software;',
               'interfering with the operation of the platform;',
-              'circumventing the platform\'s technical restrictions;',
+              "circumventing the platform's technical restrictions;",
               'using the platform to send spam;',
-              'using the platform for mass solicitation of goods, services, investments, or other commercial offers without the recipients\' consent;',
+              "using the platform for mass solicitation of goods, services, investments, or other commercial offers without the recipients' consent;",
               'posting illegal content;',
               'infringing intellectual property rights;',
               'using the platform for harassment, threats, discrimination, or other forms of unfair conduct;',
               'abusing the Business Introductions system;',
-              'abusing partners\' special conditions;',
+              "abusing partners' special conditions;",
               'engaging in activity capable of causing harm to the platform, members, or partners.',
             ],
           },
@@ -555,11 +555,11 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'The choice of a specific measure is made solely at the platform\'s discretion, taking into account the nature of the violation, the degree of risk, and other circumstances of the specific situation.',
+            text: "The choice of a specific measure is made solely at the platform's discretion, taking into account the nature of the violation, the degree of risk, and other circumstances of the specific situation.",
           },
           {
             type: 'paragraph',
-            text: 'Application of one measure does not limit the platform\'s right to apply additional measures in the future.',
+            text: "Application of one measure does not limit the platform's right to apply additional measures in the future.",
           },
         ],
       },
@@ -569,24 +569,24 @@ export const clubRules: LegalDocByLocale = {
           { type: 'paragraph', text: 'The member may stop using the platform at any time.' },
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB may restrict, suspend, or terminate a user\'s access, in whole or in part, in cases of:',
+            text: "KYLYVNYK CLUB may restrict, suspend, or terminate a user's access, in whole or in part, in cases of:",
           },
           {
             type: 'list',
             items: [
-              'violation of the platform\'s documents;',
+              "violation of the platform's documents;",
               'violation of the law;',
               'providing inaccurate information;',
-              'refusal to undergo identity verification or another check provided for by the platform\'s documents;',
+              "refusal to undergo identity verification or another check provided for by the platform's documents;",
               'complaints from users or partners;',
               'creation of legal, financial, operational, or reputational risks for the platform;',
-              'abuse of the platform\'s functions;',
+              "abuse of the platform's functions;",
               'other circumstances that the platform reasonably considers sufficient to restrict access.',
             ],
           },
           {
             type: 'paragraph',
-            text: 'The platform\'s decision to restrict or terminate access may be made for a specific period or indefinitely, depending on the circumstances of the specific case.',
+            text: "The platform's decision to restrict or terminate access may be made for a specific period or indefinitely, depending on the circumstances of the specific case.",
           },
           {
             type: 'paragraph',
@@ -594,7 +594,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB may retain archival records, interaction history, verification documents, and other information to the extent necessary to comply with the law, prevent fraud, resolve disputes, and protect the platform\'s legitimate interests.',
+            text: "KYLYVNYK CLUB may retain archival records, interaction history, verification documents, and other information to the extent necessary to comply with the law, prevent fraud, resolve disputes, and protect the platform's legitimate interests.",
           },
         ],
       },
@@ -623,7 +623,7 @@ export const clubRules: LegalDocByLocale = {
               'continuous availability of the platform;',
               'absence of errors or technical failures;',
               'compatibility of the platform with any devices, software, or third-party services;',
-              'preservation of data in the event of circumstances beyond the platform\'s reasonable control.',
+              "preservation of data in the event of circumstances beyond the platform's reasonable control.",
             ],
           },
           {
@@ -661,7 +661,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'The platform\'s maximum aggregate liability to a member is limited to the amount actually paid by the member to the platform during the three (3) calendar months immediately preceding the event giving rise to the relevant claim.',
+            text: "The platform's maximum aggregate liability to a member is limited to the amount actually paid by the member to the platform during the three (3) calendar months immediately preceding the event giving rise to the relevant claim.",
           },
           {
             type: 'paragraph',
@@ -674,7 +674,7 @@ export const clubRules: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'The member must comply with the applicable law of their country of residence, the country in which they conduct their activities, and other jurisdictions whose law applies to the member\'s actions.',
+            text: "The member must comply with the applicable law of their country of residence, the country in which they conduct their activities, and other jurisdictions whose law applies to the member's actions.",
           },
           {
             type: 'paragraph',
@@ -696,7 +696,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Continued use of the platform after the amendments take effect constitutes the member\'s agreement with the updated version of the Rules to the extent permitted by applicable law.',
+            text: "Continued use of the platform after the amendments take effect constitutes the member's agreement with the updated version of the Rules to the extent permitted by applicable law.",
           },
           {
             type: 'paragraph',
@@ -717,7 +717,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'In the event of a conflict between these Club Rules and the Terms of Use, the Terms of Use shall prevail unless the platform\'s documents expressly provide otherwise.',
+            text: "In the event of a conflict between these Club Rules and the Terms of Use, the Terms of Use shall prevail unless the platform's documents expressly provide otherwise.",
           },
         ],
       },
@@ -849,7 +849,10 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '3.1 FREE MEMBER',
         blocks: [
-          { type: 'paragraph', text: 'Free Member является базовой категорией участия в KYLYVNYK CLUB.' },
+          {
+            type: 'paragraph',
+            text: 'Free Member является базовой категорией участия в KYLYVNYK CLUB.',
+          },
           {
             type: 'paragraph',
             text: 'Участник данной категории может использовать функции платформы, которые на соответствующий момент предоставляются бесплатно.',
@@ -1031,7 +1034,10 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '6. АККАУНТ УЧАСТНИКА',
         blocks: [
-          { type: 'paragraph', text: 'Участник несёт ответственность за безопасность своей учётной записи.' },
+          {
+            type: 'paragraph',
+            text: 'Участник несёт ответственность за безопасность своей учётной записи.',
+          },
           { type: 'paragraph', text: 'Участник обязан:' },
           {
             type: 'list',
@@ -1056,7 +1062,10 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '7. ЦИФРОВАЯ КЛУБНАЯ КАРТА',
         blocks: [
-          { type: 'paragraph', text: 'Платформа может предоставлять участникам цифровую клубную карту.' },
+          {
+            type: 'paragraph',
+            text: 'Платформа может предоставлять участникам цифровую клубную карту.',
+          },
           {
             type: 'paragraph',
             text: 'Цифровая клубная карта предназначена исключительно для идентификации участника в рамках платформы и использования функций, доступных соответствующей категории участия.',
@@ -1302,7 +1311,10 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '13. ПРЕКРАЩЕНИЕ ДОСТУПА',
         blocks: [
-          { type: 'paragraph', text: 'Участник вправе прекратить использование платформы в любое время.' },
+          {
+            type: 'paragraph',
+            text: 'Участник вправе прекратить использование платформы в любое время.',
+          },
           {
             type: 'paragraph',
             text: 'KYLYVNYK CLUB вправе ограничить, приостановить либо прекратить доступ пользователя полностью либо частично в случаях:',
@@ -1337,7 +1349,10 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '14. ОТСУТСТВИЕ ГАРАНТИЙ',
         blocks: [
-          { type: 'paragraph', text: 'Платформа предоставляется по принципу «AS IS» и «AS AVAILABLE».' },
+          {
+            type: 'paragraph',
+            text: 'Платформа предоставляется по принципу «AS IS» и «AS AVAILABLE».',
+          },
           { type: 'paragraph', text: 'KYLYVNYK CLUB не гарантирует:' },
           {
             type: 'list',
@@ -1359,7 +1374,10 @@ export const clubRules: LegalDocByLocale = {
               'сохранность данных в случае обстоятельств, находящихся вне разумного контроля платформы.',
             ],
           },
-          { type: 'paragraph', text: 'Использование платформы осуществляется участником на собственный риск.' },
+          {
+            type: 'paragraph',
+            text: 'Использование платформы осуществляется участником на собственный риск.',
+          },
         ],
       },
       {
@@ -1419,7 +1437,10 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '17. ИЗМЕНЕНИЕ ПРАВИЛ',
         blocks: [
-          { type: 'paragraph', text: 'KYLYVNYK CLUB вправе периодически изменять настоящие Club Rules.' },
+          {
+            type: 'paragraph',
+            text: 'KYLYVNYK CLUB вправе периодически изменять настоящие Club Rules.',
+          },
           {
             type: 'paragraph',
             text: 'Обновлённая редакция публикуется на платформе с указанием новой даты вступления в силу либо даты последнего обновления.',
@@ -1509,7 +1530,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Якщо учасник не згоден із цими Правилами, він зобов\'язаний припинити використання платформи.',
+            text: "Якщо учасник не згоден із цими Правилами, він зобов'язаний припинити використання платформи.",
           },
           {
             type: 'paragraph',
@@ -1546,7 +1567,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Реєстрація на платформі не створює обов\'язку платформи зберігати доступ користувача до платформи безстроково.',
+            text: "Реєстрація на платформі не створює обов'язку платформи зберігати доступ користувача до платформи безстроково.",
           },
         ],
       },
@@ -1568,7 +1589,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Платформа має право на власний розсуд створювати нові категорії участі, змінювати наявні категорії, об\'єднувати їх, розділяти, перейменовувати або припиняти окремі програми участі.',
+            text: "Платформа має право на власний розсуд створювати нові категорії участі, змінювати наявні категорії, об'єднувати їх, розділяти, перейменовувати або припиняти окремі програми участі.",
           },
           {
             type: 'paragraph',
@@ -1693,7 +1714,7 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '4. ПРАВИЛА ПОВЕДІНКИ УЧАСНИКІВ',
         blocks: [
-          { type: 'paragraph', text: 'Учасник зобов\'язаний:' },
+          { type: 'paragraph', text: "Учасник зобов'язаний:" },
           {
             type: 'list',
             items: [
@@ -1710,11 +1731,11 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Учасник зобов\'язаний самостійно оцінювати будь-які ділові, комерційні або інші пропозиції, отримані через платформу.',
+            text: "Учасник зобов'язаний самостійно оцінювати будь-які ділові, комерційні або інші пропозиції, отримані через платформу.",
           },
           {
             type: 'paragraph',
-            text: 'Платформа не зобов\'язана контролювати всі дії користувачів і не гарантує достовірність будь-якої інформації, розміщеної учасниками.',
+            text: "Платформа не зобов'язана контролювати всі дії користувачів і не гарантує достовірність будь-якої інформації, розміщеної учасниками.",
           },
         ],
       },
@@ -1723,11 +1744,11 @@ export const clubRules: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'Учасник зобов\'язується надавати достовірну, актуальну та повну інформацію.',
+            text: "Учасник зобов'язується надавати достовірну, актуальну та повну інформацію.",
           },
           {
             type: 'paragraph',
-            text: 'Учасник зобов\'язаний своєчасно оновлювати свої дані у разі їх зміни.',
+            text: "Учасник зобов'язаний своєчасно оновлювати свої дані у разі їх зміни.",
           },
           { type: 'paragraph', text: 'Користувач не має права:' },
           {
@@ -1761,8 +1782,11 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '6. ОБЛІКОВИЙ ЗАПИС УЧАСНИКА',
         blocks: [
-          { type: 'paragraph', text: 'Учасник несе відповідальність за безпеку свого облікового запису.' },
-          { type: 'paragraph', text: 'Учасник зобов\'язаний:' },
+          {
+            type: 'paragraph',
+            text: 'Учасник несе відповідальність за безпеку свого облікового запису.',
+          },
+          { type: 'paragraph', text: "Учасник зобов'язаний:" },
           {
             type: 'list',
             items: [
@@ -1795,7 +1819,7 @@ export const clubRules: LegalDocByLocale = {
           {
             type: 'list',
             items: [
-              'ім\'я користувача;',
+              "ім'я користувача;",
               'номер картки;',
               'статус учасника;',
               'категорію участі;',
@@ -1822,7 +1846,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Учасник зобов\'язаний пред\'являти дійсну клубну картку або іншим способом підтверджувати свій статус учасника у випадках, коли це вимагається для отримання спеціальних умов або доступу до окремих функцій платформи.',
+            text: "Учасник зобов'язаний пред'являти дійсну клубну картку або іншим способом підтверджувати свій статус учасника у випадках, коли це вимагається для отримання спеціальних умов або доступу до окремих функцій платформи.",
           },
           {
             type: 'paragraph',
@@ -1840,7 +1864,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Перед придбанням товарів або послуг учасник зобов\'язаний самостійно оцінити:',
+            text: "Перед придбанням товарів або послуг учасник зобов'язаний самостійно оцінити:",
           },
           {
             type: 'list',
@@ -1867,7 +1891,7 @@ export const clubRules: LegalDocByLocale = {
               'якість послуг;',
               'наявність товарів;',
               'наявність послуг;',
-              'виконання зобов\'язань партнерами.',
+              "виконання зобов'язань партнерами.",
             ],
           },
           {
@@ -1934,7 +1958,7 @@ export const clubRules: LegalDocByLocale = {
             type: 'paragraph',
             text: 'Учасники мають право надсилати платформі скарги, звернення та повідомлення про можливі порушення.',
           },
-          { type: 'paragraph', text: 'KYLYVNYK CLUB має право, але не зобов\'язана:' },
+          { type: 'paragraph', text: "KYLYVNYK CLUB має право, але не зобов'язана:" },
           {
             type: 'list',
             items: [
@@ -1949,7 +1973,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Платформа не зобов\'язана виступати арбітром, посередником або представником будь-якої сторони спору.',
+            text: "Платформа не зобов'язана виступати арбітром, посередником або представником будь-якої сторони спору.",
           },
           {
             type: 'paragraph',
@@ -1961,7 +1985,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Платформа не зобов\'язана розкривати внутрішні матеріали перевірки, внутрішні процедури прийняття рішень або інформацію, отриману від третіх осіб.',
+            text: "Платформа не зобов'язана розкривати внутрішні матеріали перевірки, внутрішні процедури прийняття рішень або інформацію, отриману від третіх осіб.",
           },
         ],
       },
@@ -1983,7 +2007,7 @@ export const clubRules: LegalDocByLocale = {
               'втручатися в роботу платформи;',
               'обходити технічні обмеження платформи;',
               'використовувати платформу для розсилання спаму;',
-              'використовувати платформу для масового нав\'язування товарів, послуг, інвестицій або інших комерційних пропозицій без згоди отримувачів;',
+              "використовувати платформу для масового нав'язування товарів, послуг, інвестицій або інших комерційних пропозицій без згоди отримувачів;",
               'публікувати незаконний контент;',
               'порушувати права інтелектуальної власності;',
               'використовувати платформу для переслідування, погроз, дискримінації або інших форм недобросовісної поведінки;',
@@ -2032,7 +2056,10 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '13. ПРИПИНЕННЯ ДОСТУПУ',
         blocks: [
-          { type: 'paragraph', text: 'Учасник має право припинити використання платформи в будь-який час.' },
+          {
+            type: 'paragraph',
+            text: 'Учасник має право припинити використання платформи в будь-який час.',
+          },
           {
             type: 'paragraph',
             text: 'KYLYVNYK CLUB має право обмежити, призупинити або припинити доступ користувача повністю або частково у випадках:',
@@ -2056,7 +2083,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Припинення доступу не створює обов\'язку платформи здійснювати повернення раніше сплачених платежів, крім випадків, прямо передбачених застосовним законодавством.',
+            text: "Припинення доступу не створює обов'язку платформи здійснювати повернення раніше сплачених платежів, крім випадків, прямо передбачених застосовним законодавством.",
           },
           {
             type: 'paragraph',
@@ -2067,7 +2094,10 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '14. ВІДСУТНІСТЬ ГАРАНТІЙ',
         blocks: [
-          { type: 'paragraph', text: 'Платформа надається за принципом «AS IS» та «AS AVAILABLE».' },
+          {
+            type: 'paragraph',
+            text: 'Платформа надається за принципом «AS IS» та «AS AVAILABLE».',
+          },
           { type: 'paragraph', text: 'KYLYVNYK CLUB не гарантує:' },
           {
             type: 'list',
@@ -2089,7 +2119,10 @@ export const clubRules: LegalDocByLocale = {
               'збереження даних у разі обставин, що перебувають поза розумним контролем платформи.',
             ],
           },
-          { type: 'paragraph', text: 'Використання платформи здійснюється учасником на власний ризик.' },
+          {
+            type: 'paragraph',
+            text: 'Використання платформи здійснюється учасником на власний ризик.',
+          },
         ],
       },
       {
@@ -2134,7 +2167,7 @@ export const clubRules: LegalDocByLocale = {
         blocks: [
           {
             type: 'paragraph',
-            text: 'Учасник зобов\'язаний дотримуватися застосовного законодавства країни свого проживання, країни здійснення діяльності та інших юрисдикцій, законодавство яких застосовується до дій учасника.',
+            text: "Учасник зобов'язаний дотримуватися застосовного законодавства країни свого проживання, країни здійснення діяльності та інших юрисдикцій, законодавство яких застосовується до дій учасника.",
           },
           {
             type: 'paragraph',
@@ -2149,7 +2182,10 @@ export const clubRules: LegalDocByLocale = {
       {
         heading: '17. ЗМІНА ПРАВИЛ',
         blocks: [
-          { type: 'paragraph', text: 'KYLYVNYK CLUB має право періодично змінювати ці Club Rules.' },
+          {
+            type: 'paragraph',
+            text: 'KYLYVNYK CLUB має право періодично змінювати ці Club Rules.',
+          },
           {
             type: 'paragraph',
             text: 'Оновлена редакція публікується на платформі із зазначенням нової дати набрання чинності або дати останнього оновлення.',
@@ -2160,7 +2196,7 @@ export const clubRules: LegalDocByLocale = {
           },
           {
             type: 'paragraph',
-            text: 'Якщо учасник не згоден зі змінами, він зобов\'язаний припинити використання платформи.',
+            text: "Якщо учасник не згоден зі змінами, він зобов'язаний припинити використання платформи.",
           },
         ],
       },
@@ -2195,11 +2231,11 @@ export const clubRules: LegalDocByLocale = {
           { type: 'paragraph', text: 'United States' },
           {
             type: 'paragraph',
-            text: 'З питань, пов\'язаних із використанням платформи, учасник може звертатися за вказаними контактними даними.',
+            text: "З питань, пов'язаних із використанням платформи, учасник може звертатися за вказаними контактними даними.",
           },
           {
             type: 'paragraph',
-            text: 'KYLYVNYK CLUB має право самостійно визначати порядок, строки та обсяг відповідей на звернення учасників, якщо інше не передбачено обов\'язковими вимогами законодавства.',
+            text: "KYLYVNYK CLUB має право самостійно визначати порядок, строки та обсяг відповідей на звернення учасників, якщо інше не передбачено обов'язковими вимогами законодавства.",
           },
         ],
       },

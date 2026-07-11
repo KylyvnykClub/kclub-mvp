@@ -69,9 +69,7 @@ export function LegalDocument({ doc }: { doc: LegalDoc }) {
       </div>
 
       {doc.note && (
-        <p className="mt-12 border-t border-border pt-6 text-xs leading-6 text-muted">
-          {doc.note}
-        </p>
+        <p className="mt-12 border-t border-border pt-6 text-xs leading-6 text-muted">{doc.note}</p>
       )}
     </article>
   );
