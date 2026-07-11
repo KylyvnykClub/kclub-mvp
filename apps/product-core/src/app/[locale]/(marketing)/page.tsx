@@ -39,10 +39,10 @@ export default async function Page(props: { params: Promise<{ locale: Locale }> 
       <HeroSection locale={locale} />
       <TopPartnersSection locale={locale} businesses={businesses} />
       <StatsSection />
+      <AboutSection />
       <FeaturesSection />
       <HowItWorksSection />
       <ServicesSection locale={locale} />
-      <AboutSection />
       <FeaturedBusinesses locale={locale} businesses={businesses} />
       <TestimonialsSection />
       <FaqSection />

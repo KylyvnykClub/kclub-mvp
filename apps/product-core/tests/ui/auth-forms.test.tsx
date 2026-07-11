@@ -16,10 +16,7 @@ mock.module('next-intl', () => ({
   useTranslations: (namespace: string) => {
     const t = (key: string) => `${namespace}.${key}`;
     t.rich = (key: string, values: Record<string, (chunks: unknown) => unknown>) =>
-      Object.values(values).reduce<unknown>(
-        (acc, render) => render(acc),
-        `${namespace}.${key}`,
-      );
+      Object.values(values).reduce<unknown>((acc, render) => render(acc), `${namespace}.${key}`);
     return t;
   },
 }));

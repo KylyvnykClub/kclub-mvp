@@ -24,8 +24,18 @@ export function Footer({ locale }: { locale: Locale }) {
     {
       title: t('footer.legal'),
       links: [
-        { label: t('footer.terms'), href: `/${locale}/terms` },
-        { label: t('footer.privacy'), href: `/${locale}/privacy` },
+        { label: t('footer.terms'), href: `/legal/${locale}/terms-of-use` },
+        { label: t('footer.privacy'), href: `/legal/${locale}/privacy-policy` },
+        { label: t('footer.cookiePolicy'), href: `/legal/${locale}/cookie-policy` },
+        { label: t('footer.clubRules'), href: `/legal/${locale}/club-rules` },
+        { label: t('footer.partnerRules'), href: `/legal/${locale}/partner-rules` },
+        {
+          label: t('footer.businessIntroRules'),
+          href: `/legal/${locale}/business-introduction-rules`,
+        },
+        { label: t('footer.refundPolicy'), href: `/legal/${locale}/refund-policy` },
+        { label: t('footer.disclaimer'), href: `/legal/${locale}/disclaimer` },
+        { label: t('footer.contactUs'), href: `/legal/${locale}/contact-us` },
       ],
     },
   ];
