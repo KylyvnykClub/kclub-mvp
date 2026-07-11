@@ -157,25 +157,65 @@
       }
     },
     "about": {
-      "eyebrow": "About",
-      "title": "A curated private network for professionals and entrepreneurs.",
-      "paragraph1": "KCLUB connects members with trusted businesses, practical membership tools, and a private path into cross-border relationships.",
-      "paragraph2": "The platform keeps access focused: verified members, moderated partners, digital cards, and clear VIP pathways.",
-      "factsTitle": "Key Facts",
-      "facts": [
-        {
-          "label": "Founded",
-          "value": "2019"
+      "eyebrow": "О клубе",
+      "title": "Международное сообщество, основанное на доверии",
+      "introduction": "KYLYVNYK CLUB — это частная членская платформа, объединяющая проверенных участников, независимых партнёров и владельцев бизнеса из разных стран.",
+      "community": "Каждый участник проходит проверку перед вступлением, поэтому знакомства, предложения и связи происходят внутри доверенного, курируемого круга, а не в открытом интернете.",
+      "mission": {
+        "eyebrow": "Наша миссия",
+        "title": "Настоящие связи, а не просто контакты",
+        "description": "Мы создали KYLYVNYK CLUB, чтобы участникам было проще находить надёжных партнёров, обмениваться тёплыми знакомствами и получать доступ к эксклюзивным предложениям — без шума открытых площадок."
+      },
+      "audiences": {
+        "eyebrow": "Для кого это",
+        "title": "Создано для участников, специалистов и компаний",
+        "members": {
+          "title": "Участники",
+          "description": "Получите проверенную цифровую клубную карту, изучайте каталог партнёров и открывайте специальные предложения от надёжных бизнесов."
         },
-        {
-          "label": "HQ",
-          "value": "USA"
+        "professionals": {
+          "title": "Специалисты",
+          "description": "Развивайте свою сеть контактов через тёплые, проверенные знакомства вместо холодных обращений."
         },
-        {
-          "label": "Members",
-          "value": "1 200+"
+        "companies": {
+          "title": "Компании",
+          "description": "Разместите свой бизнес в каталоге партнёров и получите доступ к отобранной аудитории проверенных участников."
         }
-      ]
+      },
+      "benefits": {
+        "eyebrow": "Почему KYLYVNYK CLUB",
+        "title": "Что даёт членство",
+        "international": {
+          "label": "Глобально",
+          "title": "Международный охват",
+          "description": "Общайтесь с участниками и партнёрами из разных стран, а не только на локальном рынке."
+        },
+        "card": {
+          "label": "Идентификация",
+          "title": "Цифровая клубная карта",
+          "description": "Проверенная карта с QR-кодом, подтверждающая ваше членство в любой ситуации."
+        },
+        "offers": {
+          "label": "Предложения",
+          "title": "Эксклюзивные предложения партнёров",
+          "description": "Получайте доступ к специальным условиям и скидкам, размещённым непосредственно проверенными партнёрами."
+        },
+        "directory": {
+          "label": "Каталог",
+          "title": "Курируемый каталог партнёров",
+          "description": "Просматривайте модерируемый каталог проверенных бизнесов по категориям и городам."
+        },
+        "connections": {
+          "label": "Знакомства",
+          "title": "Тёплые деловые знакомства",
+          "description": "Находите нужных людей через Business Introductions вместо холодных контактов."
+        },
+        "privacy": {
+          "label": "Конфиденциальность",
+          "title": "Приватность по умолчанию",
+          "description": "Ваши данные и профиль видны только внутри клуба и находятся под вашим контролем."
+        }
+      }
     },
     "featured": {
       "eyebrow": "Directory",
@@ -256,6 +296,13 @@
       "verifyCard": "Verify Card",
       "terms": "Terms",
       "privacy": "Конфиденциальность",
+      "cookiePolicy": "Политика Cookie",
+      "clubRules": "Правила клуба",
+      "partnerRules": "Правила партнёров",
+      "businessIntroRules": "Правила Business Introductions",
+      "refundPolicy": "Политика возвратов",
+      "disclaimer": "Отказ от ответственности",
+      "contactUs": "Связаться с нами",
       "copyright": "© Все права защищены."
     },
     "partners": {
@@ -310,7 +357,12 @@
     "common": {
       "loading": "Загрузка...",
       "saving": "Сохранение...",
-      "genericError": "Что-то пошло не так. Попробуйте еще раз."
+      "genericError": "Что-то пошло не так. Попробуйте еще раз.",
+      "locales": {
+        "en": "English",
+        "ru": "Русский",
+        "uk": "Украинский"
+      }
     },
     "onboarding": {
       "metaTitle": "Complete Onboarding | KCLUB",

@@ -158,24 +158,64 @@
     },
     "about": {
       "eyebrow": "About",
-      "title": "A curated private network for professionals and entrepreneurs.",
-      "paragraph1": "KCLUB connects members with trusted businesses, practical membership tools, and a private path into cross-border relationships.",
-      "paragraph2": "The platform keeps access focused: verified members, moderated partners, digital cards, and clear VIP pathways.",
-      "factsTitle": "Key Facts",
-      "facts": [
-        {
-          "label": "Founded",
-          "value": "2019"
+      "title": "An international community built on trust",
+      "introduction": "KYLYVNYK CLUB is a private membership platform that brings together verified members, independent partners, and business owners across borders.",
+      "community": "Every member is verified before joining, so introductions, offers, and connections happen inside a trusted, curated circle rather than the open internet.",
+      "mission": {
+        "eyebrow": "Our Mission",
+        "title": "Building real connections, not just contacts",
+        "description": "We designed KYLYVNYK CLUB to make it easier for members to find trusted partners, exchange warm introductions, and access exclusive offers, without the noise of open marketplaces."
+      },
+      "audiences": {
+        "eyebrow": "Who It's For",
+        "title": "Built for members, professionals, and companies",
+        "members": {
+          "title": "Members",
+          "description": "Get a verified digital club card, browse the partner directory, and unlock special offers from trusted businesses."
         },
-        {
-          "label": "HQ",
-          "value": "USA"
+        "professionals": {
+          "title": "Professionals",
+          "description": "Grow your network through warm, vetted introductions instead of cold outreach."
         },
-        {
-          "label": "Members",
-          "value": "1 200+"
+        "companies": {
+          "title": "Companies",
+          "description": "List your business in the partner directory and reach a curated audience of verified members."
         }
-      ]
+      },
+      "benefits": {
+        "eyebrow": "Why KYLYVNYK CLUB",
+        "title": "What membership gives you",
+        "international": {
+          "label": "Global",
+          "title": "International reach",
+          "description": "Connect with members and partners across countries, not just your local market."
+        },
+        "card": {
+          "label": "Identity",
+          "title": "Digital club card",
+          "description": "A verified, QR-backed card that confirms your membership wherever you go."
+        },
+        "offers": {
+          "label": "Offers",
+          "title": "Exclusive partner offers",
+          "description": "Access special terms and discounts published directly by verified partners."
+        },
+        "directory": {
+          "label": "Directory",
+          "title": "Curated partner directory",
+          "description": "Browse a moderated catalog of verified businesses across categories and cities."
+        },
+        "connections": {
+          "label": "Introductions",
+          "title": "Warm business introductions",
+          "description": "Get connected to the right people through Business Introductions instead of cold contacts."
+        },
+        "privacy": {
+          "label": "Privacy",
+          "title": "Privacy by design",
+          "description": "Your data and profile stay visible only within the club, under your control."
+        }
+      }
     },
     "featured": {
       "eyebrow": "Directory",
@@ -256,6 +296,13 @@
       "verifyCard": "Verify Card",
       "terms": "Terms",
       "privacy": "Privacy",
+      "cookiePolicy": "Cookie Policy",
+      "clubRules": "Club Rules",
+      "partnerRules": "Partner Rules",
+      "businessIntroRules": "Business Introduction Rules",
+      "refundPolicy": "Refund Policy",
+      "disclaimer": "Disclaimer",
+      "contactUs": "Contact Us",
       "copyright": "© All rights reserved."
     },
     "partners": {
@@ -310,7 +357,12 @@
     "common": {
       "loading": "Loading...",
       "saving": "Saving...",
-      "genericError": "Something went wrong. Please try again."
+      "genericError": "Something went wrong. Please try again.",
+      "locales": {
+        "en": "English",
+        "ru": "Russian",
+        "uk": "Ukrainian"
+      }
     },
     "onboarding": {
       "metaTitle": "Complete Onboarding | KCLUB",

@@ -25,10 +25,11 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isApiRoute = pathname.startsWith('/api/');
+  const isLegalRoute = pathname.startsWith('/legal/');
   const isAssetRoute =
     pathname.startsWith('/_next/') || pathname === '/favicon.ico' || pathname === '/robots.txt';
 
-  if (isApiRoute) {
+  if (isApiRoute || isLegalRoute) {
     return NextResponse.next({
       request: {
         headers: withRequestHeaders(request).headers,
