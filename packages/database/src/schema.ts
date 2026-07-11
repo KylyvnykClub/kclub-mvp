@@ -53,6 +53,7 @@ export const users = pgTable(
     supabase_auth_user_id: uuid('supabase_auth_user_id').unique(),
     phone: varchar('phone', { length: 32 }).notNull().unique(),
     display_name: varchar('display_name', { length: 100 }),
+    email: varchar('email', { length: 255 }),
     locale_preference: varchar('locale_preference', { length: 2 }),
     membership_tier: memberTierEnum('membership_tier').default('MEMBER').notNull(),
     status: userStatusEnum('status').default('ACTIVE').notNull(),

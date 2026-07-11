@@ -16,6 +16,7 @@ mock.module('next-intl', () => ({
 }));
 
 import { OnboardingForm } from '@/features/member/components/OnboardingForm';
+import { SkipOnboardingButton } from '@/features/member/components/SkipOnboardingButton';
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
 
 const mockFetch = mock();
@@ -25,6 +26,7 @@ const incompleteProfile: CurrentMemberProfileDto = {
   id: 'member-1',
   phone: '+15551234567',
   displayName: null,
+  email: null,
   localePreference: null,
   membershipTier: 'MEMBER',
   status: 'ACTIVE',
@@ -61,7 +63,6 @@ describe('OnboardingForm', () => {
     fireEvent.change(screen.getByLabelText('member.onboarding.displayNameLabel'), {
       target: { value: 'Ada Member' },
     });
-    fireEvent.click(screen.getByLabelText('member.onboarding.termsLabel'));
     fireEvent.click(screen.getByText('member.onboarding.submit'));
 
     await waitFor(() => {
@@ -72,11 +73,29 @@ describe('OnboardingForm', () => {
           body: JSON.stringify({
             phone: '+15551234567',
             displayName: 'Ada Member',
+            email: null,
             localePreference: 'en',
             termsAccepted: true,
           }),
         }),
       );
+      expect(replace).toHaveBeenCalledWith('/en/m/dashboard?tab=details');
+      expect(refresh).toHaveBeenCalled();
+    });
+  });
+
+  test('skip button skips onboarding and redirects to dashboard', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: { skipped: true }, error: null }),
+    } as Response);
+
+    render(<SkipOnboardingButton locale="en" />);
+
+    fireEvent.click(screen.getByTestId('onboarding-skip'));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/v1/me/skip-onboarding', { method: 'POST' });
       expect(replace).toHaveBeenCalledWith('/en/m/dashboard?tab=details');
       expect(refresh).toHaveBeenCalled();
     });
@@ -97,7 +116,6 @@ describe('OnboardingForm', () => {
     fireEvent.change(screen.getByLabelText('member.onboarding.displayNameLabel'), {
       target: { value: 'A' },
     });
-    fireEvent.click(screen.getByLabelText('member.onboarding.termsLabel'));
     fireEvent.click(screen.getByText('member.onboarding.submit'));
 
     await waitFor(() => {

@@ -25,6 +25,7 @@ export function createMemberUser(overrides?: FactoryOverrides<TestMemberUser>): 
       id: makeEntityId('member', sequence),
       phone: makePhone(sequence),
       displayName: `Member ${sequence}`,
+      email: null,
       localePreference,
       membershipTier,
       status,

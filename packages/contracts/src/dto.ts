@@ -151,6 +151,7 @@ export type CurrentMemberProfileDto = {
   id: EntityId;
   phone: string;
   displayName: string | null;
+  email: string | null;
   localePreference: Locale | null;
   membershipTier: MemberTier;
   status: UserStatus;

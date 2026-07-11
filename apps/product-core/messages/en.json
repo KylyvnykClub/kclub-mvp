@@ -277,6 +277,7 @@
       "privacyNote": "Protected member access. Phone verification keeps your digital club card private.",
       "loading": "Loading...",
       "signingOut": "Signing out...",
+      "termsLabel": "I agree to the <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>.",
       "errors": {
         "invalidPhone": "Please enter a valid phone number.",
         "invalidOtp": "Invalid verification code.",
@@ -309,12 +310,7 @@
     "common": {
       "loading": "Loading...",
       "saving": "Saving...",
-      "genericError": "Something went wrong. Please try again.",
-      "locales": {
-        "en": "English",
-        "ru": "Russian",
-        "uk": "Ukrainian"
-      }
+      "genericError": "Something went wrong. Please try again."
     },
     "onboarding": {
       "metaTitle": "Complete Onboarding | KCLUB",
@@ -325,9 +321,11 @@
       "phoneLabel": "Verified phone",
       "displayNameLabel": "Display name",
       "displayNamePlaceholder": "Your name",
-      "localeLabel": "Preferred language",
-      "termsLabel": "I accept the KCLUB membership terms and privacy policy.",
+      "emailLabel": "Email (optional)",
+      "emailPlaceholder": "you@example.com",
       "submit": "Complete onboarding",
+      "skip": "Skip for now",
+      "skipping": "Skipping...",
       "errors": {
         "phoneMismatch": "This phone does not match the authenticated member.",
         "invalidLocale": "Choose a supported language.",

@@ -7,6 +7,7 @@ export const MEMBER_API_ROUTES = {
   AUTH_LOGOUT: `${API_BASE_PATH}/auth/logout`,
   ME: `${API_BASE_PATH}/me`,
   COMPLETE_ONBOARDING: `${API_BASE_PATH}/me/complete-onboarding`,
+  SKIP_ONBOARDING: `${API_BASE_PATH}/me/skip-onboarding`,
   CARDS: `${API_BASE_PATH}/cards`,
   CARD_VERIFY: `${API_BASE_PATH}/cards/verify/:cardNumber`,
   BUSINESSES: `${API_BASE_PATH}/businesses`,

@@ -13,7 +13,15 @@ mock.module('next/navigation', () => ({
 
 // Mock next-intl
 mock.module('next-intl', () => ({
-  useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
+  useTranslations: (namespace: string) => {
+    const t = (key: string) => `${namespace}.${key}`;
+    t.rich = (key: string, values: Record<string, (chunks: unknown) => unknown>) =>
+      Object.values(values).reduce<unknown>(
+        (acc, render) => render(acc),
+        `${namespace}.${key}`,
+      );
+    return t;
+  },
 }));
 
 import { SignInForm } from '@/features/auth/components/SignInForm';
@@ -89,6 +97,7 @@ describe('Auth Forms', () => {
 
     const phoneInput = screen.getByLabelText('auth.signUp.phoneLabel');
     fireEvent.change(phoneInput, { target: { value: '+1234567890' } });
+    fireEvent.click(screen.getByTestId('auth-terms-checkbox'));
 
     const submitButton = screen.getByText('auth.signUp.submit');
     fireEvent.click(submitButton);
@@ -117,6 +126,7 @@ describe('Auth Forms', () => {
 
     const phoneInput = screen.getByLabelText('auth.signUp.phoneLabel');
     fireEvent.change(phoneInput, { target: { value: '+1234567890' } });
+    fireEvent.click(screen.getByTestId('auth-terms-checkbox'));
 
     const submitButton = screen.getByText('auth.signUp.submit');
     fireEvent.click(submitButton);

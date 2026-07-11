@@ -9,7 +9,6 @@ import { Button, Field, FieldError, Input, Label } from '@kclub/ui';
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
 
 import { parseAuthResponse } from '@/features/auth/utils/api';
-import { locales } from '@/i18n/routing';
 
 type OnboardingFormProps = {
   locale: Locale;
@@ -23,10 +22,8 @@ export function OnboardingForm({ locale, profile }: OnboardingFormProps) {
   const errorId = useId();
 
   const [displayName, setDisplayName] = useState(profile.displayName ?? '');
-  const [localePreference, setLocalePreference] = useState<Locale>(
-    profile.localePreference ?? locale,
-  );
-  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [email, setEmail] = useState(profile.email ?? '');
+  const localePreference = profile.localePreference ?? locale;
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const inputClassName = 'kclub-field';
@@ -43,8 +40,9 @@ export function OnboardingForm({ locale, profile }: OnboardingFormProps) {
         body: JSON.stringify({
           phone: profile.phone,
           displayName,
+          email: email.trim() === '' ? null : email.trim(),
           localePreference,
-          termsAccepted,
+          termsAccepted: true,
         }),
       });
       const result = await parseAuthResponse<CurrentMemberProfileDto>(response);
@@ -73,7 +71,7 @@ export function OnboardingForm({ locale, profile }: OnboardingFormProps) {
   };
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form className="space-y-5" onSubmit={handleSubmit}>
       <Field>
         <Label htmlFor="phone">{t('phoneLabel')}</Label>
         <Input
@@ -108,34 +106,22 @@ export function OnboardingForm({ locale, profile }: OnboardingFormProps) {
       </Field>
 
       <Field>
-        <Label htmlFor="localePreference">{t('localeLabel')}</Label>
-        <select
-          id="localePreference"
-          name="localePreference"
-          value={localePreference}
-          onChange={(event) => setLocalePreference(event.target.value as Locale)}
+        <Label htmlFor="email">{t('emailLabel')}</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          maxLength={255}
+          placeholder={t('emailPlaceholder')}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
           disabled={isLoading}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
           className={inputClassName}
-        >
-          {locales.map((item) => (
-            <option key={item} value={item}>
-              {tCommon(`locales.${item}`)}
-            </option>
-          ))}
-        </select>
-      </Field>
-
-      <label className="dark:text-white/72 flex gap-3 text-sm text-zinc-700">
-        <input
-          type="checkbox"
-          checked={termsAccepted}
-          onChange={(event) => setTermsAccepted(event.target.checked)}
-          disabled={isLoading}
-          required
-          className="kclub-checkbox mt-1"
         />
-        <span>{t('termsLabel')}</span>
-      </label>
+      </Field>
 
       <FieldError id={errorId} role="alert">
         {error}

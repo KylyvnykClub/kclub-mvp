@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Locale } from '@/i18n/routing';
 import {
   getCurrentPagePathname,
+  hasSkippedOnboarding,
   isOnboardingPath,
   requireCurrentMember,
 } from '@/server/member-page';
@@ -16,8 +17,9 @@ export default async function MemberLayout(props: {
   const pathname = await getCurrentPagePathname();
   const profile = await requireCurrentMember(locale);
   const onboardingRoute = isOnboardingPath(pathname);
+  const skippedOnboarding = await hasSkippedOnboarding();
 
-  if (!profile.onboardingComplete && !onboardingRoute) {
+  if (!profile.onboardingComplete && !onboardingRoute && !skippedOnboarding) {
     redirect(`/${locale}/m/onboarding`);
   }
 
