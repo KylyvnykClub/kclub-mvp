@@ -277,6 +277,7 @@
       "privacyNote": "Защищенный доступ для участников. Подтверждение по телефону сохраняет вашу цифровую клубную карту приватной.",
       "loading": "Загрузка...",
       "signingOut": "Выход...",
+      "termsLabel": "Я согласен с <terms>Условиями использования</terms> и <privacy>Политикой конфиденциальности</privacy>.",
       "errors": {
         "invalidPhone": "Пожалуйста, введите правильный номер телефона.",
         "invalidOtp": "Неверный код подтверждения.",
@@ -309,12 +310,7 @@
     "common": {
       "loading": "Загрузка...",
       "saving": "Сохранение...",
-      "genericError": "Что-то пошло не так. Попробуйте еще раз.",
-      "locales": {
-        "en": "English",
-        "ru": "Russian",
-        "uk": "Ukrainian"
-      }
+      "genericError": "Что-то пошло не так. Попробуйте еще раз."
     },
     "onboarding": {
       "metaTitle": "Complete Onboarding | KCLUB",
@@ -325,9 +321,11 @@
       "phoneLabel": "Verified phone",
       "displayNameLabel": "Display name",
       "displayNamePlaceholder": "Your name",
-      "localeLabel": "Preferred language",
-      "termsLabel": "I accept the KCLUB membership terms and privacy policy.",
+      "emailLabel": "Email (optional)",
+      "emailPlaceholder": "you@example.com",
       "submit": "Complete onboarding",
+      "skip": "Skip for now",
+      "skipping": "Skipping...",
       "errors": {
         "phoneMismatch": "This phone does not match the authenticated member.",
         "invalidLocale": "Choose a supported language.",

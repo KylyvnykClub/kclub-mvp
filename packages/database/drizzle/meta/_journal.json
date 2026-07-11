@@ -15,6 +15,13 @@
       "when": 1783583649621,
       "tag": "0001_wandering_nightcrawler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783699269750,
+      "tag": "0002_rapid_wolfsbane",
+      "breakpoints": true
     }
   ]
 }

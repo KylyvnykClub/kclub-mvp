@@ -16,6 +16,7 @@ export type UserRecord = {
   id: string;
   phone: string;
   display_name: string | null;
+  email: string | null;
   locale_preference: string | null;
   membership_tier: string;
   status: string;
@@ -51,6 +52,7 @@ export function toCurrentMemberProfileDto(user: UserRecord): CurrentMemberProfil
     id: user.id,
     phone: user.phone,
     displayName: user.display_name,
+    email: user.email,
     localePreference: user.locale_preference as Locale | null,
     membershipTier: user.membership_tier as MemberTier,
     status: user.status as UserStatus,
@@ -137,6 +139,7 @@ export async function completeMemberOnboarding(
     .update(schema.users)
     .set({
       display_name: input.displayName,
+      email: input.email ?? null,
       locale_preference: input.localePreference,
       terms_accepted_at: new Date(),
     })

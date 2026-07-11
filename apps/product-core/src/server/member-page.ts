@@ -70,3 +70,10 @@ export async function getCurrentPagePathname(): Promise<string> {
 export function isOnboardingPath(pathname: string): boolean {
   return /\/m\/onboarding\/?$/.test(pathname);
 }
+
+export const ONBOARDING_SKIP_COOKIE = 'kclub_onboarding_skipped';
+
+export async function hasSkippedOnboarding(): Promise<boolean> {
+  const cookieStore = await cookies();
+  return cookieStore.get(ONBOARDING_SKIP_COOKIE)?.value === '1';
+}
