@@ -50,7 +50,7 @@ export function FaqSection() {
                   role="region"
                   aria-labelledby={buttonId}
                   hidden={!open}
-                  className="kclub-section-copy px-5 pb-6 text-base font-medium leading-7"
+                  className="kclub-section-copy px-5 pb-6"
                 >
                   {item.answer}
                 </div>
