@@ -86,7 +86,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                 {plan.items.map((item) => (
                   <li
                     key={item}
-                    className="kclub-section-copy flex gap-3 text-base font-medium leading-6"
+                    className="kclub-section-copy flex gap-3"
                   >
                     <Check
                       aria-hidden="true"

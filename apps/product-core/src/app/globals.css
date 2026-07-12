@@ -191,8 +191,10 @@ a {
     @apply text-4xl font-black uppercase leading-tight text-zinc-950 dark:text-white sm:text-6xl;
   }
 
+  /* Single lever for landing-page body copy: change size/weight/line-height here
+     and every .kclub-section-copy usage across the landing picks it up. */
   .kclub-section-copy {
-    @apply text-zinc-600 dark:text-white/70;
+    @apply text-base font-extralight leading-7 text-zinc-600 dark:text-white/70 sm:text-xl sm:leading-relaxed;
   }
 
   .kclub-hero-stat {
