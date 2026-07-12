@@ -4,7 +4,7 @@ export function Surface({ className, children, ...props }: React.HTMLAttributes<
   return (
     <div
       className={cn(
-        'bg-surface ring-border w-full max-w-md px-8 py-10 shadow-sm ring-1 sm:rounded-2xl',
+        'bg-surface  w-full max-w-md px-4 py-10 shadow-sm  ',
         className,
       )}
       {...props}
