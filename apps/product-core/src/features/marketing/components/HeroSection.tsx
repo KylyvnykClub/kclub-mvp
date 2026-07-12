@@ -198,7 +198,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
 
           <motion.h1
             variants={itemVariants}
-            className="mb-11 w-full font-[helvetica] text-5xl font-bold uppercase leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[90px]"
+            className="mb-11  w-full font-[helvetica] text-5xl font-bold uppercase leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[90px]"
           >
             <span className="block">{t('hero.titleLine1')}</span>
             <span className="mt-2 block">
@@ -220,7 +220,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="kclub-hero-copy mt-11">
+          <motion.p variants={itemVariants} className="text-3xl font-thin mt-11">
             {t('hero.subline')}
           </motion.p>
 

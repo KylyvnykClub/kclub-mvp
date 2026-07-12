@@ -121,39 +121,18 @@
       ]
     },
     "services": {
-      "eyebrow": "Access",
-      "title": "Membership Plans",
+      "eyebrow": "Участие",
+      "title": "Выберите свою роль в клубе",
       "member": {
-        "name": "MEMBER",
-        "price": "Free",
-        "cta": "Create Member Account",
-        "items": [
-          "Digital club card",
-          "Public partner directory access",
-          "Member profile and onboarding"
-        ]
+        "title": "Стать участником",
+        "description": "Присоединяйтесь к международному бизнес-клубу, получайте цифровую клубную карту и пользуйтесь специальными предложениями партнёров.",
+        "cta": "Присоединиться к клубу"
       },
-      "vip": {
-        "name": "VIP",
-        "price": "from $X/mo",
-        "cta": "Upgrade to VIP",
-        "items": [
-          "Everything in MEMBER",
-          "VIP subscription management",
-          "Priority partner directory access",
-          "Private member benefits and offers"
-        ]
-      },
-      "business": {
-        "name": "BUSINESS",
-        "price": "Placement",
-        "cta": "Start Business Profile",
-        "items": [
-          "Everything in VIP",
-          "Submit and manage a business profile",
-          "Paid partner placement after moderation",
-          "Business introductions after publication"
-        ]
+      "partner": {
+        "title": "Стать партнёром",
+        "description": "Разместите компанию в каталоге клуба, предложите участникам скидку, бонус или другие специальные условия и привлекайте новых клиентов.",
+        "note": "Профиль компании публикуется после прохождения модерации.",
+        "cta": "Зарегистрировать компанию"
       }
     },
     "about": {

@@ -121,39 +121,18 @@
       ]
     },
     "services": {
-      "eyebrow": "Access",
-      "title": "Membership Plans",
+      "eyebrow": "Участь",
+      "title": "Оберіть свою роль у клубі",
       "member": {
-        "name": "MEMBER",
-        "price": "Free",
-        "cta": "Create Member Account",
-        "items": [
-          "Digital club card",
-          "Public partner directory access",
-          "Member profile and onboarding"
-        ]
+        "title": "Стати учасником",
+        "description": "Приєднуйтеся до міжнародного бізнес-клубу, отримуйте цифрову клубну картку та користуйтеся спеціальними пропозиціями партнерів.",
+        "cta": "Приєднатися до клубу"
       },
-      "vip": {
-        "name": "VIP",
-        "price": "from $X/mo",
-        "cta": "Upgrade to VIP",
-        "items": [
-          "Everything in MEMBER",
-          "VIP subscription management",
-          "Priority partner directory access",
-          "Private member benefits and offers"
-        ]
-      },
-      "business": {
-        "name": "BUSINESS",
-        "price": "Placement",
-        "cta": "Start Business Profile",
-        "items": [
-          "Everything in VIP",
-          "Submit and manage a business profile",
-          "Paid partner placement after moderation",
-          "Business introductions after publication"
-        ]
+      "partner": {
+        "title": "Стати партнером",
+        "description": "Розмістіть компанію в каталозі клубу, запропонуйте учасникам знижку, бонус або інші спеціальні умови та залучайте нових клієнтів.",
+        "note": "Профіль компанії публікується після проходження модерації.",
+        "cta": "Зареєструвати компанію"
       }
     },
     "about": {

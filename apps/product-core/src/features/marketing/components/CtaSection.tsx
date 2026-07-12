@@ -1,20 +1,32 @@
 import { ArrowUpRight } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+
 import { getButtonClasses } from '@kclub/ui';
 
+import bannerImage from '@/assets/content/baner.webp';
 import { Locale } from '@/i18n/routing';
 
 export function CtaSection({ locale }: { locale: Locale }) {
   const t = useTranslations('home');
 
   return (
-    <section className="kclub-border kclub-section-py border-y bg-zinc-100 text-zinc-950 dark:bg-surface-raised dark:text-white">
+    <section className="kclub-border kclub-section-py relative isolate overflow-hidden border-y bg-zinc-950 text-white">
+      <Image
+        src={bannerImage}
+        alt=""
+        fill
+        sizes="100vw"
+        className="-z-20 object-cover object-right lg:object-center"
+      />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-zinc-950/70" />
+
       <div className="kclub-shell grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
-          <p className="kclub-section-eyebrow mb-5">KCLUB</p>
+          <p className="kclub-section-eyebrow mb-5 text-accent">KCLUB</p>
           <h2 className="kclub-section-title max-w-4xl">{t('cta.title')}</h2>
-          <p className="kclub-section-copy mt-5 max-w-2xl">
+          <p className="mt-5 max-w-2xl text-base leading-7 text-white/75 sm:text-lg">
             {t('cta.subline')}
           </p>
         </div>

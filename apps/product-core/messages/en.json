@@ -121,39 +121,18 @@
       ]
     },
     "services": {
-      "eyebrow": "Access",
-      "title": "Membership Plans",
+      "eyebrow": "Membership",
+      "title": "Choose your role in the club",
       "member": {
-        "name": "MEMBER",
-        "price": "Free",
-        "cta": "Create Member Account",
-        "items": [
-          "Digital club card",
-          "Public partner directory access",
-          "Member profile and onboarding"
-        ]
+        "title": "Become a member",
+        "description": "Join an international business club, receive a digital club card, and access special offers from our partners.",
+        "cta": "Join the club"
       },
-      "vip": {
-        "name": "VIP",
-        "price": "from $X/mo",
-        "cta": "Upgrade to VIP",
-        "items": [
-          "Everything in MEMBER",
-          "VIP subscription management",
-          "Priority partner directory access",
-          "Private member benefits and offers"
-        ]
-      },
-      "business": {
-        "name": "BUSINESS",
-        "price": "Placement",
-        "cta": "Start Business Profile",
-        "items": [
-          "Everything in VIP",
-          "Submit and manage a business profile",
-          "Paid partner placement after moderation",
-          "Business introductions after publication"
-        ]
+      "partner": {
+        "title": "Become a partner",
+        "description": "List your company in the club directory, offer members a discount, bonus, or other special terms, and attract new customers.",
+        "note": "Company profiles are published after moderation.",
+        "cta": "Register a company"
       }
     },
     "about": {
