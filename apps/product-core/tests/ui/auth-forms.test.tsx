@@ -1,6 +1,6 @@
 import { describe, expect, test, mock, afterEach, afterAll } from 'bun:test';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import * as realNextIntl from 'next-intl';
+import { realNextIntl } from '../setup';
 
 // Mock next/navigation
 const mockReplace = mock();

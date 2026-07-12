@@ -41,3 +41,14 @@ globalThis.HTMLSpanElement = dom.window.HTMLSpanElement;
 globalThis.HTMLDivElement = dom.window.HTMLDivElement;
 globalThis.HTMLAnchorElement = dom.window.HTMLAnchorElement;
 globalThis.HTMLButtonElement = dom.window.HTMLButtonElement;
+
+// Imported here (dynamically, after the DOM globals above are installed) so this is
+// guaranteed to be the pristine module, initialized in the same environment it would
+// normally see — before any test file has had a chance to call
+// mock.module('next-intl', ...). A static `import * as realNextIntl from 'next-intl'`
+// at the top of this file would resolve too early (before `window`/`document` exist),
+// which leaves next-intl's client runtime in a broken state. Test files that stub
+// next-intl should restore this exact reference in an afterAll, not re-import
+// 'next-intl' themselves (by the time a later file loads, the registry entry may
+// already have been overwritten by an earlier file's stub).
+export const realNextIntl = await import('next-intl');

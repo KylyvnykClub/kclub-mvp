@@ -1,6 +1,6 @@
 import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import * as realNextIntl from 'next-intl';
+import { realNextIntl } from '../setup';
 
 const mockReplace = mock();
 const mockRefresh = mock();
