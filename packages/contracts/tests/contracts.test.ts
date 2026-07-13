@@ -82,6 +82,7 @@ describe('route contracts', () => {
     expect(ADMIN_API_ROUTES.STAFF_AUTH_TOTP_SETUP).toBe('/api/admin/v1/staff-auth/totp/setup');
     expect(ADMIN_API_ROUTES.STAFF_AUTH_LOGOUT).toBe('/api/admin/v1/staff-auth/logout');
     expect(ADMIN_API_ROUTES.BUSINESS_APPROVE).toBe('/api/admin/v1/businesses/:id/approve');
+    expect(ADMIN_API_ROUTES.USER_INVOICES).toBe('/api/admin/v1/users/:id/invoices');
   });
 
   test('defines staff auth states for the admin-app handshake', () => {
@@ -99,6 +100,9 @@ describe('route contracts', () => {
     );
     expect(buildApiRoute(ADMIN_API_ROUTES.WEBHOOK_REPLAY, { eventId: 'evt 1' })).toBe(
       '/api/admin/v1/webhooks/evt%201/replay',
+    );
+    expect(buildApiRoute(ADMIN_API_ROUTES.USER_INVOICES, { id: 'user 1' })).toBe(
+      '/api/admin/v1/users/user%201/invoices',
     );
   });
 });

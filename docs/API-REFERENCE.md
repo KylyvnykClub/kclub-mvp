@@ -56,6 +56,7 @@ Base path: `/api/admin/v1`
 
 - `GET /users`
 - `GET /users/{id}`
+- `GET /users/{id}/invoices` — latest paid VIP invoice receipts from Stripe
 - `POST /users/{id}/block`
 - `POST /users/{id}/unblock`
 

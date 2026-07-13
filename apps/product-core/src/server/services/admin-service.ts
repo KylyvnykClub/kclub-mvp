@@ -1,3 +1,19 @@
+import { revalidateTag } from 'next/cache';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  exists,
+  ilike,
+  inArray,
+  isNull,
+  not,
+  or,
+  sql,
+} from 'drizzle-orm';
+
 import {
   ERROR_CODES,
   type AdminBusinessDetailDto,
@@ -7,6 +23,7 @@ import {
   type AdminCardListItemDto,
   type AdminConfigEntryDto,
   type AdminIntroductionListItemDto,
+  type AdminInvoiceDto,
   type AdminStaffListItemDto,
   type AdminSubscriptionListItemDto,
   type AdminUserDetailDto,
@@ -62,29 +79,16 @@ import type {
   StaffDeactivateInput,
   StaffRoleUpdateInput,
 } from '@kclub/validation';
-import { revalidateTag } from 'next/cache';
 
-import { AppError } from '@/server/errors';
 import { createDbAuditService } from '@/server/audit';
 import type { RequestContext } from '@/server/context';
-import { revokeCard, reissueCard, toMemberCardDto } from './card-service';
-import { getStripeClient } from '@/server/stripe/client';
-import { mapStripeStatusToLocal } from './webhook-service';
 import { getDbClient, schema } from '@/server/db';
-import {
-  eq,
-  inArray,
-  or,
-  and,
-  ilike,
-  desc,
-  asc,
-  not,
-  isNull,
-  count,
-  sql,
-  exists,
-} from 'drizzle-orm';
+import { AppError } from '@/server/errors';
+import { getStripeClient } from '@/server/stripe/client';
+import { listPaidVipInvoices } from '@/server/stripe/invoice-receipts';
+import { getStripeSubscriptionPeriod } from '@/server/stripe/subscription-period';
+import { revokeCard, reissueCard, toMemberCardDto } from './card-service';
+import { mapStripeStatusToLocal } from './webhook-service';
 
 const auditService = createDbAuditService();
 
@@ -210,6 +214,37 @@ export async function getUserDetail(userId: string): Promise<AdminUserDetailDto>
   return toAdminUserDetail(user, cards, subscriptions, auditEntries);
 }
 
+export async function listUserInvoices(userId: string): Promise<AdminInvoiceDto[]> {
+  const db = getDbClient();
+
+  const [user, subscriptions] = await Promise.all([
+    db.query.users.findFirst({ where: eq(schema.users.id, userId) }),
+    db.query.vipSubscriptions.findMany({
+      where: eq(schema.vipSubscriptions.user_id, userId),
+      orderBy: [desc(schema.vipSubscriptions.created_at)],
+    }),
+  ]);
+
+  if (!user) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'User not found',
+      status: 404,
+    });
+  }
+
+  const stripeCustomerId = subscriptions.find(
+    (subscription) => subscription.stripe_customer_id,
+  )?.stripe_customer_id;
+  const stripeSubscriptionIds = subscriptions.flatMap((subscription) =>
+    subscription.stripe_subscription_id ? [subscription.stripe_subscription_id] : [],
+  );
+
+  if (!stripeCustomerId || stripeSubscriptionIds.length === 0) return [];
+
+  return listPaidVipInvoices(stripeCustomerId, stripeSubscriptionIds);
+}
+
 export async function syncVipSubscriptionForUser(
   userId: string,
   context: RequestContext,
@@ -259,9 +294,10 @@ export async function syncVipSubscriptionForUser(
     });
   }
 
-  const stripeSubPeriodEnd = (stripeSub as unknown as { current_period_end: number | null })
-    .current_period_end;
-  const newStatus = mapStripeStatusToLocal(stripeSub.status, stripeSubPeriodEnd) ?? 'ACTIVE';
+  const subscriptionPeriod = getStripeSubscriptionPeriod(stripeSub.items.data[0]);
+  const newStatus =
+    mapStripeStatusToLocal(stripeSub.status, subscriptionPeriod.currentPeriodEndTimestamp) ??
+    'ACTIVE';
 
   const resolvedCustomerId =
     existingLocal?.stripe_customer_id ??
@@ -275,7 +311,8 @@ export async function syncVipSubscriptionForUser(
         status: newStatus,
         stripe_customer_id: resolvedCustomerId,
         stripe_subscription_id: stripeSub.id,
-        current_period_end: stripeSubPeriodEnd ? new Date(stripeSubPeriodEnd * 1000) : undefined,
+        current_period_start: subscriptionPeriod.currentPeriodStart,
+        current_period_end: subscriptionPeriod.currentPeriodEnd,
         cancel_at_period_end: stripeSub.cancel_at_period_end,
       })
       .where(eq(schema.vipSubscriptions.id, existingLocal.id))
@@ -289,7 +326,8 @@ export async function syncVipSubscriptionForUser(
         status: newStatus,
         stripe_customer_id: resolvedCustomerId,
         stripe_subscription_id: stripeSub.id,
-        current_period_end: stripeSubPeriodEnd ? new Date(stripeSubPeriodEnd * 1000) : null,
+        current_period_start: subscriptionPeriod.currentPeriodStart,
+        current_period_end: subscriptionPeriod.currentPeriodEnd,
         cancel_at_period_end: stripeSub.cancel_at_period_end,
       })
       .returning();

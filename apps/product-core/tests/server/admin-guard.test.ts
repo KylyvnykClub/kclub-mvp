@@ -106,6 +106,7 @@ describe('ADMIN_API_ROUTES contract stability', () => {
 
     expect(ADMIN_API_ROUTES.DASHBOARD_METRICS).toBe('/api/admin/v1/dashboard-metrics');
     expect(ADMIN_API_ROUTES.USERS).toBe('/api/admin/v1/users');
+    expect(ADMIN_API_ROUTES.USER_INVOICES).toBe('/api/admin/v1/users/:id/invoices');
     expect(ADMIN_API_ROUTES.USER_BLOCK).toBe('/api/admin/v1/users/:id/block');
     expect(ADMIN_API_ROUTES.USER_UNBLOCK).toBe('/api/admin/v1/users/:id/unblock');
     expect(ADMIN_API_ROUTES.CARDS).toBe('/api/admin/v1/cards');

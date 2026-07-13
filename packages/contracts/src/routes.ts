@@ -35,6 +35,7 @@ export const ADMIN_API_ROUTES = {
   STAFF_AUTH_LOGOUT: `${ADMIN_API_BASE_PATH}/staff-auth/logout`,
   USERS: `${ADMIN_API_BASE_PATH}/users`,
   USER_DETAIL: `${ADMIN_API_BASE_PATH}/users/:id`,
+  USER_INVOICES: `${ADMIN_API_BASE_PATH}/users/:id/invoices`,
   USER_BLOCK: `${ADMIN_API_BASE_PATH}/users/:id/block`,
   USER_UNBLOCK: `${ADMIN_API_BASE_PATH}/users/:id/unblock`,
   CARDS: `${ADMIN_API_BASE_PATH}/cards`,
