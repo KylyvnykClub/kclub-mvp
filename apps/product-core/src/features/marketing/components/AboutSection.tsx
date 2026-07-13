@@ -63,16 +63,16 @@ export function AboutSection(): React.ReactElement {
 
         {/* our mission */}
 
-        <div className="mt-16  sm:mt-24">
-          <div className="flex-1 md:grid md:grid-cols-2 md:gap-8 lg:grid lg:gap-16 ">
-            <div className="flex flex-col justify-center  py-10 md:order-2 sm:px-10 sm:py-14 lg:px-12 lg:py-16">
+        <div className="mt-16 sm:mt-24">
+          <div className="flex-1 md:grid md:grid-cols-2 md:gap-8 lg:grid lg:gap-16">
+            <div className="flex flex-col justify-center py-10 sm:px-10 sm:py-14 md:order-2 lg:px-12 lg:py-16">
               <p className="kclub-section-eyebrow">{t('about.mission.eyebrow')}</p>
               <h3 className="mt-5 text-2xl font-semibold text-foreground sm:text-3xl">
                 {t('about.mission.title')}
               </h3>
               <p className="kclub-section-copy mt-5">{t('about.mission.description')}</p>
             </div>
-            <div className="relative min-h-64 overflow-hidden md:order-1 sm:min-h-80 lg:min-h-full">
+            <div className="relative min-h-64 overflow-hidden sm:min-h-80 md:order-1 lg:min-h-full">
               <Image
                 src={aboutMissionImage}
                 alt={t('about.mission.title')}
@@ -131,7 +131,7 @@ function AudienceCard({ title, description, image }: AudienceCardProps): React.R
       </div>
       <div className="pt-6">
         <h4 className="text-xl font-semibold text-foreground">{title}</h4>
-        <p className="mt-3 kclub-section-copy leading-6 text-muted-foreground">{description}</p>
+        <p className="kclub-section-copy mt-3 leading-6 text-muted-foreground">{description}</p>
       </div>
     </Surface>
   );
