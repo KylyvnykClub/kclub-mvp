@@ -22,7 +22,7 @@ export function PrinciplesSection(): React.ReactElement {
       <div className="kclub-shell">
         <header className="">
           <p className="kclub-section-eyebrow">{t('principles.eyebrow')}</p>
-          <h2 id="principles-title" className="kclub-section-title max-w-4xl mt-5">
+          <h2 id="principles-title" className="kclub-section-title mt-5 max-w-4xl">
             {t('principles.title')}
           </h2>
         </header>

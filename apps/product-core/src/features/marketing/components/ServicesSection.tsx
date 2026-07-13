@@ -59,7 +59,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col  gap-5 "
+          className="flex flex-col gap-5"
         >
           <p className="kclub-section-eyebrow">{t('eyebrow')}</p>
           <h2 className="kclub-section-title max-w-3xl">{t('title')}</h2>
@@ -102,7 +102,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                   </span>
                 </div> */}
 
-                <div className="flex  flex-col">
+                <div className="flex flex-col">
                   <h3 className="max-w-md text-3xl font-black uppercase leading-[1.05] tracking-[-0.03em] sm:text-4xl">
                     {card.title}
                   </h3>
@@ -139,7 +139,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                     color: 'brand',
                     size: 'lg',
                     fullWidth: true,
-                    className: 'mx-auto mt-10  sm:w-fit sm:min-w-72 text-center',
+                    className: 'mx-auto mt-10 text-center sm:w-fit sm:min-w-72',
                   })}
                 >
                   {card.cta}
