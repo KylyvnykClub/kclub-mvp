@@ -23,21 +23,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ pat
     const phone = body.phone;
 
     if (body.token === '000000') {
-      // Look up member by phone to get the correct UUID for seeded tests
-      const { createClient } = require('@supabase/supabase-js');
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!.replace('/api/v1/test/mock-supabase', ''), // use dummy URL or anything
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      );
-      // Actually we are IN product-core, we can just use the db!
-      let mockUserId = '11111111-2222-3333-4444-555555555555';
+      // Look up member by phone to get the correct supabase_auth_user_id for seeded
+      // tests — getMemberBySupabaseUserId() looks up users by that column, not by
+      // the primary key, so the mocked session must return the same UUID. For a
+      // brand-new sign-up (no existing member yet), mint a fresh UUID each time —
+      // a fixed constant collides with the unique constraint on that column as
+      // soon as a second new phone signs up in the same test database.
+      let mockUserId = crypto.randomUUID();
       try {
         const db = getDbClient();
         const existingMember = await db.query.users.findFirst({
           where: eq(schema.users.phone, phone),
         });
-        if (existingMember) {
-          mockUserId = existingMember.id;
+        if (existingMember?.supabase_auth_user_id) {
+          mockUserId = existingMember.supabase_auth_user_id;
         }
       } catch (e) {
         console.error('Failed to look up member in mock', e);

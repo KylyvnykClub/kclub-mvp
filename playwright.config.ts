@@ -37,13 +37,14 @@ export default defineConfig({
   },
   webServer: [
     {
+      // NEXT_PUBLIC_SUPABASE_URL must already point at /api/v1/test/mock-supabase
+      // when `bun run build` runs (see .github/workflows/ci.yml) — Next.js inlines
+      // NEXT_PUBLIC_* vars at build time even in server-only code, so overriding it
+      // here for the already-built `next start` process has no effect.
       command: 'bun run --filter @kclub/product-core start:e2e',
       port: 3000,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
-      env: {
-        NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:3000/api/v1/test/mock-supabase',
-      },
     },
     {
       command: 'bun run --filter @kclub/admin-app-legacy start:e2e',

@@ -12,8 +12,10 @@ test.describe('Member journey', () => {
     const signUpPage = new SignUpPage(page, locale);
     await signUpPage.goto();
 
-    // Enter phone and submit
+    // Enter phone, accept terms (required checkbox blocks native form submission
+    // otherwise), and submit
     await signUpPage.fillPhone('+10000000099');
+    await signUpPage.acceptTerms();
     await signUpPage.submitPhone();
 
     // Enter OTP code
@@ -23,11 +25,10 @@ test.describe('Member journey', () => {
     // Should redirect to onboarding
     await expect(page).toHaveURL(new RegExp(`.*/${locale}/m/onboarding.*`), { timeout: 30000 });
 
-    // Complete onboarding
+    // Complete onboarding — the form only collects a display name (locale
+    // defaults from the URL, terms are implicitly accepted on submit)
     const onboardingPage = new OnboardingPage(page, locale);
     await onboardingPage.fillDisplayName('E2E Test User');
-    await onboardingPage.selectLocale('en');
-    await onboardingPage.acceptTerms();
     await onboardingPage.submit();
 
     // Should redirect to dashboard after onboarding
