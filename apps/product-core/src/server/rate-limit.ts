@@ -2,6 +2,10 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { NextResponse } from 'next/server';
 
+import { ERROR_CODES } from '@kclub/contracts';
+
+import { jsonError } from '@/server/api/response';
+
 let redis: Redis | null = null;
 
 function isConfiguredEnvValue(value: string | undefined): value is string {
@@ -43,8 +47,12 @@ export async function checkRateLimit(
   const result = await limiter.limit(identifier);
   if (result.success) return null;
 
-  return NextResponse.json(
-    { error: 'Too many requests' },
+  return jsonError(
+    {
+      code: ERROR_CODES.RATE_LIMITED,
+      message: 'Too many requests',
+    },
+    undefined,
     {
       status: 429,
       headers: {

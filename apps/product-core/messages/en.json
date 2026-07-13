@@ -376,6 +376,8 @@
         "blocked": "Your account has been blocked.",
         "useSignIn": "This phone number is already registered. Please sign in.",
         "useSignUp": "We couldn't find an account with this phone number. Please sign up.",
+        "otpSendFailed": "We couldn't send the SMS code. Please check the phone number or try again later.",
+        "rateLimited": "Too many attempts. Please wait a minute and try again.",
         "generic": "Something went wrong. Please try again."
       }
     },

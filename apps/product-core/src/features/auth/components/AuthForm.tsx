@@ -7,8 +7,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-import crowLogo from '@/assets/logo/crow--logo.png';
+import { ERROR_CODES } from '@kclub/contracts';
 import { Button, Field, Input, Label, linkClasses, PhoneInput, textMuted } from '@kclub/ui';
+
+import crowLogo from '@/assets/logo/crow--logo.png';
 import {
   defaultCountryForLocale,
   kclubPhonePanelClassName,
@@ -57,14 +59,21 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
 
       if (!parsed.success) {
         const code = parsed.errorCode || 'generic';
-        if (code === 'VALIDATION_INVALID_PHONE' || code === 'VALIDATION_INVALID_INPUT') {
+        if (
+          code === ERROR_CODES.VALIDATION_INVALID_PHONE ||
+          code === ERROR_CODES.VALIDATION_INVALID_INPUT
+        ) {
           setError(tCommon('errors.invalidPhone'));
-        } else if (code === 'AUTH_SIGN_IN_USE_SIGN_UP') {
+        } else if (code === ERROR_CODES.AUTH_SIGN_IN_USE_SIGN_UP) {
           setError(tCommon('errors.useSignUp'));
-        } else if (code === 'AUTH_SIGN_UP_USE_SIGN_IN') {
+        } else if (code === ERROR_CODES.AUTH_SIGN_UP_USE_SIGN_IN) {
           setError(tCommon('errors.useSignIn'));
-        } else if (code === 'PERMISSION_DENIED') {
+        } else if (code === ERROR_CODES.PERMISSION_DENIED) {
           setError(tCommon('errors.blocked'));
+        } else if (code === ERROR_CODES.AUTH_OTP_SEND_FAILED) {
+          setError(tCommon('errors.otpSendFailed'));
+        } else if (code === ERROR_CODES.RATE_LIMITED) {
+          setError(tCommon('errors.rateLimited'));
         } else {
           setError(tCommon('errors.generic'));
         }
@@ -95,10 +104,12 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
 
       if (!parsed.success) {
         const code = parsed.errorCode || 'generic';
-        if (code === 'AUTH_OTP_INVALID') {
+        if (code === ERROR_CODES.AUTH_OTP_INVALID) {
           setError(tCommon('errors.invalidOtp'));
-        } else if (code === 'PERMISSION_DENIED') {
+        } else if (code === ERROR_CODES.PERMISSION_DENIED) {
           setError(tCommon('errors.blocked'));
+        } else if (code === ERROR_CODES.RATE_LIMITED) {
+          setError(tCommon('errors.rateLimited'));
         } else {
           setError(tCommon('errors.generic'));
         }
