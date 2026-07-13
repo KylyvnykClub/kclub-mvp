@@ -59,7 +59,12 @@ jobs:
     env:
       CI: true
       E2E_TEST_SECRET: e2e-test-secret-ci
-      NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+      # NEXT_PUBLIC_* vars are inlined by Next.js at build time, even in server-only
+      # code — playwright.config.ts's webServer.env override at *runtime* has no
+      # effect on a pre-built (next build && next start) server, since this value
+      # is already baked in by the "Build Applications" step below. Point it at the
+      # E2E mock-supabase route from the start so the built server actually calls it.
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:3000/api/v1/test/mock-supabase
       NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
       SUPABASE_SERVICE_ROLE_KEY: dummy-service-role-key
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
