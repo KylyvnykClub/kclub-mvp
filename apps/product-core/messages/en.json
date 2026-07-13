@@ -259,28 +259,68 @@
       "title": "Frequently Asked Questions",
       "items": [
         {
-          "question": "How do I join KCLUB?",
-          "answer": "Start with sign-up, verify your phone by OTP, complete onboarding, and receive your digital member card."
+          "question": "What is KYLYVNYK CLUB?",
+          "answer": "KYLYVNYK CLUB is an international business club for members, entrepreneurs, professionals, and companies."
         },
         {
-          "question": "What is VIP membership?",
-          "answer": "VIP unlocks paid membership capabilities, business profile submission, and future introduction workflows for published businesses."
+          "question": "Who can become a member?",
+          "answer": "Any adult who has registered and accepted the club rules."
         },
         {
-          "question": "How does the QR card work?",
-          "answer": "Each active card links directly to a public verification page that confirms card status without exposing private member data."
+          "question": "What does a member receive?",
+          "answer": "A member receives a digital club card and access to special offers from partners."
         },
         {
-          "question": "Which countries are supported?",
-          "answer": "The DEV home uses placeholder coverage across 12 countries while the directory data layer is completed."
+          "question": "Is registration free?",
+          "answer": "Basic membership is provided free of charge. Certain additional features may be available through VIP membership."
         },
         {
-          "question": "Is member lookup public?",
-          "answer": "No. KCLUB does not provide arbitrary public member lookup. Verification happens through direct card URLs."
+          "question": "What does VIP membership provide?",
+          "answer": "VIP provides access to additional features and selected club offers. The specific list of benefits is displayed on the platform."
         },
         {
-          "question": "How does Stripe billing work?",
-          "answer": "VIP and business placement billing will use Stripe Checkout, subscriptions, and customer portal flows."
+          "question": "How does the digital club card work?",
+          "answer": "The card, with its personal QR code, confirms membership status. To receive a partner offer, a member may need to present a valid card and meet the conditions of that specific offer."
+        },
+        {
+          "question": "What benefits do partners offer?",
+          "answer": "Partners may provide discounts, bonuses, special prices, or other terms. Each offer is determined by the partner."
+        },
+        {
+          "question": "Does the club guarantee that a discount will be provided?",
+          "answer": "A partner must honor its published terms when a member meets the offer requirements. However, the goods, services, and customer service are provided by the partner, not the club."
+        },
+        {
+          "question": "Can I register a company?",
+          "answer": "Yes. A company representative can create a business profile and submit it for moderation."
+        },
+        {
+          "question": "How can I become a club partner?",
+          "answer": "Complete the company profile, confirm the representative's authority, specify special terms for members, and submit the application for review."
+        },
+        {
+          "question": "When will a company appear in the directory?",
+          "answer": "After moderation is complete and the profile is approved."
+        },
+        {
+          "question": "Does the club verify all partner goods and services?",
+          "answer": "The club moderates business profiles before publication, but it is not the seller or provider of partners' goods and services."
+        },
+        {
+          "question": "In which countries does the club operate?",
+          "answer": "The platform is intended for an international community and is open to members and companies from different countries, provided this does not conflict with applicable law or club rules."
+        },
+        {
+          "question": "Is member data published?",
+          "answer": "Personal data is processed in accordance with the Privacy Policy. The visibility of specific information depends on platform features and profile settings."
+        },
+        {
+          "question": "Can I cancel a VIP subscription?",
+          "answer": "Yes. Subscription management is available in the member account, subject to the terms of the selected plan."
+        },
+        {
+          "question": "How can I contact support?",
+          "answer": "Use the contact form or the club's official email address."
         }
       ]
     },

@@ -42,17 +42,21 @@ export function FaqSection() {
                     aria-hidden="true"
                     size={18}
                     strokeWidth={1.5}
-                    className={`shrink-0 text-accent transition ${open ? 'rotate-180' : ''}`}
+                    className={`shrink-0 text-accent transition-transform duration-fast ease-ease-out motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
                   />
                 </button>
                 <div
                   id={panelId}
                   role="region"
                   aria-labelledby={buttonId}
-                  hidden={!open}
-                  className="kclub-section-copy px-5 pb-6"
+                  aria-hidden={!open}
+                  className={`grid transition-[grid-template-rows,opacity] duration-normal ease-ease-out motion-reduce:transition-none ${
+                    open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                  }`}
                 >
-                  {item.answer}
+                  <div className="overflow-hidden">
+                    <div className="kclub-section-copy px-5 pb-6">{item.answer}</div>
+                  </div>
                 </div>
               </div>
             );

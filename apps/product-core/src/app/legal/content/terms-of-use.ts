@@ -1150,7 +1150,7 @@ export const termsOfUse: LegalDocByLocale = {
         ],
       },
     ],
-    note: 'This document may be translated into other languages for the convenience of users. In the event of any discrepancy, conflict, or difference between translations, the official English-language version of this document shall prevail.',
+    note: 'This document may be translated into other languages for the convenience of users. In the event of any discrepancy, conflict, or difference between translations, the official English-language version of this document shall prevail.KCLUB may send transactional SMS messages containing one-time passcodes (OTP) when you request phone verification, registration, or login. Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for help. Consent is not a condition of purchase. For support, contact kylyvnykclub@gmail.com.',
   },
   ru: {
     title: 'Условия использования',
@@ -2311,7 +2311,7 @@ export const termsOfUse: LegalDocByLocale = {
         ],
       },
     ],
-    note: 'Настоящий документ может переводиться на другие языки исключительно для удобства пользователей. В случае любых расхождений, противоречий либо различий между переводами преимущественную юридическую силу имеет официальная английская версия документа.',
+    note: 'Настоящий документ может переводиться на другие языки исключительно для удобства пользователей. В случае любых расхождений, противоречий либо различий между переводами преимущественную юридическую силу имеет официальная английская версия документа. KCLUB может отправлять транзакционные SMS-сообщения с одноразовыми паролями (OTP) при запросе проверки телефона, регистрации или входа в систему. Частота сообщений может варьироваться. Могут применяться тарифы на сообщения и передачу данных. Ответ STOP для отказа и HELP для получения помощи. Согласие не является условием покупки. Для поддержки свяжитесь с kylyvnykclub@gmail.com.',
   },
   uk: {
     title: 'Умови використання',
@@ -3463,6 +3463,6 @@ export const termsOfUse: LegalDocByLocale = {
         ],
       },
     ],
-    note: 'Цей документ може перекладатися на інші мови виключно для зручності користувачів. У разі будь-яких розбіжностей, суперечностей чи відмінностей між перекладами переважну юридичну силу має офіційна англомовна версія документа.',
+    note: 'Цей документ може перекладатися на інші мови виключно для зручності користувачів. У разі будь-яких розбіжностей, суперечностей чи відмінностей між перекладами переважну юридичну силу має офіційна англомовна версія документа. KCLUB може надсилати транзакційні SMS-повідомлення з одноразовими паролями (OTP) при запиті перевірки телефону, реєстрації або входу в систему. Частота повідомлень може варіюватися. Можуть застосовуватися тарифи на повідомлення та передачу даних. Відповідь STOP для відмови та HELP для отримання допомоги. Згода не є умовою покупки. Для підтримки звертайтеся до kylyvnykclub@gmail.com.',
   },
 };

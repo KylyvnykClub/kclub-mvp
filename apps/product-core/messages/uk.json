@@ -255,32 +255,72 @@
       ]
     },
     "faq": {
-      "eyebrow": "Answers",
-      "title": "Frequently Asked Questions",
+      "eyebrow": "Відповіді",
+      "title": "Часті запитання",
       "items": [
         {
-          "question": "How do I join KCLUB?",
-          "answer": "Start with sign-up, verify your phone by OTP, complete onboarding, and receive your digital member card."
+          "question": "Що таке KYLYVNYK CLUB?",
+          "answer": "KYLYVNYK CLUB — міжнародний бізнес-клуб для учасників, підприємців, фахівців і компаній."
         },
         {
-          "question": "What is VIP membership?",
-          "answer": "VIP unlocks paid membership capabilities, business profile submission, and future introduction workflows for published businesses."
+          "question": "Хто може стати учасником?",
+          "answer": "Будь-яка повнолітня людина, яка зареєструвалася та прийняла правила клубу."
         },
         {
-          "question": "How does the QR card work?",
-          "answer": "Each active card links directly to a public verification page that confirms card status without exposing private member data."
+          "question": "Що отримує учасник?",
+          "answer": "Учасник отримує цифрову клубну картку та доступ до спеціальних пропозицій партнерів."
         },
         {
-          "question": "Which countries are supported?",
-          "answer": "The DEV home uses placeholder coverage across 12 countries while the directory data layer is completed."
+          "question": "Реєстрація безкоштовна?",
+          "answer": "Базова участь надається безкоштовно. Окремі додаткові функції можуть бути доступні в межах VIP-участі."
         },
         {
-          "question": "Is member lookup public?",
-          "answer": "No. KCLUB does not provide arbitrary public member lookup. Verification happens through direct card URLs."
+          "question": "Що дає VIP-участь?",
+          "answer": "VIP надає доступ до додаткових можливостей та окремих пропозицій клубу. Конкретний перелік переваг відображається на платформі."
         },
         {
-          "question": "How does Stripe billing work?",
-          "answer": "VIP and business placement billing will use Stripe Checkout, subscriptions, and customer portal flows."
+          "question": "Як працює цифрова клубна картка?",
+          "answer": "Картка з персональним QR-кодом підтверджує статус учасника. Для отримання пропозиції партнера може знадобитися пред'явити чинну картку та виконати умови конкретної пропозиції."
+        },
+        {
+          "question": "Які переваги пропонують партнери?",
+          "answer": "Партнери можуть надавати знижки, бонуси, спеціальні ціни або інші умови. Кожна пропозиція визначається самим партнером."
+        },
+        {
+          "question": "Чи гарантує клуб надання знижки?",
+          "answer": "Партнер зобов'язаний дотримуватися опублікованих ним умов, якщо учасник виконав вимоги пропозиції. При цьому товари, послуги та обслуговування надає сам партнер, а не клуб."
+        },
+        {
+          "question": "Чи можна зареєструвати компанію?",
+          "answer": "Так. Представник компанії може створити бізнес-профіль і надіслати його на модерацію."
+        },
+        {
+          "question": "Як стати партнером клубу?",
+          "answer": "Заповніть профіль компанії, підтвердьте повноваження представника, зазначте спеціальні умови для учасників і надішліть заявку на розгляд."
+        },
+        {
+          "question": "Коли компанія з'явиться в каталозі?",
+          "answer": "Після завершення модерації та схвалення профілю."
+        },
+        {
+          "question": "Чи перевіряє клуб усі товари та послуги партнерів?",
+          "answer": "Клуб модерує бізнес-профілі перед публікацією, але не є продавцем або постачальником товарів і послуг партнерів."
+        },
+        {
+          "question": "У яких країнах працює клуб?",
+          "answer": "Платформа призначена для міжнародної спільноти та відкрита для учасників і компаній із різних країн, якщо це не суперечить застосовному законодавству та правилам клубу."
+        },
+        {
+          "question": "Чи публікуються дані учасників?",
+          "answer": "Персональні дані обробляються відповідно до Політики конфіденційності. Видимість окремих відомостей залежить від функцій платформи та налаштувань профілю."
+        },
+        {
+          "question": "Чи можна скасувати VIP-підписку?",
+          "answer": "Так. Керування підпискою доступне в особистому кабінеті з урахуванням умов обраного плану."
+        },
+        {
+          "question": "Як зв'язатися з підтримкою?",
+          "answer": "Через форму зворотного зв'язку або за офіційною адресою електронної пошти клубу."
         }
       ]
     },
