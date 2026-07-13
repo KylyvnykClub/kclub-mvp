@@ -1,11 +1,13 @@
-import { adminApiFetch } from '@/server/proxy/admin-client';
 import type {
+  AdminInvoiceDto,
   AdminUserListItemDto,
   AdminUserDetailDto,
   ApiListResponse,
   ApiResponse,
   StaffRole,
 } from '@kclub/contracts';
+
+import { adminApiFetch } from '@/server/proxy/admin-client';
 
 export type UsersSearchParams = {
   page?: number;
@@ -46,6 +48,12 @@ export async function fetchUsers(params: UsersSearchParams = {}): Promise<UsersL
 
 export async function fetchUserDetail(userId: string): Promise<AdminUserDetailDto | null> {
   const result = await adminApiFetch<ApiResponse<AdminUserDetailDto>>(`/users/${userId}`);
+  if (!result.ok || !result.data?.data) return null;
+  return result.data.data;
+}
+
+export async function fetchUserInvoices(userId: string): Promise<AdminInvoiceDto[] | null> {
+  const result = await adminApiFetch<ApiResponse<AdminInvoiceDto[]>>(`/users/${userId}/invoices`);
   if (!result.ok || !result.data?.data) return null;
   return result.data.data;
 }

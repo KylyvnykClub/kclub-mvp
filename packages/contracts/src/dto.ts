@@ -135,6 +135,19 @@ export type AdminUserDetailDto = AdminUserListItemDto & {
   auditEntries: AuditLogDto[];
 };
 
+export type AdminInvoiceDto = {
+  id: EntityId;
+  number: string | null;
+  stripeSubscriptionId: string;
+  amountPaid: number;
+  currency: string;
+  status: string | null;
+  periodStart: IsoDateTime | null;
+  periodEnd: IsoDateTime | null;
+  invoicePdf: string | null;
+  createdAt: IsoDateTime;
+};
+
 export type AdminCardListItemDto = {
   id: EntityId;
   userId: EntityId;

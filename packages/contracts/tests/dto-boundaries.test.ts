@@ -1,6 +1,7 @@
 import type {
   AdminBusinessDetailDto,
   AdminCardListItemDto,
+  AdminInvoiceDto,
   MemberBusinessProfileDto,
   MemberCardDto,
   PublicBusinessDetailDto,
@@ -47,6 +48,15 @@ type AdminCardListItemExposesUserPhone = Assert<
 type AdminCardListItemExposesUserDisplayName = Assert<
   HasKey<AdminCardListItemDto, 'userDisplayName'> extends true ? true : false
 >;
+type AdminInvoiceExposesPdfReceipt = Assert<
+  HasKey<AdminInvoiceDto, 'invoicePdf'> extends true ? true : false
+>;
+type AdminInvoiceDoesNotExposeCustomerId = Assert<
+  HasKey<AdminInvoiceDto, 'stripeCustomerId'> extends false ? true : false
+>;
+type AdminInvoiceDoesNotExposeMetadata = Assert<
+  HasKey<AdminInvoiceDto, 'metadata'> extends false ? true : false
+>;
 type MemberCardDtoDoesNotExposeUserPhone = Assert<
   HasKey<MemberCardDto, 'userPhone'> extends false ? true : false
 >;
@@ -79,6 +89,9 @@ export type {
   AdminBusinessExposesPlacementSubscription,
   AdminCardListItemExposesUserPhone,
   AdminCardListItemExposesUserDisplayName,
+  AdminInvoiceDoesNotExposeCustomerId,
+  AdminInvoiceDoesNotExposeMetadata,
+  AdminInvoiceExposesPdfReceipt,
   MemberCardDtoDoesNotExposeUserPhone,
   MemberCardDtoDoesNotExposeUserDisplayName,
   PublicBusinessDoesNotExposeAdminEmail,

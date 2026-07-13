@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import type { AdminInvoiceDto, AdminUserDetailDto, StaffRole } from '@kclub/contracts';
+
 import { StatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -30,10 +32,15 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { fetchUserInvoicesAction } from '@/features/users/actions';
+import {
+  SubscriptionReceipts,
+  type InvoiceLoadStatus,
+  shouldLoadSubscriptionReceipts,
+} from '@/features/users/components/subscription-receipts';
 import { cn } from '@/lib/utils';
-import type { AdminUserDetailDto, StaffRole } from '@kclub/contracts';
 
-const USER_DETAIL_TABS = ['overview', 'cards', 'subscriptions', 'logs'] as const;
+const USER_DETAIL_TABS = ['overview', 'card', 'subscriptions', 'logs'] as const;
 
 type UserDetailTab = (typeof USER_DETAIL_TABS)[number];
 
@@ -67,6 +74,9 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
   const [activeTab, setActiveTab] = useState<UserDetailTab>('overview');
   const [syncing, setSyncing] = useState(false);
   const [logFilter, setLogFilter] = useState('');
+  const [invoices, setInvoices] = useState<AdminInvoiceDto[]>([]);
+  const [invoiceStatus, setInvoiceStatus] = useState<InvoiceLoadStatus>('idle');
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
 
   const filteredLogs = user.auditEntries.filter((entry) => {
     if (!logFilter) return true;
@@ -77,7 +87,29 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
   });
 
   function handleTabChange(value: string): void {
-    setActiveTab(parseUserDetailTab(value));
+    const nextTab = parseUserDetailTab(value);
+    setActiveTab(nextTab);
+
+    if (shouldLoadSubscriptionReceipts(nextTab, invoiceStatus)) {
+      void loadInvoices();
+    }
+  }
+
+  async function loadInvoices(force = false): Promise<void> {
+    if (!force && invoiceStatus !== 'idle') return;
+
+    setInvoiceStatus('loading');
+    setInvoiceError(null);
+    const result = await fetchUserInvoicesAction(user.id);
+
+    if (!result.ok) {
+      setInvoiceStatus('error');
+      setInvoiceError(result.error);
+      return;
+    }
+
+    setInvoices(result.invoices);
+    setInvoiceStatus('success');
   }
 
   async function handleSyncVip(): Promise<void> {
@@ -90,6 +122,10 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
     }
     toast.success('VIP subscription synced from Stripe');
     router.refresh();
+
+    if (activeTab === 'subscriptions') {
+      await loadInvoices(true);
+    }
   }
 
   return (
@@ -147,9 +183,9 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                 <LayoutGrid aria-hidden />
                 Overview
               </TabsTrigger>
-              <TabsTrigger value="cards">
+              <TabsTrigger value="card">
                 <CreditCard aria-hidden />
-                Cards
+                Card
                 <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1">
                   {user.cards.length}
                 </Badge>
@@ -220,11 +256,11 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
               </div>
             </TabsContent>
 
-            <TabsContent value="cards" className="mt-0 space-y-4">
+            <TabsContent value="card" className="mt-0 space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Cards</CardTitle>
-                  <CardDescription>Membership cards issued to this user.</CardDescription>
+                  <CardTitle>Card</CardTitle>
+                  <CardDescription>Membership card issued to this user.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {user.cards.length === 0 ? (
@@ -283,7 +319,10 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                     onClick={handleSyncVip}
                     className="shrink-0"
                   >
-                    <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${syncing ? 'animate-spin' : ''}`} />
+                    <RefreshCw
+                      className={cn('mr-1.5 h-3.5 w-3.5', syncing && 'animate-spin')}
+                      aria-hidden={true}
+                    />
                     {syncing ? 'Syncing...' : 'Sync from Stripe'}
                   </Button>
                 </CardHeader>
@@ -328,6 +367,13 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                       </Table>
                     </div>
                   )}
+
+                  <SubscriptionReceipts
+                    invoices={invoices}
+                    status={invoiceStatus}
+                    error={invoiceError}
+                    onRetry={() => void loadInvoices(true)}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
