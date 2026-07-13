@@ -1,5 +1,6 @@
 import { describe, expect, test, mock, afterEach } from 'bun:test';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 
 // Mock next/navigation
 const mockReplace = mock();
@@ -16,7 +17,9 @@ mock.module('next-intl', () => ({
   useTranslations: (namespace: string) => {
     const t = (key: string) => `${namespace}.${key}`;
     t.rich = (key: string, values: Record<string, (chunks: unknown) => unknown>) =>
-      Object.values(values).reduce<unknown>((acc, render) => render(acc), `${namespace}.${key}`);
+      Object.entries(values).map(([tag, render]) => (
+        <span key={tag}>{render(`${namespace}.${key}.${tag}`) as ReactNode}</span>
+      ));
     return t;
   },
 }));
@@ -109,6 +112,18 @@ describe('Auth Forms', () => {
       });
       expect(screen.getByLabelText('auth.common.otpLabel')).toBeTruthy();
     });
+  });
+
+  test('SignUpForm associates the SMS consent disclosure and legal links with the phone field', () => {
+    render(<SignUpForm locale="en" />);
+
+    const phoneInput = screen.getByLabelText('auth.signUp.phoneLabel');
+    const disclosure = screen.getByTestId('sms-consent-disclosure');
+    const legalHrefs = screen.getAllByRole('link').map((link) => link.getAttribute('href'));
+
+    expect(phoneInput.getAttribute('aria-describedby')).toContain(disclosure.id);
+    expect(legalHrefs).toContain('/legal/en/privacy-policy');
+    expect(legalHrefs).toContain('/legal/en/terms-of-use');
   });
 
   test('SignUpForm shows error for existing phone', async () => {

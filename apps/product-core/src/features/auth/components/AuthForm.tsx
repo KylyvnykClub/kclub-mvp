@@ -33,6 +33,14 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputClassName = 'kclub-field';
+  const termsHref = `/legal/${locale}/terms-of-use`;
+  const privacyHref = `/legal/${locale}/privacy-policy`;
+  const phoneDescriptionIds = [
+    isSignUp ? 'sms-consent-disclosure' : null,
+    error ? 'phone-error' : null,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,7 +154,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
                 defaultCountry={defaultCountryForLocale(locale)}
                 renderFlag={renderCountryFlag}
                 required
-                aria-describedby={error ? 'phone-error' : undefined}
+                aria-describedby={phoneDescriptionIds || undefined}
                 placeholder={t('phonePlaceholder')}
                 value={phone}
                 onChange={(value) => setPhone(value)}
@@ -156,6 +164,36 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
                 panelClassName={kclubPhonePanelClassName}
                 data-testid="auth-phone-input"
               />
+              {isSignUp && (
+                <p
+                  id="sms-consent-disclosure"
+                  className="text-sm leading-6 text-muted-foreground"
+                  data-testid="sms-consent-disclosure"
+                >
+                  {t.rich('smsConsentDisclosure', {
+                    privacy: (chunks) => (
+                      <Link
+                        href={privacyHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={linkClasses}
+                      >
+                        {chunks}
+                      </Link>
+                    ),
+                    terms: (chunks) => (
+                      <Link
+                        href={termsHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={linkClasses}
+                      >
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
+                </p>
+              )}
             </Field>
             {isSignUp && (
               <label className="dark:text-white/72 flex gap-3 text-sm text-zinc-700">
@@ -172,7 +210,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
                   {tCommon.rich('termsLabel', {
                     terms: (chunks) => (
                       <Link
-                        href={`/${locale}/terms`}
+                        href={termsHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={linkClasses}
@@ -182,7 +220,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
                     ),
                     privacy: (chunks) => (
                       <Link
-                        href={`/${locale}/privacy`}
+                        href={privacyHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={linkClasses}

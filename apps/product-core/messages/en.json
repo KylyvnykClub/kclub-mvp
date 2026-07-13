@@ -393,6 +393,7 @@
       "description": "Create your member account and get your digital club card.",
       "phoneLabel": "Phone Number",
       "phonePlaceholder": "+1 (555) 000-0000",
+      "smsConsentDisclosure": "By continuing, you agree to receive SMS verification codes from KYLYVNYK CLUB for account authentication. Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for help. Consent is not a condition of purchase. See our <privacy>Privacy Policy</privacy> and <terms>Terms of Use</terms>.",
       "submit": "Send OTP",
       "switchPrompt": "Already have an account?",
       "switchAction": "Sign In"
