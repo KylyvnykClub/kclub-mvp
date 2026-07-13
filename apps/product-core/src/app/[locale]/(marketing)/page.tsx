@@ -7,6 +7,7 @@ import { FeaturedBusinesses } from '@/features/marketing/components/FeaturedBusi
 import { FeaturesSection } from '@/features/marketing/components/FeaturesSection';
 import { HeroSection } from '@/features/marketing/components/HeroSection';
 import { HowItWorksSection } from '@/features/marketing/components/HowItWorksSection';
+import { PrinciplesSection } from '@/features/marketing/components/PrinciplesSection';
 import { ServicesSection } from '@/features/marketing/components/ServicesSection';
 import { StatsSection } from '@/features/marketing/components/StatsSection';
 import { TestimonialsSection } from '@/features/marketing/components/TestimonialsSection';
@@ -40,6 +41,7 @@ export default async function Page(props: { params: Promise<{ locale: Locale }> 
       <TopPartnersSection locale={locale} businesses={businesses} />
       <StatsSection />
       <AboutSection />
+      <PrinciplesSection />
       <FeaturesSection />
       <HowItWorksSection />
       <ServicesSection locale={locale} />

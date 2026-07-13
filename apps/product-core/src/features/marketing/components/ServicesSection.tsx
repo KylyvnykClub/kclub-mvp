@@ -59,7 +59,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col items-center gap-5 text-center"
+          className="flex flex-col  gap-5 "
         >
           <p className="kclub-section-eyebrow">{t('eyebrow')}</p>
           <h2 className="kclub-section-title max-w-3xl">{t('title')}</h2>
@@ -78,13 +78,13 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                 whileInView="show"
                 viewport={{ once: true, margin: '-50px' }}
                 key={card.title}
-                className={`kclub-border-strong relative flex min-h-[30rem] flex-col overflow-hidden border border-t-0 p-6 sm:p-9 ${
+                className={`kclub-border-strong relative flex flex-col overflow-hidden border border-t-0 p-6 sm:p-9 ${
                   isDark
                     ? 'bg-zinc-950 text-white dark:bg-surface-raised'
                     : 'bg-white text-zinc-950 dark:bg-surface dark:text-white'
                 }`}
               >
-                <div className="flex items-start justify-between gap-6">
+                {/* <div className="flex items-start justify-between gap-6">
                   <span
                     className={`flex h-14 w-14 items-center justify-center border ${
                       isDark ? 'border-white/20 text-accent' : 'kclub-border text-accent'
@@ -100,9 +100,9 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                   >
                     {card.number}
                   </span>
-                </div>
+                </div> */}
 
-                <div className="mt-12 flex flex-1 flex-col">
+                <div className="flex  flex-col">
                   <h3 className="max-w-md text-3xl font-black uppercase leading-[1.05] tracking-[-0.03em] sm:text-4xl">
                     {card.title}
                   </h3>
@@ -114,7 +114,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                     {card.description}
                   </p>
 
-                  {card.note ? (
+                  {/* {card.note ? (
                     <p
                       className={`mt-6 flex max-w-xl items-start gap-3 border-t pt-5 text-sm leading-6 ${
                         isDark
@@ -130,7 +130,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                       />
                       <span>{card.note}</span>
                     </p>
-                  ) : null}
+                  ) : null} */}
                 </div>
 
                 <Link
@@ -139,7 +139,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                     color: 'brand',
                     size: 'lg',
                     fullWidth: true,
-                    className: 'mx-auto mt-10 justify-between sm:w-fit sm:min-w-72',
+                    className: 'mx-auto mt-10  sm:w-fit sm:min-w-72 text-center',
                   })}
                 >
                   {card.cta}

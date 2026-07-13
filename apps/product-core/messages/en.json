@@ -196,6 +196,32 @@
         }
       }
     },
+    "principles": {
+      "eyebrow": "What guides us",
+      "title": "Our principles",
+      "items": {
+        "trust": {
+          "title": "Trust",
+          "description": "We develop a community built on respect, responsibility, and transparent rules."
+        },
+        "mutualBenefit": {
+          "title": "Mutual benefit",
+          "description": "Members receive valuable advantages, while partners gain opportunities to attract new customers."
+        },
+        "quality": {
+          "title": "Quality",
+          "description": "The quality of offers, connections, and collaboration within the club matters to us."
+        },
+        "privacy": {
+          "title": "Confidentiality",
+          "description": "We protect personal data and do not create an open, publicly accessible list of all members."
+        },
+        "international": {
+          "title": "International growth",
+          "description": "The club welcomes members and companies from different countries, subject to applicable rules and restrictions."
+        }
+      }
+    },
     "featured": {
       "eyebrow": "Directory",
       "title": "Recommended Partners",
