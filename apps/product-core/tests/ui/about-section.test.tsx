@@ -27,9 +27,9 @@ describe('AboutSection', () => {
 
     expect(screen.getByRole('region', { name: title }).getAttribute('id')).toBe('about');
     expect(screen.getByRole('heading', { level: 2, name: title })).toBeTruthy();
-    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3);
-    expect(screen.getAllByRole('heading', { level: 4 })).toHaveLength(9);
-    expect(screen.getAllByRole('list')).toHaveLength(2);
-    expect(screen.getAllByRole('listitem')).toHaveLength(9);
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(2);
+    expect(screen.getAllByRole('heading', { level: 4 })).toHaveLength(3);
+    expect(screen.getAllByRole('list')).toHaveLength(1);
+    expect(screen.getAllByRole('listitem')).toHaveLength(3);
   });
 });
