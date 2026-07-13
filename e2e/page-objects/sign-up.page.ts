@@ -18,6 +18,10 @@ export class SignUpPage {
     await this.page.locator(SELECTORS.AUTH_PHONE_INPUT).first().fill(phone);
   }
 
+  async acceptTerms(): Promise<void> {
+    await this.page.locator(SELECTORS.AUTH_TERMS_CHECKBOX).first().check();
+  }
+
   async submitPhone(): Promise<void> {
     await this.page.locator(SELECTORS.AUTH_SUBMIT_PHONE).first().click();
   }

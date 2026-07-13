@@ -34,6 +34,7 @@ export const SELECTORS = {
   AUTH_OTP_INPUT: 'input[name="otp"], input[name="code"]',
   AUTH_SUBMIT_PHONE: 'button[type="submit"]',
   AUTH_SUBMIT_OTP: 'button[type="submit"]',
+  AUTH_TERMS_CHECKBOX: '[data-testid="auth-terms-checkbox"]',
 
   // Onboarding
   ONBOARDING_DISPLAY_NAME: 'input[name="displayName"], input[name="name"]',
