@@ -26,9 +26,7 @@ export function CtaSection({ locale }: { locale: Locale }) {
         <div>
           <p className="kclub-section-eyebrow mb-5 text-accent">KCLUB</p>
           <h2 className="kclub-section-title max-w-4xl">{t('cta.title')}</h2>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-white/75 sm:text-lg">
-            {t('cta.subline')}
-          </p>
+          <p className="kclub-section-copy mt-5 max-w-2xl text-white/75">{t('cta.subline')}</p>
         </div>
         <Link
           href={`/${locale}/sign-up`}

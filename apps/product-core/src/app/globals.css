@@ -203,7 +203,7 @@ main {
   /* Single lever for landing-page body copy: change size/weight/line-height here
      and every .kclub-section-copy usage across the landing picks it up. */
   .kclub-section-copy {
-    @apply text-base font-extralight leading-7 text-zinc-600 dark:text-white/70 sm:text-xl sm:leading-relaxed;
+    @apply text-xl font-extralight leading-relaxed text-zinc-600 dark:text-white/70;
   }
 
   .kclub-hero-stat {

@@ -107,9 +107,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                     {card.title}
                   </h3>
                   <p
-                    className={`mt-6 max-w-xl text-base leading-7 sm:text-lg ${
-                      isDark ? 'text-white/70' : 'text-zinc-600 dark:text-white/70'
-                    }`}
+                    className={`kclub-section-copy mt-6 max-w-xl ${isDark ? 'text-white/70' : ''}`}
                   >
                     {card.description}
                   </p>

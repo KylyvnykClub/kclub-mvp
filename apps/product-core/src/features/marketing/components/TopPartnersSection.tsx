@@ -51,9 +51,7 @@ export async function TopPartnersSection({ locale, businesses }: TopPartnersSect
               <h2 className="mt-5 text-4xl font-black uppercase leading-tight text-zinc-950 dark:text-white sm:text-6xl">
                 {t('partners.title')}
               </h2>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-600 dark:text-muted-foreground">
-                {t('partners.subtitle')}
-              </p>
+              <p className="kclub-section-copy mt-4 max-w-xl">{t('partners.subtitle')}</p>
             </div>
           }
           locale={locale}

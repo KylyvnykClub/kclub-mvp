@@ -53,9 +53,7 @@ export function Footer({ locale }: { locale: Locale }) {
             />
             {t('brand')}
           </h2>
-          <p className="dark:text-white/64 mt-5 text-sm font-medium leading-7 text-zinc-600">
-            {t('footer.aboutText')}
-          </p>
+          <p className="kclub-section-copy mt-5 dark:text-white/70">{t('footer.aboutText')}</p>
         </div>
         {linkGroups.map((group) => (
           <div key={group.title}>

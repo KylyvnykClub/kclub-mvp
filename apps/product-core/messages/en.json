@@ -777,10 +777,8 @@
     }
   },
   "directory": {
-    "eyebrow": "Partner Directory",
-    "title": "Published partners, ready to verify",
-    "description": "Browse moderated businesses that are published inside the KCLUB partner directory. Unpublished, hidden, rejected, and under-review profiles are never shown here.",
-    "publishedOnly": "Published partners only",
+    "eyebrow": "Catalog",
+    "title": "Verified Partners",
     "emptyTitle": "No published partners yet",
     "emptyDescription": "The directory will populate after moderator approval and placement publication.",
     "emptyAction": "Create member account",

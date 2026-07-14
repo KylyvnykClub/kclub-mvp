@@ -23,7 +23,7 @@ export function TestimonialsSection() {
         <div className="kclub-border-strong mt-12 grid gap-px border bg-zinc-300 dark:bg-white/10 lg:grid-cols-3">
           {items.map((item) => (
             <figure key={item.author} className="bg-white p-6 dark:bg-surface sm:p-8">
-              <blockquote className="text-base font-semibold leading-8 text-zinc-950 dark:text-white">
+              <blockquote className="kclub-section-copy font-semibold text-zinc-950 dark:text-white">
                 {item.quote}
               </blockquote>
               <figcaption className="mt-8 flex items-center gap-4">

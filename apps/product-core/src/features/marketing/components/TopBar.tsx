@@ -26,7 +26,7 @@ import { LocaleSwitcherLinks } from './LocaleSwitcherLinks';
 import { ThemeToggle } from './ThemeToggle';
 
 type NavItem = {
-  key: 'catalog' | 'about' | 'how_it_works' | 'partners' | 'faq' | 'contact';
+  key: 'about' | 'how_it_works' | 'partners' | 'faq' | 'contact';
   href: string;
 };
 
@@ -49,8 +49,7 @@ export function TopBar({
   const navItems: NavItem[] = [
     { key: 'about', href: `/${locale}/#about` },
     { key: 'how_it_works', href: `/${locale}/#how-it-works` },
-    { key: 'catalog', href: `/${locale}/directory` },
-    { key: 'partners', href: `/${locale}/#partners` },
+    { key: 'partners', href: `/${locale}/directory` },
     { key: 'faq', href: `/${locale}/#faq` },
     { key: 'contact', href: `/${locale}/#contact` },
   ];

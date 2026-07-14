@@ -29,7 +29,7 @@ export function HeroFlagsCarousel() {
 
   return (
     <div className="kclub-hero-flags-carousel relative z-10 shrink-0 border-t border-zinc-200 dark:border-border">
-      <p className="pb-6 pt-4 text-center text-sm font-medium text-zinc-500 dark:text-muted-foreground sm:pb-8 sm:pt-5">
+      <p className="kclub-section-copy pb-6 pt-4 text-center text-zinc-500 dark:text-muted-foreground sm:pb-8 sm:pt-5">
         {t('hero.flagsMarquee')}
       </p>
 

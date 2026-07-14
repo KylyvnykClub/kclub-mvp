@@ -131,7 +131,7 @@ function AudienceCard({ title, description, image }: AudienceCardProps): React.R
       </div>
       <div className="pt-6">
         <h4 className="text-xl font-semibold text-foreground">{title}</h4>
-        <p className="kclub-section-copy mt-3 leading-6 text-muted-foreground">{description}</p>
+        <p className="kclub-section-copy mt-3">{description}</p>
       </div>
     </Surface>
   );

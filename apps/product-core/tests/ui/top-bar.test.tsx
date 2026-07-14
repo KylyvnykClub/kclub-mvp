@@ -35,10 +35,13 @@ describe('TopBar', () => {
     mockRefresh.mockReset();
   });
 
-  test('renders catalog nav and guest account actions', () => {
+  test('renders partners directory nav and guest account actions', () => {
     render(<TopBar locale="en" />);
 
-    expect(screen.getAllByText('home.nav.catalog').length).toBeGreaterThan(0);
+    const partnersLink = screen.getByText('home.nav.partners').closest('a');
+
+    expect(screen.queryByText('home.nav.catalog')).toBeNull();
+    expect(partnersLink?.getAttribute('href')).toBe('/en/directory');
     expect(screen.queryByText('home.nav.cabinet')).toBeNull();
 
     fireEvent.click(screen.getByLabelText('home.nav.account'));
@@ -50,7 +53,10 @@ describe('TopBar', () => {
   test('renders authenticated account actions without cabinet top-level nav', () => {
     render(<TopBar locale="en" isAuthenticated />);
 
-    expect(screen.getAllByText('home.nav.catalog').length).toBeGreaterThan(0);
+    const partnersLink = screen.getByText('home.nav.partners').closest('a');
+
+    expect(screen.queryByText('home.nav.catalog')).toBeNull();
+    expect(partnersLink?.getAttribute('href')).toBe('/en/directory');
     expect(screen.queryByText('home.nav.cabinet')).toBeNull();
 
     fireEvent.click(screen.getByLabelText('home.nav.account'));

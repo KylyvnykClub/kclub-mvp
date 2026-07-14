@@ -23,7 +23,7 @@ export function HowItWorksSection(): React.ReactElement {
               </div>
               <div className="pt-1">
                 <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.description}</p>
+                <p className="kclub-section-copy mt-2">{step.description}</p>
               </div>
             </li>
           ))}

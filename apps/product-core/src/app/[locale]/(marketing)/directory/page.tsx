@@ -85,22 +85,11 @@ export default async function DirectoryPage({
     <div className="kclub-page-band">
       <section className="kclub-page-band bg-white dark:bg-[#09090b]">
         <div className="container py-16 sm:py-20">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
-            <div>
-              <p className="kclub-section-label">{t('eyebrow')}</p>
-              <h1 className="mt-5 max-w-5xl text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-7xl">
-                {t('title')}
-              </h1>
-              <p className="dark:text-white/68 mt-6 max-w-2xl text-base leading-8 text-zinc-600">
-                {t('description')}
-              </p>
-            </div>
-            <div className="kclub-panel p-6">
-              <p className="kclub-note">{t('publishedOnly')}</p>
-              <p className="mt-3 text-4xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white">
-                {businesses.length}
-              </p>
-            </div>
+          <div>
+            <p className="kclub-section-label">{t('eyebrow')}</p>
+            <h1 className="mt-5 max-w-5xl text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-7xl">
+              {t('title')}
+            </h1>
           </div>
 
           <div className="mx-auto mt-12 w-full max-w-3xl">

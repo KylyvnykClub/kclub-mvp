@@ -156,6 +156,9 @@ Do not use `font-bold` — it is heavier than the design requires.
 // Section heading
 <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
 
+// Public marketing body copy
+<p className="kclub-section-copy">Section copy</p>
+
 // Form label — use the Label component
 <Label htmlFor="name">Full name</Label>
 
@@ -163,6 +166,8 @@ Do not use `font-bold` — it is heavier than the design requires.
 <a className={linkClasses}>Click here</a>
 // linkClasses = 'font-medium text-zinc-900 hover:text-zinc-700 hover:underline dark:text-zinc-50 dark:hover:text-zinc-300'
 ```
+
+For public marketing sections, use `kclub-section-copy` for ordinary paragraph or quote text. Do not restyle marketing body copy with ad hoc `text-sm`, `text-base`, `text-zinc-*`, or custom leading classes unless the text is a label, navigation item, badge, statistic, button, or legal/control microcopy.
 
 ---
 

@@ -1,19 +1,42 @@
 'use client';
 
-import { BadgeCheck, Building2, Globe2, Handshake, QrCode, ShieldCheck } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { motion } from 'framer-motion';
-import { cn } from '@kclub/ui';
+import Image, { type StaticImageData } from 'next/image';
 import { type CSSProperties } from 'react';
+import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
+
+import { cn } from '@kclub/ui';
+
+import awardCertificateIcon from '@/assets/icons/about/award-certificate.svg';
+import creditCardIcon from '@/assets/icons/about/credit-card.svg';
+import globePointerIcon from '@/assets/icons/about/globe-pointer.svg';
+import handshakeIcon from '@/assets/icons/about/handshake.svg';
+import shieldCheckIcon from '@/assets/icons/about/shield-check.svg';
+import subscriptionIcon from '@/assets/icons/about/subscription-2.svg';
 import heroBg from '@/assets/images/hero-bg.png';
+
 type FeatureItem = {
   title: string;
   description: string;
 };
 
-const icons = [QrCode, BadgeCheck, Building2, Handshake, Globe2, ShieldCheck] as const;
+type FeatureProps = {
+  description: string;
+  icon: StaticImageData;
+  index: number;
+  title: string;
+};
 
-export function FeaturesSection() {
+const FEATURE_ICONS = [
+  creditCardIcon,
+  awardCertificateIcon,
+  globePointerIcon,
+  handshakeIcon,
+  subscriptionIcon,
+  shieldCheckIcon,
+] as const satisfies readonly StaticImageData[];
+
+export function FeaturesSection(): React.ReactElement {
   const t = useTranslations('home');
   const items = t.raw('features.items') as FeatureItem[];
 
@@ -47,13 +70,13 @@ export function FeaturesSection() {
 
         <div className="relative z-10 grid grid-cols-1 py-10 md:grid-cols-2 lg:grid-cols-3">
           {items.map((feature, index) => {
-            const Icon = icons[index];
+            const icon = FEATURE_ICONS[index];
             return (
               <Feature
                 key={feature.title}
                 title={feature.title}
                 description={feature.description}
-                icon={<Icon size={24} strokeWidth={1.5} />}
+                icon={icon}
                 index={index}
               />
             );
@@ -64,17 +87,7 @@ export function FeaturesSection() {
   );
 }
 
-const Feature = ({
-  title,
-  description,
-  icon,
-  index,
-}: {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  index: number;
-}) => {
+function Feature({ title, description, icon, index }: FeatureProps): React.ReactElement {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -93,16 +106,16 @@ const Feature = ({
       {index >= 3 && (
         <div className="pointer-events-none absolute inset-0 h-full w-full bg-gradient-to-b from-zinc-100 to-transparent opacity-0 transition duration-200 group-hover/feature:opacity-100 dark:from-zinc-800/50" />
       )}
-      <div className="relative z-10 mb-4 px-10 text-zinc-500 dark:text-zinc-400">{icon}</div>
-      <div className="relative z-10 mb-2 px-10 text-lg font-bold">
+      <div className="relative z-10 mb-4 px-10">
+        <Image src={icon} alt="" className="size-16" aria-hidden="true" />
+      </div>
+      <div className="relative z-10 mb-2 px-10">
         <div className="absolute inset-y-0 left-0 h-6 w-1 origin-center rounded-br-full rounded-tr-full bg-zinc-300 transition-all duration-200 group-hover/feature:h-8 group-hover/feature:bg-accent dark:bg-zinc-700" />
-        <span className="inline-block font-black uppercase text-zinc-900 transition duration-200 group-hover/feature:translate-x-2 dark:text-zinc-100">
+        <span className="inline-block text-2xl font-black uppercase text-zinc-900 transition duration-200 group-hover/feature:translate-x-2 dark:text-zinc-100">
           {title}
         </span>
       </div>
-      <p className="relative z-10 max-w-xs px-10 text-sm font-medium leading-relaxed text-zinc-600 dark:text-zinc-300">
-        {description}
-      </p>
+      <p className="kclub-section-copy relative z-10 max-w-xs px-10">{description}</p>
     </motion.div>
   );
-};
+}
