@@ -2,17 +2,17 @@
   "home": {
     "brand": "KCLUB",
     "locale": {
-      "en": "English",
-      "ru": "Russian",
-      "uk": "Ukrainian"
+      "en": "Англійська",
+      "ru": "Російська",
+      "uk": "Українська"
     },
     "common": {
-      "menu": "Open navigation",
-      "close": "Close navigation",
-      "toggleTheme": "Toggle theme",
-      "scroll": "Scroll to content",
-      "viewProfile": "View Profile",
-      "website": "Website",
+      "menu": "Відкрити навігацію",
+      "close": "Закрити навігацію",
+      "toggleTheme": "Перемкнути тему",
+      "scroll": "До вмісту",
+      "viewProfile": "Дивитись профіль",
+      "website": "Сайт",
       "discountLabel": "−{percent}%"
     },
     "carousel": {
@@ -21,15 +21,15 @@
       "nextLabel": "Вперед"
     },
     "nav": {
-      "directory": "Directory",
+      "directory": "Каталог",
       "catalog": "Каталог",
       "about": "Про нас",
       "how_it_works": "Як це працює",
       "partners": "Наші партнери",
       "faq": "FAQ",
       "contact": "Контакти",
-      "signIn": "Sign In",
-      "join": "Join",
+      "signIn": "Увійти",
+      "join": "Приєднатися",
       "cabinet": "Кабінет",
       "account": "Акаунт",
       "dashboard": "Кабінет",
@@ -38,63 +38,63 @@
       "signOutError": "Не вдалося вийти. Спробуйте ще раз."
     },
     "hero": {
-      "eyebrow": "Private Membership Club",
-      "titleLine1": "Private access for",
-      "titleLine2": "global professionals",
-      "subline": "A curated membership network for verified people, trusted partners, and warm business introductions.",
-      "cardEyebrow": "Private member card",
-      "cardCaption": "Verified access",
-      "primaryCta": "Join Now",
-      "secondaryCta": "Explore Directory",
+      "eyebrow": "Kylyvnyk Club Приватний Членський Клуб",
+      "titleLine1": "Приватний доступ для",
+      "titleLine2": "світових професіоналів",
+      "subline": "Курована членська мережа для перевірених людей, надійних партнерів і теплих ділових знайомств.",
+      "cardEyebrow": "Приватна картка учасника",
+      "cardCaption": "Перевірений доступ",
+      "primaryCta": "Приєднатися зараз",
+      "secondaryCta": "Відкрити каталог",
       "stats": {
         "verified": {
-          "title": "Verified members",
-          "copy": "Private onboarding and QR-backed identity."
+          "title": "Перевірені учасники",
+          "copy": "Приватний онбординг та ідентифікація через QR-код."
         },
         "access": {
-          "title": "Trusted access",
-          "copy": "A quieter network for premium business context."
+          "title": "Надійний доступ",
+          "copy": "Закрита мережа для преміального ділового контексту."
         },
         "reach": {
-          "title": "Global reach",
-          "copy": "Members, partners, and warm introductions."
+          "title": "Глобальне охоплення",
+          "copy": "Учасники, партнери та теплі знайомства."
         }
       },
-      "flagsMarquee": "Members from every region, including —"
+      "flagsMarquee": "Учасники з кожного регіону, зокрема —"
     },
     "stats": {
-      "members": "Members",
-      "countries": "Countries",
-      "partners": "Partner Businesses",
-      "years": "Years Active"
+      "members": "Учасники",
+      "countries": "Країни",
+      "partners": "Партнери-бізнеси",
+      "years": "Років роботи"
     },
     "features": {
-      "eyebrow": "Member Platform",
-      "title": "Why KCLUB",
+      "eyebrow": "Платформа учасника",
+      "title": "Чому KCLUB",
       "items": [
         {
-          "title": "Digital Club Card",
-          "description": "QR-verified, always in your pocket."
+          "title": "Цифрова клубна картка",
+          "description": "QR-верифікація, завжди під рукою."
         },
         {
-          "title": "VIP Membership",
-          "description": "Exclusive network and business introductions."
+          "title": "VIP-членство",
+          "description": "Ексклюзивна мережа та ділові знайомства."
         },
         {
-          "title": "Partner Directory",
-          "description": "Verified businesses across 12+ countries."
+          "title": "Каталог партнерів",
+          "description": "Перевірені бізнеси у 12+ країнах."
         },
         {
-          "title": "Business Introductions",
-          "description": "Warm B2B connections inside the club."
+          "title": "Ділові знайомства",
+          "description": "Теплі B2B-зв'язки всередині клубу."
         },
         {
-          "title": "Multilingual Platform",
-          "description": "English, Russian, and Ukrainian."
+          "title": "Багатомовна платформа",
+          "description": "Англійська, російська та українська."
         },
         {
-          "title": "Privacy First",
-          "description": "No public member lookup, phone-only auth."
+          "title": "Приватність понад усе",
+          "description": "Без публічного пошуку учасників, автентифікація за телефоном."
         }
       ]
     },
@@ -223,32 +223,32 @@
       }
     },
     "featured": {
-      "eyebrow": "Directory",
-      "title": "Recommended Partners",
-      "topLabel": "Top",
-      "recommendedLabel": "Recommended",
-      "emptyTitle": "No featured partners yet",
-      "emptyDescription": "Published partners will appear here after moderation and placement approval."
+      "eyebrow": "Каталог",
+      "title": "Рекомендовані партнери",
+      "topLabel": "Топ",
+      "recommendedLabel": "Рекомендовано",
+      "emptyTitle": "Рекомендованих партнерів ще немає",
+      "emptyDescription": "Опубліковані партнери з'являться тут після модерації та затвердження розміщення."
     },
     "testimonials": {
-      "eyebrow": "Members",
-      "title": "What Members Say",
+      "eyebrow": "Учасники",
+      "title": "Що кажуть учасники",
       "items": [
         {
-          "quote": "KCLUB gives our team a quieter way to meet vetted partners without opening the door to random outreach.",
-          "author": "Anna V.",
+          "quote": "KCLUB дає нашій команді можливість знайомитися з перевіреними партнерами без нав'язливого нетворкінгу.",
+          "author": "Анна В.",
           "initials": "AV",
           "tier": "VIP"
         },
         {
-          "quote": "The directory is practical. I can verify a partner and move the conversation forward with confidence.",
-          "author": "Michael R.",
+          "quote": "Каталог практичний. Я можу перевірити партнера і впевнено продовжити розмову.",
+          "author": "Михайло Р.",
           "initials": "MR",
           "tier": "MEMBER"
         },
         {
-          "quote": "The introductions feel human, focused, and respectful of privacy.",
-          "author": "Olena K.",
+          "quote": "Знайомства відчуваються людяними, цілеспрямованими та поважними до приватності.",
+          "author": "Олена К.",
           "initials": "OK",
           "tier": "VIP"
         }
@@ -325,21 +325,21 @@
       ]
     },
     "cta": {
-      "title": "Ready to Join?",
-      "subline": "Create your member account and start with a verified digital club card.",
-      "button": "Join KCLUB"
+      "title": "Готові приєднатися?",
+      "subline": "Створіть акаунт учасника та почніть із перевіреної цифрової клубної картки.",
+      "button": "Приєднатися до KCLUB"
     },
     "footer": {
-      "about": "About",
-      "aboutText": "KCLUB is a private membership platform for verified members, VIP access, and partner discovery.",
-      "links": "Links",
-      "legal": "Legal",
-      "locales": "Locales",
-      "directory": "Directory",
-      "signUp": "Sign Up",
-      "signIn": "Sign In",
-      "verifyCard": "Verify Card",
-      "terms": "Terms",
+      "about": "Про нас",
+      "aboutText": "KCLUB — приватна членська платформа для перевірених учасників, VIP-доступу та пошуку партнерів.",
+      "links": "Посилання",
+      "legal": "Правова інформація",
+      "locales": "Мови",
+      "directory": "Каталог",
+      "signUp": "Реєстрація",
+      "signIn": "Увійти",
+      "verifyCard": "Перевірити картку",
+      "terms": "Умови",
       "privacy": "Конфіденційність",
       "cookiePolicy": "Політика Cookie",
       "clubRules": "Правила клубу",
@@ -777,10 +777,8 @@
     }
   },
   "directory": {
-    "eyebrow": "Partner Directory",
-    "title": "Published partners, ready to verify",
-    "description": "Browse moderated businesses that are published inside the KCLUB partner directory. Unpublished, hidden, rejected, and under-review profiles are never shown here.",
-    "publishedOnly": "Published partners only",
+    "eyebrow": "Каталог",
+    "title": "Верифіковані партнери",
     "emptyTitle": "No published partners yet",
     "emptyDescription": "The directory will populate after moderator approval and placement publication.",
     "emptyAction": "Create member account",
