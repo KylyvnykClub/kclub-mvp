@@ -48,7 +48,6 @@ export function DashboardTabsClient({
       activeTab={activeTab}
       visibleTabs={visibleTabs}
       tabLabels={tabLabels}
-      pageTitle={tabLabels[activeTab]}
       contactLine={contactLine}
       tabsAriaLabel={tabsAriaLabel}
       lockLabels={lockLabels}

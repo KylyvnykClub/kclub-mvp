@@ -1,5 +1,8 @@
 'use client';
 
+import { CreditCard, Phone, Settings, UserRound } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
 import type { CurrentMemberProfileDto, UserContext } from '@kclub/contracts';
 
 import { cn } from '@/lib/utils';
@@ -7,6 +10,7 @@ import type { Locale } from '@/i18n/routing';
 import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-tabs';
 import { getDashboardTabLockLabel, isDashboardTabLocked } from '@/features/member/dashboard-tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/reui/badge';
 
@@ -20,7 +24,6 @@ type MemberCabinetShellProps = {
   activeTab: ImplementedMemberDashboardTab;
   visibleTabs: readonly ImplementedMemberDashboardTab[];
   tabLabels: Record<ImplementedMemberDashboardTab, string>;
-  pageTitle: string;
   contactLine: string;
   tabsAriaLabel: string;
   lockLabels: Record<'VIP' | 'BIZ', string>;
@@ -42,6 +45,17 @@ function getPlanLabel(tier: CurrentMemberProfileDto['membershipTier']): string {
   return tier === 'VIP' ? 'VIP' : 'MEMBER';
 }
 
+function getPrimaryTabs(
+  visibleTabs: readonly ImplementedMemberDashboardTab[],
+): readonly ImplementedMemberDashboardTab[] {
+  return visibleTabs.filter((tab) => tab !== 'settings');
+}
+
+const DASHBOARD_TAB_ICONS: Partial<Record<ImplementedMemberDashboardTab, LucideIcon>> = {
+  details: UserRound,
+  subscription: CreditCard,
+};
+
 function renderTabTriggers({
   visibleTabs,
   tabLabels,
@@ -58,9 +72,11 @@ function renderTabTriggers({
   return visibleTabs.map((tab) => {
     const locked = isDashboardTabLocked(userContext, tab);
     const lockLabel = getDashboardTabLockLabel(tab);
+    const TabIcon = DASHBOARD_TAB_ICONS[tab];
 
     return (
       <TabsTrigger key={tab} value={tab} className={cn(itemClassName, locked && 'text-muted')}>
+        {TabIcon ? <TabIcon size={16} aria-hidden /> : null}
         <span>{tabLabels[tab]}</span>
         {locked && lockLabel ? (
           <Badge variant="outline" size="xs">
@@ -79,7 +95,6 @@ export function MemberCabinetShell({
   activeTab,
   visibleTabs,
   tabLabels,
-  pageTitle,
   contactLine,
   tabsAriaLabel,
   lockLabels,
@@ -88,10 +103,32 @@ export function MemberCabinetShell({
 }: MemberCabinetShellProps) {
   const displayName = profile.displayName ?? profile.phone;
   const planLabel = getPlanLabel(profile.membershipTier);
+  const primaryTabs = getPrimaryTabs(visibleTabs);
+  const canShowSettings = visibleTabs.includes('settings');
 
   const handleValueChange = (value: string) => {
     onTabChange(value as ImplementedMemberDashboardTab);
   };
+
+  const handleSettingsClick = () => {
+    onTabChange('settings');
+  };
+
+  const settingsAction = canShowSettings ? (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={handleSettingsClick}
+      className={cn(
+        'flex h-auto gap-1.5 px-0 py-0 text-xs tracking-wide text-muted hover:bg-transparent hover:text-foreground',
+        activeTab === 'settings' && 'text-foreground',
+      )}
+    >
+      <Settings size={14} aria-hidden />
+      {tabLabels.settings}
+    </Button>
+  ) : null;
 
   return (
     <div className={cabinetRootClasses}>
@@ -99,7 +136,7 @@ export function MemberCabinetShell({
       <header className="sticky top-0 z-20 col-span-full flex w-full shrink-0 items-center justify-between gap-4 border-b border-border bg-surface px-6 py-4 sm:px-10 lg:order-first lg:col-span-full">
         <div className="flex items-center gap-3">
           <Avatar size="lg" className="border-accent/30 border bg-surface-muted">
-            <AvatarFallback className="bg-transparent text-sm font-bold text-accent">
+            <AvatarFallback className="bg-transparent text-sm font-semibold text-accent">
               {getInitials(displayName)}
             </AvatarFallback>
           </Avatar>
@@ -114,8 +151,10 @@ export function MemberCabinetShell({
             </Badge>
           </div>
         </div>
-        <h1 className="text-xl font-semibold text-foreground sm:text-2xl">{pageTitle}</h1>
-        <p className="hidden text-sm text-muted sm:block">{contactLine}</p>
+        <p className="hidden items-center gap-2 text-sm text-muted sm:flex">
+          <Phone size={16} aria-hidden />
+          {contactLine}
+        </p>
       </header>
 
       {/* Mobile tabs */}
@@ -126,7 +165,7 @@ export function MemberCabinetShell({
           className="h-auto w-full justify-start gap-0 rounded-none bg-transparent p-0"
         >
           {renderTabTriggers({
-            visibleTabs,
+            visibleTabs: primaryTabs,
             tabLabels,
             userContext,
             lockLabels,
@@ -135,6 +174,11 @@ export function MemberCabinetShell({
           })}
         </TabsList>
       </Tabs>
+
+      <div className="flex items-center gap-5 border-b border-border bg-surface px-6 py-4 lg:hidden">
+        {settingsAction}
+        <CabinetSignOut locale={locale} />
+      </div>
 
       {/* Sidebar + content row */}
       <div className="flex flex-1 flex-col lg:flex-row">
@@ -151,17 +195,18 @@ export function MemberCabinetShell({
               className="h-fit w-full flex-col items-stretch justify-start gap-0 rounded-none bg-transparent p-0 py-2"
             >
               {renderTabTriggers({
-                visibleTabs,
+                visibleTabs: primaryTabs,
                 tabLabels,
                 userContext,
                 lockLabels,
                 itemClassName:
-                  'h-auto w-full flex-none grow-0 justify-between rounded-none px-6 py-3.5 text-sm font-semibold tracking-wide',
+                  'h-auto w-full flex-none grow-0 justify-start gap-2 rounded-none px-6 py-3.5 text-sm font-semibold tracking-wide',
               })}
             </TabsList>
           </Tabs>
 
-          <div className="shrink-0 border-t border-border px-6 py-5">
+          <div className="flex shrink-0 items-center gap-5 border-t border-border px-6 py-5">
+            {settingsAction}
             <CabinetSignOut locale={locale} />
           </div>
         </aside>

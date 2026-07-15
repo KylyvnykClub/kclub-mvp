@@ -1,24 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Check } from 'lucide-react';
+import { ArrowUpRight, Camera } from 'lucide-react';
+import { toast } from 'sonner';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
+import { MEMBER_API_ROUTES } from '@kclub/contracts';
+import { Spinner } from '@kclub/ui';
 
 import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import { locales } from '@/i18n/routing';
+import { parseAuthResponse } from '@/features/auth/utils/api';
 import {
   cabinetContentClasses,
   cabinetFieldLabelClasses,
   cabinetSectionLabelClasses,
 } from '@/features/member/components/cabinet/styles';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -26,15 +31,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/reui/badge';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/reui/alert';
 
 type SettingsPanelProps = {
   locale: Locale;
   profile: CurrentMemberProfileDto;
 };
-
-type LoginMethod = 'phone' | 'email';
 
 function SettingsToggle({
   enabled,
@@ -58,147 +60,238 @@ function SettingsToggle({
   );
 }
 
+function getInitials(name: string | null, phone: string): string {
+  if (!name) {
+    return phone.charAt(phone.length - 1).toUpperCase();
+  }
+
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part.charAt(0))
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function getButtonLabel(label: string): string {
+  return label.replace(/\s*\u2192\s*$/, '');
+}
+
 export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
   const t = useTranslations('member.dashboard.settings');
+  const tAccount = useTranslations('member.dashboard.account');
+  const tCommon = useTranslations('member.common');
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>('phone');
+  const [displayName, setDisplayName] = useState(profile.displayName ?? '');
+  const [localePreference, setLocalePreference] = useState<Locale>(
+    profile.localePreference ?? locale,
+  );
+  const [country, setCountry] = useState(profile.country ?? '');
+  const [city, setCity] = useState(profile.city ?? '');
+  const [about, setAbout] = useState(profile.about ?? '');
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? '');
   const [emailNotifs, setEmailNotifs] = useState(true);
   const [pushNotifs, setPushNotifs] = useState(false);
   const [newsletter, setNewsletter] = useState(true);
-  const [oldPass, setOldPass] = useState('');
-  const [newPass, setNewPass] = useState('');
-  const [confirmPass, setConfirmPass] = useState('');
-  const [passSaved, setPassSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
-  const handleLocaleChange = (nextLocale: Locale) => {
-    router.push(`/${nextLocale}/m/dashboard?tab=settings`);
+  const memberName = displayName || profile.displayName || profile.phone;
+
+  const handleAvatarClick = () => fileInputRef.current?.click();
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAvatar(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/v1/me/avatar', { method: 'POST', body: formData });
+      const result = await parseAuthResponse<CurrentMemberProfileDto>(res);
+
+      if (!result.success || !result.data) {
+        toast.error(tAccount('avatarUploadError'));
+        return;
+      }
+
+      setAvatarUrl(result.data.avatarUrl ?? '');
+      router.refresh();
+    } catch {
+      toast.error(tAccount('avatarUploadError'));
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
-  const handleSavePassword = () => {
-    // TODO(KCLUB-SETTINGS): Wire password update API when member email/password auth ships.
-    setPassSaved(true);
-    setOldPass('');
-    setNewPass('');
-    setConfirmPass('');
-    window.setTimeout(() => setPassSaved(false), 2200);
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+
+    try {
+      const res = await fetch(MEMBER_API_ROUTES.ME, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          displayName: displayName || undefined,
+          localePreference,
+          country: country || null,
+          city: city || null,
+          about: about || null,
+        }),
+      });
+
+      const result = await parseAuthResponse<CurrentMemberProfileDto>(res);
+
+      if (!result.success) {
+        toast.error(tAccount('saveError'));
+        return;
+      }
+
+      toast.success(tAccount('saveSuccess'));
+      router.refresh();
+    } catch {
+      toast.error(tAccount('saveError'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className={cn(cabinetContentClasses, 'w-full')}>
       <section className="mb-12">
         <h2 className={cn(cabinetSectionLabelClasses, 'mb-6 border-b border-border pb-3')}>
-          {t('authSection')}
+          {tAccount('title')}
         </h2>
-        <div className="space-y-6">
-          <div>
-            <p className={cabinetFieldLabelClasses}>{t('loginMethod')}</p>
-            <ToggleGroup
-              type="single"
-              value={loginMethod}
-              onValueChange={(value) => {
-                if (value) setLoginMethod(value as LoginMethod);
-              }}
-              spacing={0}
-              variant="outline"
-              className="mt-3 w-full max-w-md"
-            >
-              {(['phone', 'email'] as const).map((method) => (
-                <ToggleGroupItem
-                  key={method}
-                  value={method}
-                  className="h-auto flex-1 flex-col items-start gap-0.5 px-4 py-3.5 text-left"
-                >
-                  <p className="text-sm font-semibold">
-                    {t(`login${method === 'phone' ? 'Phone' : 'Email'}`)}
-                  </p>
-                  <p className="mt-0.5 text-xs opacity-70">
-                    {t(`login${method === 'phone' ? 'Phone' : 'Email'}Hint`)}
-                  </p>
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+
+        <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleAvatarClick}
+            aria-label={tAccount('avatar')}
+            className="relative h-auto w-fit rounded-full p-0"
+          >
+            <Avatar className="border-accent/25 size-20 border bg-surface-muted">
+              {avatarUrl ? <AvatarImage src={avatarUrl} alt={memberName} /> : null}
+              <AvatarFallback className="bg-transparent text-2xl font-semibold text-accent">
+                {getInitials(displayName || profile.displayName, profile.phone)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-white opacity-0 transition group-hover/button:opacity-100">
+              {isUploadingAvatar ? <Spinner size={18} /> : <Camera size={18} aria-hidden />}
+            </span>
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+
+          <div className="min-w-0">
+            <p className="text-lg font-semibold text-foreground">{memberName}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{profile.phone}</p>
           </div>
-
-          {loginMethod === 'phone' ? (
-            <div>
-              <p className={cabinetFieldLabelClasses}>{t('loginPhoneLabel')}</p>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <Input
-                  type="text"
-                  value={profile.phone}
-                  readOnly
-                  className="w-56 cursor-default bg-background text-muted-foreground"
-                />
-                <Badge variant="success-light">
-                  <Check aria-hidden />
-                  {t('verified')}
-                </Badge>
-              </div>
-              <p className="mt-2 text-xs leading-relaxed text-muted">{t('loginPhoneHelp')}</p>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">{t('emailLoginUnavailable')}</p>
-          )}
         </div>
-      </section>
 
-      <section className="mb-12">
-        <h2 className={cn(cabinetSectionLabelClasses, 'mb-6 border-b border-border pb-3')}>
-          {t('securitySection')}
-        </h2>
-        <div className="space-y-4">
+        <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label htmlFor="settings-old-pass" className={cabinetFieldLabelClasses}>
-              {t('currentPassword')}
+            <label htmlFor="settings-display-name" className={cabinetFieldLabelClasses}>
+              {tAccount('displayName')}
             </label>
             <Input
-              id="settings-old-pass"
-              type="password"
-              value={oldPass}
-              onChange={(event) => setOldPass(event.target.value)}
-              placeholder={t('currentPasswordPlaceholder')}
-              className="mt-2 w-full"
+              id="settings-display-name"
+              type="text"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              maxLength={100}
+              disabled={isSaving}
+              className="mt-2 w-full rounded-none"
             />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="settings-new-pass" className={cabinetFieldLabelClasses}>
-                {t('newPassword')}
-              </label>
-              <Input
-                id="settings-new-pass"
-                type="password"
-                value={newPass}
-                onChange={(event) => setNewPass(event.target.value)}
-                placeholder={t('newPasswordPlaceholder')}
-                className="mt-2 w-full"
-              />
-            </div>
-            <div>
-              <label htmlFor="settings-confirm-pass" className={cabinetFieldLabelClasses}>
-                {t('confirmPassword')}
-              </label>
-              <Input
-                id="settings-confirm-pass"
-                type="password"
-                value={confirmPass}
-                onChange={(event) => setConfirmPass(event.target.value)}
-                placeholder={t('confirmPasswordPlaceholder')}
-                className="mt-2 w-full"
-              />
-            </div>
+
+          <div>
+            <label htmlFor="settings-country" className={cabinetFieldLabelClasses}>
+              {tAccount('country')}
+            </label>
+            <Input
+              id="settings-country"
+              type="text"
+              value={country}
+              onChange={(event) => setCountry(event.target.value)}
+              maxLength={100}
+              disabled={isSaving}
+              className="mt-2 w-full rounded-none"
+            />
           </div>
-          <div className="flex items-center gap-4">
-            <Button type="button" onClick={handleSavePassword}>
-              {t('updatePassword')}
-            </Button>
-            {passSaved ? (
-              <Alert variant="success" className="w-auto py-1.5">
-                <AlertDescription>{t('passwordUpdated')}</AlertDescription>
-              </Alert>
-            ) : null}
+
+          <div>
+            <label htmlFor="settings-city" className={cabinetFieldLabelClasses}>
+              {tAccount('city')}
+            </label>
+            <Input
+              id="settings-city"
+              type="text"
+              value={city}
+              onChange={(event) => setCity(event.target.value)}
+              maxLength={100}
+              disabled={isSaving}
+              className="mt-2 w-full rounded-none"
+            />
           </div>
+
+          <div>
+            <label htmlFor="settings-locale" className={cabinetFieldLabelClasses}>
+              {tAccount('locale')}
+            </label>
+            <Select
+              value={localePreference}
+              onValueChange={(value) => setLocalePreference(value as Locale)}
+              disabled={isSaving}
+            >
+              <SelectTrigger id="settings-locale" className="mt-2 w-full rounded-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {locales.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {tCommon(`locales.${value}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label htmlFor="settings-about" className={cabinetFieldLabelClasses}>
+              {tAccount('about')}
+            </label>
+            <Textarea
+              id="settings-about"
+              rows={3}
+              maxLength={500}
+              placeholder={tAccount('aboutPlaceholder')}
+              value={about}
+              onChange={(event) => setAbout(event.target.value)}
+              disabled={isSaving}
+              className="mt-2 w-full rounded-none"
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <Button type="button" onClick={handleSaveProfile} disabled={isSaving}>
+            {isSaving ? tAccount('saving') : getButtonLabel(tAccount('save'))}
+            {!isSaving ? <ArrowUpRight size={16} aria-hidden /> : null}
+          </Button>
         </div>
       </section>
 
@@ -228,30 +321,6 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
         </div>
       </section>
 
-      <section className="mb-14">
-        <h2 className={cn(cabinetSectionLabelClasses, 'mb-6 border-b border-border pb-3')}>
-          {t('preferencesSection')}
-        </h2>
-        <div className="grid items-center gap-3 sm:grid-cols-[200px_1fr]">
-          <p className="text-sm font-semibold text-foreground">{t('displayLanguage')}</p>
-          <Select
-            value={profile.localePreference ?? locale}
-            onValueChange={(value) => handleLocaleChange(value as Locale)}
-          >
-            <SelectTrigger className="max-w-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {locales.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {t(`languages.${value}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </section>
-
       <section>
         <h2 className="border-destructive/20 mb-6 border-b pb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-destructive">
           {t('dangerSection')}
@@ -261,7 +330,8 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
           <AlertDescription>{t('deleteAccountHint')}</AlertDescription>
           <AlertAction>
             <Button type="button" variant="destructive" size="sm" disabled>
-              {t('deleteAccountCta')}
+              {getButtonLabel(t('deleteAccountCta'))}
+              <ArrowUpRight size={14} aria-hidden />
             </Button>
           </AlertAction>
         </Alert>

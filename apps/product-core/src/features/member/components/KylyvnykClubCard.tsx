@@ -21,8 +21,8 @@ export function KylyvnykClubCard({
   return (
     <div
       className={cn(
-        'relative shrink-0 overflow-hidden rounded-2xl shadow-2xl',
-        'aspect-[1.58/1] w-full max-w-[400px] lg:max-w-[450px]',
+        'relative shrink-0 overflow-hidden rounded-xl shadow-2xl sm:rounded-2xl',
+        'aspect-[1.58/1] w-full max-w-full sm:max-w-[400px] lg:max-w-[450px]',
         className,
       )}
       style={{
@@ -84,16 +84,16 @@ export function KylyvnykClubCard({
         style={{ boxShadow: 'inset 0 0 50px 12px rgba(50,35,8,0.45)' }}
       />
 
-      <div className="absolute inset-0 p-2">
+      <div className="absolute inset-0 p-1.5 sm:p-2">
         <div className="relative flex h-full w-full flex-col justify-between rounded-xl border border-[#e6c975] shadow-[inset_0_0_15px_rgba(0,0,0,0.2)]">
           {/* Logo and Branding */}
-          <div className="mt-4 flex flex-col items-center">
+          <div className="mt-2 flex min-w-0 flex-col items-center sm:mt-4">
             <Image
               src={cardLogo}
               alt="Kylyvnyk Club Logo"
-              className="h-16 w-16 object-contain drop-shadow-md"
+              className="h-10 w-10 object-contain drop-shadow-md sm:h-14 sm:w-14 lg:h-16 lg:w-16"
             />
-            <div className="mt-2 font-serif text-3xl tracking-widest">
+            <div className="mt-1 max-w-full truncate px-3 font-serif text-xl tracking-widest sm:mt-2 sm:text-2xl lg:text-3xl">
               <span
                 style={{
                   color: '#4a3210',
@@ -105,7 +105,7 @@ export function KylyvnykClubCard({
               </span>
             </div>
             <div
-              className="mt-1 font-sans text-[10px] font-bold uppercase tracking-[0.3em]"
+              className="mt-0.5 max-w-full truncate px-3 font-sans text-xs font-semibold uppercase tracking-widest sm:mt-1"
               style={{
                 color: '#4a3510',
                 textShadow: '0 1px 0 rgba(220,190,90,0.7), 0 -1px 0 rgba(30,20,5,0.4)',
@@ -116,9 +116,9 @@ export function KylyvnykClubCard({
           </div>
 
           {/* User Data */}
-          <div className="flex flex-col items-center justify-center pt-2">
+          <div className="flex min-w-0 flex-col items-center justify-center px-4 pt-1 sm:pt-2">
             <div
-              className="text-3xl font-bold uppercase tracking-widest"
+              className="max-w-full truncate text-center text-lg font-semibold uppercase tracking-widest sm:text-2xl lg:text-3xl"
               style={{
                 color: '#1a1200',
                 textShadow:
@@ -128,7 +128,7 @@ export function KylyvnykClubCard({
               {name}
             </div>
             <div
-              className="mt-1 text-xl font-medium uppercase tracking-widest"
+              className="mt-0.5 max-w-full truncate text-center text-sm font-medium uppercase tracking-widest sm:mt-1 sm:text-lg lg:text-xl"
               style={{
                 color: '#2a1e08',
                 textShadow: '0 1px 0 rgba(220,190,90,0.6), 0 -1px 0 rgba(30,20,5,0.35)',
@@ -139,9 +139,9 @@ export function KylyvnykClubCard({
           </div>
 
           {/* Footer */}
-          <div className="flex w-full items-end justify-between px-8 pb-6">
+          <div className="grid w-full grid-cols-2 items-end gap-2 px-4 pb-3 sm:px-6 sm:pb-5 lg:px-8 lg:pb-6">
             <div
-              className="text-sm font-medium uppercase tracking-widest"
+              className="min-w-0 truncate text-xs font-medium uppercase tracking-wide sm:text-sm sm:tracking-widest"
               style={{
                 color: '#2a1e08',
                 textShadow: '0 1px 0 rgba(220,190,90,0.5), 0 -1px 0 rgba(30,20,5,0.3)',
@@ -150,7 +150,7 @@ export function KylyvnykClubCard({
               ID: {idNumber.slice(-9)}
             </div>
             <div
-              className="text-sm font-medium uppercase tracking-widest"
+              className="min-w-0 truncate text-right text-xs font-medium uppercase tracking-wide sm:text-sm sm:tracking-widest"
               style={{
                 color: '#2a1e08',
                 textShadow: '0 1px 0 rgba(220,190,90,0.5), 0 -1px 0 rgba(30,20,5,0.3)',
