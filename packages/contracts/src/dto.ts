@@ -99,6 +99,64 @@ export type DashboardMetricsDto = {
   recentActivity?: DashboardActivityItemDto[];
 };
 
+export type FinanceRevenuePointDto = {
+  /** UTC month bucket, 'YYYY-MM'. */
+  month: string;
+  /** All amounts are in the minor units of `FinanceDashboardDto.currency`. */
+  vip: number;
+  businessPlacement: number;
+  other: number;
+  total: number;
+};
+
+export type FinanceRecentPaymentDto = {
+  id: string;
+  number: string | null;
+  customerName: string | null;
+  kind: SubscriptionKind | null;
+  amountPaid: number;
+  currency: string;
+  invoicePdf: string | null;
+  createdAt: IsoDateTime;
+};
+
+export type FinanceUpcomingRenewalDto = {
+  subscriptionId: EntityId;
+  kind: SubscriptionKind;
+  status: SubscriptionStatus;
+  userDisplayName: string | null;
+  businessName: string | null;
+  currentPeriodEnd: IsoDateTime;
+  cancelAtPeriodEnd: boolean;
+};
+
+export type FinanceDashboardDto = {
+  generatedAt: IsoDateTime;
+  /** Dominant lowercase ISO currency of the aggregated invoices, e.g. 'usd'. */
+  currency: string;
+  revenue30d: number;
+  revenuePrev30d: number;
+  activeSubscriptions: {
+    total: number;
+    vip: number;
+    businessPlacement: number;
+  };
+  pastDueSubscriptions: number;
+  newSubscriptions30d: number;
+  newSubscriptionsPrev30d: number;
+  /** Trailing 12 months, minor units. */
+  revenueByKind: {
+    vip: number;
+    businessPlacement: number;
+    other: number;
+  };
+  subscriptionsByStatus: Array<{ status: SubscriptionStatus; count: number }>;
+  /** Exactly 12 entries, oldest month first, zero-filled. */
+  monthlyRevenue: FinanceRevenuePointDto[];
+  recentPayments: FinanceRecentPaymentDto[];
+  upcomingRenewals: FinanceUpcomingRenewalDto[];
+};
+
 export const STAFF_AUTH_STATES = [
   'OTP_REQUIRED',
   'TOTP_REQUIRED',
