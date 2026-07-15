@@ -22,6 +22,13 @@
       "when": 1783699269750,
       "tag": "0002_rapid_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784106003092,
+      "tag": "0003_busy_pretty_boy",
+      "breakpoints": true
     }
   ]
 }

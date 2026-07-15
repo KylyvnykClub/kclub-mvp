@@ -646,7 +646,7 @@
         "loginPhoneHint": "One-time SMS code",
         "loginEmail": "Email",
         "loginEmailHint": "Password login",
-        "loginPhoneHelp": "A one-time SMS code will be sent to this number each time you sign in. Change your phone number in the Details tab.",
+        "loginPhoneHelp": "A one-time SMS code will be sent to this number each time you sign in. Phone number changes are handled by support.",
         "loginPhoneLabel": "Login phone number",
         "verified": "SMS verified",
         "emailLoginUnavailable": "Email login is not available for this account yet.",

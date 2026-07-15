@@ -77,7 +77,7 @@ export async function PATCH(request: NextRequest) {
       headers: request.headers,
     });
 
-    const updated = await updateMemberProfile(supabaseUser.id, parsed.data);
+    const updated = await updateMemberProfile(localUser, parsed.data);
     const profile = toCurrentMemberProfileDto(updated);
 
     await auditService.log(

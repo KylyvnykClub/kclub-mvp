@@ -33,7 +33,9 @@ function toUtcMonthKey(date: Date): string {
 export function buildFinanceMonthKeys(now: Date): string[] {
   const keys: string[] = [];
   for (let offset = MONTHS_IN_CHART - 1; offset >= 0; offset -= 1) {
-    keys.push(toUtcMonthKey(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset, 1))));
+    keys.push(
+      toUtcMonthKey(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset, 1))),
+    );
   }
   return keys;
 }
@@ -46,7 +48,12 @@ export function financeWindowStartUnix(now: Date): number {
 
 export type FinanceInvoiceAggregation = Pick<
   FinanceDashboardDto,
-  'currency' | 'revenue30d' | 'revenuePrev30d' | 'revenueByKind' | 'monthlyRevenue' | 'recentPayments'
+  | 'currency'
+  | 'revenue30d'
+  | 'revenuePrev30d'
+  | 'revenueByKind'
+  | 'monthlyRevenue'
+  | 'recentPayments'
 >;
 
 function pickDominantCurrency(invoices: readonly Stripe.Invoice[]): string {
@@ -254,7 +261,8 @@ async function computeFinanceDashboard(): Promise<FinanceDashboardDto> {
     if (row.stripeSubscriptionId) kindBySubscriptionId.set(row.stripeSubscriptionId, row.kind);
   }
   for (const row of vipKindRows) {
-    if (row.stripeSubscriptionId) kindBySubscriptionId.set(row.stripeSubscriptionId, 'VIP_MEMBERSHIP');
+    if (row.stripeSubscriptionId)
+      kindBySubscriptionId.set(row.stripeSubscriptionId, 'VIP_MEMBERSHIP');
   }
 
   const invoices = await listPaidInvoicesSince(financeWindowStartUnix(now));

@@ -31,7 +31,7 @@ function OpsRow({
       <li>
         <Link
           href={href}
-          className="flex items-center gap-3 rounded-md px-1 py-2 transition-colors hover:bg-muted/50"
+          className="hover:bg-muted/50 flex items-center gap-3 rounded-md px-1 py-2 transition-colors"
         >
           {content}
         </Link>

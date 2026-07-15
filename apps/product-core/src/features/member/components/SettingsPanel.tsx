@@ -155,7 +155,11 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
       }
 
       toast.success(tAccount('saveSuccess'));
-      router.refresh();
+      if (localePreference !== locale) {
+        router.push(`/${localePreference}/m/dashboard?tab=settings`);
+      } else {
+        router.refresh();
+      }
     } catch {
       toast.error(tAccount('saveError'));
     } finally {
@@ -176,7 +180,7 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
             variant="ghost"
             onClick={handleAvatarClick}
             aria-label={tAccount('avatar')}
-            className="relative h-auto w-fit rounded-full p-0"
+            className="group relative h-auto w-fit rounded-full p-0"
           >
             <Avatar className="border-accent/25 size-20 border bg-surface-muted">
               {avatarUrl ? <AvatarImage src={avatarUrl} alt={memberName} /> : null}
@@ -184,7 +188,7 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
                 {getInitials(displayName || profile.displayName, profile.phone)}
               </AvatarFallback>
             </Avatar>
-            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-white opacity-0 transition group-hover/button:opacity-100">
+            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-white opacity-0 transition group-hover:opacity-100">
               {isUploadingAvatar ? <Spinner size={18} /> : <Camera size={18} aria-hidden />}
             </span>
           </Button>
@@ -215,6 +219,19 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
               maxLength={100}
               disabled={isSaving}
               className="mt-2 w-full rounded-none"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="settings-phone" className={cabinetFieldLabelClasses}>
+              {tAccount('phone')}
+            </label>
+            <Input
+              id="settings-phone"
+              type="text"
+              value={profile.phone}
+              readOnly
+              className="mt-2 w-full cursor-default rounded-none bg-background text-muted-foreground"
             />
           </div>
 

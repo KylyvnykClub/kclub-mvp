@@ -50,8 +50,8 @@ function ProfileInfoField({ label, value, isMultiline }: ProfileInfoFieldProps) 
       <div
         className={
           isMultiline
-            ? 'min-h-24 rounded-lg border border-border bg-surface-muted px-4 py-3 text-sm leading-relaxed text-foreground'
-            : 'min-h-11 rounded-full border border-border bg-surface-muted px-4 py-2.5 text-sm text-foreground'
+            ? 'min-h-20 border-b border-border py-3 text-sm leading-relaxed text-foreground'
+            : 'min-h-11 border-b border-border py-2.5 text-sm text-foreground'
         }
       >
         {value}

@@ -3,8 +3,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 
 const mockReplace = mock();
 const mockRefresh = mock();
+let mockPathname = '/en';
 
 mock.module('next/navigation', () => ({
+  usePathname: () => mockPathname,
   useRouter: () => ({
     replace: mockReplace,
     refresh: mockRefresh,
@@ -33,15 +35,22 @@ describe('TopBar', () => {
     mockFetch.mockReset();
     mockReplace.mockReset();
     mockRefresh.mockReset();
+    mockPathname = '/en';
   });
 
   test('renders partners directory nav and guest account actions', () => {
     render(<TopBar locale="en" />);
 
     const partnersLink = screen.getByText('home.nav.partners').closest('a');
+    const desktopNav = partnersLink?.closest('nav');
 
     expect(screen.queryByText('home.nav.catalog')).toBeNull();
     expect(partnersLink?.getAttribute('href')).toBe('/en/directory');
+    expect(desktopNav?.className).toContain('hidden');
+    expect(desktopNav?.className).toContain('md:flex');
+    expect(desktopNav?.className).toContain('text-[11px]');
+    expect(partnersLink?.className).toContain('whitespace-nowrap');
+    expect(screen.getByLabelText('home.common.menu').className).toContain('h-11');
     expect(screen.queryByText('home.nav.cabinet')).toBeNull();
 
     fireEvent.click(screen.getByLabelText('home.nav.account'));
@@ -63,6 +72,19 @@ describe('TopBar', () => {
 
     expect(screen.getByText('home.nav.dashboard')).toBeTruthy();
     expect(screen.getByText('home.nav.signOut')).toBeTruthy();
+  });
+
+  test('shows authenticated account actions after client navigation into member dashboard', () => {
+    mockPathname = '/en/m/dashboard';
+
+    render(<TopBar locale="en" />);
+
+    fireEvent.click(screen.getByLabelText('home.nav.account'));
+
+    expect(screen.getByText('home.nav.dashboard')).toBeTruthy();
+    expect(screen.getByText('home.nav.signOut')).toBeTruthy();
+    expect(screen.queryByText('home.nav.signIn')).toBeNull();
+    expect(screen.queryByText('home.nav.join')).toBeNull();
   });
 
   test('sign-out posts logout and redirects to localized sign-in', async () => {

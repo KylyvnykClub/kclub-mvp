@@ -52,7 +52,7 @@ export function RevenueChartCard({
             No revenue recorded yet.
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[280px] w-full aspect-auto">
+          <ChartContainer config={chartConfig} className="aspect-auto h-[280px] w-full">
             <BarChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
               <XAxis
