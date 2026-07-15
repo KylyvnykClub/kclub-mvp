@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
+import * as OTPAuth from 'otpauth';
 
 import {
   handleStaffOtpVerify,
@@ -31,6 +32,19 @@ function getRequest(token?: string) {
 
 async function readJson<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
+}
+
+function generateTotpCode(secret: string): string {
+  const totp = new OTPAuth.TOTP({
+    issuer: 'KCLUB',
+    label: OWNER_PHONE,
+    algorithm: 'SHA1',
+    digits: 6,
+    period: 30,
+    secret: OTPAuth.Secret.fromBase32(secret),
+  });
+
+  return totp.generate();
 }
 
 describe('totp setup flow', () => {
@@ -101,10 +115,11 @@ describe('totp setup flow', () => {
     expect(otpPayload.data.state).toBe('TOTP_SETUP_REQUIRED');
 
     const setupResponse = await handleStaffTotpSetup(getRequest(otpPayload.data.token));
+    const setupPayload = await readJson<{ data: { manualKey: string } }>(setupResponse);
     expect(setupResponse.status).toBe(200);
 
     const totpResponse = await handleStaffTotpVerify(
-      jsonRequest({ code: '123456' }, otpPayload.data.token),
+      jsonRequest({ code: generateTotpCode(setupPayload.data.manualKey) }, otpPayload.data.token),
     );
     const totpPayload = await readJson<{
       data: { state: string; token: string; profile: { totpVerified: boolean } };

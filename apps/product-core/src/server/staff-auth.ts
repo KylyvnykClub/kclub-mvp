@@ -246,6 +246,19 @@ function isValidDevTotp(code: string): boolean {
   return code === (process.env.ADMIN_STAFF_DEV_TOTP ?? DEFAULT_DEV_TOTP);
 }
 
+function isValidTotpCode(secret: string, phone: string, code: string): boolean {
+  const totp = new OTPAuth.TOTP({
+    issuer: 'KCLUB',
+    label: phone,
+    algorithm: 'SHA1',
+    digits: 6,
+    period: 30,
+    secret: OTPAuth.Secret.fromBase32(secret),
+  });
+
+  return totp.validate({ token: code, window: 1 }) !== null;
+}
+
 function getClientIp(request: Request): string | null {
   return (
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
@@ -385,15 +398,7 @@ export async function handleStaffTotpVerify(request: Request): Promise<Response>
 
       if (twoFactor?.secret_ciphertext) {
         secretFromDb = decryptSecret(twoFactor.secret_ciphertext);
-        const totp = new OTPAuth.TOTP({
-          issuer: 'KCLUB',
-          label: staff.phone,
-          algorithm: 'SHA1',
-          digits: 6,
-          period: 30,
-          secret: OTPAuth.Secret.fromBase32(secretFromDb),
-        });
-        isValidCode = totp.validate({ token: code, window: 1 }) !== null;
+        isValidCode = isValidTotpCode(secretFromDb, staff.phone, code);
 
         if (isValidCode && !twoFactor.verified_at) {
           await db.transaction(async (tx) => {
@@ -410,6 +415,14 @@ export async function handleStaffTotpVerify(request: Request): Promise<Response>
       }
     } catch {
       // DB unavailable
+    }
+  }
+
+  if (!secretFromDb) {
+    const cachedSecret = totpSecretCache.get(staff.id);
+    if (cachedSecret) {
+      secretFromDb = cachedSecret;
+      isValidCode = isValidTotpCode(cachedSecret, staff.phone, code);
     }
   }
 
