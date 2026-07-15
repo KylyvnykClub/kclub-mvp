@@ -65,7 +65,10 @@ export const users = pgTable(
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => [index('users_status_created_at_idx').on(table.status, table.created_at)],
+  (table) => [
+    index('users_supabase_auth_user_id_idx').on(table.supabase_auth_user_id),
+    index('users_status_created_at_idx').on(table.status, table.created_at),
+  ],
 );
 
 export const memberCards = pgTable(

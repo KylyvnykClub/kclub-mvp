@@ -139,9 +139,9 @@ export function KylyvnykClubCard({
           </div>
 
           {/* Footer */}
-          <div className="grid w-full grid-cols-2 items-end gap-2 px-4 pb-3 sm:px-6 sm:pb-5 lg:px-8 lg:pb-6">
+          <div className="grid w-full grid-cols-[minmax(0,0.9fr)_minmax(max-content,1.1fr)] items-end gap-2 px-4 pb-3 sm:px-6 sm:pb-5 lg:px-8 lg:pb-6">
             <div
-              className="min-w-0 truncate text-xs font-medium uppercase tracking-wide sm:text-sm sm:tracking-widest"
+              className="min-w-0 whitespace-nowrap text-xs font-medium uppercase tracking-normal sm:text-sm sm:tracking-wide lg:tracking-widest"
               style={{
                 color: '#2a1e08',
                 textShadow: '0 1px 0 rgba(220,190,90,0.5), 0 -1px 0 rgba(30,20,5,0.3)',
@@ -150,7 +150,7 @@ export function KylyvnykClubCard({
               ID: {idNumber.slice(-9)}
             </div>
             <div
-              className="min-w-0 truncate text-right text-xs font-medium uppercase tracking-wide sm:text-sm sm:tracking-widest"
+              className="min-w-max whitespace-nowrap text-right text-xs font-medium uppercase tracking-normal sm:text-sm sm:tracking-wide lg:tracking-widest"
               style={{
                 color: '#2a1e08',
                 textShadow: '0 1px 0 rgba(220,190,90,0.5), 0 -1px 0 rgba(30,20,5,0.3)',

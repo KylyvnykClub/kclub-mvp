@@ -14,7 +14,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -39,9 +39,11 @@ export function TopBar({
 }): ReactElement {
   const t = useTranslations('home');
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [localeOpen, setLocaleOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [authState, setAuthState] = useState(isAuthenticated);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -53,6 +55,15 @@ export function TopBar({
     { key: 'faq', href: `/${locale}/#faq` },
     { key: 'contact', href: `/${locale}/#contact` },
   ];
+
+  useEffect(() => {
+    if (pathname.startsWith(`/${locale}/m`)) {
+      setAuthState(true);
+      return;
+    }
+
+    setAuthState(isAuthenticated);
+  }, [isAuthenticated, locale, pathname]);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent): void => {
@@ -99,6 +110,7 @@ export function TopBar({
 
       setAccountOpen(false);
       setOpen(false);
+      setAuthState(false);
       router.replace(`/${locale}/sign-in`);
       router.refresh();
     } catch {
@@ -127,18 +139,18 @@ export function TopBar({
           </span>
         </Link>
 
-        <nav className="hidden h-full items-center gap-4 text-sm font-semibold text-zinc-950 dark:text-white md:flex">
+        <nav className="hidden h-full items-center gap-2 text-[11px] font-semibold text-zinc-950 dark:text-white md:flex lg:gap-4 lg:text-sm">
           {navItems.map((item) => (
             <Link
               key={item.key}
               href={item.href}
-              className="kclub-topbar-link group inline-flex h-11 items-center px-1 uppercase tracking-[0.08em] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4"
+              className="kclub-topbar-link group inline-flex h-11 items-center whitespace-nowrap px-1 uppercase tracking-[0.04em] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 lg:tracking-[0.08em]"
             >
               {t(`nav.${item.key}`)}
             </Link>
           ))}
 
-          <div ref={localeRef} className="relative flex h-full items-center pl-4">
+          <div ref={localeRef} className="relative flex h-full items-center pl-2 lg:pl-4">
             <IconButton
               aria-label={t('footer.locales')}
               aria-expanded={localeOpen}
@@ -196,7 +208,7 @@ export function TopBar({
                 id="account-menu"
                 className="kclub-topbar-menu absolute right-0 top-full z-50 mt-3 w-52 rounded-md border p-1 shadow-2xl backdrop-blur-xl"
               >
-                {isAuthenticated ? (
+                {authState ? (
                   <>
                     <AccountLink
                       href={`/${locale}/m/dashboard`}
@@ -272,7 +284,7 @@ export function TopBar({
               {t('nav.account')}
             </p>
             <div className="grid gap-1">
-              {isAuthenticated ? (
+              {authState ? (
                 <>
                   <MobileLink href={`/${locale}/m/dashboard`} onClick={() => setOpen(false)}>
                     <LayoutDashboard aria-hidden="true" size={16} strokeWidth={1.6} />

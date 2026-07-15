@@ -94,12 +94,10 @@ export async function getMemberBySupabaseUserId(supabaseUserId: string): Promise
 }
 
 export async function updateMemberProfile(
-  supabaseUserId: string,
+  user: UserRecord,
   input: MemberProfileUpdateInput,
 ): Promise<UserRecord> {
   const db = getDbClient();
-
-  const user = await getMemberBySupabaseUserId(supabaseUserId);
 
   const data: Record<string, string | null> = {};
 

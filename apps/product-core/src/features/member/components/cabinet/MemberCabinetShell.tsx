@@ -165,7 +165,7 @@ export function MemberCabinetShell({
           className="h-auto w-full justify-start gap-0 rounded-none bg-transparent p-0"
         >
           {renderTabTriggers({
-            visibleTabs: primaryTabs,
+            visibleTabs,
             tabLabels,
             userContext,
             lockLabels,
@@ -174,11 +174,6 @@ export function MemberCabinetShell({
           })}
         </TabsList>
       </Tabs>
-
-      <div className="flex items-center gap-5 border-b border-border bg-surface px-6 py-4 lg:hidden">
-        {settingsAction}
-        <CabinetSignOut locale={locale} />
-      </div>
 
       {/* Sidebar + content row */}
       <div className="flex flex-1 flex-col lg:flex-row">
