@@ -67,6 +67,19 @@ export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 export type IsoDateTime = string;
 export type EntityId = string;
 
+export const DASHBOARD_ACTIVITY_TYPES = [
+  'USER_REGISTERED',
+  'BUSINESS_SUBMITTED',
+  'INTRODUCTION_SUBMITTED',
+] as const;
+export type DashboardActivityType = (typeof DASHBOARD_ACTIVITY_TYPES)[number];
+
+export type DashboardActivityItemDto = {
+  type: DashboardActivityType;
+  title: string;
+  timestamp: IsoDateTime;
+};
+
 export type DashboardMetricsDto = {
   totalUsers: number;
   activeUsers: number;
@@ -77,6 +90,13 @@ export type DashboardMetricsDto = {
   businessesUnderReview: number;
   introductionsSubmitted: number;
   introductionsInReview: number;
+  // Optional: admin-app and product-core deploy separately (two Vercel
+  // projects), so an older product-core may omit these fields.
+  totalBusinesses?: number;
+  publishedBusinesses?: number;
+  newUsers7d?: number;
+  newBusinesses7d?: number;
+  recentActivity?: DashboardActivityItemDto[];
 };
 
 export const STAFF_AUTH_STATES = [

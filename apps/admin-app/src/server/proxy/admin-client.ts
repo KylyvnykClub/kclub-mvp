@@ -26,16 +26,30 @@ export async function adminApiFetch<T>(
     };
   }
 
-  const response = await fetch(`${getProductCoreBaseUrl()}${ADMIN_API_PREFIX}${path}`, {
-    method: options.method ?? 'GET',
-    cache: options.cache ?? 'no-store',
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${session.token}`,
-      ...options.headers,
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${getProductCoreBaseUrl()}${ADMIN_API_PREFIX}${path}`, {
+      method: options.method ?? 'GET',
+      cache: options.cache ?? 'no-store',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${session.token}`,
+        ...options.headers,
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      // Fail fast instead of hanging for undici's default 300s headers timeout
+      // when product-core (or its database) is stuck.
+      signal: AbortSignal.timeout(options.timeoutMs ?? 15_000),
+    });
+  } catch {
+    // Product-core is unreachable (connection refused, DNS failure, timeout, ...).
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      error: 'NETWORK_ERROR',
+    };
+  }
 
   if (!response.ok) {
     return {
@@ -46,7 +60,17 @@ export async function adminApiFetch<T>(
     };
   }
 
-  const payload = (await response.json()) as T;
+  let payload: T;
+  try {
+    payload = (await response.json()) as T;
+  } catch {
+    return {
+      ok: false,
+      status: response.status,
+      data: null,
+      error: 'INVALID_RESPONSE_BODY',
+    };
+  }
 
   return {
     ok: true,

@@ -6,6 +6,7 @@ import {
   desc,
   eq,
   exists,
+  gte,
   ilike,
   inArray,
   isNull,
@@ -34,6 +35,7 @@ import {
   type CityDto,
   type ClubCardStatus,
   type CountryDto,
+  type DashboardActivityItemDto,
   type DashboardMetricsDto,
   type IntroductionDto,
   type IntroductionStatus,
@@ -108,6 +110,7 @@ function assertValidUuid(id: string, entityName: string): void {
 
 export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
   const db = getDbClient();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
   const [
     totalUsers,
@@ -118,6 +121,13 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
     businessesReview,
     introductionsSubmitted,
     introductionsInReview,
+    totalBusinesses,
+    publishedBusinesses,
+    newUsers7d,
+    newBusinesses7d,
+    recentUsers,
+    recentBusinesses,
+    recentIntroductions,
   ] = await Promise.all([
     db.$count(schema.users),
     db.$count(schema.users, eq(schema.users.status, 'BLOCKED')),
@@ -127,7 +137,61 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
     db.$count(schema.businessProfiles, eq(schema.businessProfiles.status, 'UNDER_REVIEW')),
     db.$count(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'SUBMITTED')),
     db.$count(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'IN_REVIEW')),
+    db.$count(schema.businessProfiles),
+    db.$count(schema.businessProfiles, eq(schema.businessProfiles.status, 'PUBLISHED')),
+    db.$count(schema.users, gte(schema.users.created_at, sevenDaysAgo)),
+    db.$count(schema.businessProfiles, gte(schema.businessProfiles.created_at, sevenDaysAgo)),
+    db
+      .select({
+        displayName: schema.users.display_name,
+        phone: schema.users.phone,
+        createdAt: schema.users.created_at,
+      })
+      .from(schema.users)
+      .orderBy(desc(schema.users.created_at))
+      .limit(10),
+    db
+      .select({
+        name: schema.businessProfiles.name,
+        createdAt: schema.businessProfiles.created_at,
+      })
+      .from(schema.businessProfiles)
+      .orderBy(desc(schema.businessProfiles.created_at))
+      .limit(10),
+    db
+      .select({
+        clientName: schema.businessIntroductions.client_name,
+        targetName: schema.businessProfiles.name,
+        createdAt: schema.businessIntroductions.created_at,
+      })
+      .from(schema.businessIntroductions)
+      .innerJoin(
+        schema.businessProfiles,
+        eq(schema.businessIntroductions.target_business_id, schema.businessProfiles.id),
+      )
+      .orderBy(desc(schema.businessIntroductions.created_at))
+      .limit(10),
   ]);
+
+  const recentActivity: DashboardActivityItemDto[] = [
+    ...recentUsers.map((user) => ({
+      type: 'USER_REGISTERED' as const,
+      title: user.displayName ?? user.phone,
+      timestamp: user.createdAt.toISOString(),
+    })),
+    ...recentBusinesses.map((business) => ({
+      type: 'BUSINESS_SUBMITTED' as const,
+      title: business.name,
+      timestamp: business.createdAt.toISOString(),
+    })),
+    ...recentIntroductions.map((intro) => ({
+      type: 'INTRODUCTION_SUBMITTED' as const,
+      title: intro.clientName ? `${intro.clientName} → ${intro.targetName}` : intro.targetName,
+      timestamp: intro.createdAt.toISOString(),
+    })),
+  ]
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+    .slice(0, 10);
 
   return {
     totalUsers,
@@ -139,6 +203,11 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
     businessesUnderReview: businessesReview,
     introductionsSubmitted,
     introductionsInReview,
+    totalBusinesses,
+    publishedBusinesses,
+    newUsers7d,
+    newBusinesses7d,
+    recentActivity,
   };
 }
 

@@ -1,24 +1,18 @@
 import { PageShell } from '@/components/page-shell';
-import { Skeleton } from '@/components/ui/skeleton';
+import { DashboardErrorState } from '@/features/dashboard/components/dashboard-error-state';
 import {
+  MetricCard,
   TotalUsersCard,
+  TotalBusinessesCard,
   VipSubscriptionsCard,
   BusinessesUnderReviewCard,
   IntroductionsUnderReviewCard,
 } from '@/features/dashboard/components/metrics-cards';
+import { RecentActivityCard } from '@/features/dashboard/components/recent-activity-card';
 import { fetchDashboardMetrics } from '@/features/dashboard/api';
 
-function MetricCardSkeleton() {
-  return (
-    <div className="bg-card rounded-xl border p-4">
-      <Skeleton className="h-3 w-24" />
-      <Skeleton className="mt-3 h-8 w-16" />
-    </div>
-  );
-}
-
 export default async function DashboardPage() {
-  const data = await fetchDashboardMetrics();
+  const result = await fetchDashboardMetrics();
 
   return (
     <PageShell
@@ -26,26 +20,33 @@ export default async function DashboardPage() {
       description="Cross-role metrics and operational overview."
       roleScope="All staff roles"
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {data ? (
-          <>
-            <TotalUsersCard data={data} />
-            <VipSubscriptionsCard data={data} />
-            <BusinessesUnderReviewCard count={data.businessesUnderReview} />
+      {result.status !== 'success' ? (
+        <DashboardErrorState
+          code={result.status === 'unreachable' ? 'NETWORK_ERROR' : result.code}
+        />
+      ) : (
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <TotalUsersCard data={result.data} />
+            <VipSubscriptionsCard data={result.data} />
+            <BusinessesUnderReviewCard count={result.data.businessesUnderReview} />
             <IntroductionsUnderReviewCard
-              submitted={data.introductionsSubmitted}
-              inReview={data.introductionsInReview}
+              submitted={result.data.introductionsSubmitted}
+              inReview={result.data.introductionsInReview}
             />
-          </>
-        ) : (
-          <>
-            <MetricCardSkeleton />
-            <MetricCardSkeleton />
-            <MetricCardSkeleton />
-            <MetricCardSkeleton />
-          </>
-        )}
-      </div>
+            <TotalBusinessesCard
+              total={result.data.totalBusinesses ?? 0}
+              published={result.data.publishedBusinesses ?? 0}
+            />
+            <MetricCard label="New Users (7d)" value={String(result.data.newUsers7d ?? 0)} />
+            <MetricCard
+              label="New Businesses (7d)"
+              value={String(result.data.newBusinesses7d ?? 0)}
+            />
+          </div>
+          <RecentActivityCard items={result.data.recentActivity ?? []} />
+        </div>
+      )}
     </PageShell>
   );
 }

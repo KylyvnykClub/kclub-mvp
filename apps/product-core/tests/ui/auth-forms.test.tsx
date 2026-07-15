@@ -149,6 +149,23 @@ describe('Auth Forms', () => {
     });
   });
 
+  test('SignUpForm resets loading when phone OTP request times out', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Request timed out'));
+
+    render(<SignUpForm locale="en" />);
+
+    const phoneInput = screen.getByLabelText('auth.signUp.phoneLabel');
+    fireEvent.change(phoneInput, { target: { value: '+1234567890' } });
+    fireEvent.click(screen.getByTestId('auth-terms-checkbox'));
+    fireEvent.click(screen.getByText('auth.signUp.submit'));
+
+    await waitFor(() => {
+      expect(screen.getByText('auth.common.errors.otpSendFailed')).toBeTruthy();
+      expect(screen.getByText('auth.signUp.submit')).toBeTruthy();
+      expect(screen.queryByText('auth.common.loading')).toBeNull();
+    });
+  });
+
   test('Back to phone button works', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,

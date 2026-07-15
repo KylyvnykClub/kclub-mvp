@@ -25,6 +25,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
 const DEFAULT_DEV_OTP = '000000';
 const DEFAULT_DEV_TOTP = '123456';
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const totpSecretCache = new Map<string, string>();
 
@@ -74,6 +75,10 @@ function hashSessionToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
+function isUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
+}
+
 function createSessionToken(payload: StaffSessionPayload): string {
   const header = base64UrlEncode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const body = base64UrlEncode(JSON.stringify(payload));
@@ -111,6 +116,10 @@ async function createDbSession(
   ipAddress?: string | null,
   userAgent?: string | null,
 ): Promise<void> {
+  if (!isUuid(adminUserId)) {
+    return;
+  }
+
   try {
     const db = getDbClient();
     await db.insert(schema.adminSessions).values({
@@ -367,39 +376,41 @@ export async function handleStaffTotpVerify(request: Request): Promise<Response>
   let isValidCode = false;
   let secretFromDb: string | null = null;
 
-  try {
-    const db = getDbClient();
-    const twoFactor = await db.query.admin2fa.findFirst({
-      where: eq(schema.admin2fa.admin_user_id, staff.id),
-    });
-
-    if (twoFactor?.secret_ciphertext) {
-      secretFromDb = decryptSecret(twoFactor.secret_ciphertext);
-      const totp = new OTPAuth.TOTP({
-        issuer: 'KCLUB',
-        label: staff.phone,
-        algorithm: 'SHA1',
-        digits: 6,
-        period: 30,
-        secret: OTPAuth.Secret.fromBase32(secretFromDb),
+  if (isUuid(staff.id)) {
+    try {
+      const db = getDbClient();
+      const twoFactor = await db.query.admin2fa.findFirst({
+        where: eq(schema.admin2fa.admin_user_id, staff.id),
       });
-      isValidCode = totp.validate({ token: code, window: 1 }) !== null;
 
-      if (isValidCode && !twoFactor.verified_at) {
-        await db.transaction(async (tx) => {
-          await tx
-            .update(schema.admin2fa)
-            .set({ verified_at: new Date() })
-            .where(eq(schema.admin2fa.id, twoFactor.id));
-          await tx
-            .update(schema.adminUsers)
-            .set({ totp_verified_at: new Date() })
-            .where(eq(schema.adminUsers.id, staff.id));
+      if (twoFactor?.secret_ciphertext) {
+        secretFromDb = decryptSecret(twoFactor.secret_ciphertext);
+        const totp = new OTPAuth.TOTP({
+          issuer: 'KCLUB',
+          label: staff.phone,
+          algorithm: 'SHA1',
+          digits: 6,
+          period: 30,
+          secret: OTPAuth.Secret.fromBase32(secretFromDb),
         });
+        isValidCode = totp.validate({ token: code, window: 1 }) !== null;
+
+        if (isValidCode && !twoFactor.verified_at) {
+          await db.transaction(async (tx) => {
+            await tx
+              .update(schema.admin2fa)
+              .set({ verified_at: new Date() })
+              .where(eq(schema.admin2fa.id, twoFactor.id));
+            await tx
+              .update(schema.adminUsers)
+              .set({ totp_verified_at: new Date() })
+              .where(eq(schema.adminUsers.id, staff.id));
+          });
+        }
       }
+    } catch {
+      // DB unavailable
     }
-  } catch {
-    // DB unavailable
   }
 
   if (!secretFromDb) {
@@ -480,41 +491,49 @@ export async function handleStaffTotpSetup(request: Request): Promise<Response> 
 
   const cachedSecret = totpSecretCache.get(staff.id);
 
-  try {
-    const db = getDbClient();
+  if (isUuid(staff.id)) {
+    try {
+      const db = getDbClient();
 
-    const existing = await db.query.admin2fa.findFirst({
-      where: eq(schema.admin2fa.admin_user_id, staff.id),
-    });
-
-    if (existing?.secret_ciphertext && !existing.verified_at) {
-      secret = decryptSecret(existing.secret_ciphertext);
-      totpSecretCache.set(staff.id, secret);
-    } else if (existing?.verified_at) {
-      return error(
-        ERROR_CODES.VALIDATION_INVALID_INPUT,
-        'TOTP is already verified for this account',
-        400,
-      );
-    } else {
-      const newSecret = new OTPAuth.Secret({ size: 20 });
-      secret = newSecret.base32;
-      const encrypted = encryptSecret(secret);
-
-      await db.insert(schema.admin2fa).values({
-        admin_user_id: staff.id,
-        secret_ciphertext: encrypted,
+      const existing = await db.query.admin2fa.findFirst({
+        where: eq(schema.admin2fa.admin_user_id, staff.id),
       });
-      totpSecretCache.set(staff.id, secret);
+
+      if (existing?.secret_ciphertext && !existing.verified_at) {
+        secret = decryptSecret(existing.secret_ciphertext);
+        totpSecretCache.set(staff.id, secret);
+      } else if (existing?.verified_at) {
+        return error(
+          ERROR_CODES.VALIDATION_INVALID_INPUT,
+          'TOTP is already verified for this account',
+          400,
+        );
+      } else {
+        const newSecret = new OTPAuth.Secret({ size: 20 });
+        secret = newSecret.base32;
+        const encrypted = encryptSecret(secret);
+
+        await db.insert(schema.admin2fa).values({
+          admin_user_id: staff.id,
+          secret_ciphertext: encrypted,
+        });
+        totpSecretCache.set(staff.id, secret);
+      }
+    } catch {
+      if (cachedSecret) {
+        secret = cachedSecret;
+      } else {
+        const newSecret = new OTPAuth.Secret({ size: 20 });
+        secret = newSecret.base32;
+        totpSecretCache.set(staff.id, secret);
+      }
     }
-  } catch {
-    if (cachedSecret) {
-      secret = cachedSecret;
-    } else {
-      const newSecret = new OTPAuth.Secret({ size: 20 });
-      secret = newSecret.base32;
-      totpSecretCache.set(staff.id, secret);
-    }
+  } else if (cachedSecret) {
+    secret = cachedSecret;
+  } else {
+    const newSecret = new OTPAuth.Secret({ size: 20 });
+    secret = newSecret.base32;
+    totpSecretCache.set(staff.id, secret);
   }
 
   const totp = new OTPAuth.TOTP({

@@ -33,6 +33,7 @@ const config: Config = {
       // Body-copy sizes only (xs/sm are what <p> tags use across the app).
       // Bump the scale here to resize all body text project-wide from one place.
       fontSize: {
+        micro: ['0.625rem', { lineHeight: '1rem' }],
         xs: ['1rem', { lineHeight: '1.25rem' }],
         sm: ['1.1rem', { lineHeight: '1.5rem' }],
       },

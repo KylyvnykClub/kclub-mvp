@@ -72,6 +72,24 @@ export function BusinessesUnderReviewCard({ count }: { count: number }) {
   );
 }
 
+export function TotalBusinessesCard({ total, published }: { total: number; published: number }) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Total Businesses
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1">
+        <p className="text-2xl font-semibold">{total}</p>
+        <div className="flex gap-3 text-xs text-muted-foreground">
+          <span className="text-green-600 dark:text-green-400">{published} published</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function IntroductionsUnderReviewCard({
   submitted,
   inReview,

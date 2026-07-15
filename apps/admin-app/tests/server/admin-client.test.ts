@@ -46,6 +46,40 @@ describe('admin-client', () => {
     );
   });
 
+  test('returns NETWORK_ERROR when product-core is unreachable', async () => {
+    mockCookieStore.get.mockImplementation((name: string) =>
+      name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
+    );
+
+    globalThis.fetch = mock(() => Promise.reject(new TypeError('fetch failed'))) as any;
+
+    const result = await adminApiFetch('/test');
+
+    expect(result.ok).toBe(false);
+    expect(result.status).toBe(0);
+    expect(result.error).toBe('NETWORK_ERROR');
+  });
+
+  test('returns INVALID_RESPONSE_BODY when response is not valid JSON', async () => {
+    mockCookieStore.get.mockImplementation((name: string) =>
+      name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
+    );
+
+    const mockResponse = {
+      ok: true,
+      status: 200,
+      json: () => Promise.reject(new SyntaxError('Unexpected token')),
+    };
+
+    globalThis.fetch = mock(() => Promise.resolve(mockResponse)) as any;
+
+    const result = await adminApiFetch('/test');
+
+    expect(result.ok).toBe(false);
+    expect(result.status).toBe(200);
+    expect(result.error).toBe('INVALID_RESPONSE_BODY');
+  });
+
   test('handles API errors correctly', async () => {
     mockCookieStore.get.mockImplementation((name: string) =>
       name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,

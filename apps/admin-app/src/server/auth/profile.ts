@@ -19,18 +19,30 @@ function getProductCoreBaseUrl() {
 }
 
 async function fetchVerifiedStaffProfile(token: string): Promise<StaffProfileDto | null> {
-  const response = await fetch(`${getProductCoreBaseUrl()}/api/admin/v1/staff-auth/session`, {
-    method: 'GET',
-    cache: 'no-store',
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${getProductCoreBaseUrl()}/api/admin/v1/staff-auth/session`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      // Fail fast instead of hanging for undici's default 300s headers timeout;
+      // an unreachable product-core must not crash the dashboard layout.
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    return null;
+  }
 
   if (!response.ok) return null;
 
-  const payload = (await response.json()) as ApiResponse<StaffProfileDto>;
-  return payload.data;
+  try {
+    const payload = (await response.json()) as ApiResponse<StaffProfileDto>;
+    return payload.data;
+  } catch {
+    return null;
+  }
 }
 
 export async function readStaffProfile(): Promise<StaffProfile | null> {

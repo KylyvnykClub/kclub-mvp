@@ -22,6 +22,8 @@ import { parseAuthResponse } from '../utils/api';
 
 export type AuthMode = 'sign-in' | 'sign-up';
 
+const AUTH_PHONE_REQUEST_TIMEOUT_MS = 15_000;
+
 export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
   const isSignUp = mode === 'sign-up';
   const t = useTranslations(isSignUp ? 'auth.signUp' : 'auth.signIn');
@@ -53,6 +55,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
       const res = await fetch('/api/v1/auth/phone-otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(AUTH_PHONE_REQUEST_TIMEOUT_MS),
         body: JSON.stringify({ phone, purpose: mode, locale }),
       });
       const parsed = await parseAuthResponse(res);
@@ -83,7 +86,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
 
       setStep('otp');
     } catch (err) {
-      setError(tCommon('errors.generic'));
+      setError(tCommon('errors.otpSendFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -175,10 +178,63 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
                 panelClassName={kclubPhonePanelClassName}
                 data-testid="auth-phone-input"
               />
-              {isSignUp && (
+            </Field>
+            {error && (
+              <p id="phone-error" role="alert" className="text-sm text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            )}
+            <Button
+              type="submit"
+              color="brand"
+              size="lg"
+              fullWidth
+              disabled={isLoading}
+              data-testid="auth-submit-phone"
+            >
+              {isLoading ? tCommon('loading') : t('submit')}
+              <ArrowUpRight aria-hidden="true" size={16} strokeWidth={1.7} />
+            </Button>
+            {isSignUp && (
+              <div className="space-y-3">
+                <label className="dark:text-white/72 flex gap-3 text-sm text-zinc-700">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(event) => setTermsAccepted(event.target.checked)}
+                    disabled={isLoading}
+                    required
+                    className="kclub-checkbox mt-1"
+                    data-testid="auth-terms-checkbox"
+                  />
+                  <span>
+                    {tCommon.rich('termsLabel', {
+                      terms: (chunks) => (
+                        <Link
+                          href={termsHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={linkClasses}
+                        >
+                          {chunks}
+                        </Link>
+                      ),
+                      privacy: (chunks) => (
+                        <Link
+                          href={privacyHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={linkClasses}
+                        >
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </span>
+                </label>
                 <p
                   id="sms-consent-disclosure"
-                  className="text-sm leading-6 text-muted-foreground"
+                  className="text-micro text-muted-foreground"
                   data-testid="sms-consent-disclosure"
                 >
                   {t.rich('smsConsentDisclosure', {
@@ -204,61 +260,8 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
                     ),
                   })}
                 </p>
-              )}
-            </Field>
-            {isSignUp && (
-              <label className="dark:text-white/72 flex gap-3 text-sm text-zinc-700">
-                <input
-                  type="checkbox"
-                  checked={termsAccepted}
-                  onChange={(event) => setTermsAccepted(event.target.checked)}
-                  disabled={isLoading}
-                  required
-                  className="kclub-checkbox mt-1"
-                  data-testid="auth-terms-checkbox"
-                />
-                <span>
-                  {tCommon.rich('termsLabel', {
-                    terms: (chunks) => (
-                      <Link
-                        href={termsHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={linkClasses}
-                      >
-                        {chunks}
-                      </Link>
-                    ),
-                    privacy: (chunks) => (
-                      <Link
-                        href={privacyHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={linkClasses}
-                      >
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </span>
-              </label>
+              </div>
             )}
-            {error && (
-              <p id="phone-error" role="alert" className="text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
-            <Button
-              type="submit"
-              color="brand"
-              size="lg"
-              fullWidth
-              disabled={isLoading}
-              data-testid="auth-submit-phone"
-            >
-              {isLoading ? tCommon('loading') : t('submit')}
-              <ArrowUpRight aria-hidden="true" size={16} strokeWidth={1.7} />
-            </Button>
           </form>
         ) : (
           <form className="space-y-6" onSubmit={handleOtpSubmit}>
