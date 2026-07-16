@@ -17,6 +17,8 @@ export const businessNameSchema = withoutHtml(safeTextSchema.min(2).max(100));
 export const representativeNameSchema = withoutHtml(safeTextSchema.min(2).max(100));
 export const businessBriefDescriptionSchema = optionalSafeTextSchema(500);
 
+export const customCategoryNameSchema = withoutHtml(safeTextSchema.min(2).max(120));
+
 export const businessProfileSubmitSchema = z
   .object({
     name: businessNameSchema,
@@ -25,12 +27,27 @@ export const businessProfileSubmitSchema = z
     representativePhone: phoneSchema,
     countryId: entityIdSchema,
     cityId: entityIdSchema,
-    categoryId: entityIdSchema,
+    categoryId: entityIdSchema.optional(),
+    customCategoryName: customCategoryNameSchema.optional(),
     websiteUrl: urlSchema.optional(),
     socialUrl: urlSchema.optional(),
     briefDescription: businessBriefDescriptionSchema,
   })
   .superRefine((value, context) => {
+    if (!value.categoryId && !value.customCategoryName) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['categoryId'],
+        message: 'Category selection or custom category name is required',
+      });
+    }
+    if (value.categoryId && value.customCategoryName) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['customCategoryName'],
+        message: 'Provide either a category selection or a custom name, not both',
+      });
+    }
     if (!value.websiteUrl && !value.socialUrl) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -49,6 +66,7 @@ export const businessProfileEditableFieldsSchema = z
     countryId: entityIdSchema.optional(),
     cityId: entityIdSchema.optional(),
     categoryId: entityIdSchema.optional(),
+    customCategoryName: customCategoryNameSchema.optional(),
     websiteUrl: urlSchema.optional().nullable(),
     socialUrl: urlSchema.optional().nullable(),
     briefDescription: businessBriefDescriptionSchema,
@@ -57,6 +75,13 @@ export const businessProfileEditableFieldsSchema = z
     message: 'At least one business field is required',
   })
   .superRefine((value, context) => {
+    if (value.categoryId && value.customCategoryName) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['customCategoryName'],
+        message: 'Provide either a category selection or a custom name, not both',
+      });
+    }
     if (value.websiteUrl === null && value.socialUrl === null) {
       context.addIssue({
         code: z.ZodIssueCode.custom,

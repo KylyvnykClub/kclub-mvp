@@ -16,11 +16,13 @@ import {
   kclubPhoneTriggerClassName,
   renderCountryFlag,
 } from '@/components/ui/country-flag';
+import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 import type { CityTaxonomyOption, TaxonomyOption } from './BusinessPanel';
 
 type WizardData = {
   name: string;
   categoryId: string;
+  customCategoryName: string;
   representativeName: string;
   representativeEmail: string;
   representativePhone: string;
@@ -55,6 +57,7 @@ export function BusinessSubmitWizard({
   const [data, setData] = useState<WizardData>({
     name: '',
     categoryId: '',
+    customCategoryName: '',
     representativeName: '',
     representativeEmail: '',
     representativePhone: '',
@@ -120,8 +123,12 @@ export function BusinessSubmitWizard({
         representativePhone: data.representativePhone,
         countryId: data.countryId,
         cityId: data.cityId,
-        categoryId: data.categoryId,
       };
+      if (data.categoryId === '__other__') {
+        body.customCategoryName = data.customCategoryName.trim();
+      } else {
+        body.categoryId = data.categoryId;
+      }
       if (websiteUrl) body.websiteUrl = websiteUrl;
       if (socialUrl) body.socialUrl = socialUrl;
       if (data.briefDescription) body.briefDescription = data.briefDescription;
@@ -219,7 +226,10 @@ export function BusinessSubmitWizard({
               id="categoryId"
               required
               value={data.categoryId}
-              onChange={(e) => set('categoryId', e.target.value)}
+              onChange={(e) => {
+                set('categoryId', e.target.value);
+                if (e.target.value !== '__other__') set('customCategoryName', '');
+              }}
               className={fieldClass}
             >
               <option value="">{t('selectPlaceholder')}</option>
@@ -228,8 +238,27 @@ export function BusinessSubmitWizard({
                   {c.name}
                 </option>
               ))}
+              <option value="__other__">{t('categoryOther')}</option>
             </select>
           </div>
+          {data.categoryId === '__other__' && (
+            <div>
+              <label htmlFor="customCategoryName" className={labelClass}>
+                {t('customCategoryName')}
+              </label>
+              <input
+                id="customCategoryName"
+                type="text"
+                required
+                minLength={2}
+                maxLength={120}
+                placeholder={t('customCategoryNamePlaceholder')}
+                value={data.customCategoryName}
+                onChange={(e) => set('customCategoryName', e.target.value)}
+                className={fieldClass}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -378,7 +407,10 @@ export function BusinessSubmitWizard({
             <SummaryRow label={t('summaryBusiness')}>
               <p className="text-sm font-medium text-zinc-950 dark:text-white">{data.name}</p>
               <p className="dark:text-white/48 text-xs text-zinc-500">
-                {categoryOptions.find((c) => c.id === data.categoryId)?.name ?? data.categoryId}
+                {data.categoryId === '__other__'
+                  ? data.customCategoryName
+                  : (categoryOptions.find((c) => c.id === data.categoryId)?.name ??
+                    data.categoryId)}
               </p>
             </SummaryRow>
             <SummaryRow label={t('summaryContact')}>
@@ -430,34 +462,36 @@ export function BusinessSubmitWizard({
       )}
 
       <div className="flex items-center justify-between gap-4 border-t border-zinc-200 pt-6 dark:border-white/10">
-        <button
+        <CabinetButton
           type="button"
+          tone="link"
+          density="compact"
           onClick={handleBack}
           disabled={step === 1 || isSubmitting}
-          className="dark:text-white/48 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500 transition hover:text-zinc-950 disabled:invisible dark:hover:text-white"
+          className="dark:text-white/48 uppercase tracking-[0.14em] text-zinc-500 hover:text-zinc-950 disabled:invisible dark:hover:text-white"
         >
-          ← {t('back')}
-        </button>
+          {t('back')}
+        </CabinetButton>
 
         {step < TOTAL_STEPS ? (
-          <button
+          <CabinetButton
             type="button"
             onClick={handleNext}
             disabled={!canAdvance(step, data)}
-            className="inline-flex items-center gap-2 rounded-none border-0 bg-zinc-950 px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
+            className="uppercase tracking-[0.14em]"
           >
-            {t('continue')} →
-          </button>
+            {t('continue')}
+          </CabinetButton>
         ) : (
-          <button
+          <CabinetButton
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || !data.confirmAuthority || !data.acceptLegal}
-            className="inline-flex items-center gap-2 rounded-none border-0 bg-zinc-950 px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
+            iconStart={isSubmitting ? <Spinner size={13} /> : null}
+            className="uppercase tracking-[0.14em]"
           >
-            {isSubmitting && <Spinner size={13} />}
             {isSubmitting ? t('submitting') : t('submit')}
-          </button>
+          </CabinetButton>
         )}
       </div>
     </div>
@@ -478,7 +512,11 @@ function SummaryRow({ label, children }: { label: string; children: React.ReactN
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function canAdvance(step: number, data: WizardData): boolean {
-  if (step === 1) return !!data.name.trim() && !!data.categoryId;
+  if (step === 1) {
+    if (!data.name.trim() || !data.categoryId) return false;
+    if (data.categoryId === '__other__' && !data.customCategoryName.trim()) return false;
+    return true;
+  }
   if (step === 2) {
     return (
       !!data.representativeName.trim() &&

@@ -55,10 +55,11 @@ function CategoryFormDialog({
   const [slug, setSlug] = useState(category?.slug ?? '');
   const [isHighRisk, setIsHighRisk] = useState(category?.isHighRisk ?? false);
   const [isActive, setIsActive] = useState(category?.isActive ?? true);
+  const [isCustom, setIsCustom] = useState(category?.isCustom ?? false);
 
   async function handleSubmit() {
     setLoading(true);
-    const body = { name, slug, isHighRisk, isActive };
+    const body = { name, slug, isHighRisk, isActive, isCustom };
     const url =
       mode === 'create' ? '/api/proxy/categories' : `/api/proxy/categories/${category!.id}`;
     const method = mode === 'create' ? 'POST' : 'PUT';
@@ -126,6 +127,16 @@ function CategoryFormDialog({
               className="h-4 w-4 rounded border-gray-300"
             />
             <Label htmlFor="isActive">Active</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="isCustom"
+              type="checkbox"
+              checked={isCustom}
+              onChange={(e) => setIsCustom(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            <Label htmlFor="isCustom">Custom (user-submitted)</Label>
           </div>
         </div>
         <DialogFooter>
@@ -213,6 +224,7 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Slug</TableHead>
+                <TableHead>Source</TableHead>
                 <TableHead>Risk</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -221,7 +233,7 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
             <TableBody>
               {categories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                     No categories found
                   </TableCell>
                 </TableRow>
@@ -230,6 +242,13 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
                   <TableRow key={cat.id}>
                     <TableCell className="font-medium">{cat.name}</TableCell>
                     <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
+                    <TableCell>
+                      {cat.isCustom ? (
+                        <Badge variant="outline">Custom</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {cat.isHighRisk ? (
                         <Badge variant="destructive">High Risk</Badge>
@@ -273,7 +292,14 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
               <div key={cat.id} className="space-y-3 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{cat.name}</p>
+                    <p className="truncate text-sm font-medium">
+                      {cat.name}
+                      {cat.isCustom && (
+                        <Badge variant="outline" className="ml-2">
+                          Custom
+                        </Badge>
+                      )}
+                    </p>
                     <p className="text-xs text-muted-foreground">{cat.slug}</p>
                   </div>
                   <Badge variant={cat.isActive ? 'default' : 'secondary'}>

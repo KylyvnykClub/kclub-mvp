@@ -63,6 +63,7 @@ export const categoryCreateSchema = z.object({
   slug: z.string().min(1).max(120),
   isHighRisk: z.boolean().optional().default(false),
   isActive: z.boolean().optional().default(true),
+  isCustom: z.boolean().optional().default(false),
 });
 
 export const categoryUpdateSchema = categoryCreateSchema.partial();

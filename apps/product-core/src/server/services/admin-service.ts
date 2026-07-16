@@ -1448,6 +1448,7 @@ export async function createCategory(input: CategoryCreateInput): Promise<Catego
       slug: input.slug,
       is_high_risk: input.isHighRisk ?? false,
       is_active: input.isActive ?? true,
+      is_custom: input.isCustom ?? false,
     })
     .returning();
   revalidateTag('categories');
@@ -1477,6 +1478,7 @@ export async function updateCategory(
       ...(input.slug !== undefined ? { slug: input.slug } : {}),
       ...(input.isHighRisk !== undefined ? { is_high_risk: input.isHighRisk } : {}),
       ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
+      ...(input.isCustom !== undefined ? { is_custom: input.isCustom } : {}),
     })
     .where(eq(schema.categories.id, categoryId))
     .returning();
@@ -2402,6 +2404,7 @@ function toCategoryDto(cat: any): CategoryDto {
     slug: cat.slug,
     isHighRisk: cat.is_high_risk,
     isActive: cat.is_active,
+    isCustom: cat.is_custom,
     createdAt: cat.created_at.toISOString(),
     updatedAt: cat.updated_at.toISOString(),
   };

@@ -10,7 +10,7 @@ import type {
   BusinessProfileEditableFieldsInput,
 } from '@kclub/validation';
 
-import { eq, desc, and, ne } from 'drizzle-orm';
+import { eq, desc, and, ne, ilike } from 'drizzle-orm';
 import { AppError } from '@/server/errors';
 import { getDbClient, schema } from '@/server/db';
 import { createDbAuditService } from '@/server/audit';
@@ -27,6 +27,37 @@ function generateSlug(name: string): string {
     .replace(/(^-|-$)+/g, '');
   const uniqueId = Math.random().toString(36).substring(2, 6);
   return `${base}-${uniqueId}`;
+}
+
+async function resolveCustomCategory(customName: string): Promise<string> {
+  const db = getDbClient();
+
+  const existing = await db.query.categories.findFirst({
+    where: ilike(schema.categories.name, customName),
+  });
+  if (existing) return existing.id;
+
+  const slug = customName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+
+  const slugExists = await db.query.categories.findFirst({
+    where: eq(schema.categories.slug, slug),
+  });
+  const finalSlug = slugExists ? `${slug}-${Math.random().toString(36).substring(2, 6)}` : slug;
+
+  const [newCategory] = await db
+    .insert(schema.categories)
+    .values({
+      name: customName,
+      slug: finalSlug,
+      is_high_risk: false,
+      is_active: true,
+      is_custom: true,
+    })
+    .returning();
+  return newCategory.id;
 }
 
 export async function submitBusiness(
@@ -60,9 +91,13 @@ export async function submitBusiness(
     });
   }
 
-  // 3. Category exists, is active, not high risk
+  // 3. Resolve category (existing or custom)
+  const resolvedCategoryId = input.customCategoryName
+    ? await resolveCustomCategory(input.customCategoryName)
+    : input.categoryId!;
+
   const category = await db.query.categories.findFirst({
-    where: eq(schema.categories.id, input.categoryId),
+    where: eq(schema.categories.id, resolvedCategoryId),
   });
 
   if (!category || !category.is_active) {
@@ -107,7 +142,7 @@ export async function submitBusiness(
       representative_phone: input.representativePhone,
       country_id: input.countryId,
       city_id: input.cityId,
-      category_id: input.categoryId,
+      category_id: resolvedCategoryId,
       website_url: input.websiteUrl ?? null,
       social_url: input.socialUrl ?? null,
       brief_description: input.briefDescription ?? null,
@@ -182,9 +217,14 @@ export async function updateBusiness(
   }
 
   // Optional category/city checks
-  if (input.categoryId && input.categoryId !== business.category_id) {
+  let resolvedCategoryId = input.categoryId;
+  if (input.customCategoryName) {
+    resolvedCategoryId = await resolveCustomCategory(input.customCategoryName);
+  }
+
+  if (resolvedCategoryId && resolvedCategoryId !== business.category_id) {
     const category = await db.query.categories.findFirst({
-      where: eq(schema.categories.id, input.categoryId),
+      where: eq(schema.categories.id, resolvedCategoryId),
     });
     if (!category || !category.is_active) {
       throw new AppError({
@@ -228,13 +268,14 @@ export async function updateBusiness(
   delete dataToUpdate.websiteUrl;
   delete dataToUpdate.socialUrl;
   delete dataToUpdate.categoryId;
+  delete dataToUpdate.customCategoryName;
   delete dataToUpdate.cityId;
   delete dataToUpdate.countryId;
   delete dataToUpdate.representativeName;
   delete dataToUpdate.representativeEmail;
   delete dataToUpdate.representativePhone;
 
-  if (input.categoryId !== undefined) dataToUpdate.category_id = input.categoryId;
+  if (resolvedCategoryId !== undefined) dataToUpdate.category_id = resolvedCategoryId;
   if (input.cityId !== undefined) dataToUpdate.city_id = input.cityId;
   if (input.countryId !== undefined) dataToUpdate.country_id = input.countryId;
   if (input.representativeName !== undefined)

@@ -449,6 +449,7 @@ export type CategoryDto = {
   slug: string;
   isHighRisk: boolean;
   isActive: boolean;
+  isCustom: boolean;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 };

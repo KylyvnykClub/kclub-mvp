@@ -127,6 +127,7 @@ export const categories = pgTable(
     slug: varchar('slug', { length: 120 }).notNull().unique(),
     is_high_risk: boolean('is_high_risk').default(false).notNull(),
     is_active: boolean('is_active').default(true).notNull(),
+    is_custom: boolean('is_custom').default(false).notNull(),
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
   },

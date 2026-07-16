@@ -172,6 +172,7 @@ describe('validation schemas for admin mutations', () => {
       slug: 'test',
       isHighRisk: false,
       isActive: true,
+      isCustom: false,
     });
 
     expect(countryCreateSchema.parse({ code2: 'US', name: 'USA', slug: 'usa' })).toEqual({
