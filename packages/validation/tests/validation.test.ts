@@ -24,10 +24,13 @@ import {
   introductionRejectSchema,
   introductionSubmitSchema,
   memberOnboardingSchema,
+  memberPasswordRecoverySendSchema,
+  memberPasswordRecoveryVerifySchema,
+  memberPasswordSignInSchema,
   memberProfileUpdateSchema,
+  memberSignUpSchema,
+  memberSignUpVerifySchema,
   parseWithValidation,
-  phoneOtpSendSchema,
-  phoneOtpVerifySchema,
   revokeCardSchema,
   reissueCardSchema,
   staffRoleUpdateSchema,
@@ -57,39 +60,62 @@ function expectInvalidField(
   }
 }
 
-describe('auth schemas', () => {
-  test('validates phone OTP send and verify payloads', () => {
+describe('member auth schemas', () => {
+  test('validates phone/password sign-up, sign-in, and recovery payloads', () => {
     expect(
-      phoneOtpSendSchema.parse({
+      memberSignUpSchema.parse({
         phone: '+15551234567',
-        purpose: 'sign-up',
+        password: 'StrongPassword123',
         locale: 'en',
       }),
     ).toEqual({
       phone: '+15551234567',
-      purpose: 'sign-up',
+      password: 'StrongPassword123',
       locale: 'en',
     });
 
     expect(
-      phoneOtpVerifySchema.parse({
+      memberSignUpVerifySchema.parse({
         phone: '+15551234567',
         code: '123456',
-        purpose: 'sign-in',
       }),
     ).toEqual({
       phone: '+15551234567',
       code: '123456',
-      purpose: 'sign-in',
     });
+
+    expect(
+      memberPasswordSignInSchema.parse({ phone: '+15551234567', password: 'StrongPassword123' }),
+    ).toEqual({ phone: '+15551234567', password: 'StrongPassword123' });
+    expect(memberPasswordSignInSchema.parse({ phone: '+15551234567', password: 'secret' })).toEqual(
+      {
+        phone: '+15551234567',
+        password: 'secret',
+      },
+    );
+    expect(memberPasswordRecoverySendSchema.parse({ phone: '+15551234567' })).toEqual({
+      phone: '+15551234567',
+    });
+    expect(
+      memberPasswordRecoveryVerifySchema.parse({
+        phone: '+15551234567',
+        code: '123456',
+        password: 'NewPassword123',
+      }),
+    ).toEqual({ phone: '+15551234567', code: '123456', password: 'NewPassword123' });
   });
 
-  test('returns clear field errors for invalid OTP inputs', () => {
-    expectInvalidField(phoneOtpSendSchema, { phone: '555', purpose: 'sign-up' }, 'phone');
+  test('returns clear field errors for invalid member auth inputs', () => {
+    expectInvalidField(memberSignUpSchema, { phone: '555', password: 'short' }, 'phone');
     expectInvalidField(
-      phoneOtpVerifySchema,
-      { phone: '+15551234567', code: 'abc', purpose: 'sign-in' },
+      memberPasswordRecoveryVerifySchema,
+      { phone: '+15551234567', code: 'abc', password: 'short' },
       'code',
+    );
+    expectInvalidField(
+      memberPasswordSignInSchema,
+      { phone: '+15551234567', password: 'short' },
+      'password',
     );
   });
 });
@@ -416,9 +442,9 @@ describe('shared helpers', () => {
   test('validates id params and formats errors with contract codes', () => {
     expect(entityIdParamSchema.parse({ id: uuid })).toEqual({ id: uuid });
 
-    const result = parseWithValidation(phoneOtpSendSchema, {
+    const result = parseWithValidation(memberSignUpSchema, {
       phone: 'bad',
-      purpose: 'sign-in',
+      password: 'short',
       locale: 'de',
     });
 
@@ -429,6 +455,10 @@ describe('shared helpers', () => {
         expect.objectContaining({
           path: 'phone',
           code: ERROR_CODES.VALIDATION_INVALID_PHONE,
+        }),
+        expect.objectContaining({
+          path: 'password',
+          code: ERROR_CODES.VALIDATION_INVALID_INPUT,
         }),
         expect.objectContaining({
           path: 'locale',

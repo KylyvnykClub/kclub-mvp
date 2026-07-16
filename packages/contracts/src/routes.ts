@@ -2,8 +2,11 @@ export const API_BASE_PATH = '/api/v1' as const;
 export const ADMIN_API_BASE_PATH = '/api/admin/v1' as const;
 
 export const MEMBER_API_ROUTES = {
-  AUTH_PHONE_OTP_SEND: `${API_BASE_PATH}/auth/phone-otp/send`,
-  AUTH_PHONE_OTP_VERIFY: `${API_BASE_PATH}/auth/phone-otp/verify`,
+  AUTH_SIGN_UP: `${API_BASE_PATH}/auth/sign-up`,
+  AUTH_SIGN_UP_VERIFY: `${API_BASE_PATH}/auth/sign-up/verify`,
+  AUTH_SIGN_IN: `${API_BASE_PATH}/auth/sign-in`,
+  AUTH_PASSWORD_RECOVERY: `${API_BASE_PATH}/auth/password-recovery`,
+  AUTH_PASSWORD_RECOVERY_VERIFY: `${API_BASE_PATH}/auth/password-recovery/verify`,
   AUTH_LOGOUT: `${API_BASE_PATH}/auth/logout`,
   ME: `${API_BASE_PATH}/me`,
   COMPLETE_ONBOARDING: `${API_BASE_PATH}/me/complete-onboarding`,

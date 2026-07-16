@@ -19,8 +19,9 @@ Implement product-core member authentication API surfaces and onboarding complet
 ## Implementation Instructions
 
 1. Implement member auth route handlers:
-   - `POST /api/v1/auth/phone-otp/send`
-   - `POST /api/v1/auth/phone-otp/verify`
+   - `POST /api/v1/auth/sign-up` and `POST /api/v1/auth/sign-up/verify`
+   - `POST /api/v1/auth/sign-in`
+   - `POST /api/v1/auth/password-recovery` and `POST /api/v1/auth/password-recovery/verify`
    - `POST /api/v1/auth/logout`
 2. Preserve distinct sign-up/sign-in semantics in service logic where intent is provided by UI/API.
 3. Implement `GET /api/v1/me`, `PATCH /api/v1/me`, and `POST /api/v1/me/complete-onboarding`.

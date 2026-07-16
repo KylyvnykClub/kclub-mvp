@@ -13,7 +13,7 @@
 KCLUB is an international private membership platform for the USA market. MVP v4 delivers:
 
 - A public multilingual website and member cabinet.
-- Public self-service member registration by phone OTP.
+- Public self-service member registration by phone verification and password.
 - Digital club cards with public QR verification.
 - VIP subscription billing through Stripe.
 - Partner business profile moderation and paid placement.
@@ -124,12 +124,11 @@ Operational hierarchy: `OWNER >= ADMIN >= MODERATOR`.
 
 ### 6.1 Member Auth
 
-Member auth uses phone + SMS OTP through Supabase Auth.
+Member auth uses a verified phone number and password through Supabase Auth. SMS OTP is used only to verify a phone during sign-up and to set or reset a member password.
 
-Sign-up and sign-in share the OTP transport, but their semantics are distinct:
-
-- Sign-up creates a new member account when the phone is new.
-- Sign-in authenticates an existing member account.
+- Sign-up creates a new member account when the phone is new, stores the password in Supabase Auth, and requires SMS verification before the local member record is created.
+- Sign-in authenticates an existing member account with phone and password; it never sends an OTP.
+- Existing OTP-only members use password recovery once to verify their phone and set a password.
 - Existing-phone sign-up must return a clear "use sign-in" state.
 - Unknown-phone sign-in must return a clear "use sign-up" state.
 
@@ -329,8 +328,11 @@ Base path: `/api/v1`.
 
 | Endpoint                                   | Access                    | Purpose                                 |
 | ------------------------------------------ | ------------------------- | --------------------------------------- |
-| `POST /auth/phone-otp/send`                | Public                    | Send OTP                                |
-| `POST /auth/phone-otp/verify`              | Public                    | Verify OTP                              |
+| `POST /auth/sign-up`                       | Public                    | Start phone/password registration       |
+| `POST /auth/sign-up/verify`                | Public                    | Verify registration SMS OTP             |
+| `POST /auth/sign-in`                       | Public                    | Sign in with phone and password         |
+| `POST /auth/password-recovery`             | Public                    | Send password recovery SMS OTP          |
+| `POST /auth/password-recovery/verify`      | Public                    | Verify OTP and set a new password       |
 | `POST /auth/logout`                        | Auth                      | Logout                                  |
 | `GET /me`                                  | Auth                      | Current profile                         |
 | `PATCH /me`                                | Auth                      | Update profile                          |

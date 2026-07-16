@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,146 +20,169 @@ import {
 import { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '../utils/api';
 
-export type AuthMode = 'sign-in' | 'sign-up';
+export type AuthMode = 'sign-in' | 'sign-up' | 'password-recovery';
 
-const AUTH_PHONE_REQUEST_TIMEOUT_MS = 15_000;
+const AUTH_REQUEST_TIMEOUT_MS = 15_000;
+
+type FormStep = 'credentials' | 'phone' | 'otp';
 
 export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
   const isSignUp = mode === 'sign-up';
-  const t = useTranslations(isSignUp ? 'auth.signUp' : 'auth.signIn');
+  const isRecovery = mode === 'password-recovery';
+  const namespace = isSignUp ? 'auth.signUp' : isRecovery ? 'auth.passwordRecovery' : 'auth.signIn';
+  const t = useTranslations(namespace);
   const tCommon = useTranslations('auth.common');
   const router = useRouter();
 
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [step, setStep] = useState<FormStep>(isRecovery ? 'phone' : 'credentials');
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const inputClassName = 'kclub-field';
   const termsHref = `/legal/${locale}/terms-of-use`;
   const privacyHref = `/legal/${locale}/privacy-policy`;
   const phoneDescriptionIds = [
     isSignUp ? 'sms-consent-disclosure' : null,
-    error ? 'phone-error' : null,
+    error ? 'auth-error' : null,
   ]
     .filter(Boolean)
     .join(' ');
 
-  const handlePhoneSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  function redirectForProfile(profile: { onboardingComplete?: boolean } | null | undefined): void {
+    router.replace(
+      profile?.onboardingComplete ? `/${locale}/m/dashboard` : `/${locale}/m/onboarding`,
+    );
+  }
+
+  function getErrorMessage(code: string | null | undefined): string {
+    if (code === ERROR_CODES.VALIDATION_INVALID_PHONE) {
+      return tCommon('errors.invalidPhone');
+    }
+    if (code === ERROR_CODES.AUTH_SIGN_IN_USE_SIGN_UP) return tCommon('errors.useSignUp');
+    if (code === ERROR_CODES.AUTH_SIGN_UP_USE_SIGN_IN) return tCommon('errors.useSignIn');
+    if (code === ERROR_CODES.PERMISSION_DENIED) return tCommon('errors.blocked');
+    if (code === ERROR_CODES.AUTH_PASSWORD_INVALID) return tCommon('errors.invalidPassword');
+    if (code === ERROR_CODES.AUTH_OTP_INVALID) return tCommon('errors.invalidOtp');
+    if (code === ERROR_CODES.AUTH_OTP_SEND_FAILED) return tCommon('errors.otpSendFailed');
+    if (code === ERROR_CODES.RATE_LIMITED) return tCommon('errors.rateLimited');
+    return tCommon('errors.generic');
+  }
+
+  async function submit(
+    path: string,
+    body: Record<string, string>,
+  ): Promise<ReturnType<typeof parseAuthResponse>> {
+    const response = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(AUTH_REQUEST_TIMEOUT_MS),
+      body: JSON.stringify(body),
+    });
+    return parseAuthResponse(response);
+  }
+
+  async function handleCredentialsSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/v1/auth/phone-otp/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(AUTH_PHONE_REQUEST_TIMEOUT_MS),
-        body: JSON.stringify({ phone, purpose: mode, locale }),
+      const parsed = await submit(isSignUp ? '/api/v1/auth/sign-up' : '/api/v1/auth/sign-in', {
+        phone,
+        password,
+        ...(isSignUp ? { locale } : {}),
       });
-      const parsed = await parseAuthResponse(res);
-
       if (!parsed.success) {
-        const code = parsed.errorCode || 'generic';
-        if (
-          code === ERROR_CODES.VALIDATION_INVALID_PHONE ||
-          code === ERROR_CODES.VALIDATION_INVALID_INPUT
-        ) {
-          setError(tCommon('errors.invalidPhone'));
-        } else if (code === ERROR_CODES.AUTH_SIGN_IN_USE_SIGN_UP) {
-          setError(tCommon('errors.useSignUp'));
-        } else if (code === ERROR_CODES.AUTH_SIGN_UP_USE_SIGN_IN) {
-          setError(tCommon('errors.useSignIn'));
-        } else if (code === ERROR_CODES.PERMISSION_DENIED) {
-          setError(tCommon('errors.blocked'));
-        } else if (code === ERROR_CODES.AUTH_OTP_SEND_FAILED) {
-          setError(tCommon('errors.otpSendFailed'));
-        } else if (code === ERROR_CODES.RATE_LIMITED) {
-          setError(tCommon('errors.rateLimited'));
-        } else {
-          setError(tCommon('errors.generic'));
-        }
-        setIsLoading(false);
+        setError(getErrorMessage(parsed.errorCode));
         return;
       }
+      if (isSignUp) setStep('otp');
+      else redirectForProfile(parsed.data as { onboardingComplete?: boolean } | undefined);
+    } catch {
+      setError(tCommon('errors.generic'));
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
+  async function handleRecoveryPhoneSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const parsed = await submit('/api/v1/auth/password-recovery', { phone });
+      if (!parsed.success) {
+        setError(getErrorMessage(parsed.errorCode));
+        return;
+      }
       setStep('otp');
-    } catch (err) {
+    } catch {
       setError(tCommon('errors.otpSendFailed'));
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  async function handleOtpSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    if (isRecovery && password !== confirmPassword) {
+      setError(tCommon('errors.passwordMismatch'));
+      return;
+    }
+
     setError(null);
     setIsLoading(true);
-
     try {
-      const res = await fetch('/api/v1/auth/phone-otp/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, code: otp, purpose: mode }),
-      });
-      const parsed = await parseAuthResponse(res);
-
+      const parsed = await submit(
+        isRecovery ? '/api/v1/auth/password-recovery/verify' : '/api/v1/auth/sign-up/verify',
+        isRecovery ? { phone, code: otp, password } : { phone, code: otp },
+      );
       if (!parsed.success) {
-        const code = parsed.errorCode || 'generic';
-        if (code === ERROR_CODES.AUTH_OTP_INVALID) {
-          setError(tCommon('errors.invalidOtp'));
-        } else if (code === ERROR_CODES.PERMISSION_DENIED) {
-          setError(tCommon('errors.blocked'));
-        } else if (code === ERROR_CODES.RATE_LIMITED) {
-          setError(tCommon('errors.rateLimited'));
-        } else {
-          setError(tCommon('errors.generic'));
-        }
-        setIsLoading(false);
+        setError(getErrorMessage(parsed.errorCode));
         return;
       }
-
-      if (parsed.data?.onboardingComplete) {
-        router.replace(`/${locale}/m/dashboard`);
-      } else {
-        router.replace(`/${locale}/m/onboarding`);
-      }
-    } catch (err) {
+      redirectForProfile(parsed.data as { onboardingComplete?: boolean } | undefined);
+    } catch {
       setError(tCommon('errors.generic'));
+    } finally {
       setIsLoading(false);
     }
-  };
+  }
+
+  const showPhone = step === 'credentials' || step === 'phone';
 
   return (
     <div className="container grid gap-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center">
       <section className="hidden lg:block">
-        <h1 className="mt-5 text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white">
-          {t('title')}
-        </h1>
-        <p className="dark:text-white/68 mt-5 max-w-xl text-base leading-8 text-zinc-600">
+        <h1 className="mt-5 text-3xl font-semibold tracking-tight text-foreground">{t('title')}</h1>
+        <p className="mt-5 max-w-xl text-base leading-8 text-muted-foreground">
           {t('description')}
         </p>
       </section>
 
-      <div className="relative mx-auto w-full max-w-[440px] overflow-hidden border border-zinc-200 bg-white p-6 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.45)] dark:border-white/10 dark:bg-surface sm:p-8">
+      <div className="relative mx-auto w-full max-w-[440px] overflow-hidden border border-border bg-surface p-6 shadow-xl sm:p-8">
         <div className="mb-10 text-center">
           <Image
             src={crowLogo}
             alt=""
-            aria-hidden="true"
+            aria-hidden
             className="mx-auto mb-6 block h-14 w-14 rounded-full object-cover"
           />
-          <h2 className="mt-3 text-3xl font-black uppercase tracking-[0.01em] text-zinc-900 dark:text-white">
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
             {t('title')}
           </h2>
-          <p className="dark:text-white/62 mt-3 text-sm leading-7 text-zinc-600">
-            {t('description')}
-          </p>
+          <p className="mt-3 text-sm leading-7 text-muted-foreground">{t('description')}</p>
         </div>
 
-        {step === 'phone' ? (
-          <form className="space-y-6" onSubmit={handlePhoneSubmit}>
+        {showPhone && (
+          <form
+            className="space-y-6"
+            onSubmit={isRecovery ? handleRecoveryPhoneSubmit : handleCredentialsSubmit}
+          >
             <Field>
               <Label htmlFor="phone">{t('phoneLabel')}</Label>
               <PhoneInput
@@ -171,16 +194,36 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
                 aria-describedby={phoneDescriptionIds || undefined}
                 placeholder={t('phonePlaceholder')}
                 value={phone}
-                onChange={(value) => setPhone(value)}
+                onChange={setPhone}
                 disabled={isLoading}
-                inputClassName={inputClassName}
+                inputClassName="kclub-field"
                 triggerClassName={kclubPhoneTriggerClassName}
                 panelClassName={kclubPhonePanelClassName}
                 data-testid="auth-phone-input"
               />
             </Field>
+            {!isRecovery && (
+              <Field>
+                <Label htmlFor="password">{tCommon('passwordLabel')}</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                  minLength={6}
+                  maxLength={128}
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={isLoading}
+                  className="kclub-field"
+                  placeholder={tCommon('passwordPlaceholder')}
+                  data-testid="auth-password-input"
+                />
+              </Field>
+            )}
             {error && (
-              <p id="phone-error" role="alert" className="text-sm text-red-600 dark:text-red-400">
+              <p id="auth-error" role="alert" className="text-sm text-destructive">
                 {error}
               </p>
             )}
@@ -190,14 +233,14 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
               size="lg"
               fullWidth
               disabled={isLoading}
-              data-testid="auth-submit-phone"
+              data-testid="auth-submit"
             >
               {isLoading ? tCommon('loading') : t('submit')}
-              <ArrowUpRight aria-hidden="true" size={16} strokeWidth={1.7} />
+              <ArrowUpRight aria-hidden size={16} strokeWidth={1.7} />
             </Button>
             {isSignUp && (
               <div className="space-y-3">
-                <label className="dark:text-white/72 flex gap-3 text-sm text-zinc-700">
+                <label className="flex gap-3 text-sm text-foreground">
                   <input
                     type="checkbox"
                     checked={termsAccepted}
@@ -263,7 +306,9 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
               </div>
             )}
           </form>
-        ) : (
+        )}
+
+        {step === 'otp' && (
           <form className="space-y-6" onSubmit={handleOtpSubmit}>
             <Field>
               <Label htmlFor="otp">{tCommon('otpLabel')}</Label>
@@ -274,18 +319,54 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 required
-                aria-invalid={!!error ? 'true' : 'false'}
-                aria-describedby={error ? 'otp-error' : undefined}
-                placeholder={tCommon('otpPlaceholder')}
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                onChange={(event) => setOtp(event.target.value)}
                 disabled={isLoading}
-                className={inputClassName}
+                className="kclub-field"
+                placeholder={tCommon('otpPlaceholder')}
                 data-testid="auth-otp-input"
               />
             </Field>
+            {isRecovery && (
+              <>
+                <Field>
+                  <Label htmlFor="new-password">{tCommon('newPasswordLabel')}</Label>
+                  <Input
+                    id="new-password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={6}
+                    maxLength={128}
+                    required
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    disabled={isLoading}
+                    className="kclub-field"
+                    placeholder={tCommon('passwordPlaceholder')}
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="confirm-password">{tCommon('confirmPasswordLabel')}</Label>
+                  <Input
+                    id="confirm-password"
+                    name="confirm-password"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={6}
+                    maxLength={128}
+                    required
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    disabled={isLoading}
+                    className="kclub-field"
+                    placeholder={tCommon('confirmPasswordPlaceholder')}
+                  />
+                </Field>
+              </>
+            )}
             {error && (
-              <p id="otp-error" role="alert" className="text-sm text-red-600 dark:text-red-400">
+              <p id="auth-error" role="alert" className="text-sm text-destructive">
                 {error}
               </p>
             )}
@@ -298,32 +379,52 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
               data-testid="auth-submit-otp"
             >
               {isLoading ? tCommon('loading') : tCommon('submitOtp')}
-              <ArrowUpRight aria-hidden="true" size={16} strokeWidth={1.7} />
+              <ArrowUpRight aria-hidden size={16} strokeWidth={1.7} />
             </Button>
-            <div className="mt-4 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setStep('phone');
-                  setError(null);
-                  setOtp('');
-                }}
-                className={linkClasses}
-                disabled={isLoading}
-              >
-                {tCommon('backToPhone')}
-              </button>
-            </div>
+            <Button
+              type="button"
+              color="ghost"
+              fullWidth
+              disabled={isLoading}
+              onClick={() => {
+                setStep(isRecovery ? 'phone' : 'credentials');
+                setError(null);
+                setOtp('');
+              }}
+            >
+              {tCommon('backToPhone')}
+            </Button>
           </form>
         )}
 
-        {step === 'phone' && (
-          <p className={`mt-6 text-center ${textMuted}`}>
-            {t('switchPrompt')}{' '}
-            <Link href={`/${locale}/${isSignUp ? 'sign-in' : 'sign-up'}`} className={linkClasses}>
-              {t('switchAction')}
-            </Link>
-          </p>
+        {step !== 'otp' && (
+          <div className={`mt-6 text-center ${textMuted}`}>
+            {isRecovery ? (
+              <Link href={`/${locale}/sign-in`} className={linkClasses}>
+                {t('signInAction')}
+              </Link>
+            ) : (
+              <>
+                <span>{t('switchPrompt')} </span>
+                <Link
+                  href={`/${locale}/${isSignUp ? 'sign-in' : 'sign-up'}`}
+                  className={linkClasses}
+                >
+                  {t('switchAction')}
+                </Link>
+                {!isSignUp && (
+                  <>
+                    <span className="mx-2" aria-hidden>
+                      ·
+                    </span>
+                    <Link href={`/${locale}/forgot-password`} className={linkClasses}>
+                      {t('forgotPassword')}
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         )}
       </div>
     </div>
