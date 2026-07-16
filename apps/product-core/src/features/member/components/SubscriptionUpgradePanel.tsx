@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ArrowUpRight, Check, FileText, Minus } from 'lucide-react';
+import { Check, FileText, Minus } from 'lucide-react';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
 
@@ -15,7 +15,7 @@ import {
   getOwnInvoices,
   type InvoiceDto,
 } from '@/server/services/subscription-service';
-import { Button, getButtonClasses } from '@kclub/ui';
+import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 
 import { UpgradeToVipButton } from './UpgradeToVipButton';
 import { CancelSubscriptionButton } from './CancelSubscriptionButton';
@@ -124,18 +124,9 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
               </li>
             ))}
           </ul>
-          <Link
-            href={`/${locale}/m/business/onboarding`}
-            className={getButtonClasses({
-              color: 'brand',
-              size: 'md',
-              fullWidth: true,
-              className: 'mt-8 flex h-14 shrink-0',
-            })}
-          >
-            {t('businessCta')}
-            <ArrowUpRight aria-hidden="true" size={18} />
-          </Link>
+          <CabinetButton asChild fullWidth density="large" className="mt-8">
+            <Link href={`/${locale}/m/business/onboarding`}>{t('businessCta')}</Link>
+          </CabinetButton>
         </div>
       </div>
 

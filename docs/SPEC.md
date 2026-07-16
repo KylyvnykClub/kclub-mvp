@@ -384,7 +384,7 @@ Business profile submission:
 - Country and city: required; city must belong to country.
 - Category: required and not high-risk.
 - Website or social URL: required, valid URL.
-- Brief description: optional, max 500 chars.
+- Brief description: optional, max 2000 chars.
 - Caller must have active VIP capability.
 
 Business Introduction:

@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowUpRight, Camera } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { toast } from 'sonner';
 
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
@@ -19,6 +19,7 @@ import {
   cabinetFieldLabelClasses,
   cabinetSectionLabelClasses,
 } from '@/features/member/components/cabinet/styles';
+import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -305,10 +306,9 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <Button type="button" onClick={handleSaveProfile} disabled={isSaving}>
+          <CabinetButton type="button" onClick={handleSaveProfile} disabled={isSaving}>
             {isSaving ? tAccount('saving') : getButtonLabel(tAccount('save'))}
-            {!isSaving ? <ArrowUpRight size={16} aria-hidden /> : null}
-          </Button>
+          </CabinetButton>
         </div>
       </section>
 
@@ -346,10 +346,9 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
           <AlertTitle>{t('deleteAccount')}</AlertTitle>
           <AlertDescription>{t('deleteAccountHint')}</AlertDescription>
           <AlertAction>
-            <Button type="button" variant="destructive" size="sm" disabled>
+            <CabinetButton type="button" tone="danger" density="compact" disabled>
               {getButtonLabel(t('deleteAccountCta'))}
-              <ArrowUpRight size={14} aria-hidden />
-            </Button>
+            </CabinetButton>
           </AlertAction>
         </Alert>
       </section>

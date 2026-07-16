@@ -15,7 +15,7 @@ import {
 
 export const businessNameSchema = withoutHtml(safeTextSchema.min(2).max(100));
 export const representativeNameSchema = withoutHtml(safeTextSchema.min(2).max(100));
-export const businessBriefDescriptionSchema = optionalSafeTextSchema(500);
+export const businessBriefDescriptionSchema = optionalSafeTextSchema(2000);
 
 export const customCategoryNameSchema = withoutHtml(safeTextSchema.min(2).max(120));
 
@@ -101,8 +101,13 @@ export const businessListFilterSchema = paginationSchema.extend({
   featuredRecommended: z.coerce.boolean().optional(),
 });
 
+export const cityListByCountryQuerySchema = z.object({
+  countryId: entityIdSchema,
+});
+
 export type BusinessProfileSubmitInput = z.infer<typeof businessProfileSubmitSchema>;
 export type BusinessProfileEditableFieldsInput = z.infer<
   typeof businessProfileEditableFieldsSchema
 >;
 export type BusinessListFilterInput = z.infer<typeof businessListFilterSchema>;
+export type CityListByCountryQueryInput = z.infer<typeof cityListByCountryQuerySchema>;

@@ -16,7 +16,7 @@ import { getOwnBusinesses } from '@/server/services/business-service';
 import { getIncomingIntroductions } from '@/server/services/introduction-service';
 import { getDbClient, schema } from '@/server/db';
 import { and, asc, eq } from 'drizzle-orm';
-import { Button } from '@/components/ui/button';
+import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 import { Badge } from '@/components/reui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { BusinessForm } from './BusinessForm';
@@ -77,13 +77,7 @@ export async function BusinessPanel({
     ? await getIncomingIntroductions(activeBusiness.id)
     : [];
 
-  const cities = await db.query.cities.findMany({
-    where: eq(schema.cities.is_active, true),
-    orderBy: [asc(schema.cities.name)],
-  });
-
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
-  const cityOptions: TaxonomyOption[] = cities.map((c) => ({ id: c.id, name: c.name }));
   const categoryOptions: TaxonomyOption[] = categories.map((c) => ({ id: c.id, name: c.name }));
 
   const rejectedBusiness = ownBusinesses.find((b) => b.status === 'REJECTED');
@@ -117,7 +111,6 @@ export async function BusinessPanel({
             locale={locale}
             business={null}
             countryOptions={countryOptions}
-            cityOptions={cityOptions}
             categoryOptions={categoryOptions}
           />
         </div>
@@ -142,7 +135,6 @@ export async function BusinessPanel({
             locale={locale}
             business={editBusiness}
             countryOptions={countryOptions}
-            cityOptions={cityOptions}
             categoryOptions={categoryOptions}
           />
         </div>
@@ -201,14 +193,14 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
   if (intro.status === 'SUBMITTED') {
     return (
       <form action={`/api/v1/me/business/introductions/${intro.id}/review`} method="POST">
-        <Button
+        <CabinetButton
           type="submit"
-          variant="ghost"
-          size="sm"
+          tone="link"
+          density="compact"
           className="h-auto px-0 py-0 text-xs text-accent underline hover:bg-transparent hover:text-accent-hover"
         >
           Рассмотреть
-        </Button>
+        </CabinetButton>
       </form>
     );
   }
@@ -217,24 +209,24 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
     return (
       <div className="flex gap-3">
         <form action={`/api/v1/me/business/introductions/${intro.id}/approve`} method="POST">
-          <Button
+          <CabinetButton
             type="submit"
-            variant="ghost"
-            size="sm"
+            tone="link"
+            density="compact"
             className="h-auto px-0 py-0 text-xs text-success underline hover:bg-transparent"
           >
             Принять
-          </Button>
+          </CabinetButton>
         </form>
         <form action={`/api/v1/me/business/introductions/${intro.id}/reject`} method="POST">
-          <Button
+          <CabinetButton
             type="submit"
-            variant="ghost"
-            size="sm"
+            tone="link"
+            density="compact"
             className="h-auto px-0 py-0 text-xs text-destructive underline hover:bg-transparent"
           >
             Отклонить
-          </Button>
+          </CabinetButton>
         </form>
       </div>
     );

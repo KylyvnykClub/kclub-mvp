@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
 import { MEMBER_API_ROUTES, type MemberBusinessProfileDto } from '@kclub/contracts';
@@ -28,13 +28,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/reui/alert';
-import type { TaxonomyOption } from './BusinessPanel';
+import type { CityTaxonomyOption, TaxonomyOption } from './BusinessPanel';
 
 type BusinessFormProps = {
   locale: Locale;
   business: MemberBusinessProfileDto | null;
   countryOptions: TaxonomyOption[];
-  cityOptions: TaxonomyOption[];
   categoryOptions: TaxonomyOption[];
 };
 
@@ -42,7 +41,6 @@ export function BusinessForm({
   locale,
   business,
   countryOptions,
-  cityOptions,
   categoryOptions,
 }: BusinessFormProps) {
   const t = useTranslations('member.dashboard.business');
@@ -56,12 +54,8 @@ export function BusinessForm({
   const [representativePhone, setRepresentativePhone] = useState(
     business?.representativePhone ?? '',
   );
-  const [countryId, setCountryId] = useState(
-    business ? (countryOptions.find((c) => business.countryName.includes(c.name))?.id ?? '') : '',
-  );
-  const [cityId, setCityId] = useState(
-    business ? (cityOptions.find((c) => business.cityName.includes(c.name))?.id ?? '') : '',
-  );
+  const [countryId, setCountryId] = useState(business?.countryId ?? '');
+  const [cityId, setCityId] = useState(business?.cityId ?? '');
   const [categoryId, setCategoryId] = useState(
     business ? (categoryOptions.find((c) => business.categoryName.includes(c.name))?.id ?? '') : '',
   );
@@ -69,27 +63,69 @@ export function BusinessForm({
   const [websiteUrl, setWebsiteUrl] = useState(business?.websiteUrl ?? '');
   const [socialUrl, setSocialUrl] = useState(business?.socialUrl ?? '');
   const [briefDescription, setBriefDescription] = useState(business?.briefDescription ?? '');
+  const [cityOptions, setCityOptions] = useState<CityTaxonomyOption[]>([]);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const [cityLoadError, setCityLoadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   const isEdit = business !== null;
 
-  const filteredCities = useMemo(() => {
-    if (!countryId) return [];
-    const selectedCountry = countryOptions.find((c) => c.id === countryId);
-    if (!selectedCountry) return [];
-    return cityOptions.filter((city) => {
-      const cityCountryId = cityOptions.find((c) => c.id === city.id);
-      return true;
-    });
-  }, [countryId, cityOptions]);
-
   useEffect(() => {
     if (!countryId) {
       setCityId('');
+      setCityOptions([]);
+      setCityLoadError(null);
+      setIsLoadingCities(false);
+      return;
     }
-  }, [countryId]);
+
+    let isActive = true;
+    const controller = new AbortController();
+
+    async function loadCities(): Promise<void> {
+      setIsLoadingCities(true);
+      setCityLoadError(null);
+      setCityOptions([]);
+
+      try {
+        const response = await fetch(
+          `${MEMBER_API_ROUTES.TAXONOMY_CITIES}?countryId=${encodeURIComponent(countryId)}`,
+          { signal: controller.signal },
+        );
+        const result = await parseAuthResponse<CityTaxonomyOption[]>(response);
+
+        if (!isActive) return;
+
+        if (!result.success || !result.data) {
+          setCityLoadError(t('citiesLoadError'));
+          return;
+        }
+
+        setCityOptions(result.data);
+      } catch (fetchError) {
+        if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
+          return;
+        }
+
+        if (isActive) {
+          setCityLoadError(t('citiesLoadError'));
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingCities(false);
+        }
+      }
+    }
+
+    void loadCities();
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [countryId, t]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -220,7 +256,14 @@ export function BusinessForm({
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <Label>{t('countryLabel')}</Label>
-          <Select value={countryId} onValueChange={(value) => setCountryId(value ?? '')} required>
+          <Select
+            value={countryId}
+            onValueChange={(value) => {
+              setCountryId(value ?? '');
+              setCityId('');
+            }}
+            required
+          >
             <SelectTrigger className="mt-1 w-full">
               <SelectValue placeholder={t('selectPlaceholder')} />
             </SelectTrigger>
@@ -239,11 +282,13 @@ export function BusinessForm({
           <Select
             value={cityId}
             onValueChange={(value) => setCityId(value ?? '')}
-            disabled={!countryId}
+            disabled={!countryId || isLoadingCities}
             required
           >
             <SelectTrigger className="mt-1 w-full">
-              <SelectValue placeholder={t('selectPlaceholder')} />
+              <SelectValue
+                placeholder={isLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
+              />
             </SelectTrigger>
             <SelectContent>
               {cityOptions.map((c) => (
@@ -253,6 +298,7 @@ export function BusinessForm({
               ))}
             </SelectContent>
           </Select>
+          {cityLoadError && <p className="mt-2 text-xs text-destructive">{cityLoadError}</p>}
         </div>
 
         <div>
@@ -322,7 +368,7 @@ export function BusinessForm({
         <Textarea
           value={briefDescription ?? ''}
           onChange={(e) => setBriefDescription(e.target.value)}
-          maxLength={500}
+          maxLength={2000}
           rows={3}
           className="mt-1 w-full"
         />

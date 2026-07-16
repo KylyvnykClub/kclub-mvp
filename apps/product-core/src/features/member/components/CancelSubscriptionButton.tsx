@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { parseAuthResponse } from '@/features/auth/utils/api';
+import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 
 type Props = {
   subscriptionId: string;
@@ -41,13 +42,15 @@ export function CancelSubscriptionButton({ subscriptionId }: Props) {
   };
 
   return (
-    <button
+    <CabinetButton
       type="button"
+      tone="secondary"
+      fullWidth
       onClick={handleCancel}
       disabled={isPending}
-      className="mt-3 w-full text-center text-xs text-muted underline-offset-2 transition hover:text-foreground hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+      className="mt-3"
     >
       {isPending ? t('cancelPending') : t('cancelCta')}
-    </button>
+    </CabinetButton>
   );
 }

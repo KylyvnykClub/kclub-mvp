@@ -20,23 +20,24 @@ describe('member dashboard tabs', () => {
     expect(getImplementedDashboardTabs(memberCtx)).toEqual(BASE_TABS);
   });
 
-  test('VIP sees base tabs + introductions + business', () => {
+  test('VIP without business sees subscription and introductions, not business', () => {
     expect(getImplementedDashboardTabs(vipCtx)).toEqual([
-      ...BASE_TABS,
+      'details',
+      'subscription',
+      'settings',
       'introductions',
-      'business',
     ]);
   });
 
-  test('member with business (not VIP) sees only base tabs', () => {
-    expect(getImplementedDashboardTabs(businessCtx)).toEqual(BASE_TABS);
+  test('member with business sees business instead of subscription', () => {
+    expect(getImplementedDashboardTabs(businessCtx)).toEqual(['details', 'business', 'settings']);
   });
 
-  test('VIP with business sees base tabs + introductions + business', () => {
+  test('VIP with business sees business, not subscription or introductions', () => {
     expect(getImplementedDashboardTabs(vipBusinessCtx)).toEqual([
-      ...BASE_TABS,
-      'introductions',
+      'details',
       'business',
+      'settings',
     ]);
   });
 
@@ -61,6 +62,11 @@ describe('member dashboard tabs', () => {
     const tabs = getImplementedDashboardTabs(memberCtx);
     expect(normalizeDashboardTab('settings', tabs)).toBe('settings');
     expect(normalizeDashboardTab('subscription', tabs)).toBe('subscription');
+  });
+
+  test('falls back when VIP without business requests hidden business tab', () => {
+    const tabs = getImplementedDashboardTabs(vipCtx);
+    expect(normalizeDashboardTab('business', tabs)).toBe('details');
   });
 
   test('falls back when legacy audit or permissions tab is requested', () => {

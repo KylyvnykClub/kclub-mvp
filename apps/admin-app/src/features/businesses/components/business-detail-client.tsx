@@ -822,8 +822,8 @@ function EditProfileTab({ business, onSaved }: EditProfileTabProps) {
             name="briefDescription"
             value={fields.briefDescription}
             onChange={handleChange}
-            placeholder="Short description (max 500 chars)"
-            maxLength={500}
+            placeholder="Short description (max 2000 chars)"
+            maxLength={2000}
           />
         </div>
 

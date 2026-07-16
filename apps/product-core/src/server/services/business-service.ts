@@ -424,6 +424,8 @@ export function toPublicBusinessDetailDto(business: any): PublicBusinessDetailDt
 export function toMemberBusinessProfileDto(business: any): MemberBusinessProfileDto {
   return {
     ...toPublicBusinessDetailDto(business),
+    countryId: business.country_id,
+    cityId: business.city_id,
     status: business.status as BusinessStatus,
     representativeEmail: business.representative_email,
     representativePhone: business.representative_phone,

@@ -7,10 +7,12 @@ import { resolve } from 'node:path';
 import {
   ADMIN_BOOTSTRAP_PLAN,
   CATEGORY_SEED_PLAN,
+  CITY_SEED_PLAN,
   CONFIG_SEED_PLAN,
   COUNTRY_SEED_PLAN,
   schema,
 } from '../src';
+import { IMPORTED_CITY_SEED_PLAN } from '../src/seeds/city-seed-plan';
 
 const migrationPath = resolve(import.meta.dir, '../drizzle/0000_sharp_vulcan.sql');
 
@@ -34,7 +36,43 @@ const MVP_TABLES = [
 
 describe('database package contracts', () => {
   test('contains a seed plan with high-risk categories and bootstrap config', () => {
-    expect(COUNTRY_SEED_PLAN.length).toBeGreaterThan(0);
+    expect(COUNTRY_SEED_PLAN.length).toBeGreaterThanOrEqual(240);
+    expect(IMPORTED_CITY_SEED_PLAN.length).toBeGreaterThanOrEqual(100_000);
+    expect(CITY_SEED_PLAN.length).toBeGreaterThanOrEqual(IMPORTED_CITY_SEED_PLAN.length);
+    expect(COUNTRY_SEED_PLAN.map((country) => country.name)).toEqual(
+      expect.arrayContaining([
+        'Belgium',
+        'Brazil',
+        'China',
+        'Monaco',
+        'Switzerland',
+        'Ukraine',
+        'United Arab Emirates',
+        'United Kingdom',
+        'United States',
+      ]),
+    );
+    expect(CITY_SEED_PLAN.map((city) => `${city.countrySlug}:${city.slug}`)).toEqual(
+      expect.arrayContaining([
+        'belgium:antwerp',
+        'belgium:brussels',
+        'brazil:brasilia',
+        'brazil:rio-de-janeiro',
+        'brazil:sao-paulo',
+        'china:beijing',
+        'china:guangzhou',
+        'china:shanghai',
+        'china:shenzhen',
+        'switzerland:zurich',
+        'united-arab-emirates:abu-dhabi',
+      ]),
+    );
+    for (const country of COUNTRY_SEED_PLAN) {
+      const citySlugs = CITY_SEED_PLAN.filter((city) => city.countrySlug === country.slug).map(
+        (city) => city.slug,
+      );
+      expect(citySlugs).toEqual(expect.arrayContaining([...country.citySlugs]));
+    }
     expect(CATEGORY_SEED_PLAN.some((category) => category.isHighRisk)).toBe(true);
     expect(
       CATEGORY_SEED_PLAN.filter((category) => category.isHighRisk).map((category) => category.slug),
@@ -60,6 +98,18 @@ describe('database package contracts', () => {
       expect(migration).toContain(`CREATE TABLE "${tableName}"`);
     }
     expect(migration).toMatch(/event_id_unique" UNIQUE/);
+  });
+
+  test('business profile brief description schema and migration allow 2000 chars', () => {
+    const migration = readFileSync(
+      resolve(import.meta.dir, '../drizzle/0006_business_brief_description_length.sql'),
+      'utf8',
+    );
+
+    expect(migration).toContain(
+      'ALTER TABLE "business_profiles" ALTER COLUMN "brief_description" SET DATA TYPE varchar(2000);',
+    );
+    expect(schema.businessProfiles.brief_description.getSQLType()).toBe('varchar(2000)');
   });
 
   test('drizzle schema exports a table object for every MVP table', () => {
