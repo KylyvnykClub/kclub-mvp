@@ -9,11 +9,7 @@ export default async function DashboardPage() {
 
   if (metrics.status !== 'success') {
     return (
-      <PageShell
-        title="Dashboard"
-        description="Operations overview."
-        roleScope="All staff roles"
-      >
+      <PageShell title="Dashboard" description="Operations overview." roleScope="All staff roles">
         <DashboardErrorState
           code={metrics.status === 'unreachable' ? 'NETWORK_ERROR' : metrics.code}
         />

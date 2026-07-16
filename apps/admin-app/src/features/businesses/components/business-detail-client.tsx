@@ -597,12 +597,7 @@ export function BusinessDetailClient({
                       <p className="text-sm text-muted-foreground">{business.owner.phone}</p>
                       <div className="flex flex-wrap items-center gap-2 pt-1">
                         <StatusBadge status={business.owner.status} />
-                        <Badge
-                          variant="default"
-                          className="border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30"
-                        >
-                          VIP
-                        </Badge>
+                        <StatusBadge status={business.owner.membershipTier} />
                       </div>
                     </div>
                   </div>
@@ -617,14 +612,7 @@ export function BusinessDetailClient({
                       { label: 'Display name', value: business.owner.displayName ?? '—' },
                       {
                         label: 'Membership',
-                        value: (
-                          <Badge
-                            variant="default"
-                            className="border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30"
-                          >
-                            VIP
-                          </Badge>
-                        ),
+                        value: <StatusBadge status={business.owner.membershipTier} />,
                       },
                       {
                         label: 'Status',
