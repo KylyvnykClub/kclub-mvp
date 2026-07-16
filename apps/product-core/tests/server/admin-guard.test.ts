@@ -16,6 +16,7 @@ describe('requireStaffPermission', () => {
       phone: '+15551234567',
       displayName: 'Moderator',
       role: 'MODERATOR',
+      permissionOverrides: null,
     };
 
     expect(() => requireStaffPermission(moderatorProfile, STAFF_PERMISSIONS.USERS_BLOCK)).toThrow();
@@ -37,6 +38,7 @@ describe('requireStaffPermission', () => {
       phone: '+15559876543',
       displayName: 'Admin User',
       role: 'ADMIN',
+      permissionOverrides: null,
     };
 
     expect(() => requireStaffPermission(adminProfile, STAFF_PERMISSIONS.USERS_READ)).not.toThrow();
@@ -50,6 +52,42 @@ describe('requireStaffPermission', () => {
     ).toThrow();
   });
 
+  test('respects permission overrides — deny removes role permission', async () => {
+    const { requireStaffPermission } = await import('../../src/server/admin-guard');
+
+    const adminWithDeny: StaffProfileDto = {
+      id: 'staff-4',
+      phone: '+15552222222',
+      displayName: 'Admin Restricted',
+      role: 'ADMIN',
+      permissionOverrides: { granted: [], denied: ['USERS_READ'] },
+    };
+
+    expect(() => requireStaffPermission(adminWithDeny, STAFF_PERMISSIONS.USERS_READ)).toThrow();
+    expect(() =>
+      requireStaffPermission(adminWithDeny, STAFF_PERMISSIONS.USERS_BLOCK),
+    ).not.toThrow();
+  });
+
+  test('respects permission overrides — grant adds non-role permission', async () => {
+    const { requireStaffPermission } = await import('../../src/server/admin-guard');
+
+    const moderatorWithGrant: StaffProfileDto = {
+      id: 'staff-5',
+      phone: '+15553333333',
+      displayName: 'Moderator Extended',
+      role: 'MODERATOR',
+      permissionOverrides: { granted: ['USERS_READ'], denied: [] },
+    };
+
+    expect(() =>
+      requireStaffPermission(moderatorWithGrant, STAFF_PERMISSIONS.USERS_READ),
+    ).not.toThrow();
+    expect(() =>
+      requireStaffPermission(moderatorWithGrant, STAFF_PERMISSIONS.USERS_BLOCK),
+    ).toThrow();
+  });
+
   test('allows OWNER with all permissions', async () => {
     const { requireStaffPermission } = await import('../../src/server/admin-guard');
 
@@ -58,6 +96,7 @@ describe('requireStaffPermission', () => {
       phone: '+15551111111',
       displayName: 'Owner',
       role: 'OWNER',
+      permissionOverrides: null,
     };
 
     expect(() =>
@@ -78,6 +117,7 @@ describe('enrichStaffContext', () => {
       phone: '+15559876543',
       displayName: 'Admin',
       role: 'ADMIN',
+      permissionOverrides: null,
     };
 
     const request = new Request('http://localhost/api/admin/v1/users');
@@ -122,6 +162,7 @@ describe('ADMIN_API_ROUTES contract stability', () => {
     expect(ADMIN_API_ROUTES.STRIPE_PRICES).toBe('/api/admin/v1/stripe-prices');
     expect(ADMIN_API_ROUTES.ADMIN_CONFIG).toBe('/api/admin/v1/admin-config/:key');
     expect(ADMIN_API_ROUTES.STAFF).toBe('/api/admin/v1/staff');
+    expect(ADMIN_API_ROUTES.STAFF_PERMISSIONS).toBe('/api/admin/v1/staff/:id/permissions');
     expect(ADMIN_API_ROUTES.AUDIT).toBe('/api/admin/v1/audit');
     expect(ADMIN_API_ROUTES.STAFF_AUTH_PASSWORD_REGISTER).toBe(
       '/api/admin/v1/staff-auth/password/register',
@@ -172,6 +213,7 @@ describe('validation schemas for admin mutations', () => {
       slug: 'test',
       isHighRisk: false,
       isActive: true,
+      isCustom: false,
     });
 
     expect(countryCreateSchema.parse({ code2: 'US', name: 'USA', slug: 'usa' })).toEqual({

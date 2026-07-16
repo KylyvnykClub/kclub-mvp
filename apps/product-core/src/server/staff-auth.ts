@@ -29,6 +29,7 @@ type StaffSessionPayload = {
   phone: string;
   name: string | null;
   role: StaffRole;
+  overrides?: { granted: string[]; denied: string[] } | null;
   exp: number;
 };
 
@@ -234,11 +235,14 @@ function staffToProfile(staff: StaffRecord | EnvBootstrapStaff): StaffProfileDto
     throw new Error('Unsupported staff role');
   }
 
+  const overrides = 'permission_overrides' in staff ? (staff.permission_overrides ?? null) : null;
+
   return {
     id: staff.id,
     phone: staff.phone,
     displayName: staff.display_name,
     role,
+    permissionOverrides: overrides as StaffProfileDto['permissionOverrides'],
   };
 }
 
@@ -278,11 +282,14 @@ function createAuthenticatedSession(
     throw new Error('Unsupported staff role');
   }
 
+  const overrides = 'permission_overrides' in staff ? (staff.permission_overrides ?? null) : null;
+
   const token = createSessionToken({
     sub: staff.id,
     phone: staff.phone,
     name: staff.display_name,
     role,
+    overrides: overrides as { granted: string[]; denied: string[] } | null,
     exp: expiresAt,
   });
 

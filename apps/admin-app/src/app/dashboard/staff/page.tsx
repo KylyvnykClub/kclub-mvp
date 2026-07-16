@@ -15,6 +15,7 @@ export default async function StaffPage() {
     role: profile.role,
     isActive: true,
     passwordStatus: 'SET',
+    permissionOverrides: profile.permissionOverrides,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

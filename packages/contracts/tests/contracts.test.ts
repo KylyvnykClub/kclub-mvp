@@ -87,6 +87,7 @@ describe('route contracts', () => {
     expect(MEMBER_API_ROUTES.AUTH_PASSWORD_RECOVERY_VERIFY).toBe(
       '/api/v1/auth/password-recovery/verify',
     );
+    expect(MEMBER_API_ROUTES.TAXONOMY_CITIES).toBe('/api/v1/taxonomy/cities');
     expect(ADMIN_API_BASE_PATH).toBe('/api/admin/v1');
     expect(ADMIN_API_ROUTES.STAFF_AUTH_SESSION).toBe('/api/admin/v1/staff-auth/session');
     expect(ADMIN_API_ROUTES.STAFF_AUTH_PASSWORD_REGISTER).toBe(

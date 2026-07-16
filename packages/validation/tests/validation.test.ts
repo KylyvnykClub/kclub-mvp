@@ -356,6 +356,7 @@ describe('admin mutation schemas', () => {
       slug: 'tech',
       isHighRisk: false,
       isActive: true,
+      isCustom: false,
     });
     expect(categoryUpdateSchema.parse({ name: 'Tech Updated' })).toEqual({ name: 'Tech Updated' });
 

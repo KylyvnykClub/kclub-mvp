@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  ALL_STAFF_PERMISSIONS,
   AUDIT_ACTIONS,
   BUSINESS_STATUSES,
   CLUB_CARD_STATUSES,
@@ -63,6 +64,7 @@ export const categoryCreateSchema = z.object({
   slug: z.string().min(1).max(120),
   isHighRisk: z.boolean().optional().default(false),
   isActive: z.boolean().optional().default(true),
+  isCustom: z.boolean().optional().default(false),
 });
 
 export const categoryUpdateSchema = categoryCreateSchema.partial();
@@ -133,6 +135,21 @@ export const auditLogListSchema = z.object({
   dateTo: z.coerce.date().optional(),
 });
 
+const staffPermissionEnum = z.enum(ALL_STAFF_PERMISSIONS as [string, ...string[]]);
+
+export const staffPermissionOverridesUpdateSchema = z
+  .object({
+    granted: z.array(staffPermissionEnum).default([]),
+    denied: z.array(staffPermissionEnum).default([]),
+  })
+  .refine(
+    (data) => {
+      const overlap = data.granted.filter((p) => data.denied.includes(p));
+      return overlap.length === 0;
+    },
+    { message: 'A permission cannot be both granted and denied' },
+  );
+
 export const staffDeactivateSchema = z.object({
   reason: z.string().min(1).max(500).optional(),
 });
@@ -167,6 +184,9 @@ export type AdminStaffCreateInput = z.infer<typeof adminStaffCreateSchema>;
 export type AuditLogListInput = z.infer<typeof auditLogListSchema>;
 export type StaffDeactivateInput = z.infer<typeof staffDeactivateSchema>;
 export type StaffPasswordResetInput = z.infer<typeof staffPasswordResetSchema>;
+export type StaffPermissionOverridesUpdateInput = z.infer<
+  typeof staffPermissionOverridesUpdateSchema
+>;
 
 export const adminBusinessUpdateSchema = z.object({
   name: businessNameSchema.optional(),

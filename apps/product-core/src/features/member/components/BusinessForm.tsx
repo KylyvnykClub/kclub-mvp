@@ -16,7 +16,7 @@ import {
   shadcnPhonePanelClassName,
   shadcnPhoneTriggerClassName,
 } from '@/components/ui/country-flag';
-import { Button } from '@/components/ui/button';
+import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -65,6 +65,7 @@ export function BusinessForm({
   const [categoryId, setCategoryId] = useState(
     business ? (categoryOptions.find((c) => business.categoryName.includes(c.name))?.id ?? '') : '',
   );
+  const [customCategoryName, setCustomCategoryName] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState(business?.websiteUrl ?? '');
   const [socialUrl, setSocialUrl] = useState(business?.socialUrl ?? '');
   const [briefDescription, setBriefDescription] = useState(business?.briefDescription ?? '');
@@ -110,11 +111,14 @@ export function BusinessForm({
         representativePhone,
         countryId,
         cityId,
-        categoryId,
         briefDescription,
       };
 
-      if (categoryId) body.categoryId = categoryId;
+      if (categoryId === '__other__') {
+        body.customCategoryName = customCategoryName.trim();
+      } else if (categoryId) {
+        body.categoryId = categoryId;
+      }
       if (countryId) body.countryId = countryId;
       if (cityId) body.cityId = cityId;
 
@@ -253,7 +257,14 @@ export function BusinessForm({
 
         <div>
           <Label>{t('categoryLabel')}</Label>
-          <Select value={categoryId} onValueChange={(value) => setCategoryId(value ?? '')} required>
+          <Select
+            value={categoryId}
+            onValueChange={(value) => {
+              setCategoryId(value ?? '');
+              if (value !== '__other__') setCustomCategoryName('');
+            }}
+            required
+          >
             <SelectTrigger className="mt-1 w-full">
               <SelectValue placeholder={t('selectPlaceholder')} />
             </SelectTrigger>
@@ -263,8 +274,24 @@ export function BusinessForm({
                   {c.name}
                 </SelectItem>
               ))}
+              <SelectItem value="__other__">{t('categoryOther')}</SelectItem>
             </SelectContent>
           </Select>
+          {categoryId === '__other__' && (
+            <div className="mt-2">
+              <Label>{t('customCategoryName')}</Label>
+              <Input
+                type="text"
+                required
+                minLength={2}
+                maxLength={120}
+                placeholder={t('customCategoryNamePlaceholder')}
+                value={customCategoryName}
+                onChange={(e) => setCustomCategoryName(e.target.value)}
+                className="mt-1 w-full"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -301,9 +328,9 @@ export function BusinessForm({
         />
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
+      <CabinetButton type="submit" disabled={isSubmitting}>
         {isSubmitting ? tCommon('saving') : isEdit ? t('editSubmit') : t('submitCta')}
-      </Button>
+      </CabinetButton>
     </form>
   );
 }

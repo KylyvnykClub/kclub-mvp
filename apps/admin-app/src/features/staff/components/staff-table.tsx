@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import type { AdminStaffListItemDto, StaffRole } from '@kclub/contracts';
 
+import { PermissionsDialog } from '@/features/staff/components/permissions-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -453,6 +454,7 @@ export function StaffTable({ staff, staffRole }: StaffTableProps) {
                   <TableCell>
                     {canManageStaff && s.isActive ? (
                       <div className="flex flex-wrap gap-2">
+                        <PermissionsDialog staff={s} />
                         <RoleUpdateDialog id={s.id} currentRole={s.role} onAction={refresh} />
                         <ResetPasswordDialog id={s.id} onAction={refresh} />
                         <DeactivateStaffDialog id={s.id} onAction={refresh} />
@@ -486,6 +488,7 @@ export function StaffTable({ staff, staffRole }: StaffTableProps) {
                 </div>
                 {canManageStaff && s.isActive ? (
                   <div className="flex flex-wrap justify-end gap-2">
+                    <PermissionsDialog staff={s} />
                     <RoleUpdateDialog id={s.id} currentRole={s.role} onAction={refresh} />
                     <ResetPasswordDialog id={s.id} onAction={refresh} />
                     <DeactivateStaffDialog id={s.id} onAction={refresh} />

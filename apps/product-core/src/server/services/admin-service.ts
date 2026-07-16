@@ -1448,6 +1448,7 @@ export async function createCategory(input: CategoryCreateInput): Promise<Catego
       slug: input.slug,
       is_high_risk: input.isHighRisk ?? false,
       is_active: input.isActive ?? true,
+      is_custom: input.isCustom ?? false,
     })
     .returning();
   revalidateTag('categories');
@@ -1477,6 +1478,7 @@ export async function updateCategory(
       ...(input.slug !== undefined ? { slug: input.slug } : {}),
       ...(input.isHighRisk !== undefined ? { is_high_risk: input.isHighRisk } : {}),
       ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
+      ...(input.isCustom !== undefined ? { is_custom: input.isCustom } : {}),
     })
     .where(eq(schema.categories.id, categoryId))
     .returning();
@@ -2170,6 +2172,47 @@ export async function resetStaffPassword(
   return toAdminStaffListItem(updated);
 }
 
+export async function updateStaffPermissions(
+  staffId: string,
+  input: { granted: string[]; denied: string[] },
+  context: RequestContext,
+): Promise<AdminStaffListItemDto> {
+  const db = getDbClient();
+
+  const staff = await db.query.adminUsers.findFirst({
+    where: eq(schema.adminUsers.id, staffId),
+  });
+
+  if (!staff) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Staff member not found',
+      status: 404,
+    });
+  }
+
+  const overrides = input.granted.length === 0 && input.denied.length === 0 ? null : input;
+
+  const [updated] = await db
+    .update(schema.adminUsers)
+    .set({ permission_overrides: overrides, updated_at: new Date() })
+    .where(eq(schema.adminUsers.id, staffId))
+    .returning();
+
+  await auditService.log(
+    {
+      action: 'STAFF_PERMISSIONS_UPDATED',
+      entityType: 'AdminUser',
+      entityId: staffId,
+      before: { permissionOverrides: staff.permission_overrides ?? null },
+      after: { permissionOverrides: overrides },
+    },
+    context,
+  );
+
+  return toAdminStaffListItem(updated);
+}
+
 // ── DTO Helpers ──
 
 function toAdminUserListItem(user: any): AdminUserListItemDto {
@@ -2402,6 +2445,7 @@ function toCategoryDto(cat: any): CategoryDto {
     slug: cat.slug,
     isHighRisk: cat.is_high_risk,
     isActive: cat.is_active,
+    isCustom: cat.is_custom,
     createdAt: cat.created_at.toISOString(),
     updatedAt: cat.updated_at.toISOString(),
   };
@@ -2441,6 +2485,7 @@ function toAdminStaffListItem(staff: any): AdminStaffListItemDto {
     role: staff.role,
     isActive: staff.is_active,
     passwordStatus: staff.password_hash ? 'SET' : 'NOT_SET',
+    permissionOverrides: staff.permission_overrides ?? null,
     createdAt: staff.created_at.toISOString(),
     updatedAt: staff.updated_at.toISOString(),
   };

@@ -151,7 +151,7 @@ describe('member capability policies', () => {
     });
   });
 
-  test('dashboard tabs: introductions and business are VIP-only', () => {
+  test('dashboard tabs follow VIP and submitted-business visibility', () => {
     const baseTabs = ['details', 'subscription', 'settings'] as const;
     const member = getUserContext({ subscriptionStatus: 'NONE' });
     const vip = getUserContext({ subscriptionStatus: 'ACTIVE' });
@@ -164,19 +164,23 @@ describe('member capability policies', () => {
       businessStatus: 'PUBLISHED',
     });
 
-    const vipTabs = [...baseTabs, 'introductions', 'business'] as const;
+    const vipTabs = ['details', 'subscription', 'settings', 'introductions'] as const;
+    const businessTabs = ['details', 'business', 'settings'] as const;
+    const vipBusinessTabs = businessTabs;
 
     expect(getVisibleDashboardTabs(member)).toEqual(baseTabs);
     expect(getVisibleDashboardTabs(vip)).toEqual(vipTabs);
-    expect(getVisibleDashboardTabs(memberWithBusiness)).toEqual(baseTabs);
-    expect(getVisibleDashboardTabs(vipWithBusiness)).toEqual(vipTabs);
+    expect(getVisibleDashboardTabs(memberWithBusiness)).toEqual(businessTabs);
+    expect(getVisibleDashboardTabs(vipWithBusiness)).toEqual(vipBusinessTabs);
 
     expect(canAccessDashboardTab(member, 'business')).toBe(false);
     expect(canAccessDashboardTab(member, 'introductions')).toBe(false);
     expect(canAccessDashboardTab(vip, 'introductions')).toBe(true);
-    expect(canAccessDashboardTab(vip, 'business')).toBe(true);
-    expect(canAccessDashboardTab(memberWithBusiness, 'business')).toBe(false);
+    expect(canAccessDashboardTab(vip, 'business')).toBe(false);
+    expect(canAccessDashboardTab(memberWithBusiness, 'business')).toBe(true);
+    expect(canAccessDashboardTab(memberWithBusiness, 'subscription')).toBe(false);
     expect(canAccessDashboardTab(memberWithBusiness, 'introductions')).toBe(false);
+    expect(canAccessDashboardTab(vipWithBusiness, 'introductions')).toBe(false);
   });
 
   test('introduction requires VIP; business submit requires no existing business', () => {
