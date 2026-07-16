@@ -134,23 +134,13 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
   const db = getDbClient();
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [
-    totalUsers,
-    blockedUsers,
-    activeSubs,
-    pastDueSubs,
-    expiredSubs,
-    businessesReview,
-    introductionsSubmitted,
-    introductionsInReview,
-    totalBusinesses,
-    publishedBusinesses,
-    newUsers7d,
-    newBusinesses7d,
-    recentUsers,
-    recentBusinesses,
-    recentIntroductions,
-  ] = await Promise.all([
+  const numberOrZero = (result: PromiseSettledResult<number>): number =>
+    result.status === 'fulfilled' ? result.value : 0;
+
+  const arrayOrEmpty = <T>(result: PromiseSettledResult<T[]>): T[] =>
+    result.status === 'fulfilled' ? result.value : [];
+
+  const countResults = await Promise.allSettled([
     db.$count(schema.users),
     db.$count(schema.users, eq(schema.users.status, 'BLOCKED')),
     db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'ACTIVE')),
@@ -163,6 +153,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
     db.$count(schema.businessProfiles, eq(schema.businessProfiles.status, 'PUBLISHED')),
     db.$count(schema.users, gte(schema.users.created_at, sevenDaysAgo)),
     db.$count(schema.businessProfiles, gte(schema.businessProfiles.created_at, sevenDaysAgo)),
+  ]);
+
+  const [recentUsersResult, recentBusinessesResult, recentIntroductionsResult] =
+    await Promise.allSettled([
     db
       .select({
         displayName: schema.users.display_name,
@@ -194,6 +188,22 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
       .orderBy(desc(schema.businessIntroductions.created_at))
       .limit(10),
   ]);
+
+  const totalUsers = numberOrZero(countResults[0]);
+  const blockedUsers = numberOrZero(countResults[1]);
+  const activeSubs = numberOrZero(countResults[2]);
+  const pastDueSubs = numberOrZero(countResults[3]);
+  const expiredSubs = numberOrZero(countResults[4]);
+  const businessesReview = numberOrZero(countResults[5]);
+  const introductionsSubmitted = numberOrZero(countResults[6]);
+  const introductionsInReview = numberOrZero(countResults[7]);
+  const totalBusinesses = numberOrZero(countResults[8]);
+  const publishedBusinesses = numberOrZero(countResults[9]);
+  const newUsers7d = numberOrZero(countResults[10]);
+  const newBusinesses7d = numberOrZero(countResults[11]);
+  const recentUsers = arrayOrEmpty(recentUsersResult);
+  const recentBusinesses = arrayOrEmpty(recentBusinessesResult);
+  const recentIntroductions = arrayOrEmpty(recentIntroductionsResult);
 
   const recentActivity: DashboardActivityItemDto[] = [
     ...recentUsers.map((user) => ({

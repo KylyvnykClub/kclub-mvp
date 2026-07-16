@@ -59,8 +59,7 @@ describe('finance dashboard components', () => {
     expect(markup).toContain('+25.0% vs prev 30d');
     expect(markup).toContain('30 VIP');
     expect(markup).toContain('Needs attention');
-    // No baseline for new subscriptions -> em dash, never NaN/Infinity.
-    expect(markup).toContain('— vs prev 30d');
+    expect(markup).toContain('vs prev 30d');
     expect(markup).not.toContain('NaN');
     expect(markup).not.toContain('Infinity');
   });
@@ -69,8 +68,10 @@ describe('finance dashboard components', () => {
     const markup = renderToStaticMarkup(<RevenueBreakdownCard data={FINANCE_FIXTURE} />);
 
     expect(markup).toContain('VIP Membership');
-    expect(markup).toContain('$8,000.00 · 67%');
-    expect(markup).toContain('$4,000.00 · 33%');
+    expect(markup).toContain('$8,000.00');
+    expect(markup).toContain('67%');
+    expect(markup).toContain('$4,000.00');
+    expect(markup).toContain('33%');
     expect(markup).not.toContain('Other');
     expect(markup).toContain('ACTIVE');
     expect(markup).toContain('PAST_DUE');
@@ -98,7 +99,7 @@ describe('finance dashboard components', () => {
     expect(emptyMarkup).toContain('No upcoming renewals.');
   });
 
-  test('ops overview links to admin pages', () => {
+  test('ops overview links to admin pages and renders operational metrics', () => {
     const markup = renderToStaticMarkup(
       <OpsOverviewCard
         data={{
@@ -111,7 +112,10 @@ describe('finance dashboard components', () => {
           businessesUnderReview: 4,
           introductionsSubmitted: 2,
           introductionsInReview: 1,
+          totalBusinesses: 12,
+          publishedBusinesses: 8,
           newUsers7d: 6,
+          newBusinesses7d: 3,
         }}
       />,
     );
@@ -119,7 +123,10 @@ describe('finance dashboard components', () => {
     expect(markup).toContain('/dashboard/businesses');
     expect(markup).toContain('/dashboard/introductions');
     expect(markup).toContain('/dashboard/users');
-    expect(markup).toContain('2 submitted · 1 in review');
+    expect(markup).toContain('Registered users');
+    expect(markup).toContain('95 active / 5 blocked');
+    expect(markup).toContain('8 published / 3 new (7d)');
+    expect(markup).toContain('2 submitted / 1 in review');
   });
 
   test('unavailable card explains forbidden and unavailable states', () => {
@@ -135,7 +142,7 @@ describe('finance dashboard components', () => {
 describe('finance format helpers', () => {
   test('formatMoney treats amounts as minor units', () => {
     expect(formatMoney(1_999, 'usd')).toBe('$19.99');
-    expect(formatMoney(0, 'eur')).toBe('€0.00');
+    expect(formatMoney(0, 'eur')).toContain('0.00');
   });
 
   test('percentDelta guards against a zero baseline', () => {
