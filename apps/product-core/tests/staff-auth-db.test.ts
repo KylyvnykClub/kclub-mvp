@@ -24,6 +24,7 @@ const baseStaff = {
 
 let staff = { ...baseStaff };
 let revokedSessions = 0;
+let activeOwnerCount = 0;
 
 function updateChain(table: unknown) {
   return {
@@ -57,6 +58,7 @@ const db = {
       })),
     },
   },
+  $count: mock(async () => activeOwnerCount),
   update: mock(updateChain),
   insert: mock(() => ({
     values: mock(async () => undefined),
@@ -83,7 +85,8 @@ mock.module('next/cache', () => ({
 
 const { handleStaffPasswordRegister, handleStaffPasswordSignIn } =
   await import('../src/server/staff-auth');
-const { resetStaffPassword } = await import('../src/server/services/admin-service');
+const { deactivateStaff, resetStaffPassword, updateStaffRole } =
+  await import('../src/server/services/admin-service');
 
 function passwordRequest(body: Record<string, string>): Request {
   return new Request('http://localhost/api/admin/v1/staff-auth/password', {
@@ -104,7 +107,9 @@ describe('staff password auth with approved DB staff', () => {
     delete process.env.ADMIN_BOOTSTRAP_OWNER_PASSWORD;
     staff = { ...baseStaff };
     revokedSessions = 0;
+    activeOwnerCount = 0;
     db.query.adminUsers.findFirst.mockClear();
+    db.$count.mockClear();
   });
 
   test('approved active staff can register once and then sign in with password', async () => {
@@ -188,5 +193,42 @@ describe('staff password auth with approved DB staff', () => {
     expect(staff.password_hash).toBeNull();
     expect(staff.password_set_at).toBeNull();
     expect(revokedSessions).toBe(1);
+  });
+
+  test('last active owner cannot be downgraded or deactivated', async () => {
+    staff = { ...staff, role: 'OWNER' };
+    const context: RequestContext = {
+      actor: { kind: 'staff', staffId: STAFF_ID, role: 'OWNER' },
+      ipAddress: null,
+      userAgent: null,
+      locale: null,
+      requestId: 'last-owner-test',
+    };
+
+    await expect(updateStaffRole(STAFF_ID, { role: 'ADMIN' }, context)).rejects.toThrow(
+      'Cannot remove the last active owner',
+    );
+    expect(staff.role).toBe('OWNER');
+
+    await expect(deactivateStaff(STAFF_ID, { reason: 'owner clicked wrong button' }, context))
+      .rejects.toThrow('Cannot remove the last active owner');
+    expect(staff.is_active).toBe(true);
+  });
+
+  test('owner role removal is allowed when another active owner remains', async () => {
+    staff = { ...staff, role: 'OWNER' };
+    activeOwnerCount = 1;
+    const context: RequestContext = {
+      actor: { kind: 'staff', staffId: '22222222-2222-4222-8222-222222222222', role: 'OWNER' },
+      ipAddress: null,
+      userAgent: null,
+      locale: null,
+      requestId: 'another-owner-test',
+    };
+
+    const updated = await updateStaffRole(STAFF_ID, { role: 'ADMIN' }, context);
+
+    expect(updated.role).toBe('ADMIN');
+    expect(staff.role).toBe('ADMIN');
   });
 });

@@ -108,6 +108,26 @@ function assertValidUuid(id: string, entityName: string): void {
   }
 }
 
+async function assertAnotherActiveOwnerExists(staffId: string): Promise<void> {
+  const db = getDbClient();
+  const activeOwnerCount = await db.$count(
+    schema.adminUsers,
+    and(
+      eq(schema.adminUsers.role, 'OWNER'),
+      eq(schema.adminUsers.is_active, true),
+      not(eq(schema.adminUsers.id, staffId)),
+    ),
+  );
+
+  if (activeOwnerCount === 0) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_CONFLICT,
+      message: 'Cannot remove the last active owner',
+      status: 409,
+    });
+  }
+}
+
 // ── Dashboard Metrics ──
 
 export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
@@ -2007,9 +2027,13 @@ export async function updateStaffRole(
     });
   }
 
+  if (staff.role === 'OWNER' && input.role !== 'OWNER') {
+    await assertAnotherActiveOwnerExists(staffId);
+  }
+
   const [updated] = await db
     .update(schema.adminUsers)
-    .set({ role: input.role as any })
+    .set({ role: input.role })
     .where(eq(schema.adminUsers.id, staffId))
     .returning();
 
@@ -2051,6 +2075,10 @@ export async function deactivateStaff(
     });
   }
 
+  if (staff.role === 'OWNER') {
+    await assertAnotherActiveOwnerExists(staffId);
+  }
+
   const [updated] = await db
     .update(schema.adminUsers)
     .set({ is_active: false })
@@ -2059,7 +2087,7 @@ export async function deactivateStaff(
 
   await auditService.log(
     {
-      action: 'STAFF_ROLE_UPDATED',
+      action: 'STAFF_DEACTIVATED',
       entityType: 'AdminUser',
       entityId: staffId,
       before: { isActive: true },

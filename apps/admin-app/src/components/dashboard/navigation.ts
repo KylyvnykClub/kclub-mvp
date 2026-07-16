@@ -7,6 +7,7 @@ import {
   Settings,
   Sparkles,
   Users,
+  UserCog,
 } from 'lucide-react';
 
 import type { StaffRole } from '@kclub/contracts';
@@ -40,5 +41,6 @@ export const dashboardNav: DashboardNavItem[] = [
     roles: ['OWNER', 'ADMIN', 'MODERATOR'],
   },
   { title: 'Billing', href: '/dashboard/billing', icon: CreditCard, roles: ['OWNER', 'ADMIN'] },
+  { title: 'Staff', href: '/dashboard/staff', icon: UserCog, roles: ['OWNER'] },
   { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['OWNER', 'ADMIN'] },
 ];

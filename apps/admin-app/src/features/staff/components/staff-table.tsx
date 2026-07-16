@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Ban, Plus, RotateCcw, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
+import type { AdminStaffListItemDto, StaffRole } from '@kclub/contracts';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,7 +41,12 @@ import {
   AdminTableDesktop,
   AdminTableMobile,
 } from '@/components/admin-list-layout';
-import type { AdminStaffListItemDto, StaffRole } from '@kclub/contracts';
+
+const STAFF_ROLE_DESCRIPTIONS = {
+  OWNER: 'Full platform access, including staff management and billing configuration.',
+  ADMIN: 'User, card, subscription, audit, and extended operational access.',
+  MODERATOR: 'Manager-level access for business, catalog, taxonomy, and introduction moderation.',
+} as const satisfies Record<StaffRole, string>;
 
 type StaffTableProps = {
   staff: AdminStaffListItemDto[];
@@ -51,6 +58,10 @@ type StaffActionDialogProps = {
   onAction: () => void;
 };
 
+function RoleDescription({ role }: { role: StaffRole }) {
+  return <p className="text-sm text-muted-foreground">{STAFF_ROLE_DESCRIPTIONS[role]}</p>;
+}
+
 function RoleUpdateDialog({
   id,
   currentRole,
@@ -61,9 +72,21 @@ function RoleUpdateDialog({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<StaffRole>(currentRole);
+  const [confirmation, setConfirmation] = useState('');
+  const requiresConfirmation = role !== currentRole;
+  const canSubmit = !loading && role !== currentRole && confirmation === 'CHANGE ROLE';
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+          setRole(currentRole);
+          setConfirmation('');
+        }
+      }}
+    >
       <DialogTrigger
         render={
           <Button variant="outline" size="xs">
@@ -75,27 +98,42 @@ function RoleUpdateDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Update Staff Role</DialogTitle>
-          <DialogDescription>Change the role for this staff member.</DialogDescription>
+          <DialogDescription>
+            Change dashboard permissions for this staff member. Type CHANGE ROLE to confirm.
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="role">Role</Label>
-          <Select value={role} onValueChange={(value) => setRole(value as StaffRole)}>
-            <SelectTrigger id="role" className="w-full">
-              <SelectValue placeholder="Select a role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="OWNER">OWNER</SelectItem>
-              <SelectItem value="ADMIN">ADMIN</SelectItem>
-              <SelectItem value="MODERATOR">MODERATOR</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="role">Role</Label>
+            <Select value={role} onValueChange={(value) => setRole(value as StaffRole)}>
+              <SelectTrigger id="role" className="w-full">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="OWNER">OWNER</SelectItem>
+                <SelectItem value="ADMIN">ADMIN</SelectItem>
+                <SelectItem value="MODERATOR">MODERATOR</SelectItem>
+              </SelectContent>
+            </Select>
+            <RoleDescription role={role} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`role-confirm-${id}`}>Confirmation</Label>
+            <Input
+              id={`role-confirm-${id}`}
+              value={confirmation}
+              onChange={(event) => setConfirmation(event.target.value)}
+              placeholder="CHANGE ROLE"
+              disabled={!requiresConfirmation}
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button
-            disabled={loading || role === currentRole}
+            disabled={!canSubmit}
             onClick={async () => {
               setLoading(true);
               const res = await fetch(`/api/proxy/staff/${id}/role`, {
@@ -109,6 +147,7 @@ function RoleUpdateDialog({
                 return;
               }
               setOpen(false);
+              setConfirmation('');
               toast.success('Role updated');
               onAction();
             }}
@@ -125,9 +164,20 @@ function AddStaffDialog({ onAction }: { onAction: () => void }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<StaffRole>('MODERATOR');
+  const [ownerConfirmation, setOwnerConfirmation] = useState('');
+  const canSubmit = !loading && (role !== 'OWNER' || ownerConfirmation === 'OWNER');
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+          setRole('MODERATOR');
+          setOwnerConfirmation('');
+        }
+      }}
+    >
       <DialogTrigger
         render={
           <Button size="sm">
@@ -140,13 +190,18 @@ function AddStaffDialog({ onAction }: { onAction: () => void }) {
         <DialogHeader>
           <DialogTitle>Add Approved Staff Phone</DialogTitle>
           <DialogDescription>
-            The staff member can register a password after this phone is approved.
+            The staff member can register a password after this phone is approved. MODERATOR is
+            manager-level access.
           </DialogDescription>
         </DialogHeader>
         <form
           className="space-y-4"
           onSubmit={async (event) => {
             event.preventDefault();
+            if (role === 'OWNER' && ownerConfirmation !== 'OWNER') {
+              toast.error('Type OWNER to approve owner access');
+              return;
+            }
             setLoading(true);
             const formData = new FormData(event.currentTarget);
             const res = await fetch('/api/proxy/staff', {
@@ -164,6 +219,8 @@ function AddStaffDialog({ onAction }: { onAction: () => void }) {
               return;
             }
             setOpen(false);
+            setOwnerConfirmation('');
+            setRole('MODERATOR');
             toast.success('Staff phone approved');
             onAction();
           }}
@@ -188,12 +245,27 @@ function AddStaffDialog({ onAction }: { onAction: () => void }) {
                 <SelectItem value="MODERATOR">MODERATOR</SelectItem>
               </SelectContent>
             </Select>
+            <RoleDescription role={role} />
           </div>
+          {role === 'OWNER' && (
+            <div className="space-y-2">
+              <Label htmlFor="staff-owner-confirm">Owner confirmation</Label>
+              <Input
+                id="staff-owner-confirm"
+                value={ownerConfirmation}
+                onChange={(event) => setOwnerConfirmation(event.target.value)}
+                placeholder="OWNER"
+              />
+              <p className="text-sm text-muted-foreground">
+                Type OWNER to approve full platform ownership access.
+              </p>
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={!canSubmit}>
               {loading ? 'Saving...' : 'Approve phone'}
             </Button>
           </DialogFooter>
@@ -259,9 +331,18 @@ function ResetPasswordDialog({ id, onAction }: StaffActionDialogProps) {
 function DeactivateStaffDialog({ id, onAction }: StaffActionDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirmation, setConfirmation] = useState('');
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+          setConfirmation('');
+        }
+      }}
+    >
       <DialogTrigger
         render={
           <Button variant="outline" size="xs">
@@ -274,15 +355,25 @@ function DeactivateStaffDialog({ id, onAction }: StaffActionDialogProps) {
         <DialogHeader>
           <DialogTitle>Deactivate Staff</DialogTitle>
           <DialogDescription>
-            This blocks future sign-in and revokes active sessions for this staff member.
+            This blocks future sign-in and revokes active sessions for this staff member. Type
+            DEACTIVATE to confirm.
           </DialogDescription>
         </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor={`deactivate-confirm-${id}`}>Confirmation</Label>
+          <Input
+            id={`deactivate-confirm-${id}`}
+            value={confirmation}
+            onChange={(event) => setConfirmation(event.target.value)}
+            placeholder="DEACTIVATE"
+          />
+        </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button
-            disabled={loading}
+            disabled={loading || confirmation !== 'DEACTIVATE'}
             onClick={async () => {
               setLoading(true);
               const res = await fetch(`/api/proxy/staff/${id}/deactivate`, {
@@ -296,6 +387,7 @@ function DeactivateStaffDialog({ id, onAction }: StaffActionDialogProps) {
                 return;
               }
               setOpen(false);
+              setConfirmation('');
               toast.success('Staff deactivated');
               onAction();
             }}

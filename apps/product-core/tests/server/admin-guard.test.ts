@@ -29,7 +29,7 @@ describe('requireStaffPermission', () => {
     ).not.toThrow();
   });
 
-  test('allows ADMIN with USERS_READ and STAFF_MANAGE permissions', async () => {
+  test('allows ADMIN user operations but denies staff management', async () => {
     const { requireStaffPermission } = await import('../../src/server/admin-guard');
 
     const adminProfile: StaffProfileDto = {
@@ -46,7 +46,7 @@ describe('requireStaffPermission', () => {
     ).not.toThrow();
     expect(() =>
       requireStaffPermission(adminProfile, STAFF_PERMISSIONS.STAFF_MANAGE),
-    ).not.toThrow();
+    ).toThrow();
     expect(() =>
       requireStaffPermission(adminProfile, STAFF_PERMISSIONS.STRIPE_PRICES_MANAGE),
     ).toThrow();
