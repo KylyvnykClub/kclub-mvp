@@ -42,6 +42,7 @@ describe('staff permission matrix', () => {
   const expected: Record<StaffRole, Record<StaffPermission, boolean>> = {
     OWNER: {
       DASHBOARD_METRICS_READ: true,
+      FINANCE_METRICS_READ: true,
       USERS_READ: true,
       USERS_BLOCK: true,
       CARDS_READ: true,
@@ -60,6 +61,7 @@ describe('staff permission matrix', () => {
     },
     ADMIN: {
       DASHBOARD_METRICS_READ: true,
+      FINANCE_METRICS_READ: true,
       USERS_READ: true,
       USERS_BLOCK: true,
       CARDS_READ: true,
@@ -78,6 +80,7 @@ describe('staff permission matrix', () => {
     },
     MODERATOR: {
       DASHBOARD_METRICS_READ: true,
+      FINANCE_METRICS_READ: false,
       USERS_READ: false,
       USERS_BLOCK: false,
       CARDS_READ: false,
