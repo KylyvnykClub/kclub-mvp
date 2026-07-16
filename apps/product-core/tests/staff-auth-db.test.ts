@@ -210,8 +210,9 @@ describe('staff password auth with approved DB staff', () => {
     );
     expect(staff.role).toBe('OWNER');
 
-    await expect(deactivateStaff(STAFF_ID, { reason: 'owner clicked wrong button' }, context))
-      .rejects.toThrow('Cannot remove the last active owner');
+    await expect(
+      deactivateStaff(STAFF_ID, { reason: 'owner clicked wrong button' }, context),
+    ).rejects.toThrow('Cannot remove the last active owner');
     expect(staff.is_active).toBe(true);
   });
 
