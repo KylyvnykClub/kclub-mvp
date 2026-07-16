@@ -39,7 +39,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             staffInitials={profile.initials}
           />
         ),
-        security: <SecurityPanel totpVerified={profile.totpVerified} />,
+        security: <SecurityPanel />,
         activity: <ActivityPanel logs={activityResult?.logs ?? []} />,
         permissions: <PermissionsPanel staffRole={profile.role as StaffRole} />,
         settings: <SettingsPanel staffRole={profile.role as StaffRole} />,

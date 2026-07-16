@@ -7,7 +7,6 @@ export type StaffProfile = {
   name: string;
   role: StaffRole;
   initials: string;
-  totpVerified: boolean;
 };
 
 function getProductCoreBaseUrl() {
@@ -65,7 +64,6 @@ export async function readStaffProfile(): Promise<StaffProfile | null> {
     name,
     role: profile.role as StaffRole,
     initials,
-    totpVerified: profile.totpVerified,
   };
 }
 

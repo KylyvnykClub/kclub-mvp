@@ -78,7 +78,9 @@ import type {
   BlockUserInput,
   UnblockUserInput,
   AdminConfigUpdateInput,
+  AdminStaffCreateInput,
   StaffDeactivateInput,
+  StaffPasswordResetInput,
   StaffRoleUpdateInput,
 } from '@kclub/validation';
 
@@ -1930,6 +1932,51 @@ export async function listStaff(context: RequestContext): Promise<AdminStaffList
   return staff.map(toAdminStaffListItem);
 }
 
+export async function createStaff(
+  input: AdminStaffCreateInput,
+  context: RequestContext,
+): Promise<AdminStaffListItemDto> {
+  const db = getDbClient();
+  const existing = await db.query.adminUsers.findFirst({
+    where: eq(schema.adminUsers.phone, input.phone),
+  });
+  if (existing) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_CONFLICT,
+      message: 'Staff phone is already approved',
+      status: 409,
+    });
+  }
+
+  const [created] = await db
+    .insert(schema.adminUsers)
+    .values({
+      phone: input.phone,
+      role: input.role,
+      display_name: input.displayName ?? null,
+      is_active: true,
+    })
+    .returning();
+
+  await auditService.log(
+    {
+      action: 'STAFF_CREATED',
+      entityType: 'AdminUser',
+      entityId: created.id,
+      before: null,
+      after: {
+        phone: created.phone,
+        role: created.role,
+        displayName: created.display_name,
+        passwordStatus: 'NOT_SET',
+      },
+    },
+    context,
+  );
+
+  return toAdminStaffListItem(created);
+}
+
 export async function getStaffDetail(staffId: string): Promise<AdminStaffListItemDto> {
   assertValidUuid(staffId, 'staff');
   const db = getDbClient();
@@ -2017,6 +2064,67 @@ export async function deactivateStaff(
       entityId: staffId,
       before: { isActive: true },
       after: { isActive: false, reason: input.reason ?? null },
+    },
+    context,
+  );
+
+  await db
+    .update(schema.adminSessions)
+    .set({ revoked_at: new Date() })
+    .where(
+      and(eq(schema.adminSessions.admin_user_id, staffId), isNull(schema.adminSessions.revoked_at)),
+    );
+
+  return toAdminStaffListItem(updated);
+}
+
+export async function resetStaffPassword(
+  staffId: string,
+  input: StaffPasswordResetInput,
+  context: RequestContext,
+): Promise<AdminStaffListItemDto> {
+  assertValidUuid(staffId, 'staff');
+  const db = getDbClient();
+  const staff = await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) });
+  if (!staff) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Staff not found',
+      status: 404,
+    });
+  }
+
+  const [updated] = await db.transaction(async (tx) => {
+    const [row] = await tx
+      .update(schema.adminUsers)
+      .set({
+        password_hash: null,
+        password_set_at: null,
+        updated_at: new Date(),
+      })
+      .where(eq(schema.adminUsers.id, staffId))
+      .returning();
+
+    await tx
+      .update(schema.adminSessions)
+      .set({ revoked_at: new Date() })
+      .where(
+        and(
+          eq(schema.adminSessions.admin_user_id, staffId),
+          isNull(schema.adminSessions.revoked_at),
+        ),
+      );
+
+    return [row];
+  });
+
+  await auditService.log(
+    {
+      action: 'STAFF_PASSWORD_RESET',
+      entityType: 'AdminUser',
+      entityId: staffId,
+      before: { passwordStatus: staff.password_hash ? 'SET' : 'NOT_SET' },
+      after: { passwordStatus: 'NOT_SET', reason: input.reason ?? null },
     },
     context,
   );
@@ -2294,7 +2402,7 @@ function toAdminStaffListItem(staff: any): AdminStaffListItemDto {
     displayName: staff.display_name,
     role: staff.role,
     isActive: staff.is_active,
-    totpVerified: !!staff.totp_verified_at,
+    passwordStatus: staff.password_hash ? 'SET' : 'NOT_SET',
     createdAt: staff.created_at.toISOString(),
     updatedAt: staff.updated_at.toISOString(),
   };

@@ -13,7 +13,7 @@ This app owns staff UX, staff auth shell, and the admin proxy/BFF boundary. It d
 
 ## Scope
 
-- Staff authentication: phone OTP + TOTP 2FA
+- Staff authentication: OWNER-approved phone + password
 - Staff session management: httpOnly secure sameSite=strict cookie, 8-hour TTL
 - Admin dashboard UI: metrics, user search, card management, subscription management, moderation, introductions, catalog, audit log
 - Proxy/BFF boundary: forwards admin actions to product-core admin APIs
@@ -23,14 +23,14 @@ This app owns staff UX, staff auth shell, and the admin proxy/BFF boundary. It d
 - This app must not write directly to product database tables.
 - All product data mutations go through product-core admin API calls.
 - Business logic, domain policies, and state machines live in product-core and shared packages — not here.
-- TOTP verification and staff JWT validation must happen server-side before any admin action.
+- Staff session validation must happen server-side before any admin action.
 - This app must not expose product-core internals to the browser.
 
 ## Auth Rules
 
 - Staff identities are separate from member identities.
-- Auth flow: phone OTP → TOTP verification → admin session cookie issued.
-- Staff without verified TOTP land only on 2FA setup/required screen.
+- Auth flow: approved phone password registration → phone/password sign-in → admin session cookie issued.
+- Staff without an approved active phone cannot register or sign in.
 - Session TTL is 8 hours; no silent renewal.
 - All admin routes must be noindexed and private.
 

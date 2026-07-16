@@ -231,7 +231,7 @@ Contents:
 - Business profile submission schema.
 - Business editable-fields schema.
 - Introduction submission schema.
-- Staff auth/TOTP schema.
+- Staff password auth schema.
 - Shared phone, URL, locale, pagination, and ID validators.
 
 Rules:
@@ -346,7 +346,7 @@ Admin-app owns staff UX and staff session shell.
 Responsibilities:
 
 - Staff sign-in UI.
-- TOTP setup and verification.
+- Staff password registration and sign-in.
 - Admin dashboard pages.
 - Operational data tables and forms.
 - BFF/proxy route to product-core admin API.
@@ -457,9 +457,9 @@ Do not put DB-writing services in shared packages.
 ### 9.2 Staff
 
 - Staff table is separate from member users.
-- Staff sign-in requires phone OTP and TOTP.
+- Staff sign-in requires an OWNER-approved phone and password.
 - Admin session is an httpOnly secure cookie.
-- Staff routes are denied until TOTP is verified.
+- Staff routes require a valid staff session and server-side permission checks.
 - Staff permission checks happen in product-core admin APIs and admin-app route guards.
 
 ## 10. Deployment
@@ -513,7 +513,7 @@ Suggested E2E smoke:
 - Business submission and admin approval.
 - Business placement webhook publishes directory listing.
 - Admin featured toggle respects max 3.
-- Staff without TOTP cannot enter dashboard.
+- Staff without an approved phone and password cannot enter dashboard.
 
 ## 12. Local Development
 
@@ -643,13 +643,13 @@ The blueprint is implemented correctly when:
 
 Defaults to use unless changed before scaffolding:
 
-| Topic                       | Default                                          |
-| --------------------------- | ------------------------------------------------ |
-| Package manager             | Bun                                              |
-| Task runner                 | Turborepo                                        |
-| Production hosting          | Vercel for both apps                             |
-| Runtime DB                  | Supabase PostgreSQL                              |
-| Member auth                 | Supabase phone OTP                               |
-| Staff auth                  | Phone OTP + app-owned TOTP/session               |
-| Internal package publishing | Private workspace packages only                  |
-| Shared server services      | No; keep side-effectful services in product-core |
+| Topic                       | Default                                             |
+| --------------------------- | --------------------------------------------------- |
+| Package manager             | Bun                                                 |
+| Task runner                 | Turborepo                                           |
+| Production hosting          | Vercel for both apps                                |
+| Runtime DB                  | Supabase PostgreSQL                                 |
+| Member auth                 | Supabase phone OTP                                  |
+| Staff auth                  | OWNER-approved phone + password + app-owned session |
+| Internal package publishing | Private workspace packages only                     |
+| Shared server services      | No; keep side-effectful services in product-core    |

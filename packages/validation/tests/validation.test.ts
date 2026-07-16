@@ -31,11 +31,10 @@ import {
   revokeCardSchema,
   reissueCardSchema,
   staffRoleUpdateSchema,
-  staffTotpSetupSchema,
-  staffTotpVerifySchema,
-  staffPhoneOtpSendSchema,
-  staffPhoneOtpVerifySchema,
-  staffTotpCodeSchema,
+  staffPasswordRegisterSchema,
+  staffPasswordSignInSchema,
+  adminStaffCreateSchema,
+  staffPasswordResetSchema,
   unblockUserSchema,
   adminConfigUpdateSchema,
   adminUserListSchema,
@@ -227,56 +226,35 @@ describe('introduction schemas', () => {
 });
 
 describe('staff auth schemas', () => {
-  test('validates staff phone OTP send and verify payloads', () => {
-    expect(staffPhoneOtpSendSchema.parse({ phone: '+15551234567' })).toEqual({
-      phone: '+15551234567',
-    });
-
-    expect(staffPhoneOtpVerifySchema.parse({ phone: '+15551234567', code: '000000' })).toEqual({
-      phone: '+15551234567',
-      code: '000000',
-    });
-  });
-
-  test('validates TOTP code-only schema', () => {
-    expect(staffTotpCodeSchema.parse({ code: '123456' })).toEqual({ code: '123456' });
-    expectInvalidField(staffTotpCodeSchema, { code: '12345a' }, 'code');
-    expectInvalidField(staffTotpCodeSchema, { code: '12345' }, 'code');
-    expectInvalidField(staffTotpCodeSchema, {}, 'code');
-  });
-
-  test('rejects invalid staff phone OTP fields', () => {
-    expectInvalidField(staffPhoneOtpSendSchema, { phone: '555' }, 'phone');
-    expectInvalidField(staffPhoneOtpSendSchema, {}, 'phone');
-    expectInvalidField(staffPhoneOtpVerifySchema, { phone: '+15551234567', code: 'abc' }, 'code');
-  });
-
-  test('validates TOTP setup and verify payloads', () => {
+  test('validates staff password register and sign-in payloads', () => {
     expect(
-      staffTotpSetupSchema.parse({
+      staffPasswordRegisterSchema.parse({
         phone: '+15551234567',
-        secret: 'JBSWY3DPEHPK3PXP',
-        code: '123456',
+        password: 'OwnerPassword123',
       }),
     ).toEqual({
       phone: '+15551234567',
-      secret: 'JBSWY3DPEHPK3PXP',
-      code: '123456',
+      password: 'OwnerPassword123',
     });
 
-    expect(staffTotpVerifySchema.parse({ phone: '+15551234567', code: '654321' })).toEqual({
+    expect(
+      staffPasswordSignInSchema.parse({
+        phone: '+15551234567',
+        password: 'OwnerPassword123',
+      }),
+    ).toEqual({
       phone: '+15551234567',
-      code: '654321',
+      password: 'OwnerPassword123',
     });
   });
 
-  test('rejects invalid TOTP setup and verify fields', () => {
+  test('rejects invalid staff password fields', () => {
+    expectInvalidField(staffPasswordRegisterSchema, { phone: '555', password: 'short' }, 'phone');
     expectInvalidField(
-      staffTotpSetupSchema,
-      { phone: '+15551234567', secret: 'not-valid-secret', code: '123456' },
-      'secret',
+      staffPasswordSignInSchema,
+      { phone: '+15551234567', password: 'short' },
+      'password',
     );
-    expectInvalidField(staffTotpVerifySchema, { phone: '+15551234567', code: '12345a' }, 'code');
   });
 });
 
@@ -290,6 +268,24 @@ describe('admin mutation schemas', () => {
       reason: 'Appeal granted',
     });
     expect(unblockUserSchema.parse({})).toEqual({});
+  });
+
+  test('validates staff create and password reset schemas', () => {
+    expect(
+      adminStaffCreateSchema.parse({
+        phone: '+15551234567',
+        displayName: 'Staff Admin',
+        role: 'ADMIN',
+      }),
+    ).toEqual({
+      phone: '+15551234567',
+      displayName: 'Staff Admin',
+      role: 'ADMIN',
+    });
+    expect(staffPasswordResetSchema.parse({ reason: 'Forgot password' })).toEqual({
+      reason: 'Forgot password',
+    });
+    expect(staffPasswordResetSchema.parse({})).toEqual({});
   });
 
   test('validates card revoke and reissue schemas', () => {

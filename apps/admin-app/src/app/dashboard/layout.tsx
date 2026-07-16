@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { requireStaffProfile } from '@/server/auth/profile';
@@ -8,10 +7,6 @@ import { DashboardRouteGuard } from '@/components/dashboard/dashboard-route-guar
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const profile = await requireStaffProfile();
-
-  if (!profile.totpVerified) {
-    redirect('/auth/2fa-required');
-  }
 
   return (
     <div className="bg-muted/20 flex min-h-screen">

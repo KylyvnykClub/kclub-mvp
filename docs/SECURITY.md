@@ -7,7 +7,7 @@ This document captures the security baseline for KCLUB MVP v4.
 - Member identities and staff identities are separate.
 - One person may hold both identities, but never through a shared auth session.
 - Member auth uses phone OTP.
-- Staff auth uses phone OTP plus TOTP 2FA.
+- Staff auth uses OWNER-approved phone numbers plus staff passwords.
 
 ## Authorization Rules
 
@@ -20,15 +20,15 @@ This document captures the security baseline for KCLUB MVP v4.
 
 - Staff sessions must use secure, httpOnly cookies.
 - `sameSite=strict` is the default for admin session cookies unless a real cross-site requirement exists.
-- Staff without verified TOTP must be blocked from protected routes.
+- Staff without an approved active phone and valid password must be blocked from protected routes.
 - Blocked member accounts must not gain member API access.
 
 ## Data Protection
 
 - Public card verification DTOs must be PII-safe.
 - Public business DTOs must not leak admin-only or internal-note fields.
-- Logs must not include OTPs, TOTP secrets, full tokens, Stripe secrets, or service-role keys.
-- TOTP secrets must never be readable by the client after storage.
+- Logs must not include OTPs, passwords, password hashes, full tokens, Stripe secrets, or service-role keys.
+- Staff password hashes must remain server-only.
 
 ## Stripe And Cron
 
@@ -78,7 +78,7 @@ This document captures the security baseline for KCLUB MVP v4.
 - Unauthorized cron request rejection.
 - Permission matrix tests for admin mutations.
 - Public DTO privacy boundary tests.
-- TOTP route gating tests.
+- Staff password sign-in and permission gating tests.
 - Webhook guard tests (missing secret, missing signature, invalid signature).
 - Cron guard tests (missing secret, missing auth, wrong auth, authorized execution).
 - E2E test route guard tests (missing secret, missing header, wrong header).
@@ -88,7 +88,7 @@ This document captures the security baseline for KCLUB MVP v4.
 
 The following are launch blockers (all resolved in P7.2):
 
-- ~~staff can access dashboard without TOTP~~ — Resolved: TOTP enforced at 3 layers (API guard, dashboard layout, auth flow).
+- ~~staff can access dashboard without staff auth~~ — Resolved: staff sessions and admin API permissions are enforced server-side.
 - ~~public DTO leaks private data~~ — Resolved: Type-level + runtime tests verify public DTOs exclude PII.
 - ~~admin mutations succeed without role checks~~ — Resolved: All 43 admin routes guarded with `adminGuard()` and correct `STAFF_PERMISSIONS`.
 - ~~unsigned Stripe webhook is accepted~~ — Resolved: Stripe signature verification via `stripe.webhooks.constructEvent()`.

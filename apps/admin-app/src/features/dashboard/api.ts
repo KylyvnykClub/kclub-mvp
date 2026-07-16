@@ -28,7 +28,7 @@ export async function fetchFinanceDashboard(): Promise<FinanceDashboardResult> {
   // A cold product-core cache aggregates Stripe invoices live, so allow more
   // headroom than the default 15s proxy timeout.
   const result = await adminApiFetch<ApiResponse<FinanceDashboardDto>>('/finance-metrics', {
-    timeoutMs: 30_000,
+    timeoutMs: 60_000,
   });
   if (result.ok && result.data?.data) {
     return { status: 'success', data: result.data.data };

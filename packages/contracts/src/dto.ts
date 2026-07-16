@@ -58,6 +58,8 @@ export const AUDIT_ACTIONS = [
   'SUBSCRIPTION_CANCELED',
   'CHECKOUT_CREATED',
   'SUBSCRIPTION_SYNCED',
+  'STAFF_CREATED',
+  'STAFF_PASSWORD_RESET',
   'STAFF_ROLE_UPDATED',
   'STRIPE_WEBHOOK_REPLAYED',
   'CRON_DAILY_MAINTENANCE',
@@ -157,25 +159,17 @@ export type FinanceDashboardDto = {
   upcomingRenewals: FinanceUpcomingRenewalDto[];
 };
 
-export const STAFF_AUTH_STATES = [
-  'OTP_REQUIRED',
-  'TOTP_REQUIRED',
-  'TOTP_SETUP_REQUIRED',
-  'AUTHENTICATED',
-] as const;
+export const STAFF_AUTH_STATES = ['AUTHENTICATED'] as const;
 export type StaffAuthState = (typeof STAFF_AUTH_STATES)[number];
+
+export const STAFF_PASSWORD_STATUSES = ['SET', 'NOT_SET'] as const;
+export type StaffPasswordStatus = (typeof STAFF_PASSWORD_STATUSES)[number];
 
 export type StaffProfileDto = {
   id: EntityId;
   phone: string;
   displayName: string | null;
   role: StaffRole;
-  totpVerified: boolean;
-};
-
-export type StaffAuthChallengeDto = {
-  state: StaffAuthState;
-  phone: string;
 };
 
 export type StaffAuthSessionDto = {
@@ -183,11 +177,6 @@ export type StaffAuthSessionDto = {
   profile: StaffProfileDto;
   token: string;
   expiresAt: IsoDateTime;
-};
-
-export type StaffTotpSetupDto = {
-  provisioningUri: string;
-  manualKey: string;
 };
 
 export type AdminUserListItemDto = {
@@ -513,7 +502,7 @@ export type AdminStaffListItemDto = {
   displayName: string | null;
   role: StaffRole;
   isActive: boolean;
-  totpVerified: boolean;
+  passwordStatus: StaffPasswordStatus;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 };

@@ -45,6 +45,7 @@ describe('centralized constants', () => {
     expect(ERROR_CODES.AUTH_SESSION_REQUIRED).toBe('AUTH_SESSION_REQUIRED');
     expect(ERROR_CODES.AUTH_SESSION_INVALID).toBe('AUTH_SESSION_INVALID');
     expect(ERROR_CODES.AUTH_SESSION_REVOKED).toBe('AUTH_SESSION_REVOKED');
+    expect(ERROR_CODES.AUTH_PASSWORD_INVALID).toBe('AUTH_PASSWORD_INVALID');
     expect(ERROR_CODES.AUTH_STAFF_NOT_ALLOWED).toBe('AUTH_STAFF_NOT_ALLOWED');
     expect(ERROR_CODES.PERMISSION_DENIED).toBe('PERMISSION_DENIED');
     expect(ERROR_CODES.BUSINESS_INVALID_STATUS_TRANSITION).toBe(
@@ -82,19 +83,19 @@ describe('route contracts', () => {
     expect(MEMBER_API_ROUTES.ME).toBe('/api/v1/me');
     expect(ADMIN_API_BASE_PATH).toBe('/api/admin/v1');
     expect(ADMIN_API_ROUTES.STAFF_AUTH_SESSION).toBe('/api/admin/v1/staff-auth/session');
-    expect(ADMIN_API_ROUTES.STAFF_AUTH_TOTP_SETUP).toBe('/api/admin/v1/staff-auth/totp/setup');
+    expect(ADMIN_API_ROUTES.STAFF_AUTH_PASSWORD_REGISTER).toBe(
+      '/api/admin/v1/staff-auth/password/register',
+    );
+    expect(ADMIN_API_ROUTES.STAFF_AUTH_PASSWORD_SIGN_IN).toBe(
+      '/api/admin/v1/staff-auth/password/sign-in',
+    );
     expect(ADMIN_API_ROUTES.STAFF_AUTH_LOGOUT).toBe('/api/admin/v1/staff-auth/logout');
     expect(ADMIN_API_ROUTES.BUSINESS_APPROVE).toBe('/api/admin/v1/businesses/:id/approve');
     expect(ADMIN_API_ROUTES.USER_INVOICES).toBe('/api/admin/v1/users/:id/invoices');
   });
 
   test('defines staff auth states for the admin-app handshake', () => {
-    expect(STAFF_AUTH_STATES).toEqual([
-      'OTP_REQUIRED',
-      'TOTP_REQUIRED',
-      'TOTP_SETUP_REQUIRED',
-      'AUTHENTICATED',
-    ]);
+    expect(STAFF_AUTH_STATES).toEqual(['AUTHENTICATED']);
   });
 
   test('builds parameterized route patterns', () => {

@@ -1,50 +1,44 @@
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
-import * as OTPAuth from 'otpauth';
 
 import {
   ERROR_CODES,
   type ApiErrorResponse,
   type ApiResponse,
   type ApiSuccessResponse,
-  type StaffAuthChallengeDto,
   type StaffAuthSessionDto,
   type StaffProfileDto,
   type StaffRole,
-  type StaffTotpSetupDto,
 } from '@kclub/contracts';
 import {
   parseWithValidation,
-  staffPhoneOtpSendSchema,
-  staffPhoneOtpVerifySchema,
-  staffTotpCodeSchema,
+  staffPasswordRegisterSchema,
+  staffPasswordSignInSchema,
 } from '@kclub/validation';
-import { getDbClient, schema } from '@/server/db';
-import { encryptSecret, decryptSecret } from '@/server/totp-crypto';
 import { and, eq, isNull } from 'drizzle-orm';
 
+import { getDbClient, schema } from '@/server/db';
+import { hashStaffPassword, verifyStaffPassword } from '@/server/staff-password';
+
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
-const DEFAULT_DEV_OTP = '000000';
-const DEFAULT_DEV_TOTP = '123456';
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
 
-const totpSecretCache = new Map<string, string>();
-
-type StaffRecord = {
-  id: string;
-  phone: string;
-  displayName: string | null;
-  role: StaffRole;
-  isActive: boolean;
-  totpConfigured: boolean;
-};
+type StaffRecord = typeof schema.adminUsers.$inferSelect;
 
 type StaffSessionPayload = {
   sub: string;
   phone: string;
   name: string | null;
   role: StaffRole;
-  totpVerified: boolean;
   exp: number;
+};
+
+type EnvBootstrapStaff = {
+  id: string;
+  phone: string;
+  display_name: string | null;
+  role: StaffRole;
+  is_active: boolean;
+  password_hash: string | null;
 };
 
 function normalizePhone(phone: string): string {
@@ -116,9 +110,7 @@ async function createDbSession(
   ipAddress?: string | null,
   userAgent?: string | null,
 ): Promise<void> {
-  if (!isUuid(adminUserId)) {
-    return;
-  }
+  if (!isUuid(adminUserId)) return;
 
   try {
     const db = getDbClient();
@@ -130,7 +122,7 @@ async function createDbSession(
       expires_at: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
     });
   } catch {
-    // DB unavailable — session will be validated by JWT only
+    // DB unavailable - JWT validation still protects the local bootstrap path.
   }
 }
 
@@ -173,90 +165,99 @@ async function revokeDbSession(token: string): Promise<void> {
   }
 }
 
-function parseAllowlist(): StaffRecord[] {
+function getEnvBootstrapStaff(phone: string): EnvBootstrapStaff | null {
   const ownerPhone = process.env.ADMIN_BOOTSTRAP_OWNER_PHONE;
-  const bootstrapOwner = ownerPhone
-    ? [
-        {
-          id: `bootstrap-owner-${normalizePhone(ownerPhone)}`,
-          phone: normalizePhone(ownerPhone),
-          displayName: 'Bootstrap Owner',
-          role: 'OWNER' as StaffRole,
-          isActive: true,
-          totpConfigured: false,
-        },
-      ]
-    : [];
+  const ownerPassword = process.env.ADMIN_BOOTSTRAP_OWNER_PASSWORD;
+  if (!ownerPhone || !ownerPassword) return null;
 
-  const json = process.env.ADMIN_STAFF_ALLOWLIST_JSON;
-  if (!json) return bootstrapOwner;
+  const normalizedPhone = normalizePhone(phone);
+  if (normalizePhone(ownerPhone) !== normalizedPhone) return null;
 
+  return {
+    id: `bootstrap-owner-${normalizedPhone}`,
+    phone: normalizedPhone,
+    display_name: 'Bootstrap Owner',
+    role: 'OWNER',
+    is_active: true,
+    password_hash: null,
+  };
+}
+
+async function findDbStaffByPhone(phone: string): Promise<StaffRecord | null> {
   try {
-    const rows = JSON.parse(json) as Array<Partial<StaffRecord>>;
-    return [
-      ...bootstrapOwner,
-      ...rows
-        .filter((row): row is Partial<StaffRecord> & { phone: string; role: StaffRole } =>
-          Boolean(row.phone && row.role),
-        )
-        .map((row) => ({
-          id: row.id ?? `env-staff-${normalizePhone(row.phone)}`,
-          phone: normalizePhone(row.phone),
-          displayName: row.displayName ?? null,
-          role: row.role,
-          isActive: row.isActive ?? true,
-          totpConfigured: row.totpConfigured ?? false,
-        })),
-    ];
+    const db = getDbClient();
+    return (
+      (await db.query.adminUsers.findFirst({
+        where: eq(schema.adminUsers.phone, normalizePhone(phone)),
+      })) ?? null
+    );
   } catch {
-    return bootstrapOwner;
+    return null;
   }
 }
 
-function findStaffByPhone(phone: string): StaffRecord | null {
-  const normalized = normalizePhone(phone);
-  return parseAllowlist().find((staff) => staff.phone === normalized) ?? null;
+async function findDbStaffById(staffId: string): Promise<StaffRecord | null> {
+  if (!isUuid(staffId)) return null;
+
+  try {
+    const db = getDbClient();
+    return (
+      (await db.query.adminUsers.findFirst({ where: eq(schema.adminUsers.id, staffId) })) ?? null
+    );
+  } catch {
+    return null;
+  }
 }
 
-function staffToProfile(staff: StaffRecord, totpVerified: boolean): StaffProfileDto {
+async function findStaffByPhone(phone: string): Promise<StaffRecord | EnvBootstrapStaff | null> {
+  const envStaff = getEnvBootstrapStaff(phone);
+  if (envStaff) return envStaff;
+
+  return findDbStaffByPhone(phone);
+}
+
+async function findStaffBySessionPayload(
+  payload: StaffSessionPayload,
+): Promise<StaffRecord | EnvBootstrapStaff | null> {
+  const envStaff = getEnvBootstrapStaff(payload.phone);
+  if (envStaff?.id === payload.sub) return envStaff;
+
+  const dbStaff = await findDbStaffById(payload.sub);
+  if (dbStaff) return dbStaff;
+
+  return null;
+}
+
+function staffToProfile(staff: StaffRecord | EnvBootstrapStaff): StaffProfileDto {
+  const role = getSupportedStaffRole(staff.role);
+  if (!role) {
+    throw new Error('Unsupported staff role');
+  }
+
   return {
     id: staff.id,
     phone: staff.phone,
-    displayName: staff.displayName,
-    role: staff.role,
-    totpVerified,
+    displayName: staff.display_name,
+    role,
   };
+}
+
+function getSupportedStaffRole(role: string): StaffRole | null {
+  if (role === 'OWNER' || role === 'ADMIN' || role === 'MODERATOR') {
+    return role;
+  }
+
+  return null;
 }
 
 function success<T>(data: T): ApiSuccessResponse<T> {
   return { data, error: null };
 }
 
-function error(code: ApiErrorResponse['error']['code'], message: string, status = 400) {
+function error(code: ApiErrorResponse['error']['code'], message: string, status = 400): Response {
   return Response.json({ data: null, error: { code, message } } satisfies ApiErrorResponse, {
     status,
   });
-}
-
-function isValidDevOtp(code: string): boolean {
-  return code === (process.env.ADMIN_STAFF_DEV_OTP ?? DEFAULT_DEV_OTP);
-}
-
-function isValidDevTotp(code: string): boolean {
-  return code === (process.env.ADMIN_STAFF_DEV_TOTP ?? DEFAULT_DEV_TOTP);
-}
-
-function isValidTotpCode(secret: string, phone: string, code: string): boolean {
-  const totp = new OTPAuth.TOTP({
-    issuer: 'KCLUB',
-    label: phone,
-    algorithm: 'SHA1',
-    digits: 6,
-    period: 30,
-    secret: OTPAuth.Secret.fromBase32(secret),
-  });
-
-  return totp.validate({ token: code, window: 1 }) !== null;
 }
 
 function getClientIp(request: Request): string | null {
@@ -265,6 +266,37 @@ function getClientIp(request: Request): string | null {
     request.headers.get('x-real-ip') ??
     null
   );
+}
+
+function createAuthenticatedSession(
+  staff: StaffRecord | EnvBootstrapStaff,
+  request: Request,
+): Promise<StaffAuthSessionDto> {
+  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const role = getSupportedStaffRole(staff.role);
+  if (!role) {
+    throw new Error('Unsupported staff role');
+  }
+
+  const token = createSessionToken({
+    sub: staff.id,
+    phone: staff.phone,
+    name: staff.display_name,
+    role,
+    exp: expiresAt,
+  });
+
+  return createDbSession(
+    token,
+    staff.id,
+    getClientIp(request),
+    request.headers.get('user-agent'),
+  ).then(() => ({
+    state: 'AUTHENTICATED',
+    profile: staffToProfile(staff),
+    token,
+    expiresAt: new Date(expiresAt * 1000).toISOString(),
+  }));
 }
 
 export function getBearerToken(request: Request): string | null {
@@ -277,25 +309,30 @@ export async function getStaffSession(token: string): Promise<StaffProfileDto | 
   const payload = readSessionToken(token);
   if (!payload) return null;
 
-  const staff = findStaffByPhone(payload.phone);
-  if (!staff?.isActive || staff.id !== payload.sub || staff.role !== payload.role) {
+  const staff = await findStaffBySessionPayload(payload);
+  const role = staff ? getSupportedStaffRole(staff.role) : null;
+  if (!staff?.is_active || staff.id !== payload.sub || role !== payload.role) {
     return null;
+  }
+
+  if (!isUuid(staff.id)) {
+    return staffToProfile(staff);
   }
 
   const dbValid = await validateDbSession(token);
   if (!dbValid) return null;
 
-  return staffToProfile(staff, payload.totpVerified);
+  return staffToProfile(staff);
 }
 
-export async function handleStaffOtpSend(request: Request): Promise<Response> {
+export async function handleStaffPasswordRegister(request: Request): Promise<Response> {
   const rawBody = await request.json().catch(() => null);
-  const parsed = parseWithValidation(staffPhoneOtpSendSchema, rawBody);
+  const parsed = parseWithValidation(staffPasswordRegisterSchema, rawBody);
   if (!parsed.success) {
-    return error(ERROR_CODES.VALIDATION_INVALID_PHONE, 'Phone is required');
+    return error(ERROR_CODES.VALIDATION_INVALID_INPUT, 'Phone and password are required');
   }
 
-  const staff = findStaffByPhone(parsed.data.phone);
+  const staff = await findDbStaffByPhone(parsed.data.phone);
   if (!staff) {
     return error(
       ERROR_CODES.AUTH_STAFF_NOT_ALLOWED,
@@ -303,25 +340,45 @@ export async function handleStaffOtpSend(request: Request): Promise<Response> {
       403,
     );
   }
-  if (!staff.isActive) {
+  if (!staff.is_active) {
     return error(ERROR_CODES.AUTH_STAFF_INACTIVE, 'This staff account is inactive', 403);
   }
-
-  return Response.json(
-    success<StaffAuthChallengeDto>({ state: 'OTP_REQUIRED', phone: staff.phone }),
-  );
-}
-
-export async function handleStaffOtpVerify(request: Request): Promise<Response> {
-  const rawBody = await request.json().catch(() => null);
-  const parsed = parseWithValidation(staffPhoneOtpVerifySchema, rawBody);
-  if (!parsed.success) {
-    return error(ERROR_CODES.VALIDATION_INVALID_INPUT, 'Phone and OTP code are required');
+  if (!getSupportedStaffRole(staff.role)) {
+    return error(
+      ERROR_CODES.AUTH_STAFF_NOT_ALLOWED,
+      'This staff role is not allowed to sign in',
+      403,
+    );
+  }
+  if (staff.password_hash) {
+    return error(
+      ERROR_CODES.RESOURCE_CONFLICT,
+      'Password is already set for this staff account',
+      409,
+    );
   }
 
-  const { phone, code } = parsed.data;
+  const db = getDbClient();
+  await db
+    .update(schema.adminUsers)
+    .set({
+      password_hash: await hashStaffPassword(parsed.data.password),
+      password_set_at: new Date(),
+      updated_at: new Date(),
+    })
+    .where(eq(schema.adminUsers.id, staff.id));
 
-  const staff = findStaffByPhone(phone);
+  return Response.json(success({ registered: true }));
+}
+
+export async function handleStaffPasswordSignIn(request: Request): Promise<Response> {
+  const rawBody = await request.json().catch(() => null);
+  const parsed = parseWithValidation(staffPasswordSignInSchema, rawBody);
+  if (!parsed.success) {
+    return error(ERROR_CODES.VALIDATION_INVALID_INPUT, 'Phone and password are required');
+  }
+
+  const staff = await findStaffByPhone(parsed.data.phone);
   if (!staff) {
     return error(
       ERROR_CODES.AUTH_STAFF_NOT_ALLOWED,
@@ -329,242 +386,29 @@ export async function handleStaffOtpVerify(request: Request): Promise<Response> 
       403,
     );
   }
-  if (!staff.isActive) {
+  if (!staff.is_active) {
     return error(ERROR_CODES.AUTH_STAFF_INACTIVE, 'This staff account is inactive', 403);
   }
-  if (!isValidDevOtp(code)) {
-    return error(ERROR_CODES.AUTH_OTP_INVALID, 'Invalid staff OTP code', 401);
-  }
 
-  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
-  const token = createSessionToken({
-    sub: staff.id,
-    phone: staff.phone,
-    name: staff.displayName,
-    role: staff.role,
-    totpVerified: false,
-    exp: expiresAt,
-  });
-
-  await createDbSession(token, staff.id, getClientIp(request), request.headers.get('user-agent'));
-
-  return Response.json(
-    success<StaffAuthSessionDto>({
-      state: staff.totpConfigured ? 'TOTP_REQUIRED' : 'TOTP_SETUP_REQUIRED',
-      profile: staffToProfile(staff, false),
-      token,
-      expiresAt: new Date(expiresAt * 1000).toISOString(),
-    }),
-  );
-}
-
-export async function handleStaffTotpVerify(request: Request): Promise<Response> {
-  const token = getBearerToken(request);
-  if (!token) {
-    return error(ERROR_CODES.AUTH_SESSION_REQUIRED, 'Staff session is required', 401);
-  }
-
-  const payload = readSessionToken(token);
-  if (!payload) {
-    return error(ERROR_CODES.AUTH_SESSION_INVALID, 'Staff session is invalid or expired', 401);
-  }
-
-  const rawBody = await request.json().catch(() => null);
-  const parsed = parseWithValidation(staffTotpCodeSchema, rawBody);
-  if (!parsed.success) {
-    return error(ERROR_CODES.VALIDATION_INVALID_INPUT, 'TOTP code is required');
-  }
-
-  const { code } = parsed.data;
-
-  const staff = findStaffByPhone(payload.phone);
-  if (!staff?.isActive || staff.id !== payload.sub) {
-    return error(
-      ERROR_CODES.AUTH_STAFF_NOT_ALLOWED,
-      'This phone is not allowed for staff access',
-      403,
-    );
-  }
-
-  let isValidCode = false;
-  let secretFromDb: string | null = null;
-
-  if (isUuid(staff.id)) {
-    try {
-      const db = getDbClient();
-      const twoFactor = await db.query.admin2fa.findFirst({
-        where: eq(schema.admin2fa.admin_user_id, staff.id),
-      });
-
-      if (twoFactor?.secret_ciphertext) {
-        secretFromDb = decryptSecret(twoFactor.secret_ciphertext);
-        isValidCode = isValidTotpCode(secretFromDb, staff.phone, code);
-
-        if (isValidCode && !twoFactor.verified_at) {
-          await db.transaction(async (tx) => {
-            await tx
-              .update(schema.admin2fa)
-              .set({ verified_at: new Date() })
-              .where(eq(schema.admin2fa.id, twoFactor.id));
-            await tx
-              .update(schema.adminUsers)
-              .set({ totp_verified_at: new Date() })
-              .where(eq(schema.adminUsers.id, staff.id));
-          });
-        }
-      }
-    } catch {
-      // DB unavailable
-    }
-  }
-
-  if (!secretFromDb) {
-    const cachedSecret = totpSecretCache.get(staff.id);
-    if (cachedSecret) {
-      secretFromDb = cachedSecret;
-      isValidCode = isValidTotpCode(cachedSecret, staff.phone, code);
-    }
-  }
-
-  if (!secretFromDb) {
-    if (process.env.NODE_ENV !== 'production') {
-      isValidCode = isValidDevTotp(code);
-    } else {
-      return error(
-        ERROR_CODES.SERVER_DEPENDENCY_UNAVAILABLE,
-        'Authenticator verification is temporarily unavailable',
-        503,
-      );
-    }
-  }
-
-  if (!isValidCode) {
-    return error(ERROR_CODES.AUTH_STAFF_2FA_REQUIRED, 'Invalid authenticator code', 401);
-  }
-
-  await revokeDbSession(token);
-
-  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
-  const verifiedToken = createSessionToken({
-    sub: staff.id,
-    phone: staff.phone,
-    name: staff.displayName,
-    role: staff.role,
-    totpVerified: true,
-    exp: expiresAt,
-  });
-
-  await createDbSession(
-    verifiedToken,
-    staff.id,
-    getClientIp(request),
-    request.headers.get('user-agent'),
-  );
-
-  return Response.json(
-    success<StaffAuthSessionDto>({
-      state: 'AUTHENTICATED',
-      profile: staffToProfile(staff, true),
-      token: verifiedToken,
-      expiresAt: new Date(expiresAt * 1000).toISOString(),
-    }),
-  );
-}
-
-export async function handleStaffTotpSetup(request: Request): Promise<Response> {
-  const token = getBearerToken(request);
-  if (!token) {
-    return error(ERROR_CODES.AUTH_SESSION_REQUIRED, 'Staff session is required', 401);
-  }
-
-  const payload = readSessionToken(token);
-  if (!payload) {
-    return error(ERROR_CODES.AUTH_SESSION_INVALID, 'Staff session is invalid or expired', 401);
-  }
-
-  if (payload.totpVerified) {
-    return error(
-      ERROR_CODES.VALIDATION_INVALID_INPUT,
-      'TOTP is already configured for this account',
-      400,
-    );
-  }
-
-  const staff = findStaffByPhone(payload.phone);
-  if (!staff?.isActive || staff.id !== payload.sub) {
-    return error(
-      ERROR_CODES.AUTH_STAFF_NOT_ALLOWED,
-      'This phone is not allowed for staff access',
-      403,
-    );
-  }
-
-  let secret: string;
-  let provisioningUri: string;
-
-  const cachedSecret = totpSecretCache.get(staff.id);
-
-  if (isUuid(staff.id)) {
-    try {
-      const db = getDbClient();
-
-      const existing = await db.query.admin2fa.findFirst({
-        where: eq(schema.admin2fa.admin_user_id, staff.id),
-      });
-
-      if (existing?.secret_ciphertext && !existing.verified_at) {
-        secret = decryptSecret(existing.secret_ciphertext);
-        totpSecretCache.set(staff.id, secret);
-      } else if (existing?.verified_at) {
-        return error(
-          ERROR_CODES.VALIDATION_INVALID_INPUT,
-          'TOTP is already verified for this account',
-          400,
-        );
-      } else {
-        const newSecret = new OTPAuth.Secret({ size: 20 });
-        secret = newSecret.base32;
-        const encrypted = encryptSecret(secret);
-
-        await db.insert(schema.admin2fa).values({
-          admin_user_id: staff.id,
-          secret_ciphertext: encrypted,
-        });
-        totpSecretCache.set(staff.id, secret);
-      }
-    } catch {
-      if (cachedSecret) {
-        secret = cachedSecret;
-      } else {
-        const newSecret = new OTPAuth.Secret({ size: 20 });
-        secret = newSecret.base32;
-        totpSecretCache.set(staff.id, secret);
-      }
-    }
-  } else if (cachedSecret) {
-    secret = cachedSecret;
+  let isValidPassword = false;
+  if (staff.password_hash) {
+    isValidPassword = await verifyStaffPassword(parsed.data.password, staff.password_hash);
+  } else if (staff.id.startsWith('bootstrap-owner-')) {
+    isValidPassword = parsed.data.password === process.env.ADMIN_BOOTSTRAP_OWNER_PASSWORD;
   } else {
-    const newSecret = new OTPAuth.Secret({ size: 20 });
-    secret = newSecret.base32;
-    totpSecretCache.set(staff.id, secret);
+    return error(
+      ERROR_CODES.AUTH_PASSWORD_NOT_SET,
+      'Password is not set for this staff account',
+      403,
+    );
   }
 
-  const totp = new OTPAuth.TOTP({
-    issuer: 'KCLUB',
-    label: staff.phone,
-    algorithm: 'SHA1',
-    digits: 6,
-    period: 30,
-    secret: OTPAuth.Secret.fromBase32(secret),
-  });
-
-  provisioningUri = totp.toString();
+  if (!isValidPassword) {
+    return error(ERROR_CODES.AUTH_PASSWORD_INVALID, 'Invalid staff phone or password', 401);
+  }
 
   return Response.json(
-    success<StaffTotpSetupDto>({
-      provisioningUri,
-      manualKey: secret,
-    }),
+    success<StaffAuthSessionDto>(await createAuthenticatedSession(staff, request)),
   );
 }
 

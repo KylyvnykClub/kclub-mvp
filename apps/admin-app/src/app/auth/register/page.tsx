@@ -12,17 +12,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AuthThemeToggle } from '@/components/auth-theme-toggle';
-import { signInStaffAction } from '@/server/auth/actions';
+import { registerStaffPasswordAction } from '@/server/auth/actions';
 
-type SignInPageProps = {
+type RegisterPageProps = {
   searchParams?: Promise<{
     error?: string;
-    phone?: string;
-    registered?: string;
   }>;
 };
 
-export default async function SignInPage({ searchParams }: SignInPageProps) {
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
   const params = (await searchParams) ?? {};
 
   return (
@@ -30,8 +28,10 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       <AuthThemeToggle />
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Staff Sign In</CardTitle>
-          <CardDescription>Use an approved staff phone number and password.</CardDescription>
+          <CardTitle>Register Staff Password</CardTitle>
+          <CardDescription>
+            Only phone numbers approved by an OWNER can create a password.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           {params.error ? (
@@ -39,43 +39,36 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               {params.error}
             </div>
           ) : null}
-          {params.registered ? (
-            <div className="rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">
-              Password registered. Sign in to continue.
-            </div>
-          ) : null}
-          <form action={signInStaffAction} className="space-y-4">
+          <form action={registerStaffPasswordAction} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">Approved phone</Label>
               <Input
                 id="phone"
                 name="phone"
-                data-testid="admin-phone-input"
                 placeholder="+1 (___) ___-____"
-                defaultValue={params.phone ?? ''}
                 autoComplete="tel"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">New password</Label>
               <Input
                 id="password"
                 name="password"
-                data-testid="admin-password-input"
                 type="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
+                minLength={10}
                 required
               />
             </div>
             <CardFooter className="-mx-4 -mb-4 mt-4 flex-col gap-3">
-              <Button className="w-full" type="submit" data-testid="admin-submit-sign-in">
-                Sign in
+              <Button className="w-full" type="submit">
+                Register password
               </Button>
               <p className="text-center text-sm text-muted-foreground">
-                Need to set your password?{' '}
-                <Link href="/auth/register" className="font-medium text-primary hover:underline">
-                  Register approved phone
+                Already registered?{' '}
+                <Link href="/auth/sign-in" className="font-medium text-primary hover:underline">
+                  Sign in
                 </Link>
               </p>
             </CardFooter>

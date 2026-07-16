@@ -305,6 +305,8 @@ export const adminUsers = pgTable(
     role: staffRoleEnum('role').notNull(),
     display_name: varchar('display_name', { length: 100 }),
     is_active: boolean('is_active').default(true).notNull(),
+    password_hash: text('password_hash'),
+    password_set_at: timestamp('password_set_at'),
     totp_verified_at: timestamp('totp_verified_at'),
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),

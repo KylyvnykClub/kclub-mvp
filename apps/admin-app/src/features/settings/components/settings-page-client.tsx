@@ -55,7 +55,7 @@ export function SettingsPageClient({
     >
       <div className="space-y-6">
         <SubTabs tabs={SETTINGS_TABS} activeTab={activeSection} onTabChange={setActiveSection} />
-        {activeSection === 'staff' && <StaffTable staff={staff} />}
+        {activeSection === 'staff' && <StaffTable staff={staff} staffRole={staffRole} />}
         {activeSection === 'audit' && (
           <AuditTable
             logs={auditLogs}

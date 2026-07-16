@@ -27,10 +27,8 @@ export const MEMBER_API_ROUTES = {
 
 export const ADMIN_API_ROUTES = {
   DASHBOARD_METRICS: `${ADMIN_API_BASE_PATH}/dashboard-metrics`,
-  STAFF_AUTH_PHONE_OTP_SEND: `${ADMIN_API_BASE_PATH}/staff-auth/phone-otp/send`,
-  STAFF_AUTH_PHONE_OTP_VERIFY: `${ADMIN_API_BASE_PATH}/staff-auth/phone-otp/verify`,
-  STAFF_AUTH_TOTP_SETUP: `${ADMIN_API_BASE_PATH}/staff-auth/totp/setup`,
-  STAFF_AUTH_TOTP_VERIFY: `${ADMIN_API_BASE_PATH}/staff-auth/totp/verify`,
+  STAFF_AUTH_PASSWORD_REGISTER: `${ADMIN_API_BASE_PATH}/staff-auth/password/register`,
+  STAFF_AUTH_PASSWORD_SIGN_IN: `${ADMIN_API_BASE_PATH}/staff-auth/password/sign-in`,
   STAFF_AUTH_SESSION: `${ADMIN_API_BASE_PATH}/staff-auth/session`,
   STAFF_AUTH_LOGOUT: `${ADMIN_API_BASE_PATH}/staff-auth/logout`,
   USERS: `${ADMIN_API_BASE_PATH}/users`,
@@ -65,6 +63,7 @@ export const ADMIN_API_ROUTES = {
   STRIPE_PRICES: `${ADMIN_API_BASE_PATH}/stripe-prices`,
   ADMIN_CONFIG: `${ADMIN_API_BASE_PATH}/admin-config/:key`,
   STAFF: `${ADMIN_API_BASE_PATH}/staff`,
+  STAFF_PASSWORD_RESET: `${ADMIN_API_BASE_PATH}/staff/:id/password-reset`,
   AUDIT: `${ADMIN_API_BASE_PATH}/audit`,
   WEBHOOK_REPLAY: `${ADMIN_API_BASE_PATH}/webhooks/:eventId/replay`,
 } as const;

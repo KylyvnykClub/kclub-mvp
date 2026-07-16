@@ -1,5 +1,14 @@
-import { handleStaffOtpVerify } from '@/server/staff-auth';
+import { ERROR_CODES } from '@kclub/contracts';
 
-export async function POST(request: Request) {
-  return handleStaffOtpVerify(request);
+export async function POST(): Promise<Response> {
+  return Response.json(
+    {
+      data: null,
+      error: {
+        code: ERROR_CODES.RESOURCE_GONE,
+        message: 'Staff OTP authentication has been replaced by password sign-in',
+      },
+    },
+    { status: 410 },
+  );
 }
