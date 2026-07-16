@@ -49,7 +49,7 @@ export function requireStaffPermission(
   profile: StaffProfileDto,
   permission: StaffPermission,
 ): void {
-  if (!hasStaffPermission(profile.role as StaffRole, permission)) {
+  if (!hasStaffPermission(profile.role as StaffRole, permission, profile.permissionOverrides)) {
     const log = createLogger();
     log.auth('Admin permission denied', {
       staffId: profile.id,

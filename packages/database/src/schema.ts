@@ -194,7 +194,7 @@ export const businessProfiles = pgTable(
     social_url: text('social_url'),
     cover_image_url: text('cover_image_url'),
     logo_url: text('logo_url'),
-    brief_description: varchar('brief_description', { length: 500 }),
+    brief_description: varchar('brief_description', { length: 2000 }),
     description: text('description'),
     featured_top: boolean('featured_top').default(false).notNull(),
     featured_recommended: boolean('featured_recommended').default(false).notNull(),
@@ -308,6 +308,10 @@ export const adminUsers = pgTable(
     is_active: boolean('is_active').default(true).notNull(),
     password_hash: text('password_hash'),
     password_set_at: timestamp('password_set_at'),
+    permission_overrides: json('permission_overrides').$type<{
+      granted: string[];
+      denied: string[];
+    } | null>(),
     totp_verified_at: timestamp('totp_verified_at'),
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),

@@ -29,6 +29,13 @@ export const STAFF_PERMISSIONS = {
 
 export type StaffPermission = (typeof STAFF_PERMISSIONS)[keyof typeof STAFF_PERMISSIONS];
 
+export const ALL_STAFF_PERMISSIONS = Object.values(STAFF_PERMISSIONS);
+
+export type StaffPermissionOverrides = {
+  granted: StaffPermission[];
+  denied: StaffPermission[];
+};
+
 export const STAFF_ROLE_PERMISSIONS = {
   OWNER: [
     STAFF_PERMISSIONS.DASHBOARD_METRICS_READ,

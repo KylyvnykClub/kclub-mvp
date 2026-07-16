@@ -62,6 +62,7 @@ export const AUDIT_ACTIONS = [
   'STAFF_PASSWORD_RESET',
   'STAFF_ROLE_UPDATED',
   'STAFF_DEACTIVATED',
+  'STAFF_PERMISSIONS_UPDATED',
   'STRIPE_WEBHOOK_REPLAYED',
   'CRON_DAILY_MAINTENANCE',
 ] as const;
@@ -171,6 +172,7 @@ export type StaffProfileDto = {
   phone: string;
   displayName: string | null;
   role: StaffRole;
+  permissionOverrides: StaffPermissionOverrides | null;
 };
 
 export type StaffAuthSessionDto = {
@@ -307,6 +309,8 @@ export type AdminBusinessDetailDto = PublicBusinessDetailDto & {
 };
 
 export type MemberBusinessProfileDto = PublicBusinessDetailDto & {
+  countryId: EntityId;
+  cityId: EntityId;
   status: BusinessStatus;
   representativeEmail: string;
   representativePhone: string;
@@ -505,6 +509,7 @@ export type AdminStaffListItemDto = {
   role: StaffRole;
   isActive: boolean;
   passwordStatus: StaffPasswordStatus;
+  permissionOverrides: StaffPermissionOverrides | null;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 };
@@ -530,4 +535,4 @@ export type CronResultDto = {
   webhookEventsCleaned: number;
 };
 
-import type { StaffRole } from './permissions';
+import type { StaffRole, StaffPermissionOverrides } from './permissions';

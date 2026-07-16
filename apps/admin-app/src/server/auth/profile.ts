@@ -1,11 +1,17 @@
 import { readStaffSession } from '@/server/auth/session';
-import type { ApiResponse, StaffProfileDto, StaffRole } from '@kclub/contracts';
+import type {
+  ApiResponse,
+  StaffPermissionOverrides,
+  StaffProfileDto,
+  StaffRole,
+} from '@kclub/contracts';
 
 export type StaffProfile = {
   id: string;
   phone: string;
   name: string;
   role: StaffRole;
+  permissionOverrides: StaffPermissionOverrides | null;
   initials: string;
 };
 
@@ -63,6 +69,7 @@ export async function readStaffProfile(): Promise<StaffProfile | null> {
     phone: profile.phone,
     name,
     role: profile.role as StaffRole,
+    permissionOverrides: profile.permissionOverrides ?? null,
     initials,
   };
 }
