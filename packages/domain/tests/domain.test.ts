@@ -74,7 +74,7 @@ describe('staff permission matrix', () => {
       TAXONOMY_MANAGE: true,
       FEATURED_BUSINESSES_MANAGE: true,
       STRIPE_PRICES_MANAGE: false,
-      STAFF_MANAGE: true,
+      STAFF_MANAGE: false,
       AUDIT_READ: true,
       INTERNAL_NOTES_CREATE: true,
     },

@@ -8,6 +8,7 @@ const DASHBOARD_ROUTE_ROLES: Record<string, StaffRole[]> = {
   '/dashboard/introductions': ['OWNER', 'ADMIN', 'MODERATOR'],
   '/dashboard/billing': ['OWNER', 'ADMIN'],
   '/dashboard/settings': ['OWNER', 'ADMIN'],
+  '/dashboard/staff': ['OWNER'],
   '/dashboard/account': ['OWNER', 'ADMIN', 'MODERATOR'],
 };
 

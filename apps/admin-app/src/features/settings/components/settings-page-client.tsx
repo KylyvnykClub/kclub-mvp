@@ -2,18 +2,16 @@
 
 import { useState } from 'react';
 
+import type { AuditLogDto, CategoryDto } from '@kclub/contracts';
+
 import { PageShell } from '@/components/page-shell';
 import { SubTabs, type SubTabItem } from '@/components/sub-tabs';
-import { StaffTable } from '@/features/staff/components/staff-table';
 import { AuditTable } from '@/features/audit/components/audit-table';
 import { CategoriesTable } from '@/features/categories/components/categories-table';
 import type { AuditLogSearchParams } from '@/features/audit/api';
-import type { AdminStaffListItemDto, AuditLogDto, CategoryDto, StaffRole } from '@kclub/contracts';
 
 type SettingsPageClientProps = {
-  staffRole: StaffRole;
   initialSection?: string;
-  staff: AdminStaffListItemDto[];
   auditLogs: AuditLogDto[];
   auditTotal: number;
   auditPage: number;
@@ -23,7 +21,6 @@ type SettingsPageClientProps = {
 };
 
 const SETTINGS_TABS: SubTabItem[] = [
-  { id: 'staff', label: 'Staff' },
   { id: 'audit', label: 'Audit' },
   { id: 'categories', label: 'Categories' },
   { id: 'platform', label: 'Platform' },
@@ -31,13 +28,11 @@ const SETTINGS_TABS: SubTabItem[] = [
 
 function normalizeSection(section: string | undefined): string {
   if (section && SETTINGS_TABS.some((t) => t.id === section)) return section;
-  return 'staff';
+  return 'audit';
 }
 
 export function SettingsPageClient({
-  staffRole,
   initialSection,
-  staff,
   auditLogs,
   auditTotal,
   auditPage,
@@ -50,12 +45,11 @@ export function SettingsPageClient({
   return (
     <PageShell
       title="Settings"
-      description="Staff, audit logs, categories, and platform configuration."
+      description="Audit logs, categories, and platform configuration."
       roleScope="ADMIN"
     >
       <div className="space-y-6">
         <SubTabs tabs={SETTINGS_TABS} activeTab={activeSection} onTabChange={setActiveSection} />
-        {activeSection === 'staff' && <StaffTable staff={staff} staffRole={staffRole} />}
         {activeSection === 'audit' && (
           <AuditTable
             logs={auditLogs}
