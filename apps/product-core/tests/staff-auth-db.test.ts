@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
 import type { RequestContext } from '../src/server/context';
+import { hashStaffPassword } from '../src/server/staff-password';
 
 const realDb = await import('../src/server/db');
 
-const STAFF_ID = '11111111-1111-4111-8111-111111111111';
+const STAFF_ID = '11111111-1111-7111-8111-111111111111';
 const STAFF_PHONE = '+15557654321';
 const PASSWORD = 'StrongPassword123';
 
@@ -83,7 +84,7 @@ mock.module('next/cache', () => ({
   revalidateTag: mock(() => undefined),
 }));
 
-const { handleStaffPasswordRegister, handleStaffPasswordSignIn } =
+const { handleStaffPasswordRegister, handleStaffPasswordSignIn, handleStaffSession } =
   await import('../src/server/staff-auth');
 const { deactivateStaff, resetStaffPassword, updateStaffRole } =
   await import('../src/server/services/admin-service');
@@ -151,6 +152,29 @@ describe('staff password auth with approved DB staff', () => {
 
     expect(wrongPasswordResponse.status).toBe(401);
     expect(wrongPasswordPayload.error.code).toBe('AUTH_PASSWORD_INVALID');
+  });
+
+  test('accepts a UUIDv7 staff token immediately after sign-in', async () => {
+    staff = {
+      ...staff,
+      password_hash: await hashStaffPassword(PASSWORD),
+      password_set_at: new Date(),
+    };
+
+    const signInResponse = await handleStaffPasswordSignIn(
+      passwordRequest({ phone: STAFF_PHONE, password: PASSWORD }),
+    );
+    const signInPayload = await readJson<{ data: { token: string } }>(signInResponse);
+
+    const sessionResponse = await handleStaffSession(
+      new Request('http://localhost/api/admin/v1/staff-auth/session', {
+        headers: { authorization: `Bearer ${signInPayload.data.token}` },
+      }),
+    );
+    const sessionPayload = await readJson<{ data: { id: string } }>(sessionResponse);
+
+    expect(sessionResponse.status).toBe(200);
+    expect(sessionPayload.data.id).toBe(STAFF_ID);
   });
 
   test('inactive staff cannot register or sign in, and reset revokes sessions', async () => {

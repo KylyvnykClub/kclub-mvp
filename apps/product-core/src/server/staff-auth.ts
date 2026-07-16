@@ -20,7 +20,8 @@ import { getDbClient, schema } from '@/server/db';
 import { hashStaffPassword, verifyStaffPassword } from '@/server/staff-password';
 
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type StaffRecord = typeof schema.adminUsers.$inferSelect;
 
