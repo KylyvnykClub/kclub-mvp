@@ -44,9 +44,7 @@ describe('requireStaffPermission', () => {
     expect(() =>
       requireStaffPermission(adminProfile, STAFF_PERMISSIONS.CARDS_REVOKE),
     ).not.toThrow();
-    expect(() =>
-      requireStaffPermission(adminProfile, STAFF_PERMISSIONS.STAFF_MANAGE),
-    ).toThrow();
+    expect(() => requireStaffPermission(adminProfile, STAFF_PERMISSIONS.STAFF_MANAGE)).toThrow();
     expect(() =>
       requireStaffPermission(adminProfile, STAFF_PERMISSIONS.STRIPE_PRICES_MANAGE),
     ).toThrow();
