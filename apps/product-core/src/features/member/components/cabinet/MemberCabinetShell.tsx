@@ -1,6 +1,6 @@
 'use client';
 
-import { CreditCard, Phone, Settings, UserRound } from 'lucide-react';
+import { CreditCard, Handshake, Phone, Settings, UserRound } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import type { CurrentMemberProfileDto, UserContext } from '@kclub/contracts';
@@ -10,10 +10,10 @@ import type { Locale } from '@/i18n/routing';
 import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-tabs';
 import { getDashboardTabLockLabel, isDashboardTabLocked } from '@/features/member/dashboard-tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/reui/badge';
 
+import { CabinetButton } from './CabinetButton';
 import { CabinetSignOut } from './CabinetSignOut';
 import { cabinetMobileNavClasses, cabinetRootClasses, cabinetSidebarClasses } from './styles';
 
@@ -54,6 +54,7 @@ function getPrimaryTabs(
 const DASHBOARD_TAB_ICONS: Partial<Record<ImplementedMemberDashboardTab, LucideIcon>> = {
   details: UserRound,
   subscription: CreditCard,
+  introductions: Handshake,
 };
 
 function renderTabTriggers({
@@ -115,19 +116,19 @@ export function MemberCabinetShell({
   };
 
   const settingsAction = canShowSettings ? (
-    <Button
+    <CabinetButton
       type="button"
-      variant="ghost"
-      size="sm"
+      tone="ghost"
+      density="compact"
       onClick={handleSettingsClick}
       className={cn(
-        'flex h-auto gap-1.5 px-0 py-0 text-xs tracking-wide text-muted hover:bg-transparent hover:text-foreground',
+        'h-auto gap-1.5 px-0 py-0 tracking-wide text-muted hover:bg-transparent hover:text-foreground',
         activeTab === 'settings' && 'text-foreground',
       )}
+      iconStart={<Settings size={14} aria-hidden />}
     >
-      <Settings size={14} aria-hidden />
       {tabLabels.settings}
-    </Button>
+    </CabinetButton>
   ) : null;
 
   return (

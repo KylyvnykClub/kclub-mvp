@@ -18,7 +18,7 @@ import {
   cabinetFieldLabelClasses,
   cabinetGridPanelClasses,
 } from '@/features/member/components/cabinet/styles';
-import { Button } from '@/components/ui/button';
+import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -51,6 +51,7 @@ const STATUS_BADGE_VARIANTS: Record<string, 'default' | 'outline' | 'success' | 
 };
 
 const CANCELLABLE_STATUSES = new Set(['SUBMITTED', 'IN_REVIEW']);
+const INTRODUCTION_FORM_CONTROL_CLASSES = 'rounded-none';
 
 function getStatusBadgeVariant(status: string) {
   return STATUS_BADGE_VARIANTS[status] ?? 'outline';
@@ -237,7 +238,7 @@ export function IntroductionsPanel({
               onValueChange={(value) => setSelectedTargetBusinessId(value ?? '')}
               required
             >
-              <SelectTrigger className="mt-2 w-full">
+              <SelectTrigger className={cn('mt-2 w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}>
                 <SelectValue placeholder={t('selectPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
@@ -259,7 +260,7 @@ export function IntroductionsPanel({
                 onChange={(e) => setClientName(e.target.value)}
                 required
                 maxLength={200}
-                className="mt-2 w-full"
+                className={cn('mt-2 w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
               />
             </div>
             <div>
@@ -271,7 +272,7 @@ export function IntroductionsPanel({
                 required
                 maxLength={255}
                 placeholder={t('clientContactPlaceholder')}
-                className="mt-2 w-full"
+                className={cn('mt-2 w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
               />
             </div>
           </div>
@@ -284,13 +285,17 @@ export function IntroductionsPanel({
               maxLength={500}
               rows={3}
               placeholder={t('messagePlaceholder')}
-              className="mt-2 w-full"
+              className={cn('mt-2 w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
             />
           </div>
 
-          <Button type="submit" disabled={isSubmitting}>
+          <CabinetButton
+            type="submit"
+            disabled={isSubmitting}
+            className={INTRODUCTION_FORM_CONTROL_CLASSES}
+          >
             {isSubmitting ? tCommon('saving') : t('submitCta')}
-          </Button>
+          </CabinetButton>
         </form>
       </div>
 
@@ -331,15 +336,15 @@ export function IntroductionsPanel({
                     {t(STATUS_LABEL_KEYS[intro.status] ?? intro.status)}
                   </Badge>
                   {CANCELLABLE_STATUSES.has(intro.status) && (
-                    <Button
+                    <CabinetButton
                       type="button"
-                      variant="ghost"
-                      size="sm"
+                      tone="danger"
+                      density="compact"
                       onClick={() => handleCancel(intro.id)}
-                      className="h-auto px-0 py-0 text-xs text-destructive underline hover:bg-transparent"
+                      className="h-auto px-0 py-0 underline hover:bg-transparent"
                     >
                       {t('cancelAction')}
-                    </Button>
+                    </CabinetButton>
                   )}
                 </div>
               </div>

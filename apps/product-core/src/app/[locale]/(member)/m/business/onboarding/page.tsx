@@ -7,10 +7,7 @@ import { getOwnBusinesses } from '@/server/services/business-service';
 import { getDbClient, schema } from '@/server/db';
 import { and, asc, eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/features/member/components/Breadcrumbs';
-import type {
-  CityTaxonomyOption,
-  TaxonomyOption,
-} from '@/features/member/components/BusinessPanel';
+import type { TaxonomyOption } from '@/features/member/components/BusinessPanel';
 import { BusinessSubmitWizard } from '@/features/member/components/BusinessSubmitWizard';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }) {
@@ -36,7 +33,7 @@ export default async function BusinessOnboardingPage({
   }
 
   const db = getDbClient();
-  const [countries, categories, cities] = await Promise.all([
+  const [countries, categories] = await Promise.all([
     db.query.countries.findMany({
       where: eq(schema.countries.is_active, true),
       orderBy: [asc(schema.countries.name)],
@@ -44,10 +41,6 @@ export default async function BusinessOnboardingPage({
     db.query.categories.findMany({
       where: and(eq(schema.categories.is_active, true), eq(schema.categories.is_high_risk, false)),
       orderBy: [asc(schema.categories.name)],
-    }),
-    db.query.cities.findMany({
-      where: eq(schema.cities.is_active, true),
-      orderBy: [asc(schema.cities.name)],
     }),
   ]);
 
@@ -62,11 +55,6 @@ export default async function BusinessOnboardingPage({
   const homeHref = `/${locale}`;
 
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
-  const cityOptions: CityTaxonomyOption[] = cities.map((c) => ({
-    id: c.id,
-    name: c.name,
-    countryId: c.country_id,
-  }));
   const categoryOptions: TaxonomyOption[] = categories.map((c) => ({ id: c.id, name: c.name }));
 
   return (
@@ -84,7 +72,6 @@ export default async function BusinessOnboardingPage({
         <BusinessSubmitWizard
           locale={locale}
           countryOptions={countryOptions}
-          cityOptions={cityOptions}
           categoryOptions={categoryOptions}
         />
       </div>

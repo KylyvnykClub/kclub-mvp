@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { getDbClient, schema } from '../index.js';
 import {
   ADMIN_BOOTSTRAP_PLAN,
@@ -117,6 +117,14 @@ const DEMO_BUSINESSES = [
   },
 ] as const;
 
+function chunkArray<T>(items: readonly T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
 function isTruthyFlag(value: string | undefined): boolean {
   if (!value) return false;
   const normalized = value.trim().toLowerCase();
@@ -158,33 +166,31 @@ async function seedReferenceData(db: ReturnType<typeof getDbClient>): Promise<vo
   const countriesList = await db.select().from(schema.countries);
   const countryBySlug = new Map(countriesList.map((country) => [country.slug, country]));
 
-  for (const city of CITY_SEED_PLAN) {
+  const cityValues = CITY_SEED_PLAN.map((city) => {
     const country = countryBySlug.get(city.countrySlug);
     if (!country) {
       throw new Error(`Missing country for city seed: ${city.countrySlug}`);
     }
 
-    const existing = await db
-      .select()
-      .from(schema.cities)
-      .where(and(eq(schema.cities.country_id, country.id), eq(schema.cities.slug, city.slug)))
-      .limit(1);
-    if (existing.length > 0) {
-      await db
-        .update(schema.cities)
-        .set({
-          name: city.name,
+    return {
+      country_id: country.id,
+      name: city.name,
+      slug: city.slug,
+      is_active: true,
+    };
+  });
+
+  for (const cityBatch of chunkArray(cityValues, 1000)) {
+    await db
+      .insert(schema.cities)
+      .values(cityBatch)
+      .onConflictDoUpdate({
+        target: [schema.cities.country_id, schema.cities.slug],
+        set: {
+          name: sql.raw(`excluded.${schema.cities.name.name}`),
           is_active: true,
-        })
-        .where(and(eq(schema.cities.country_id, country.id), eq(schema.cities.slug, city.slug)));
-    } else {
-      await db.insert(schema.cities).values({
-        country_id: country.id,
-        name: city.name,
-        slug: city.slug,
-        is_active: true,
+        },
       });
-    }
   }
 
   for (const category of CATEGORY_SEED_PLAN) {

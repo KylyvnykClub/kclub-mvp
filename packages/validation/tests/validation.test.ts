@@ -173,6 +173,12 @@ describe('business schemas', () => {
   test('validates business submit, editable fields, and filters', () => {
     expect(businessProfileSubmitSchema.parse(validBusiness).name).toBe('Kylyvnyk Partner');
     expect(
+      businessProfileSubmitSchema.parse({
+        ...validBusiness,
+        briefDescription: 'x'.repeat(2000),
+      }).briefDescription,
+    ).toHaveLength(2000);
+    expect(
       businessProfileEditableFieldsSchema.parse({
         representativeEmail: 'new@example.com',
         socialUrl: 'https://instagram.com/example',
@@ -205,6 +211,11 @@ describe('business schemas', () => {
       businessProfileSubmitSchema,
       { ...validBusiness, websiteUrl: undefined, socialUrl: undefined },
       'websiteUrl',
+    );
+    expectInvalidField(
+      businessProfileSubmitSchema,
+      { ...validBusiness, briefDescription: 'x'.repeat(2001) },
+      'briefDescription',
     );
     expect(businessProfileEditableFieldsSchema.safeParse({}).success).toBe(false);
   });

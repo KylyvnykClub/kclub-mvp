@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowUpRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
-import { getButtonClasses, Spinner } from '@kclub/ui';
+import { Spinner } from '@kclub/ui';
 
 import { parseAuthResponse } from '@/features/auth/utils/api';
+import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 
 type Props = {
   locale: string;
@@ -42,19 +42,15 @@ export function UpgradeToVipButton({ locale: _locale }: Props) {
   };
 
   return (
-    <button
+    <CabinetButton
+      type="button"
       onClick={handleUpgrade}
       disabled={isLoading}
-      className={getButtonClasses({
-        color: 'brand',
-        size: 'md',
-        fullWidth: true,
-        className: 'flex h-14 shrink-0 disabled:cursor-not-allowed disabled:opacity-60',
-      })}
+      fullWidth
+      density="large"
+      iconStart={isLoading ? <Spinner size={13} /> : null}
     >
-      {isLoading ? <Spinner size={13} /> : null}
       {isLoading ? t('vipUpgrading') : t('vipCta')}
-      {!isLoading ? <ArrowUpRight aria-hidden="true" size={18} /> : null}
-    </button>
+    </CabinetButton>
   );
 }

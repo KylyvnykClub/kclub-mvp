@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
@@ -38,7 +38,7 @@ type WizardData = {
 export type BusinessSubmitWizardProps = {
   locale: Locale;
   countryOptions: TaxonomyOption[];
-  cityOptions: CityTaxonomyOption[];
+  cityOptions?: CityTaxonomyOption[];
   categoryOptions: TaxonomyOption[];
 };
 
@@ -47,7 +47,7 @@ const TOTAL_STEPS = 4;
 export function BusinessSubmitWizard({
   locale,
   countryOptions,
-  cityOptions,
+  cityOptions: initialCityOptions = [],
   categoryOptions,
 }: BusinessSubmitWizardProps) {
   const t = useTranslations('member.businessOnboarding');
@@ -69,6 +69,9 @@ export function BusinessSubmitWizard({
     confirmAuthority: false,
     acceptLegal: false,
   });
+  const [cityOptions, setCityOptions] = useState<CityTaxonomyOption[]>(initialCityOptions);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const [cityLoadError, setCityLoadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,6 +93,53 @@ export function BusinessSubmitWizard({
     t('step3Description'),
     t('step4Description'),
   ];
+
+  useEffect(() => {
+    if (!data.countryId) {
+      setCityOptions([]);
+      setCityLoadError(null);
+      setIsLoadingCities(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadCities(): Promise<void> {
+      setIsLoadingCities(true);
+      setCityLoadError(null);
+
+      try {
+        const response = await fetch(
+          `${MEMBER_API_ROUTES.TAXONOMY_CITIES}?countryId=${encodeURIComponent(data.countryId)}`,
+          { signal: controller.signal },
+        );
+        const result = await parseAuthResponse<CityTaxonomyOption[]>(response);
+
+        if (!result.success || !result.data) {
+          setCityOptions([]);
+          setCityLoadError(t('citiesLoadError'));
+          return;
+        }
+
+        setCityOptions(result.data);
+      } catch (fetchError) {
+        if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
+          return;
+        }
+
+        setCityOptions([]);
+        setCityLoadError(t('citiesLoadError'));
+      } finally {
+        setIsLoadingCities(false);
+      }
+    }
+
+    void loadCities();
+
+    return () => {
+      controller.abort();
+    };
+  }, [data.countryId, t]);
 
   const handleNext = (): void => {
     setError(null);
@@ -347,16 +397,19 @@ export function BusinessSubmitWizard({
               required
               value={data.cityId}
               onChange={(e) => set('cityId', e.target.value)}
-              disabled={!data.countryId}
+              disabled={!data.countryId || isLoadingCities}
               className={`${fieldClass} disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              <option value="">{t('selectPlaceholder')}</option>
+              <option value="">
+                {isLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
+              </option>
               {filteredCities.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
               ))}
             </select>
+            {cityLoadError && <FieldError>{cityLoadError}</FieldError>}
           </div>
           <div>
             <label htmlFor="websiteUrl" className={labelClass}>
@@ -391,7 +444,7 @@ export function BusinessSubmitWizard({
             <textarea
               id="briefDescription"
               rows={3}
-              maxLength={500}
+              maxLength={2000}
               placeholder={t('briefDescriptionPlaceholder')}
               value={data.briefDescription}
               onChange={(e) => set('briefDescription', e.target.value)}
