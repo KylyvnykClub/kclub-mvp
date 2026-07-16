@@ -1,14 +1,21 @@
-import { ERROR_CODES } from '@kclub/contracts';
-import type { PhoneOtpSendInput, PhoneOtpVerifyInput } from '@kclub/validation';
+import { ERROR_CODES, type ErrorCode } from '@kclub/contracts';
+import type {
+  MemberPasswordRecoverySendInput,
+  MemberPasswordRecoveryVerifyInput,
+  MemberPasswordSignInInput,
+  MemberSignUpInput,
+  MemberSignUpVerifyInput,
+} from '@kclub/validation';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { eq } from 'drizzle-orm';
 
 import {
+  createDevPhoneBypassUser,
   isDevPhoneBypassEnabled,
   verifyPhoneOtpWithDevBypass,
 } from '@/server/auth/dev-phone-bypass';
-import { AppError } from '@/server/errors';
-import { eq } from 'drizzle-orm';
 import { getDbClient, schema } from '@/server/db';
+import { AppError } from '@/server/errors';
 
 export const AUTH_INTENT = {
   SIGN_IN_EXISTS: 'SIGN_IN_EXISTS',
@@ -20,6 +27,12 @@ export const AUTH_INTENT = {
 
 export type AuthIntent = (typeof AUTH_INTENT)[keyof typeof AUTH_INTENT];
 
+type ExistingMember = {
+  id: string;
+  status: string;
+  supabase_auth_user_id: string | null;
+};
+
 export function determineAuthIntent(
   existingUser: { status: string } | null,
   purpose: 'sign-in' | 'sign-up',
@@ -30,12 +43,8 @@ export function determineAuthIntent(
     return AUTH_INTENT.SIGN_IN_EXISTS;
   }
 
-  if (purpose === 'sign-up') {
-    if (existingUser) return AUTH_INTENT.SIGN_UP_EXISTS;
-    return AUTH_INTENT.SIGN_UP_NEW;
-  }
-
-  return AUTH_INTENT.SIGN_IN_UNKNOWN;
+  if (existingUser) return AUTH_INTENT.SIGN_UP_EXISTS;
+  return AUTH_INTENT.SIGN_UP_NEW;
 }
 
 export function assertIntentAllowed(intent: AuthIntent, purpose: 'sign-in' | 'sign-up'): void {
@@ -64,106 +73,149 @@ export function assertIntentAllowed(intent: AuthIntent, purpose: 'sign-in' | 'si
   }
 }
 
-export async function sendPhoneOtp(
+async function findMemberByPhone(phone: string): Promise<ExistingMember | null> {
+  const db = getDbClient();
+  const user = await db.query.users.findFirst({
+    where: eq(schema.users.phone, phone),
+    columns: { id: true, status: true, supabase_auth_user_id: true },
+  });
+
+  return user ?? null;
+}
+
+function throwSupabaseAuthError(
+  error: { code?: string; message: string },
+  code: ErrorCode,
+  status = 400,
+): never {
+  throw new AppError({
+    code,
+    message: error.message,
+    status,
+    details: { supabaseCode: error.code },
+  });
+}
+
+export async function startMemberSignUp(
   supabase: SupabaseClient,
-  input: PhoneOtpSendInput,
-): Promise<{ phone: string; purpose: string; delivery: string }> {
-  if (input.purpose === 'staff-sign-in') {
+  input: MemberSignUpInput,
+): Promise<{ phone: string; delivery: string }> {
+  const existingUser = await findMemberByPhone(input.phone);
+  assertIntentAllowed(determineAuthIntent(existingUser, 'sign-up'), 'sign-up');
+
+  if (isDevPhoneBypassEnabled()) {
+    await createDevPhoneBypassUser(input.phone, input.password);
+    return { phone: input.phone, delivery: 'dev-bypass' };
+  }
+
+  const { error } = await supabase.auth.signUp({ phone: input.phone, password: input.password });
+  if (error) throwSupabaseAuthError(error, ERROR_CODES.AUTH_OTP_SEND_FAILED);
+
+  return { phone: input.phone, delivery: 'sms' };
+}
+
+export async function verifyMemberSignUp(
+  supabase: SupabaseClient,
+  input: MemberSignUpVerifyInput,
+): Promise<{ supabaseUserId: string }> {
+  const existingUser = await findMemberByPhone(input.phone);
+  assertIntentAllowed(determineAuthIntent(existingUser, 'sign-up'), 'sign-up');
+
+  const { supabaseUserId } = isDevPhoneBypassEnabled()
+    ? await verifyPhoneOtpWithDevBypass(supabase, { ...input, purpose: 'sign-up' })
+    : await verifyPhoneOtpWithSupabase(supabase, input.phone, input.code);
+
+  const db = getDbClient();
+  await db.insert(schema.users).values({
+    supabase_auth_user_id: supabaseUserId,
+    phone: input.phone,
+  });
+
+  return { supabaseUserId };
+}
+
+export async function signInMemberWithPassword(
+  supabase: SupabaseClient,
+  input: MemberPasswordSignInInput,
+): Promise<{ supabaseUserId: string }> {
+  const existingUser = await findMemberByPhone(input.phone);
+  assertIntentAllowed(determineAuthIntent(existingUser, 'sign-in'), 'sign-in');
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    phone: input.phone,
+    password: input.password,
+  });
+  if (error || !data.user) {
+    throwSupabaseAuthError(
+      error ?? { message: 'Invalid phone or password' },
+      ERROR_CODES.AUTH_PASSWORD_INVALID,
+      401,
+    );
+  }
+
+  if (!existingUser?.supabase_auth_user_id || data.user.id !== existingUser.supabase_auth_user_id) {
     throw new AppError({
-      code: ERROR_CODES.VALIDATION_INVALID_INPUT,
-      message: 'Staff sign-in is not supported through this endpoint',
-      status: 400,
+      code: ERROR_CODES.AUTH_SESSION_INVALID,
+      message: 'Authenticated user does not match member account',
+      status: 401,
     });
   }
 
-  const db = getDbClient();
+  return { supabaseUserId: data.user.id };
+}
 
-  const existingUser = await db.query.users.findFirst({
-    where: eq(schema.users.phone, input.phone),
-    columns: { id: true, status: true },
-  });
+export async function startMemberPasswordRecovery(
+  supabase: SupabaseClient,
+  input: MemberPasswordRecoverySendInput,
+): Promise<{ phone: string; delivery: string }> {
+  const existingUser = await findMemberByPhone(input.phone);
+  assertIntentAllowed(determineAuthIntent(existingUser, 'sign-in'), 'sign-in');
 
-  const intent = determineAuthIntent(existingUser ?? null, input.purpose);
-  assertIntentAllowed(intent, input.purpose);
-
-  if (isDevPhoneBypassEnabled()) {
-    return {
-      phone: input.phone,
-      purpose: input.purpose,
-      delivery: 'dev-bypass',
-    };
-  }
+  if (isDevPhoneBypassEnabled()) return { phone: input.phone, delivery: 'dev-bypass' };
 
   const { error } = await supabase.auth.signInWithOtp({
     phone: input.phone,
+    options: { shouldCreateUser: false },
   });
+  if (error) throwSupabaseAuthError(error, ERROR_CODES.AUTH_OTP_SEND_FAILED);
 
-  if (error) {
-    throw new AppError({
-      code: ERROR_CODES.AUTH_OTP_SEND_FAILED,
-      message: error.message,
-      status: 400,
-      details: { supabaseCode: error.code ?? undefined },
-    });
-  }
-
-  return {
-    phone: input.phone,
-    purpose: input.purpose,
-    delivery: 'sms',
-  };
+  return { phone: input.phone, delivery: 'sms' };
 }
 
-export async function verifyPhoneOtp(
+export async function verifyMemberPasswordRecovery(
   supabase: SupabaseClient,
-  input: PhoneOtpVerifyInput,
+  input: MemberPasswordRecoveryVerifyInput,
 ): Promise<{ supabaseUserId: string }> {
-  if (input.purpose === 'staff-sign-in') {
-    throw new AppError({
-      code: ERROR_CODES.VALIDATION_INVALID_INPUT,
-      message: 'Staff sign-in is not supported through this endpoint',
-      status: 400,
-    });
-  }
-
-  const db = getDbClient();
-
-  const existingUser = await db.query.users.findFirst({
-    where: eq(schema.users.phone, input.phone),
-    columns: { id: true, status: true },
-  });
-
-  const intent = determineAuthIntent(existingUser ?? null, input.purpose);
-  assertIntentAllowed(intent, input.purpose);
+  const existingUser = await findMemberByPhone(input.phone);
+  assertIntentAllowed(determineAuthIntent(existingUser, 'sign-in'), 'sign-in');
 
   const { supabaseUserId } = isDevPhoneBypassEnabled()
-    ? await verifyPhoneOtpWithDevBypass(supabase, {
-        phone: input.phone,
-        code: input.code,
-        purpose: input.purpose,
-      })
-    : await verifyPhoneOtpWithSupabase(supabase, input);
+    ? await verifyPhoneOtpWithDevBypass(supabase, { ...input, purpose: 'sign-in' })
+    : await verifyPhoneOtpWithSupabase(supabase, input.phone, input.code);
 
-  if (input.purpose === 'sign-up') {
-    await db.insert(schema.users).values({
-      supabase_auth_user_id: supabaseUserId,
-      phone: input.phone,
+  if (
+    !existingUser?.supabase_auth_user_id ||
+    supabaseUserId !== existingUser.supabase_auth_user_id
+  ) {
+    throw new AppError({
+      code: ERROR_CODES.AUTH_SESSION_INVALID,
+      message: 'Authenticated user does not match member account',
+      status: 401,
     });
   }
+
+  const { error } = await supabase.auth.updateUser({ password: input.password });
+  if (error) throwSupabaseAuthError(error, ERROR_CODES.AUTH_PASSWORD_INVALID);
 
   return { supabaseUserId };
 }
 
 async function verifyPhoneOtpWithSupabase(
   supabase: SupabaseClient,
-  input: PhoneOtpVerifyInput,
+  phone: string,
+  code: string,
 ): Promise<{ supabaseUserId: string }> {
-  const { data, error } = await supabase.auth.verifyOtp({
-    phone: input.phone,
-    token: input.code,
-    type: 'sms',
-  });
-
+  const { data, error } = await supabase.auth.verifyOtp({ phone, token: code, type: 'sms' });
   if (error || !data.user) {
     throw new AppError({
       code: ERROR_CODES.AUTH_OTP_INVALID,
@@ -178,7 +230,6 @@ async function verifyPhoneOtpWithSupabase(
 
 export async function signOutLocal(supabase: SupabaseClient): Promise<void> {
   const { error } = await supabase.auth.signOut({ scope: 'local' });
-
   if (error) {
     throw new AppError({
       code: ERROR_CODES.AUTH_SESSION_REQUIRED,

@@ -82,6 +82,11 @@ describe('centralized constants', () => {
 describe('route contracts', () => {
   test('keeps member and admin route bases stable', () => {
     expect(MEMBER_API_ROUTES.ME).toBe('/api/v1/me');
+    expect(MEMBER_API_ROUTES.AUTH_SIGN_UP).toBe('/api/v1/auth/sign-up');
+    expect(MEMBER_API_ROUTES.AUTH_SIGN_IN).toBe('/api/v1/auth/sign-in');
+    expect(MEMBER_API_ROUTES.AUTH_PASSWORD_RECOVERY_VERIFY).toBe(
+      '/api/v1/auth/password-recovery/verify',
+    );
     expect(ADMIN_API_BASE_PATH).toBe('/api/admin/v1');
     expect(ADMIN_API_ROUTES.STAFF_AUTH_SESSION).toBe('/api/admin/v1/staff-auth/session');
     expect(ADMIN_API_ROUTES.STAFF_AUTH_PASSWORD_REGISTER).toBe(

@@ -205,6 +205,43 @@ export async function establishDevPhoneBypassSession(
   await verifyGeneratedLinkSession(supabase, hashedToken);
 }
 
+export async function createDevPhoneBypassUser(phone: string, password: string): Promise<void> {
+  const admin = createSupabaseServiceClient();
+  const existingUserId = await findSupabaseUserIdByPhone(admin, phone);
+
+  if (existingUserId) {
+    const { error } = await admin.auth.admin.updateUserById(existingUserId, {
+      password,
+      phone_confirm: true,
+    });
+    if (error) {
+      throw new AppError({
+        code: ERROR_CODES.AUTH_OTP_SEND_FAILED,
+        message: error.message,
+        status: 400,
+        details: { supabaseCode: error.code ?? undefined },
+      });
+    }
+    return;
+  }
+
+  const { error } = await admin.auth.admin.createUser({
+    phone,
+    password,
+    phone_confirm: true,
+    email: toDevBypassEmail(phone),
+    email_confirm: true,
+  });
+  if (error) {
+    throw new AppError({
+      code: ERROR_CODES.AUTH_OTP_SEND_FAILED,
+      message: error.message,
+      status: 400,
+      details: { supabaseCode: error.code ?? undefined },
+    });
+  }
+}
+
 export async function verifyPhoneOtpWithDevBypass(
   supabase: SupabaseClient,
   input: {

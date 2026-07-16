@@ -8,8 +8,11 @@ Base path: `/api/v1`
 
 ### Auth
 
-- `POST /auth/phone-otp/send`
-- `POST /auth/phone-otp/verify`
+- `POST /auth/sign-up`
+- `POST /auth/sign-up/verify`
+- `POST /auth/sign-in`
+- `POST /auth/password-recovery`
+- `POST /auth/password-recovery/verify`
 - `POST /auth/logout`
 
 ### Member Profile

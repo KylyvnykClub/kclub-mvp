@@ -365,6 +365,11 @@
       "otpPlaceholder": "123456",
       "submitOtp": "Verify and Continue",
       "backToPhone": "Change phone number",
+      "passwordLabel": "Password",
+      "newPasswordLabel": "New password",
+      "passwordPlaceholder": "At least 6 characters",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "Repeat your password",
       "continueWithPhone": "Continue with phone",
       "privacyNote": "Protected member access. Phone verification keeps your digital club card private.",
       "loading": "Loading...",
@@ -373,6 +378,8 @@
       "errors": {
         "invalidPhone": "Please enter a valid phone number.",
         "invalidOtp": "Invalid verification code.",
+        "invalidPassword": "Invalid phone number or password.",
+        "passwordMismatch": "Passwords do not match.",
         "blocked": "Your account has been blocked.",
         "useSignIn": "This phone number is already registered. Please sign in.",
         "useSignUp": "We couldn't find an account with this phone number. Please sign up.",
@@ -383,12 +390,13 @@
     },
     "signIn": {
       "title": "Sign In",
-      "description": "Welcome back. Enter your phone number to sign in.",
+      "description": "Welcome back. Enter your phone number and password to sign in.",
       "phoneLabel": "Phone Number",
       "phonePlaceholder": "+1 (555) 000-0000",
-      "submit": "Send OTP",
+      "submit": "Sign In",
       "switchPrompt": "Don't have an account?",
-      "switchAction": "Join KCLUB"
+      "switchAction": "Join KCLUB",
+      "forgotPassword": "Set or reset password"
     },
     "signUp": {
       "title": "Join KCLUB",
@@ -396,9 +404,17 @@
       "phoneLabel": "Phone Number",
       "phonePlaceholder": "+1 (555) 000-0000",
       "smsConsentDisclosure": "By continuing, you agree to receive SMS verification codes from KYLYVNYK CLUB for account authentication. Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for help. Consent is not a condition of purchase. See our <privacy>Privacy Policy</privacy> and <terms>Terms of Use</terms>.",
-      "submit": "Send OTP",
+      "submit": "Continue",
       "switchPrompt": "Already have an account?",
       "switchAction": "Sign In"
+    },
+    "passwordRecovery": {
+      "title": "Set or reset password",
+      "description": "Verify your phone number to create a new password.",
+      "phoneLabel": "Phone Number",
+      "phonePlaceholder": "+1 (555) 000-0000",
+      "submit": "Send verification code",
+      "signInAction": "Back to Sign In"
     }
   },
   "member": {

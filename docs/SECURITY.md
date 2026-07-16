@@ -6,7 +6,7 @@ This document captures the security baseline for KCLUB MVP v4.
 
 - Member identities and staff identities are separate.
 - One person may hold both identities, but never through a shared auth session.
-- Member auth uses phone OTP.
+- Member auth uses verified phone numbers plus passwords; SMS OTP is limited to registration and password recovery.
 - Staff auth uses OWNER-approved phone numbers plus staff passwords.
 
 ## Authorization Rules
