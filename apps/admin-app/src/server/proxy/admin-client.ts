@@ -2,6 +2,7 @@ import { readStaffSession } from '@/server/auth/session';
 import type { AdminProxyRequestOptions, AdminProxyResult } from '@/server/proxy/types';
 
 const ADMIN_API_PREFIX = '/api/admin/v1';
+const DEFAULT_ADMIN_API_TIMEOUT_MS = 45_000;
 
 function getProductCoreBaseUrl() {
   return (
@@ -39,7 +40,7 @@ export async function adminApiFetch<T>(
       body: options.body ? JSON.stringify(options.body) : undefined,
       // Fail fast instead of hanging for undici's default 300s headers timeout
       // when product-core (or its database) is stuck.
-      signal: AbortSignal.timeout(options.timeoutMs ?? 15_000),
+      signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_ADMIN_API_TIMEOUT_MS),
     });
   } catch {
     // Product-core is unreachable (connection refused, DNS failure, timeout, ...).

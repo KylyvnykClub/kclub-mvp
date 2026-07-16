@@ -95,6 +95,12 @@ export const staffRoleUpdateSchema = z.object({
   role: z.enum(['OWNER', 'ADMIN', 'MODERATOR']),
 });
 
+export const adminStaffCreateSchema = z.object({
+  phone: phoneSchema,
+  displayName: z.string().trim().min(1).max(100).optional(),
+  role: z.enum(['OWNER', 'ADMIN', 'MODERATOR']),
+});
+
 export const adminUserListSchema = z.object({
   page: pageSchema,
   limit: limitSchema,
@@ -131,6 +137,10 @@ export const staffDeactivateSchema = z.object({
   reason: z.string().min(1).max(500).optional(),
 });
 
+export const staffPasswordResetSchema = z.object({
+  reason: z.string().min(1).max(500).optional(),
+});
+
 export type AdminUserListInput = z.infer<typeof adminUserListSchema>;
 export type AdminCardListInput = z.infer<typeof adminCardListSchema>;
 export type AdminBusinessListInput = z.infer<typeof adminBusinessListSchema>;
@@ -153,8 +163,10 @@ export type CityCreateInput = z.infer<typeof cityCreateSchema>;
 export type CityUpdateInput = z.infer<typeof cityUpdateSchema>;
 export type AdminConfigUpdateInput = z.infer<typeof adminConfigUpdateSchema>;
 export type StaffRoleUpdateInput = z.infer<typeof staffRoleUpdateSchema>;
+export type AdminStaffCreateInput = z.infer<typeof adminStaffCreateSchema>;
 export type AuditLogListInput = z.infer<typeof auditLogListSchema>;
 export type StaffDeactivateInput = z.infer<typeof staffDeactivateSchema>;
+export type StaffPasswordResetInput = z.infer<typeof staffPasswordResetSchema>;
 
 export const adminBusinessUpdateSchema = z.object({
   name: businessNameSchema.optional(),

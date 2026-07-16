@@ -1,6 +1,6 @@
 # Auth Agent Guide
 
-Use this guide for member auth, staff auth, onboarding gates, TOTP, sessions, and route protection.
+Use this guide for member auth, staff auth, onboarding gates, sessions, and route protection.
 
 ## Required Context
 
@@ -22,8 +22,8 @@ Use this guide for member auth, staff auth, onboarding gates, TOTP, sessions, an
 ## Staff Auth Rules
 
 - Staff identities are separate from member identities.
-- Staff auth requires phone OTP plus TOTP.
-- Staff without verified TOTP can access only sign-in and 2FA-required/setup flows.
+- Staff auth requires an OWNER-approved phone number plus a staff password.
+- Staff without an approved active phone cannot register a password or sign in.
 - Staff sessions must use secure, httpOnly cookies.
 - SUPPORT is read-only.
 
@@ -41,7 +41,7 @@ Required for auth changes:
 - intent tests for sign-up vs sign-in
 - onboarding guard tests
 - blocked user tests
-- staff TOTP route-gating tests
+- staff password sign-in and permission-gating tests
 - permission tests for admin API access
 
 ## Auth Handoff

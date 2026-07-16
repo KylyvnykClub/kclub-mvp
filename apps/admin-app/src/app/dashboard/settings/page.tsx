@@ -44,7 +44,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     displayName: profile.name,
     role: profile.role,
     isActive: true,
-    totpVerified: profile.totpVerified,
+    passwordStatus: 'SET',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

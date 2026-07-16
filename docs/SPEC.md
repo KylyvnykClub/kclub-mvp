@@ -154,17 +154,17 @@ Completing onboarding auto-issues one active club card.
 
 ### 6.3 Staff Auth
 
-Staff auth uses phone OTP plus TOTP 2FA.
+Staff auth uses OWNER-approved phone numbers plus staff passwords.
 
 Flow:
 
-1. Staff enters phone.
-2. Staff verifies SMS OTP.
-3. Staff must complete or verify TOTP.
+1. OWNER approves a staff phone number and role in the admin dashboard.
+2. Staff registers a password for the approved phone.
+3. Staff signs in with phone and password.
 4. Admin session is issued as an httpOnly, secure, sameSite=strict cookie.
 5. Session TTL is 8 hours.
 
-Staff without verified TOTP can access only the 2FA setup/required screen.
+Phones that are not approved by an OWNER must not register or sign in.
 
 ## 7. Routes
 
@@ -211,8 +211,8 @@ Admin routes are unlocalized and `robots: noindex, nofollow`.
 
 | Route              | Min role         | Notes                                     |
 | ------------------ | ---------------- | ----------------------------------------- |
-| `/sign-in`         | Public staff     | Phone OTP start                           |
-| `/2fa-required`    | Staff            | TOTP setup/verification                   |
+| `/sign-in`         | Public staff     | Approved phone + password sign-in         |
+| `/auth/register`   | Public staff     | Password registration for approved phones |
 | `/`                | MODERATOR        | Dashboard metrics                         |
 | `/users`           | ADMIN            | Search and block users                    |
 | `/users/[id]`      | ADMIN            | Profile, card, subscriptions, audit trail |

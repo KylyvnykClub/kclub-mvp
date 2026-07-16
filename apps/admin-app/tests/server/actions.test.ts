@@ -25,82 +25,34 @@ describe('auth actions', () => {
     delete process.env.PRODUCT_CORE_API_BASE_URL;
   });
 
-  describe('sendStaffOtpAction', () => {
+  describe('signInStaffAction', () => {
     test('redirects with error when product-core returns failure', async () => {
       globalThis.fetch = mock(async () => ({
         ok: false,
         json: async () => ({
           data: null,
-          error: { code: 'AUTH_STAFF_NOT_ALLOWED', message: 'Phone not in staff allowlist' },
+          error: { code: 'AUTH_PASSWORD_INVALID', message: 'Invalid staff phone or password' },
         }),
       })) as unknown as typeof fetch;
 
-      const { sendStaffOtpAction } = await import('../../src/server/auth/actions');
+      const { signInStaffAction } = await import('../../src/server/auth/actions');
 
       const formData = new FormData();
       formData.set('phone', '+15550000000');
+      formData.set('password', 'WrongPassword123');
 
       try {
-        await sendStaffOtpAction(formData);
+        await signInStaffAction(formData);
       } catch {
         // redirect throws
       }
 
       expect(mockRedirect).toHaveBeenCalledWith(
-        '/auth/sign-in?error=Phone%20not%20in%20staff%20allowlist',
+        '/auth/sign-in?error=Invalid%20staff%20phone%20or%20password',
       );
     });
 
-    test('redirects to sign-in with sent flag on success', async () => {
-      globalThis.fetch = mock(async () => ({
-        ok: true,
-        json: async () => ({
-          data: { state: 'OTP_REQUIRED', phone: '+15551234567' },
-          error: null,
-        }),
-      })) as unknown as typeof fetch;
-
-      const { sendStaffOtpAction } = await import('../../src/server/auth/actions');
-
-      const formData = new FormData();
-      formData.set('phone', '+15551234567');
-
-      try {
-        await sendStaffOtpAction(formData);
-      } catch {
-        // redirect throws
-      }
-
-      expect(mockRedirect).toHaveBeenCalledWith('/auth/sign-in?sent=1&phone=%2B15551234567');
-    });
-  });
-
-  describe('verifyStaffOtpAction', () => {
-    test('redirects with error when OTP is invalid', async () => {
-      globalThis.fetch = mock(async () => ({
-        ok: false,
-        json: async () => ({
-          data: null,
-          error: { code: 'AUTH_OTP_INVALID', message: 'Invalid OTP code' },
-        }),
-      })) as unknown as typeof fetch;
-
-      const { verifyStaffOtpAction } = await import('../../src/server/auth/actions');
-
-      const formData = new FormData();
-      formData.set('phone', '+15551234567');
-      formData.set('code', '000000');
-
-      try {
-        await verifyStaffOtpAction(formData);
-      } catch {
-        // redirect throws
-      }
-
-      expect(mockRedirect).toHaveBeenCalledWith('/auth/sign-in?error=Invalid%20OTP%20code');
-    });
-
-    test('redirects to dashboard when OTP verified and state is AUTHENTICATED', async () => {
+    test('sets session and redirects to dashboard on successful sign-in', async () => {
       globalThis.fetch = mock(async () => ({
         ok: true,
         json: async () => ({
@@ -108,159 +60,77 @@ describe('auth actions', () => {
             state: 'AUTHENTICATED',
             token: 'session-token',
             expiresAt: '2026-12-31T23:59:59.000Z',
-            profile: { id: '1', phone: '+15551234567', role: 'OWNER', totpVerified: true },
+            profile: { id: '1', phone: '+15551234567', role: 'OWNER' },
           },
           error: null,
         }),
       })) as unknown as typeof fetch;
 
-      const { verifyStaffOtpAction } = await import('../../src/server/auth/actions');
+      const { signInStaffAction } = await import('../../src/server/auth/actions');
 
       const formData = new FormData();
       formData.set('phone', '+15551234567');
-      formData.set('code', '000000');
+      formData.set('password', 'OwnerPassword123');
 
       try {
-        await verifyStaffOtpAction(formData);
+        await signInStaffAction(formData);
       } catch {
         // redirect throws
       }
 
+      expect(mockCookieStore.set).toHaveBeenCalledWith(
+        'kclub_staff_session',
+        'session-token',
+        expect.objectContaining({ httpOnly: true }),
+      );
       expect(mockRedirect).toHaveBeenCalledWith('/dashboard');
-    });
-
-    test('redirects to 2fa-required when state is TOTP_REQUIRED', async () => {
-      globalThis.fetch = mock(async () => ({
-        ok: true,
-        json: async () => ({
-          data: {
-            state: 'TOTP_REQUIRED',
-            token: 'pre-totp-token',
-            expiresAt: '2026-12-31T23:59:59.000Z',
-            profile: { id: '1', phone: '+15551234567', role: 'OWNER', totpVerified: false },
-          },
-          error: null,
-        }),
-      })) as unknown as typeof fetch;
-
-      const { verifyStaffOtpAction } = await import('../../src/server/auth/actions');
-
-      const formData = new FormData();
-      formData.set('phone', '+15551234567');
-      formData.set('code', '000000');
-
-      try {
-        await verifyStaffOtpAction(formData);
-      } catch {
-        // redirect throws
-      }
-
-      expect(mockRedirect).toHaveBeenCalledWith('/auth/2fa-required');
-    });
-
-    test('redirects to /auth/totp-setup when state is TOTP_SETUP_REQUIRED', async () => {
-      globalThis.fetch = mock(async () => ({
-        ok: true,
-        json: async () => ({
-          data: {
-            state: 'TOTP_SETUP_REQUIRED',
-            token: 'pre-totp-token',
-            expiresAt: '2026-12-31T23:59:59.000Z',
-            profile: { id: '1', phone: '+15551234567', role: 'OWNER', totpVerified: false },
-          },
-          error: null,
-        }),
-      })) as unknown as typeof fetch;
-
-      const { verifyStaffOtpAction } = await import('../../src/server/auth/actions');
-
-      const formData = new FormData();
-      formData.set('phone', '+15551234567');
-      formData.set('code', '000000');
-
-      try {
-        await verifyStaffOtpAction(formData);
-      } catch {
-        // redirect throws
-      }
-
-      expect(mockRedirect).toHaveBeenCalledWith('/auth/totp-setup');
     });
   });
 
-  describe('verifyStaffTotpAction', () => {
-    test('redirects to sign-in when no session exists', async () => {
-      const { verifyStaffTotpAction } = await import('../../src/server/auth/actions');
-
-      const formData = new FormData();
-      formData.set('code', '123456');
-
-      try {
-        await verifyStaffTotpAction(formData);
-      } catch {
-        // redirect throws
-      }
-
-      expect(mockRedirect).toHaveBeenCalledWith('/auth/sign-in');
-    });
-
-    test('redirects with error when TOTP is invalid', async () => {
-      mockCookieStore.get.mockImplementation((name: string) =>
-        name === 'kclub_staff_session' ? { value: 'pre-totp-token' } : undefined,
-      );
-
+  describe('registerStaffPasswordAction', () => {
+    test('redirects with error when registration fails', async () => {
       globalThis.fetch = mock(async () => ({
         ok: false,
         json: async () => ({
           data: null,
-          error: { code: 'AUTH_OTP_INVALID', message: 'Invalid TOTP code' },
+          error: { code: 'AUTH_STAFF_NOT_ALLOWED', message: 'Phone not approved' },
         }),
       })) as unknown as typeof fetch;
 
-      const { verifyStaffTotpAction } = await import('../../src/server/auth/actions');
+      const { registerStaffPasswordAction } = await import('../../src/server/auth/actions');
 
       const formData = new FormData();
-      formData.set('code', '000000');
+      formData.set('phone', '+15550000000');
+      formData.set('password', 'OwnerPassword123');
 
       try {
-        await verifyStaffTotpAction(formData);
+        await registerStaffPasswordAction(formData);
       } catch {
         // redirect throws
       }
 
-      expect(mockRedirect).toHaveBeenCalledWith('/auth/2fa-required?error=Invalid%20TOTP%20code');
+      expect(mockRedirect).toHaveBeenCalledWith('/auth/register?error=Phone%20not%20approved');
     });
 
-    test('redirects to dashboard on successful TOTP verification', async () => {
-      mockCookieStore.get.mockImplementation((name: string) =>
-        name === 'kclub_staff_session' ? { value: 'pre-totp-token' } : undefined,
-      );
-
+    test('redirects to sign-in when password registration succeeds', async () => {
       globalThis.fetch = mock(async () => ({
         ok: true,
-        json: async () => ({
-          data: {
-            state: 'AUTHENTICATED',
-            token: 'verified-token',
-            expiresAt: '2026-12-31T23:59:59.000Z',
-            profile: { id: '1', phone: '+15551234567', role: 'OWNER', totpVerified: true },
-          },
-          error: null,
-        }),
+        json: async () => ({ data: { registered: true }, error: null }),
       })) as unknown as typeof fetch;
 
-      const { verifyStaffTotpAction } = await import('../../src/server/auth/actions');
+      const { registerStaffPasswordAction } = await import('../../src/server/auth/actions');
 
       const formData = new FormData();
-      formData.set('code', '123456');
+      formData.set('phone', '+15551234567');
+      formData.set('password', 'OwnerPassword123');
 
       try {
-        await verifyStaffTotpAction(formData);
+        await registerStaffPasswordAction(formData);
       } catch {
         // redirect throws
       }
 
-      expect(mockRedirect).toHaveBeenCalledWith('/dashboard');
+      expect(mockRedirect).toHaveBeenCalledWith('/auth/sign-in?registered=1&phone=%2B15551234567');
     });
   });
 

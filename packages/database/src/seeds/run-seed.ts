@@ -7,6 +7,7 @@ import {
   CONFIG_SEED_PLAN,
   COUNTRY_SEED_PLAN,
 } from './seed-plan.js';
+import { hashSeedPassword } from './password.js';
 
 const DEMO_BUSINESSES = [
   {
@@ -281,6 +282,13 @@ async function seedBootstrapOwner(db: ReturnType<typeof getDbClient>): Promise<v
     return;
   }
 
+  const ownerPassword = process.env[ADMIN_BOOTSTRAP_PLAN.ownerPasswordEnv];
+  if (!ownerPassword) {
+    console.log(
+      'Admin owner seed will not set a password: ADMIN_BOOTSTRAP_OWNER_PASSWORD is not set',
+    );
+  }
+
   const phone = normalizePhone(ownerPhone);
   const existing = await db
     .select()
@@ -288,12 +296,21 @@ async function seedBootstrapOwner(db: ReturnType<typeof getDbClient>): Promise<v
     .where(eq(schema.adminUsers.phone, phone))
     .limit(1);
   if (existing.length > 0) {
+    const passwordPatch =
+      ownerPassword && !existing[0].password_hash
+        ? {
+            password_hash: await hashSeedPassword(ownerPassword),
+            password_set_at: new Date(),
+          }
+        : {};
+
     await db
       .update(schema.adminUsers)
       .set({
         role: 'OWNER',
         display_name: 'Bootstrap Owner',
         is_active: true,
+        ...passwordPatch,
       })
       .where(eq(schema.adminUsers.phone, phone));
   } else {
@@ -302,6 +319,12 @@ async function seedBootstrapOwner(db: ReturnType<typeof getDbClient>): Promise<v
       role: 'OWNER',
       display_name: 'Bootstrap Owner',
       is_active: true,
+      ...(ownerPassword
+        ? {
+            password_hash: await hashSeedPassword(ownerPassword),
+            password_set_at: new Date(),
+          }
+        : {}),
     });
   }
 }

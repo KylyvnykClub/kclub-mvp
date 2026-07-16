@@ -42,17 +42,6 @@ export async function authenticateStaff(request: Request): Promise<Authenticated
     });
   }
 
-  if (!profile.totpVerified) {
-    const log = createLogger();
-    log.auth('Admin auth failed: TOTP not verified', { staffId: profile.id });
-
-    throw new AppError({
-      code: ERROR_CODES.AUTH_STAFF_2FA_REQUIRED,
-      message: 'TOTP verification is required for admin access',
-      status: 401,
-    });
-  }
-
   return { profile, token };
 }
 

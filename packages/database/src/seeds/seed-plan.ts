@@ -87,8 +87,9 @@ export const CATEGORY_SEED_PLAN: readonly CategorySeedPlan[] = [
 export const ADMIN_BOOTSTRAP_PLAN = {
   ownerAccountRequired: true,
   ownerPhoneEnv: 'ADMIN_BOOTSTRAP_OWNER_PHONE',
+  ownerPasswordEnv: 'ADMIN_BOOTSTRAP_OWNER_PASSWORD',
   optionalStagingRoles: ['ADMIN', 'MODERATOR'] as const,
-  note: 'Seed or provision the initial OWNER from ADMIN_BOOTSTRAP_OWNER_PHONE, then manage staff roles through OWNER-only admin UI.',
+  note: 'Seed or provision the initial OWNER from ADMIN_BOOTSTRAP_OWNER_PHONE and ADMIN_BOOTSTRAP_OWNER_PASSWORD, then manage staff roles through OWNER-only admin UI.',
 } as const;
 
 export const CONFIG_SEED_PLAN = {

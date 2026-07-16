@@ -17,6 +17,11 @@ export const totpCodeSchema = z
   .trim()
   .regex(/^\d{6}$/, 'TOTP code must contain 6 digits');
 
+export const passwordSchema = z
+  .string()
+  .min(10, 'Password must contain at least 10 characters')
+  .max(128, 'Password must contain at most 128 characters');
+
 export const localeSchema = z.enum(LOCALES, {
   errorMap: () => ({ message: 'Locale must be en, ru, or uk' }),
 });

@@ -26,8 +26,7 @@ This document defines the environment contract for KCLUB MVP v4. Never commit re
 | `EMAIL_PROVIDER_API_KEY`             | Optional/likely yes | server only | Transactional email provider key                                                                                               |
 | `EMAIL_FROM_ADDRESS`                 | Optional/likely yes | server only | Sender for product emails                                                                                                      |
 | `ADMIN_BOOTSTRAP_OWNER_PHONE`        | Yes at bootstrap    | server only | First OWNER staff phone until OWNER can manage staff accounts                                                                  |
-| `ADMIN_STAFF_DEV_OTP`                | Dev only            | server only | Local placeholder staff OTP code before SMS integration                                                                        |
-| `ADMIN_STAFF_DEV_TOTP`               | Dev only            | server only | Local placeholder staff TOTP code before real TOTP storage                                                                     |
+| `ADMIN_BOOTSTRAP_OWNER_PASSWORD`     | Yes at bootstrap    | server only | Initial OWNER password used by seed when the bootstrap OWNER has no password yet                                               |
 | `AUTH_DEV_PHONE_BYPASS_ENABLED`      | Dev only            | server only | Enables member phone OTP bypass without SMS/Twilio                                                                             |
 | `AUTH_DEV_PHONE_BYPASS_SECRET`       | Dev only            | server only | Required acknowledgment when bypass is enabled locally; if set to 4–8 digits, also used as the dev OTP code (default `000000`) |
 | `LOG_LEVEL`                          | Optional            | all         | Logging verbosity                                                                                                              |
@@ -39,7 +38,6 @@ This document defines the environment contract for KCLUB MVP v4. Never commit re
 | `NEXT_PUBLIC_ADMIN_APP_URL`     | Yes      | all         | Admin app base URL                                                 |
 | `PRODUCT_CORE_API_BASE_URL`     | Yes      | server only | Product-core base URL for staff auth validation and admin proxy    |
 | `ADMIN_JWT_SECRET`              | Yes      | server only | Staff session signing secret shared with product-core token issuer |
-| `TOTP_ENCRYPTION_KEY`           | Yes      | server only | Protects stored TOTP secrets or encrypted material                 |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Optional | all         | Needed only if admin-app uses Supabase client directly             |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | all         | Same note as above                                                 |
 | `LOG_LEVEL`                     | Optional | all         | Logging verbosity                                                  |

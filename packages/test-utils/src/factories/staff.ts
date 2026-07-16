@@ -1,4 +1,4 @@
-import type { StaffRole } from '@kclub/contracts';
+import type { StaffPasswordStatus, StaffRole } from '@kclub/contracts';
 
 import {
   makeEntityId,
@@ -15,7 +15,7 @@ export type TestStaffUser = {
   role: StaffRole;
   displayName: string | null;
   isActive: boolean;
-  totpVerifiedAt: string | null;
+  passwordStatus: StaffPasswordStatus;
   createdAt: string;
   updatedAt: string;
 };
@@ -31,7 +31,7 @@ export function createStaffUser(overrides?: FactoryOverrides<TestStaffUser>): Te
       role: 'MODERATOR',
       displayName: `Staff ${sequence}`,
       isActive: true,
-      totpVerifiedAt: createdAt,
+      passwordStatus: 'SET',
       createdAt,
       updatedAt: createdAt,
     },

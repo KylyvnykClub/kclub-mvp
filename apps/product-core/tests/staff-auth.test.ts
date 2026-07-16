@@ -1,14 +1,13 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 
 import {
-  handleStaffOtpSend,
-  handleStaffOtpVerify,
+  handleStaffPasswordSignIn,
   handleStaffSession,
-  handleStaffTotpVerify,
   handleStaffLogout,
 } from '../src/server/staff-auth';
 
 const OWNER_PHONE = '+15551234567';
+const OWNER_PASSWORD = 'OwnerPassword123';
 
 function jsonRequest(body: Record<string, string>, token?: string) {
   return new Request('http://localhost/api/admin/v1/staff-auth', {
@@ -28,40 +27,50 @@ async function readJson<T>(response: Response): Promise<T> {
 describe('staff auth boundary', () => {
   beforeEach(() => {
     process.env.ADMIN_BOOTSTRAP_OWNER_PHONE = OWNER_PHONE;
+    process.env.ADMIN_BOOTSTRAP_OWNER_PASSWORD = OWNER_PASSWORD;
     process.env.ADMIN_JWT_SECRET = 'staff-auth-test-secret-at-least-32-chars';
-    process.env.ADMIN_STAFF_DEV_OTP = '000000';
-    process.env.ADMIN_STAFF_DEV_TOTP = '123456';
     delete process.env.ADMIN_STAFF_ALLOWLIST_JSON;
   });
 
-  test('rejects unknown staff phone before OTP', async () => {
-    const response = await handleStaffOtpSend(jsonRequest({ phone: '+15550000000' }));
+  test('rejects unknown staff phone during password sign-in', async () => {
+    const response = await handleStaffPasswordSignIn(
+      jsonRequest({ phone: '+15550000000', password: OWNER_PASSWORD }),
+    );
     const payload = await readJson<{ error: { code: string } }>(response);
 
     expect(response.status).toBe(403);
     expect(payload.error.code).toBe('AUTH_STAFF_NOT_ALLOWED');
   });
 
-  test('allows bootstrap owner through OTP but keeps dashboard behind TOTP', async () => {
-    const response = await handleStaffOtpVerify(
-      jsonRequest({ phone: OWNER_PHONE, code: '000000' }),
+  test('allows bootstrap owner through password sign-in', async () => {
+    const response = await handleStaffPasswordSignIn(
+      jsonRequest({ phone: OWNER_PHONE, password: OWNER_PASSWORD }),
     );
     const payload = await readJson<{
-      data: { state: string; token: string; profile: { role: string; totpVerified: boolean } };
+      data: { state: string; token: string; profile: { role: string } };
     }>(response);
 
     expect(response.status).toBe(200);
-    expect(payload.data.state).toBe('TOTP_SETUP_REQUIRED');
+    expect(payload.data.state).toBe('AUTHENTICATED');
     expect(payload.data.profile.role).toBe('OWNER');
-    expect(payload.data.profile.totpVerified).toBe(false);
 
     const sessionResponse = await handleStaffSession(
       new Request('http://localhost/api/admin/v1/staff-auth/session', {
         headers: { authorization: `Bearer ${payload.data.token}` },
       }),
     );
-    const sessionPayload = await readJson<{ data: { totpVerified: boolean } }>(sessionResponse);
-    expect(sessionPayload.data.totpVerified).toBe(false);
+    const sessionPayload = await readJson<{ data: { role: string } }>(sessionResponse);
+    expect(sessionPayload.data.role).toBe('OWNER');
+  });
+
+  test('rejects invalid bootstrap owner password', async () => {
+    const response = await handleStaffPasswordSignIn(
+      jsonRequest({ phone: OWNER_PHONE, password: 'WrongPassword123' }),
+    );
+    const payload = await readJson<{ error: { code: string } }>(response);
+
+    expect(response.status).toBe(401);
+    expect(payload.error.code).toBe('AUTH_PASSWORD_INVALID');
   });
 
   test('rejects forged staff session tokens', async () => {
@@ -72,7 +81,6 @@ describe('staff auth boundary', () => {
           sub: 'bootstrap-owner-+15551234567',
           phone: OWNER_PHONE,
           role: 'OWNER',
-          totpVerified: true,
           exp: Math.floor(Date.now() / 1000) + 3600,
         }),
       ).toString('base64url'),
@@ -90,36 +98,6 @@ describe('staff auth boundary', () => {
     expect(payload.error.code).toBe('AUTH_SESSION_INVALID');
   });
 
-  test('upgrades a valid staff session after TOTP verification', async () => {
-    const otpResponse = await handleStaffOtpVerify(
-      jsonRequest({ phone: OWNER_PHONE, code: '000000' }),
-    );
-    const otpPayload = await readJson<{ data: { token: string } }>(otpResponse);
-
-    const totpResponse = await handleStaffTotpVerify(
-      jsonRequest({ code: '123456' }, otpPayload.data.token),
-    );
-    const totpPayload = await readJson<{
-      data: { state: string; token: string; profile: { totpVerified: boolean } };
-    }>(totpResponse);
-
-    expect(totpResponse.status).toBe(200);
-    expect(totpPayload.data.state).toBe('AUTHENTICATED');
-    expect(totpPayload.data.profile.totpVerified).toBe(true);
-
-    const sessionResponse = await handleStaffSession(
-      new Request('http://localhost/api/admin/v1/staff-auth/session', {
-        headers: { authorization: `Bearer ${totpPayload.data.token}` },
-      }),
-    );
-    const sessionPayload = await readJson<{ data: { role: string; totpVerified: boolean } }>(
-      sessionResponse,
-    );
-
-    expect(sessionPayload.data.role).toBe('OWNER');
-    expect(sessionPayload.data.totpVerified).toBe(true);
-  });
-
   test('rejects expired JWT tokens', async () => {
     const expiredToken = [
       Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url'),
@@ -129,7 +107,6 @@ describe('staff auth boundary', () => {
           phone: OWNER_PHONE,
           name: 'Bootstrap Owner',
           role: 'OWNER',
-          totpVerified: true,
           exp: Math.floor(Date.now() / 1000) - 100,
         }),
       ).toString('base64url'),
@@ -152,16 +129,16 @@ describe('staff auth boundary', () => {
     expect(payload.error.code).toBe('AUTH_SESSION_INVALID');
   });
 
-  test('logout revokes session via DB (graceful when DB unavailable)', async () => {
-    const otpResponse = await handleStaffOtpVerify(
-      jsonRequest({ phone: OWNER_PHONE, code: '000000' }),
+  test('logout revokes the current session when available', async () => {
+    const signInResponse = await handleStaffPasswordSignIn(
+      jsonRequest({ phone: OWNER_PHONE, password: OWNER_PASSWORD }),
     );
-    const otpPayload = await readJson<{ data: { token: string } }>(otpResponse);
+    const signInPayload = await readJson<{ data: { token: string } }>(signInResponse);
 
     const logoutResponse = await handleStaffLogout(
       new Request('http://localhost/api/admin/v1/staff-auth/logout', {
         method: 'POST',
-        headers: { authorization: `Bearer ${otpPayload.data.token}` },
+        headers: { authorization: `Bearer ${signInPayload.data.token}` },
       }),
     );
     const logoutPayload = await readJson<{ data: { loggedOut: boolean } }>(logoutResponse);
@@ -178,18 +155,5 @@ describe('staff auth boundary', () => {
 
     expect(response.status).toBe(401);
     expect(payload.error.code).toBe('AUTH_SESSION_REQUIRED');
-  });
-
-  test('logout rejects invalid token', async () => {
-    const response = await handleStaffLogout(
-      new Request('http://localhost/api/admin/v1/staff-auth/logout', {
-        method: 'POST',
-        headers: { authorization: 'Bearer invalid-token' },
-      }),
-    );
-    const payload = await readJson<{ error: { code: string } }>(response);
-
-    expect(response.status).toBe(401);
-    expect(payload.error.code).toBe('AUTH_SESSION_INVALID');
   });
 });

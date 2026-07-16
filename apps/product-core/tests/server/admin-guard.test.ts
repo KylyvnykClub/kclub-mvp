@@ -16,7 +16,6 @@ describe('requireStaffPermission', () => {
       phone: '+15551234567',
       displayName: 'Moderator',
       role: 'MODERATOR',
-      totpVerified: true,
     };
 
     expect(() => requireStaffPermission(moderatorProfile, STAFF_PERMISSIONS.USERS_BLOCK)).toThrow();
@@ -38,7 +37,6 @@ describe('requireStaffPermission', () => {
       phone: '+15559876543',
       displayName: 'Admin User',
       role: 'ADMIN',
-      totpVerified: true,
     };
 
     expect(() => requireStaffPermission(adminProfile, STAFF_PERMISSIONS.USERS_READ)).not.toThrow();
@@ -62,7 +60,6 @@ describe('requireStaffPermission', () => {
       phone: '+15551111111',
       displayName: 'Owner',
       role: 'OWNER',
-      totpVerified: true,
     };
 
     expect(() =>
@@ -83,7 +80,6 @@ describe('enrichStaffContext', () => {
       phone: '+15559876543',
       displayName: 'Admin',
       role: 'ADMIN',
-      totpVerified: true,
     };
 
     const request = new Request('http://localhost/api/admin/v1/users');
@@ -129,7 +125,12 @@ describe('ADMIN_API_ROUTES contract stability', () => {
     expect(ADMIN_API_ROUTES.ADMIN_CONFIG).toBe('/api/admin/v1/admin-config/:key');
     expect(ADMIN_API_ROUTES.STAFF).toBe('/api/admin/v1/staff');
     expect(ADMIN_API_ROUTES.AUDIT).toBe('/api/admin/v1/audit');
-    expect(ADMIN_API_ROUTES.STAFF_AUTH_TOTP_SETUP).toBe('/api/admin/v1/staff-auth/totp/setup');
+    expect(ADMIN_API_ROUTES.STAFF_AUTH_PASSWORD_REGISTER).toBe(
+      '/api/admin/v1/staff-auth/password/register',
+    );
+    expect(ADMIN_API_ROUTES.STAFF_AUTH_PASSWORD_SIGN_IN).toBe(
+      '/api/admin/v1/staff-auth/password/sign-in',
+    );
     expect(ADMIN_API_ROUTES.STAFF_AUTH_LOGOUT).toBe('/api/admin/v1/staff-auth/logout');
   });
 });
