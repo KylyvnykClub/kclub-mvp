@@ -157,37 +157,37 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
 
   const [recentUsersResult, recentBusinessesResult, recentIntroductionsResult] =
     await Promise.allSettled([
-    db
-      .select({
-        displayName: schema.users.display_name,
-        phone: schema.users.phone,
-        createdAt: schema.users.created_at,
-      })
-      .from(schema.users)
-      .orderBy(desc(schema.users.created_at))
-      .limit(10),
-    db
-      .select({
-        name: schema.businessProfiles.name,
-        createdAt: schema.businessProfiles.created_at,
-      })
-      .from(schema.businessProfiles)
-      .orderBy(desc(schema.businessProfiles.created_at))
-      .limit(10),
-    db
-      .select({
-        clientName: schema.businessIntroductions.client_name,
-        targetName: schema.businessProfiles.name,
-        createdAt: schema.businessIntroductions.created_at,
-      })
-      .from(schema.businessIntroductions)
-      .innerJoin(
-        schema.businessProfiles,
-        eq(schema.businessIntroductions.target_business_id, schema.businessProfiles.id),
-      )
-      .orderBy(desc(schema.businessIntroductions.created_at))
-      .limit(10),
-  ]);
+      db
+        .select({
+          displayName: schema.users.display_name,
+          phone: schema.users.phone,
+          createdAt: schema.users.created_at,
+        })
+        .from(schema.users)
+        .orderBy(desc(schema.users.created_at))
+        .limit(10),
+      db
+        .select({
+          name: schema.businessProfiles.name,
+          createdAt: schema.businessProfiles.created_at,
+        })
+        .from(schema.businessProfiles)
+        .orderBy(desc(schema.businessProfiles.created_at))
+        .limit(10),
+      db
+        .select({
+          clientName: schema.businessIntroductions.client_name,
+          targetName: schema.businessProfiles.name,
+          createdAt: schema.businessIntroductions.created_at,
+        })
+        .from(schema.businessIntroductions)
+        .innerJoin(
+          schema.businessProfiles,
+          eq(schema.businessIntroductions.target_business_id, schema.businessProfiles.id),
+        )
+        .orderBy(desc(schema.businessIntroductions.created_at))
+        .limit(10),
+    ]);
 
   const totalUsers = numberOrZero(countResults[0]);
   const blockedUsers = numberOrZero(countResults[1]);

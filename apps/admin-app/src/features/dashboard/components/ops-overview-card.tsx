@@ -54,11 +54,7 @@ export function OpsOverviewCard({ data }: { data: DashboardMetricsDto }) {
             detail={`${data.activeUsers} active / ${data.blockedUsers} blocked`}
             href="/dashboard/users"
           />
-          <OpsRow
-            label="New users (7d)"
-            value={data.newUsers7d ?? 0}
-            href="/dashboard/users"
-          />
+          <OpsRow label="New users (7d)" value={data.newUsers7d ?? 0} href="/dashboard/users" />
           <OpsRow
             label="Businesses under review"
             value={data.businessesUnderReview}
