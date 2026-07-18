@@ -5,6 +5,5 @@
   "printWidth": 100,
   "tabWidth": 2,
   "endOfLine": "lf",
-  "tailwindStylesheet": "./node_modules/tailwindcss/theme.css",
   "plugins": ["prettier-plugin-tailwindcss"]
 }
