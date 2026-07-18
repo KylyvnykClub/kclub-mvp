@@ -1,55 +1,55 @@
 // TODO(drizzle-migration): suites below mock '@/server/db' with the removed Prisma client API
 // (getPrismaClient). Rewrite the mocks against getDbClient/schema (Drizzle) and re-enable.
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 function createMockPrisma() {
   return {
     memberCard: {
-      updateMany: mock(() => Promise.resolve({ count: 2 })),
+      updateMany: vi.fn(() => Promise.resolve({ count: 2 })),
     },
     vipSubscription: {
-      updateMany: mock(() => Promise.resolve({ count: 1 })),
-      findMany: mock(() =>
+      updateMany: vi.fn(() => Promise.resolve({ count: 1 })),
+      findMany: vi.fn(() =>
         Promise.resolve([{ user_id: 'user-expired-1' }, { user_id: 'user-expired-2' }]),
       ),
     },
     businessProfile: {
-      findMany: mock(() =>
+      findMany: vi.fn(() =>
         Promise.resolve([
           { id: 'bus-1', status: 'PUBLISHED', user_id: 'user-expired-1' },
           { id: 'bus-2', status: 'PUBLISHED', user_id: 'user-expired-2' },
         ]),
       ),
-      updateMany: mock(() => Promise.resolve({ count: 2 })),
+      updateMany: vi.fn(() => Promise.resolve({ count: 2 })),
     },
     stripeWebhookEvent: {
-      deleteMany: mock(() => Promise.resolve({ count: 5 })),
+      deleteMany: vi.fn(() => Promise.resolve({ count: 5 })),
     },
-    $transaction: mock((fn: any) => fn(createMockTx())),
+    $transaction: vi.fn((fn: any) => fn(createMockTx())),
   };
 }
 
 function createMockTx() {
   return {
     businessProfile: {
-      updateMany: mock(() => Promise.resolve({ count: 2 })),
+      updateMany: vi.fn(() => Promise.resolve({ count: 2 })),
     },
   };
 }
 
 let mockPrisma: ReturnType<typeof createMockPrisma>;
 
-mock.module('@/server/db', () => ({
+vi.mock('@/server/db', () => ({
   getPrismaClient: () => mockPrisma,
 }));
 
-mock.module('@/server/audit', () => ({
+vi.mock('@/server/audit', () => ({
   createDbAuditService: () => ({
-    log: mock(() => Promise.resolve({ id: 'audit-1' })),
+    log: vi.fn(() => Promise.resolve({ id: 'audit-1' })),
   }),
 }));
 
-mock.module('@/server/context', () => ({
+vi.mock('@/server/context', () => ({
   createRequestContext: () => ({
     actor: { kind: 'system' },
     ipAddress: null,

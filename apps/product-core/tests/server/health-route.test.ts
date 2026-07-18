@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 import { GET } from '../../src/app/api/health/route';
 
@@ -13,6 +13,6 @@ describe('health route', () => {
     expect(body.data).toHaveProperty('dependencies');
     expect(body.data.dependencies).toHaveProperty('database');
     expect(body.error).toBeNull();
-    expect(body.meta.timestamp).toBeString();
+    expect(body.meta.timestamp).toBeTypeOf('string');
   });
 });

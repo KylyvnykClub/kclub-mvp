@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { adminApiFetch } from '../../src/server/proxy/admin-client';
 import { mockCookieStore, resetMockCookieStore } from '../test-helpers/mock-cookies';
@@ -29,7 +29,7 @@ describe('admin-client', () => {
       json: () => Promise.resolve({ data: { id: '123' } }),
     };
 
-    globalThis.fetch = mock(() => Promise.resolve(mockResponse)) as any;
+    globalThis.fetch = vi.fn(() => Promise.resolve(mockResponse)) as any;
 
     const result = await adminApiFetch('/test');
 
@@ -51,7 +51,7 @@ describe('admin-client', () => {
       name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
     );
 
-    globalThis.fetch = mock(() => Promise.reject(new TypeError('fetch failed'))) as any;
+    globalThis.fetch = vi.fn(() => Promise.reject(new TypeError('fetch failed'))) as any;
 
     const result = await adminApiFetch('/test');
 
@@ -71,7 +71,7 @@ describe('admin-client', () => {
       json: () => Promise.reject(new SyntaxError('Unexpected token')),
     };
 
-    globalThis.fetch = mock(() => Promise.resolve(mockResponse)) as any;
+    globalThis.fetch = vi.fn(() => Promise.resolve(mockResponse)) as any;
 
     const result = await adminApiFetch('/test');
 
@@ -91,7 +91,7 @@ describe('admin-client', () => {
       json: () => Promise.resolve({ error: { code: 'PERMISSION_DENIED' } }),
     };
 
-    globalThis.fetch = mock(() => Promise.resolve(mockResponse)) as any;
+    globalThis.fetch = vi.fn(() => Promise.resolve(mockResponse)) as any;
 
     const result = await adminApiFetch('/test');
 

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 import { locales, defaultLocale, isLocale, stripLocalePrefix } from '@/i18n/routing';
 

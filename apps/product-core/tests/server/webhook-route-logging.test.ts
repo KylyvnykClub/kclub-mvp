@@ -1,25 +1,25 @@
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
-const mockLogError = mock();
-const mockLogWebhook = mock();
+const mockLogError = vi.fn();
+const mockLogWebhook = vi.fn();
 
-mock.module('@/server/logger', () => ({
+vi.mock('@/server/logger', () => ({
   createLogger: () => ({
-    info: mock(),
-    warn: mock(),
+    info: vi.fn(),
+    warn: vi.fn(),
     error: mockLogError,
-    debug: mock(),
-    auth: mock(),
+    debug: vi.fn(),
+    auth: vi.fn(),
     webhook: mockLogWebhook,
-    cron: mock(),
-    admin: mock(),
+    cron: vi.fn(),
+    admin: vi.fn(),
   }),
 }));
 
-mock.module('@/server/stripe/client', () => ({
+vi.mock('@/server/stripe/client', () => ({
   getStripeClient: () => ({
     webhooks: {
-      constructEvent: mock(() => ({
+      constructEvent: vi.fn(() => ({
         id: 'evt_test_123',
         type: 'customer.subscription.updated',
       })),
@@ -27,20 +27,16 @@ mock.module('@/server/stripe/client', () => ({
   }),
 }));
 
-mock.module('@/server/stripe/env', () => ({
+vi.mock('@/server/stripe/env', () => ({
   readStripeEnv: () => ({ STRIPE_WEBHOOK_SECRET: 'whsec_test' }),
 }));
 
-const mockProcessStripeEvent = mock(async () => {});
+const mockProcessStripeEvent = vi.fn(async () => {});
 
-// mock.module leaks across test files in the same bun process; spread the real
-// module so other suites importing named exports keep seeing them
-const realWebhookService = await import('../../src/server/services/webhook-service');
-
-mock.module('@/server/services/webhook-service', () => ({
-  ...realWebhookService,
-  processStripeEvent: mockProcessStripeEvent,
-}));
+vi.mock('@/server/services/webhook-service', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/server/services/webhook-service')>();
+  return { ...actual, processStripeEvent: mockProcessStripeEvent };
+});
 
 const { POST } = await import('../../src/app/api/stripe/webhook/route');
 

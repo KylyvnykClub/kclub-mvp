@@ -1,17 +1,17 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-const replace = mock();
-const refresh = mock();
+const replace = vi.fn();
+const refresh = vi.fn();
 
-mock.module('next/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     replace,
     refresh,
   }),
 }));
 
-mock.module('next-intl', () => ({
+vi.mock('next-intl', () => ({
   useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
 }));
 
@@ -19,7 +19,7 @@ import { OnboardingForm } from '@/features/member/components/OnboardingForm';
 import { SkipOnboardingButton } from '@/features/member/components/SkipOnboardingButton';
 import type { CurrentMemberProfileDto } from '@kclub/contracts';
 
-const mockFetch = mock();
+const mockFetch = vi.fn();
 globalThis.fetch = mockFetch as unknown as typeof fetch;
 
 const incompleteProfile: CurrentMemberProfileDto = {

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import Stripe from 'stripe';
 
 import { ERROR_CODES } from '@kclub/contracts';

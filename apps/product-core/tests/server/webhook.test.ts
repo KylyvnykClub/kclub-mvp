@@ -1,13 +1,13 @@
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
-const mockStripeConstructEvent = mock(() => {
+const mockStripeConstructEvent = vi.fn(() => {
   throw new Error('Unmocked');
 });
 
 // mock.module leaks across test files in the same bun process; mock the
 // app-level facade (matching webhook-route*.test.ts) instead of the raw
 // 'stripe' package, so stripe-errors.test.ts still sees the real SDK.
-mock.module('@/server/stripe/client', () => ({
+vi.mock('@/server/stripe/client', () => ({
   getStripeClient: () => ({
     webhooks: {
       constructEvent: mockStripeConstructEvent,
@@ -15,22 +15,20 @@ mock.module('@/server/stripe/client', () => ({
   }),
 }));
 
-// Re-export the real env module (rather than leaving it unmocked) so this
-// file's own STRIPE_WEBHOOK_SECRET assertions can't inherit a stale
-// always-present mock left behind by webhook-route*.test.ts.
-const realStripeEnv = await import('../../src/server/stripe/env');
-mock.module('@/server/stripe/env', () => realStripeEnv);
+// Explicitly pin the real env module so this file's own STRIPE_WEBHOOK_SECRET
+// assertions never see the always-present mock used by webhook-route*.test.ts.
+vi.mock('@/server/stripe/env', async (importOriginal) => importOriginal());
 
 function mockPrismaFindUnique(returnValue: unknown) {
-  return mock(async () => returnValue);
+  return vi.fn(async () => returnValue);
 }
 
 function mockPrismaCreate(returnValue: unknown) {
-  return mock(async () => returnValue);
+  return vi.fn(async () => returnValue);
 }
 
 function mockPrismaUpdate(returnValue: unknown) {
-  return mock(async () => returnValue);
+  return vi.fn(async () => returnValue);
 }
 
 describe('webhook route guard logic', () => {

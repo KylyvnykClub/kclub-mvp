@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { createElement, type HTMLAttributes, type ReactNode } from 'react';
@@ -22,7 +22,7 @@ function MotionElement({ children, ...props }: MotionElementProps) {
   return createElement('div', htmlProps, children);
 }
 
-mock.module('framer-motion', () => ({
+vi.mock('framer-motion', () => ({
   motion: {
     div: MotionElement,
     article: MotionElement,

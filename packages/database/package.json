@@ -15,7 +15,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "test": "bun test",
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate:deploy": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -28,8 +28,8 @@
   },
   "devDependencies": {
     "@kclub/config": "workspace:*",
-    "@types/bun": "^1.3.3",
     "drizzle-kit": "^0.31.10",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.0"
   }
 }

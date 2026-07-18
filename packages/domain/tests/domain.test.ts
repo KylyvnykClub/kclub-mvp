@@ -5,7 +5,7 @@ import {
   type StaffPermission,
   type StaffRole,
 } from '@kclub/contracts';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 import {
   ACTIVE_CARD_MAX_PER_USER,

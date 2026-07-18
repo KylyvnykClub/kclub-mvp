@@ -1,6 +1,6 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
-mock.module('server-only', () => ({}));
+vi.mock('server-only', () => ({}));
 
 describe('layout component exports', () => {
   test('loading component module exports a function', async () => {

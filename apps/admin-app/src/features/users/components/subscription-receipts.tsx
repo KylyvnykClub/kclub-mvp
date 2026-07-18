@@ -121,7 +121,7 @@ function formatInvoicePeriod(invoice: AdminInvoiceDto): string {
 }
 
 function formatInvoiceAmount(invoice: AdminInvoiceDto): string {
-  return (invoice.amountPaid / 100).toLocaleString(undefined, {
+  return (invoice.amountPaid / 100).toLocaleString('en-US', {
     style: 'currency',
     currency: invoice.currency.toUpperCase(),
   });

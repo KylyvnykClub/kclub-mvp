@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
-const mockReplace = mock();
-mock.module('next/navigation', () => ({ useRouter: () => ({ replace: mockReplace }) }));
-mock.module('next-intl', () => ({
+const mockReplace = vi.fn();
+vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: mockReplace }) }));
+vi.mock('next-intl', () => ({
   useTranslations: (namespace: string) => {
     const t = (key: string) => `${namespace}.${key}`;
     t.rich = (key: string, values: Record<string, (chunks: unknown) => unknown>) =>
@@ -19,7 +19,7 @@ import { PasswordRecoveryForm } from '@/features/auth/components/PasswordRecover
 import { SignInForm } from '@/features/auth/components/SignInForm';
 import { SignUpForm } from '@/features/auth/components/SignUpForm';
 
-const mockFetch = mock();
+const mockFetch = vi.fn();
 globalThis.fetch = mockFetch as unknown as typeof fetch;
 
 function success(data: unknown = null): Response {

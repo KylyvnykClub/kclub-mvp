@@ -1,4 +1,4 @@
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 import { toMemberCardDto, toPublicCardVerificationDto } from '../../src/server/services';
 import { AppError } from '../../src/server/errors';

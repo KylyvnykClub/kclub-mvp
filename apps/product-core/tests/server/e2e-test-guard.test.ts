@@ -1,57 +1,54 @@
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
-// mock.module leaks across test files in the same bun process; spread the real
-// module so other suites importing named exports (getDbClient, schema) keep them
-const realDb = await import('../../src/server/db');
-
-mock.module('@/server/db', () => {
+vi.mock('@/server/db', async (importOriginal) => {
+  const realDb = await importOriginal<typeof import('../../src/server/db')>();
   const mockPrisma = {
     user: {
-      findUnique: mock(async () => null),
-      create: mock(async () => ({ id: 'mock-id' })),
-      findFirst: mock(async () => null),
+      findUnique: vi.fn(async () => null),
+      create: vi.fn(async () => ({ id: 'mock-id' })),
+      findFirst: vi.fn(async () => null),
     },
     memberCard: {
-      create: mock(async () => ({ id: 'mock-id' })),
-      findFirst: mock(async () => null),
+      create: vi.fn(async () => ({ id: 'mock-id' })),
+      findFirst: vi.fn(async () => null),
     },
     vipSubscription: {
-      create: mock(async () => ({ id: 'mock-id' })),
+      create: vi.fn(async () => ({ id: 'mock-id' })),
     },
     businessProfile: {
-      create: mock(async () => ({ id: 'mock-id' })),
+      create: vi.fn(async () => ({ id: 'mock-id' })),
     },
     subscription: {
-      create: mock(async () => ({ id: 'mock-id' })),
+      create: vi.fn(async () => ({ id: 'mock-id' })),
     },
     category: {
-      findFirst: mock(async () => ({ id: 'cat-1', name: 'Category', slug: 'category' })),
-      create: mock(async () => ({ id: 'cat-1', name: 'Category', slug: 'category' })),
+      findFirst: vi.fn(async () => ({ id: 'cat-1', name: 'Category', slug: 'category' })),
+      create: vi.fn(async () => ({ id: 'cat-1', name: 'Category', slug: 'category' })),
     },
     country: {
-      findFirst: mock(async () => ({
+      findFirst: vi.fn(async () => ({
         id: 'coun-1',
         name: 'Country',
         code2: 'US',
         slug: 'country',
       })),
-      create: mock(async () => ({ id: 'coun-1', name: 'Country', code2: 'US', slug: 'country' })),
+      create: vi.fn(async () => ({ id: 'coun-1', name: 'Country', code2: 'US', slug: 'country' })),
     },
     city: {
-      findFirst: mock(async () => ({
+      findFirst: vi.fn(async () => ({
         id: 'city-1',
         name: 'City',
         country_id: 'coun-1',
         slug: 'city',
       })),
-      create: mock(async () => ({
+      create: vi.fn(async () => ({
         id: 'city-1',
         name: 'City',
         country_id: 'coun-1',
         slug: 'city',
       })),
     },
-    $transaction: mock(async (fn: Function) => fn({})),
+    $transaction: vi.fn(async (fn: Function) => fn({})),
   };
   return {
     ...realDb,

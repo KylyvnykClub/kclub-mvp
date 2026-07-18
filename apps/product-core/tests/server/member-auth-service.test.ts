@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 import { AUTH_INTENT, determineAuthIntent, assertIntentAllowed } from '../../src/server/services';
 
