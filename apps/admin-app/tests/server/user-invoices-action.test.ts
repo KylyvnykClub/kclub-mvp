@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { AdminInvoiceDto } from '@kclub/contracts';
 
-const fetchUserInvoicesMock = mock(async (): Promise<AdminInvoiceDto[] | null> => []);
+const fetchUserInvoicesMock = vi.fn(async (): Promise<AdminInvoiceDto[] | null> => []);
 
-mock.module('@/features/users/api', () => ({
+vi.mock('@/features/users/api', () => ({
   fetchUserInvoices: fetchUserInvoicesMock,
 }));
 

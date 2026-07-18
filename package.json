@@ -12,7 +12,7 @@
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "test:contracts": "bun -e \"const fs = require('fs'); const { spawnSync } = require('child_process'); const filters = [['packages/contracts/package.json', '@kclub/contracts'], ['packages/test-utils/package.json', '@kclub/test-utils']].filter(([path]) => fs.existsSync(path)).flatMap(([, name]) => ['--filter=' + name]); if (filters.length === 0) { console.log('No contract workspaces yet; skipping until Phase 2.'); process.exit(0); } const result = spawnSync('bun', ['x', 'turbo', 'run', 'test', ...filters], { stdio: 'inherit', shell: process.platform === 'win32' }); process.exit(result.status ?? 1);\"",
+    "test:contracts": "turbo run test --filter=@kclub/contracts --filter=@kclub/test-utils",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "e2e": "playwright test",
@@ -33,6 +33,7 @@
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "turbo": "^2.5.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.0"
   }
 }

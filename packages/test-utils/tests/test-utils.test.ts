@@ -1,6 +1,6 @@
 import { createApiError, createApiSuccess } from '@kclub/contracts';
 import { hasStaffPermission } from '@kclub/domain';
-import { beforeEach, describe, expect, test } from 'bun:test';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import {
   ALL_MEMBER_DASHBOARD_TABS_FIXTURE,

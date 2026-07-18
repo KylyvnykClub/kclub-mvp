@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 import { hasRouteAccess, getRequiredRoles } from '../../src/server/auth/route-permissions';
 

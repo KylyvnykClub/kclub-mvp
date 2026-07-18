@@ -1,8 +1,7 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { AdminInvoiceDto } from '@kclub/contracts';
 
-const realDb = await import('../../src/server/db');
 const USER_ID = '721cf27f-05b7-47f1-b3f0-483a961d6ed8';
 
 let userResult: { id: string } | null;
@@ -11,7 +10,7 @@ let subscriptionResults: Array<{
   stripe_subscription_id: string | null;
 }>;
 
-const listPaidVipInvoicesMock = mock(async (): Promise<AdminInvoiceDto[]> => [
+const listPaidVipInvoicesMock = vi.fn(async (): Promise<AdminInvoiceDto[]> => [
   {
     id: 'in_1',
     number: 'KCLUB-0001',
@@ -26,21 +25,24 @@ const listPaidVipInvoicesMock = mock(async (): Promise<AdminInvoiceDto[]> => [
   },
 ]);
 
-mock.module('@/server/db', () => ({
-  ...realDb,
-  getDbClient: () => ({
-    query: {
-      users: {
-        findFirst: mock(async () => userResult),
+vi.mock('@/server/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/server/db')>();
+  return {
+    ...actual,
+    getDbClient: () => ({
+      query: {
+        users: {
+          findFirst: vi.fn(async () => userResult),
+        },
+        vipSubscriptions: {
+          findMany: vi.fn(async () => subscriptionResults),
+        },
       },
-      vipSubscriptions: {
-        findMany: mock(async () => subscriptionResults),
-      },
-    },
-  }),
-}));
+    }),
+  };
+});
 
-mock.module('@/server/stripe/invoice-receipts', () => ({
+vi.mock('@/server/stripe/invoice-receipts', () => ({
   listPaidVipInvoices: listPaidVipInvoicesMock,
 }));
 

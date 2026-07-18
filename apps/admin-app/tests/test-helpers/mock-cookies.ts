@@ -1,8 +1,8 @@
-import { mock } from 'bun:test';
+import { vi } from 'vitest';
 
 export const mockCookieStore = {
-  get: mock((_name: string) => undefined as { value: string } | undefined),
-  set: mock((_name: string, _value: string, _options?: unknown) => {}),
+  get: vi.fn((_name: string) => undefined as { value: string } | undefined),
+  set: vi.fn((_name: string, _value: string, _options?: unknown) => {}),
 };
 
 export function resetMockCookieStore() {

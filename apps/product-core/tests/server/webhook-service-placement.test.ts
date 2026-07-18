@@ -1,16 +1,16 @@
 // TODO(drizzle-migration): suites below mock '@/server/db' with the removed Prisma client API
 // (getPrismaClient). Rewrite the mocks against getDbClient/schema (Drizzle) and re-enable.
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 function createMockTx() {
   return {
     businessProfile: {
-      update: mock(() => Promise.resolve({ id: 'bus-1', status: 'PUBLISHED' })),
+      update: vi.fn(() => Promise.resolve({ id: 'bus-1', status: 'PUBLISHED' })),
     },
     subscription: {
-      findFirst: mock(() => Promise.resolve(null)),
-      create: mock(() => Promise.resolve({ id: 'placement-sub-1' })),
-      update: mock(() => Promise.resolve({ id: 'placement-sub-1' })),
+      findFirst: vi.fn(() => Promise.resolve(null)),
+      create: vi.fn(() => Promise.resolve({ id: 'placement-sub-1' })),
+      update: vi.fn(() => Promise.resolve({ id: 'placement-sub-1' })),
     },
   };
 }
@@ -18,48 +18,48 @@ function createMockTx() {
 function createPlacementMockPrisma() {
   return {
     businessProfile: {
-      findUnique: mock(() =>
+      findUnique: vi.fn(() =>
         Promise.resolve({ id: 'bus-1', user_id: 'user-1', status: 'APPROVED' }),
       ),
-      update: mock(() => Promise.resolve({ id: 'bus-1', status: 'PUBLISHED' })),
+      update: vi.fn(() => Promise.resolve({ id: 'bus-1', status: 'PUBLISHED' })),
     },
     vipSubscription: {
-      findFirst: mock(() => Promise.resolve({ id: 'vip-1', status: 'ACTIVE' } as any)),
-      update: mock(() => Promise.resolve({ id: 'vip-1', status: 'ACTIVE' } as any)),
+      findFirst: vi.fn(() => Promise.resolve({ id: 'vip-1', status: 'ACTIVE' } as any)),
+      update: vi.fn(() => Promise.resolve({ id: 'vip-1', status: 'ACTIVE' } as any)),
     },
     subscription: {
-      findFirst: mock(() => Promise.resolve(null)),
-      create: mock(() => Promise.resolve({ id: 'placement-sub-1' })),
-      update: mock(() => Promise.resolve({ id: 'placement-sub-1' })),
+      findFirst: vi.fn(() => Promise.resolve(null)),
+      create: vi.fn(() => Promise.resolve({ id: 'placement-sub-1' })),
+      update: vi.fn(() => Promise.resolve({ id: 'placement-sub-1' })),
     },
     stripeWebhookEvent: {
-      create: mock(() => Promise.resolve({ id: 'evt-record-1' })),
-      update: mock(() => Promise.resolve({ id: 'evt-record-1' })),
+      create: vi.fn(() => Promise.resolve({ id: 'evt-record-1' })),
+      update: vi.fn(() => Promise.resolve({ id: 'evt-record-1' })),
     },
-    $transaction: mock((fn: any) => fn(mockTx)),
+    $transaction: vi.fn((fn: any) => fn(mockTx)),
   };
 }
 
 function createVipMockPrisma() {
   return {
     businessProfile: {
-      findUnique: mock(() => Promise.resolve(null as any)),
-      update: mock(() => Promise.resolve(null as any)),
+      findUnique: vi.fn(() => Promise.resolve(null as any)),
+      update: vi.fn(() => Promise.resolve(null as any)),
     },
     subscription: {
-      findFirst: mock(() => Promise.resolve(null as any)),
-      create: mock(() => Promise.resolve(null as any)),
-      update: mock(() => Promise.resolve(null as any)),
+      findFirst: vi.fn(() => Promise.resolve(null as any)),
+      create: vi.fn(() => Promise.resolve(null as any)),
+      update: vi.fn(() => Promise.resolve(null as any)),
     },
     vipSubscription: {
-      findFirst: mock(() => Promise.resolve(null as any)),
-      update: mock(() => Promise.resolve(null as any)),
+      findFirst: vi.fn(() => Promise.resolve(null as any)),
+      update: vi.fn(() => Promise.resolve(null as any)),
     },
     stripeWebhookEvent: {
-      create: mock(() => Promise.resolve({ id: 'evt-record-1' })),
-      update: mock(() => Promise.resolve({ id: 'evt-record-1' })),
+      create: vi.fn(() => Promise.resolve({ id: 'evt-record-1' })),
+      update: vi.fn(() => Promise.resolve({ id: 'evt-record-1' })),
     },
-    $transaction: mock((fn: any) => fn(mockTx)),
+    $transaction: vi.fn((fn: any) => fn(mockTx)),
   };
 }
 
@@ -73,7 +73,7 @@ const mockStripeSubData = {
 
 const mockStripeClient = {
   subscriptions: {
-    retrieve: mock(() => Promise.resolve(mockStripeSubData)),
+    retrieve: vi.fn(() => Promise.resolve(mockStripeSubData)),
   },
 };
 
@@ -82,15 +82,15 @@ let mockPrisma:
   ReturnType<typeof createPlacementMockPrisma> | ReturnType<typeof createVipMockPrisma>;
 let mockAuditLog: (...args: any[]) => Promise<any>;
 
-mock.module('@/server/db', () => ({
+vi.mock('@/server/db', () => ({
   getPrismaClient: () => mockPrisma,
 }));
 
-mock.module('@/server/stripe/client', () => ({
+vi.mock('@/server/stripe/client', () => ({
   getStripeClient: () => mockStripeClient,
 }));
 
-mock.module('@/server/audit', () => ({
+vi.mock('@/server/audit', () => ({
   createDbAuditService: () => ({
     log: (...args: any[]) => {
       if (mockAuditLog) return mockAuditLog(...args);
@@ -99,7 +99,7 @@ mock.module('@/server/audit', () => ({
   }),
 }));
 
-mock.module('@/server/context', () => ({
+vi.mock('@/server/context', () => ({
   createRequestContext: () => ({
     actor: { kind: 'system' },
     ipAddress: null,
@@ -129,8 +129,8 @@ describe.skip('handlePlacementCheckoutCompleted', () => {
   beforeEach(() => {
     mockTx = createMockTx();
     mockPrisma = createPlacementMockPrisma();
-    mockAuditLog = mock(() => Promise.resolve({ id: 'audit-1' }));
-    mockStripeClient.subscriptions.retrieve = mock(() => Promise.resolve(mockStripeSubData));
+    mockAuditLog = vi.fn(() => Promise.resolve({ id: 'audit-1' }));
+    mockStripeClient.subscriptions.retrieve = vi.fn(() => Promise.resolve(mockStripeSubData));
   });
 
   test('publishes approved business and creates placement subscription', async () => {
@@ -278,8 +278,8 @@ describe.skip('processStripeEvent placement routing', () => {
   beforeEach(() => {
     mockTx = createMockTx();
     mockPrisma = createPlacementMockPrisma();
-    mockAuditLog = mock(() => Promise.resolve({ id: 'audit-1' }));
-    mockStripeClient.subscriptions.retrieve = mock(() => Promise.resolve(mockStripeSubData));
+    mockAuditLog = vi.fn(() => Promise.resolve({ id: 'audit-1' }));
+    mockStripeClient.subscriptions.retrieve = vi.fn(() => Promise.resolve(mockStripeSubData));
   });
 
   test('routes business_placement checkout to placement handler and writes event record', async () => {
@@ -382,7 +382,7 @@ describe.skip('processStripeEvent placement routing', () => {
 
     mockPrisma.stripeWebhookEvent.create.mockImplementation(() => Promise.reject(p2002Error));
 
-    const mockUpdate = mock(() => Promise.resolve({ id: 'evt-record-1' }));
+    const mockUpdate = vi.fn(() => Promise.resolve({ id: 'evt-record-1' }));
     mockPrisma.stripeWebhookEvent.update = mockUpdate;
 
     await processStripeEvent(testEvent as any);
@@ -415,7 +415,7 @@ describe.skip('processStripeEvent placement routing', () => {
       livemode: false,
     };
 
-    mockPrisma.stripeWebhookEvent.update = mock(() => Promise.resolve({ id: 'evt-record-1' }));
+    mockPrisma.stripeWebhookEvent.update = vi.fn(() => Promise.resolve({ id: 'evt-record-1' }));
 
     await expect(processStripeEvent(testEvent as any)).rejects.toThrow();
 
@@ -430,7 +430,7 @@ describe.skip('processStripeEvent placement routing', () => {
   });
 
   test('stripe subscription retrieve failure still publishes business', async () => {
-    mockStripeClient.subscriptions.retrieve = mock(() =>
+    mockStripeClient.subscriptions.retrieve = vi.fn(() =>
       Promise.reject(new Error('Network error')),
     );
 
@@ -457,7 +457,7 @@ describe.skip('processStripeEvent placement routing', () => {
 describe.skip('handlePaymentFailed', () => {
   beforeEach(() => {
     mockPrisma = createVipMockPrisma();
-    mockAuditLog = mock(() => Promise.resolve({ id: 'audit-1' }));
+    mockAuditLog = vi.fn(() => Promise.resolve({ id: 'audit-1' }));
   });
 
   const failedInvoiceEvent = (subId: string) => ({
@@ -530,7 +530,7 @@ describe.skip('handlePaymentFailed', () => {
 describe.skip('handleSubscriptionDeleted', () => {
   beforeEach(() => {
     mockPrisma = createVipMockPrisma();
-    mockAuditLog = mock(() => Promise.resolve({ id: 'audit-1' }));
+    mockAuditLog = vi.fn(() => Promise.resolve({ id: 'audit-1' }));
   });
 
   const deletedSubEvent = (subId: string) => ({
@@ -586,7 +586,7 @@ describe.skip('handleSubscriptionDeleted', () => {
 describe.skip('handleSubscriptionChange with cancel_at_period_end', () => {
   beforeEach(() => {
     mockPrisma = createVipMockPrisma();
-    mockAuditLog = mock(() => Promise.resolve({ id: 'audit-1' }));
+    mockAuditLog = vi.fn(() => Promise.resolve({ id: 'audit-1' }));
   });
 
   const updateEvent = (subId: string, overrides: Record<string, unknown> = {}) => ({

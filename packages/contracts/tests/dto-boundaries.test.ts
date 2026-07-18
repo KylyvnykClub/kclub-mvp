@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest';
+
 import type {
   AdminBusinessDetailDto,
   AdminCardListItemDto,
@@ -9,6 +11,14 @@ import type {
   PublicCardVerificationDto,
   CurrentMemberProfileDto,
 } from '../src';
+
+// The real assertions in this file are compile-time only (Assert<...> below).
+// Vitest, unlike bun test, refuses files with zero runtime suites, so anchor one.
+describe('dto boundary type assertions', () => {
+  test('file typechecks', () => {
+    expect(true).toBe(true);
+  });
+});
 
 type Assert<T extends true> = T;
 type HasKey<T, K extends PropertyKey> = K extends keyof T ? true : false;

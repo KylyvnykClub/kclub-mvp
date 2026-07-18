@@ -1,8 +1,8 @@
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
-const mockConstructEvent = mock(() => ({}));
+const mockConstructEvent = vi.fn(() => ({}));
 
-mock.module('@/server/stripe/client', () => ({
+vi.mock('@/server/stripe/client', () => ({
   getStripeClient: () => ({
     webhooks: {
       constructEvent: mockConstructEvent,
@@ -10,7 +10,7 @@ mock.module('@/server/stripe/client', () => ({
   }),
 }));
 
-mock.module('@/server/stripe/env', () => ({
+vi.mock('@/server/stripe/env', () => ({
   readStripeEnv: () => ({ STRIPE_WEBHOOK_SECRET: 'whsec_test' }),
 }));
 

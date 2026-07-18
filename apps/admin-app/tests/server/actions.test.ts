@@ -1,12 +1,12 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { mockCookieStore, resetMockCookieStore } from '../test-helpers/mock-cookies';
 
-const mockRedirect = mock(() => {
+const mockRedirect = vi.fn(() => {
   throw new Error('REDIRECT');
 });
 
-mock.module('next/navigation', () => ({
+vi.mock('next/navigation', () => ({
   redirect: mockRedirect,
 }));
 
@@ -27,7 +27,7 @@ describe('auth actions', () => {
 
   describe('signInStaffAction', () => {
     test('redirects with error when product-core returns failure', async () => {
-      globalThis.fetch = mock(async () => ({
+      globalThis.fetch = vi.fn(async () => ({
         ok: false,
         json: async () => ({
           data: null,
@@ -53,7 +53,7 @@ describe('auth actions', () => {
     });
 
     test('sets session and redirects to dashboard on successful sign-in', async () => {
-      globalThis.fetch = mock(async () => ({
+      globalThis.fetch = vi.fn(async () => ({
         ok: true,
         json: async () => ({
           data: {
@@ -89,7 +89,7 @@ describe('auth actions', () => {
 
   describe('registerStaffPasswordAction', () => {
     test('redirects with error when registration fails', async () => {
-      globalThis.fetch = mock(async () => ({
+      globalThis.fetch = vi.fn(async () => ({
         ok: false,
         json: async () => ({
           data: null,
@@ -113,7 +113,7 @@ describe('auth actions', () => {
     });
 
     test('redirects to sign-in when password registration succeeds', async () => {
-      globalThis.fetch = mock(async () => ({
+      globalThis.fetch = vi.fn(async () => ({
         ok: true,
         json: async () => ({ data: { registered: true }, error: null }),
       })) as unknown as typeof fetch;
@@ -140,7 +140,7 @@ describe('auth actions', () => {
         name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
       );
 
-      globalThis.fetch = mock(async () => ({
+      globalThis.fetch = vi.fn(async () => ({
         ok: true,
         json: async () => ({ data: { loggedOut: true }, error: null }),
       })) as unknown as typeof fetch;
@@ -166,7 +166,7 @@ describe('auth actions', () => {
         name === 'kclub_staff_session' ? { value: 'test-token' } : undefined,
       );
 
-      const fetchMock = mock(async () => ({
+      const fetchMock = vi.fn(async () => ({
         ok: true,
         json: async () => ({ data: { loggedOut: true }, error: null }),
       }));

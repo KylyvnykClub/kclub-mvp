@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { getTableName, is } from 'drizzle-orm';
 import { PgTable } from 'drizzle-orm/pg-core';
 import { readFileSync } from 'node:fs';
@@ -14,7 +14,7 @@ import {
 } from '../src';
 import { IMPORTED_CITY_SEED_PLAN } from '../src/seeds/city-seed-plan';
 
-const migrationPath = resolve(import.meta.dir, '../drizzle/0000_sharp_vulcan.sql');
+const migrationPath = resolve(import.meta.dirname, '../drizzle/0000_sharp_vulcan.sql');
 
 const MVP_TABLES = [
   'users',
@@ -102,7 +102,7 @@ describe('database package contracts', () => {
 
   test('business profile brief description schema and migration allow 2000 chars', () => {
     const migration = readFileSync(
-      resolve(import.meta.dir, '../drizzle/0006_business_brief_description_length.sql'),
+      resolve(import.meta.dirname, '../drizzle/0006_business_brief_description_length.sql'),
       'utf8',
     );
 

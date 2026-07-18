@@ -1,12 +1,12 @@
 // TODO(drizzle-migration): suites below mock '@/server/db' with the removed Prisma client API
 // (getPrismaClient). Rewrite the mocks against getDbClient/schema (Drizzle) and re-enable.
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
-const mockUpdateMany = mock(async () => ({ count: 0 }));
-const mockFindMany = mock(async () => []);
-const mockDeleteMany = mock(async () => ({ count: 0 }));
+const mockUpdateMany = vi.fn(async () => ({ count: 0 }));
+const mockFindMany = vi.fn(async () => []);
+const mockDeleteMany = vi.fn(async () => ({ count: 0 }));
 
-mock.module('@/server/db', () => {
+vi.mock('@/server/db', () => {
   const mockPrisma = {
     memberCard: { updateMany: mockUpdateMany },
     vipSubscription: { updateMany: mockUpdateMany, findMany: mockFindMany },

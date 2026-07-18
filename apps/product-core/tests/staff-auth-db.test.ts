@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { RequestContext } from '../src/server/context';
 import { hashStaffPassword } from '../src/server/staff-password';
@@ -30,7 +30,7 @@ let activeOwnerCount = 0;
 function updateChain(table: unknown) {
   return {
     set: (values: Record<string, unknown>) => ({
-      where: mock(() => {
+      where: vi.fn(() => {
         if (table === realDb.schema.adminUsers) {
           staff = { ...staff, ...values };
         }
@@ -39,7 +39,7 @@ function updateChain(table: unknown) {
         }
 
         return {
-          returning: mock(async () => [staff]),
+          returning: vi.fn(async () => [staff]),
         };
       }),
     }),
@@ -49,39 +49,40 @@ function updateChain(table: unknown) {
 const db = {
   query: {
     adminUsers: {
-      findFirst: mock(async () => staff),
+      findFirst: vi.fn(async () => staff),
     },
     adminSessions: {
-      findFirst: mock(async () => ({
+      findFirst: vi.fn(async () => ({
         token_hash: 'session',
         revoked_at: null,
         expires_at: new Date(Date.now() + 60_000),
       })),
     },
   },
-  $count: mock(async () => activeOwnerCount),
-  update: mock(updateChain),
-  insert: mock(() => ({
-    values: mock(async () => undefined),
+  $count: vi.fn(async () => activeOwnerCount),
+  update: vi.fn(updateChain),
+  insert: vi.fn(() => ({
+    values: vi.fn(async () => undefined),
   })),
-  transaction: mock(async (callback: (tx: { update: typeof updateChain }) => Promise<unknown>) =>
+  transaction: vi.fn(async (callback: (tx: { update: typeof updateChain }) => Promise<unknown>) =>
     callback({ update: updateChain }),
   ),
 };
 
-mock.module('@/server/db', () => ({
-  ...realDb,
-  getDbClient: () => db,
-}));
+vi.mock('@/server/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/server/db')>();
+  // `db` is referenced lazily so the hoisted factory never touches TDZ state
+  return { ...actual, getDbClient: () => db };
+});
 
-mock.module('@/server/audit', () => ({
+vi.mock('@/server/audit', () => ({
   createDbAuditService: () => ({
-    log: mock(async () => ({ id: 'audit-1' })),
+    log: vi.fn(async () => ({ id: 'audit-1' })),
   }),
 }));
 
-mock.module('next/cache', () => ({
-  revalidateTag: mock(() => undefined),
+vi.mock('next/cache', () => ({
+  revalidateTag: vi.fn(() => undefined),
 }));
 
 const { handleStaffPasswordRegister, handleStaffPasswordSignIn, handleStaffSession } =
@@ -121,7 +122,7 @@ describe('staff password auth with approved DB staff', () => {
 
     expect(registerResponse.status).toBe(200);
     expect(registerPayload.data.registered).toBe(true);
-    expect(staff.password_hash).toStartWith('scrypt$16384$8$1$');
+    expect(staff.password_hash).toMatch(/^scrypt\$16384\$8\$1\$/);
     expect(staff.password_set_at).toBeInstanceOf(Date);
 
     const duplicateResponse = await handleStaffPasswordRegister(

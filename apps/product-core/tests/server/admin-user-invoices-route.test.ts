@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
 import { ERROR_CODES, STAFF_PERMISSIONS } from '@kclub/contracts';
@@ -6,14 +6,14 @@ import { ERROR_CODES, STAFF_PERMISSIONS } from '@kclub/contracts';
 import { AppError } from '../../src/server/errors';
 
 const USER_ID = '721cf27f-05b7-47f1-b3f0-483a961d6ed8';
-const adminGuardMock = mock(async () => ({}));
-const listUserInvoicesMock = mock(async () => []);
+const adminGuardMock = vi.fn(async () => ({}));
+const listUserInvoicesMock = vi.fn(async () => []);
 
-mock.module('@/server/admin-guard', () => ({
+vi.mock('@/server/admin-guard', () => ({
   adminGuard: adminGuardMock,
 }));
 
-mock.module('@/server/services/admin-service', () => ({
+vi.mock('@/server/services/admin-service', () => ({
   listUserInvoices: listUserInvoicesMock,
 }));
 

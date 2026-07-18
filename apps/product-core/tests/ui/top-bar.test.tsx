@@ -1,32 +1,40 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-const mockReplace = mock();
-const mockRefresh = mock();
-let mockPathname = '/en';
-
-mock.module('next/navigation', () => ({
-  usePathname: () => mockPathname,
-  useRouter: () => ({
-    replace: mockReplace,
-    refresh: mockRefresh,
-  }),
+// vi.mock is hoisted above the imports, so shared state must be hoisted too
+const nav = vi.hoisted(() => ({
+  mockReplace: vi.fn(),
+  mockRefresh: vi.fn(),
+  mockPathname: '/en',
 }));
+const { mockReplace, mockRefresh } = nav;
 
-mock.module('next-intl', () => ({
+vi.mock('next/navigation', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/navigation')>();
+  return {
+    ...actual,
+    usePathname: () => nav.mockPathname,
+    useRouter: () => ({
+      replace: nav.mockReplace,
+      refresh: nav.mockRefresh,
+    }),
+  };
+});
+
+vi.mock('next-intl', () => ({
   useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
 }));
 
-mock.module('next-themes', () => ({
+vi.mock('next-themes', () => ({
   useTheme: () => ({
     resolvedTheme: 'light',
-    setTheme: mock(),
+    setTheme: vi.fn(),
   }),
 }));
 
 import { TopBar } from '@/features/marketing/components/TopBar';
 
-const mockFetch = mock();
+const mockFetch = vi.fn();
 globalThis.fetch = mockFetch as unknown as typeof fetch;
 
 describe('TopBar', () => {
@@ -35,7 +43,7 @@ describe('TopBar', () => {
     mockFetch.mockReset();
     mockReplace.mockReset();
     mockRefresh.mockReset();
-    mockPathname = '/en';
+    nav.mockPathname = '/en';
   });
 
   test('renders partners directory nav and guest account actions', () => {
@@ -75,7 +83,7 @@ describe('TopBar', () => {
   });
 
   test('shows authenticated account actions after client navigation into member dashboard', () => {
-    mockPathname = '/en/m/dashboard';
+    nav.mockPathname = '/en/m/dashboard';
 
     render(<TopBar locale="en" />);
 

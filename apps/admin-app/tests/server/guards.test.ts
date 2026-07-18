@@ -1,12 +1,12 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { mockCookieStore, resetMockCookieStore } from '../test-helpers/mock-cookies';
 
-const mockRedirect = mock(() => {
+const mockRedirect = vi.fn(() => {
   throw new Error('REDIRECT');
 });
 
-mock.module('next/navigation', () => ({
+vi.mock('next/navigation', () => ({
   redirect: mockRedirect,
 }));
 

@@ -1,18 +1,18 @@
-import { describe, expect, test, jest } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 import { createLogger } from '@/server/logger/logger';
 
 describe('createLogger', () => {
   test('returns a logger object with all expected methods', () => {
     const log = createLogger();
-    expect(log.info).toBeFunction();
-    expect(log.warn).toBeFunction();
-    expect(log.error).toBeFunction();
-    expect(log.debug).toBeFunction();
-    expect(log.auth).toBeFunction();
-    expect(log.webhook).toBeFunction();
-    expect(log.cron).toBeFunction();
-    expect(log.admin).toBeFunction();
+    expect(log.info).toBeTypeOf('function');
+    expect(log.warn).toBeTypeOf('function');
+    expect(log.error).toBeTypeOf('function');
+    expect(log.debug).toBeTypeOf('function');
+    expect(log.auth).toBeTypeOf('function');
+    expect(log.webhook).toBeTypeOf('function');
+    expect(log.cron).toBeTypeOf('function');
+    expect(log.admin).toBeTypeOf('function');
   });
 
   test('domain methods do not throw', () => {

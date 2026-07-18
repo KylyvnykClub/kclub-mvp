@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 import type { RequestContext } from '../../src/server/context';
 
@@ -40,15 +40,15 @@ let subscriptionUpdate: Record<string, unknown> | null = null;
 
 const db = {
   query: {
-    users: { findFirst: mock(async () => user) },
+    users: { findFirst: vi.fn(async () => user) },
     vipSubscriptions: {
-      findFirst: mock(async () => existingSubscription),
-      findMany: mock(async () => [syncedSubscription]),
+      findFirst: vi.fn(async () => existingSubscription),
+      findMany: vi.fn(async () => [syncedSubscription]),
     },
-    memberCards: { findMany: mock(async () => []) },
-    auditLogs: { findMany: mock(async () => []) },
+    memberCards: { findMany: vi.fn(async () => []) },
+    auditLogs: { findMany: vi.fn(async () => []) },
   },
-  update: mock((table: unknown) => ({
+  update: vi.fn((table: unknown) => ({
     set: (values: Record<string, unknown>) => {
       if (table === realDb.schema.vipSubscriptions) {
         subscriptionUpdate = values;
@@ -64,21 +64,21 @@ const db = {
   })),
 };
 
-mock.module('@/server/db', () => ({
-  ...realDb,
-  getDbClient: () => db,
-}));
+vi.mock('@/server/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/server/db')>();
+  return { ...actual, getDbClient: () => db };
+});
 
-mock.module('@/server/audit', () => ({
+vi.mock('@/server/audit', () => ({
   createDbAuditService: () => ({
-    log: mock(async () => ({ id: 'audit-1' })),
+    log: vi.fn(async () => ({ id: 'audit-1' })),
   }),
 }));
 
-mock.module('@/server/stripe/client', () => ({
+vi.mock('@/server/stripe/client', () => ({
   getStripeClient: () => ({
     subscriptions: {
-      retrieve: mock(async () => ({
+      retrieve: vi.fn(async () => ({
         id: 'sub_vip',
         status: 'active',
         customer: 'cus_vip',
@@ -96,8 +96,8 @@ mock.module('@/server/stripe/client', () => ({
   }),
 }));
 
-mock.module('next/cache', () => ({
-  revalidateTag: mock(() => undefined),
+vi.mock('next/cache', () => ({
+  revalidateTag: vi.fn(() => undefined),
 }));
 
 const { syncVipSubscriptionForUser } = await import('../../src/server/services/admin-service');
