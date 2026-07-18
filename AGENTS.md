@@ -93,14 +93,14 @@ For every implementation task:
 Use the strongest available subset of:
 
 ```bash
-bun install --frozen-lockfile
-bun run format
-bun run lint
-bun run typecheck
-bun run test
-bun run test:contracts
-bun run build
-bun run e2e
+pnpm install --frozen-lockfile
+pnpm run format
+pnpm run lint
+pnpm run typecheck
+pnpm run test
+pnpm run test:contracts
+pnpm run build
+pnpm run e2e
 ```
 
 If a command does not exist yet, say so and run the nearest useful check.
@@ -126,7 +126,7 @@ Every substantial task should end with:
 - Do not invent new architecture outside `SPEC`, `BLUEPRINT`, or ADRs.
 - Do not add new dependencies without checking existing tooling and documenting why.
 - Do not weaken security or tests to make a step pass.
-- Do not use Bun as production runtime unless the relevant ADR/docs explicitly approve it.
+- Use the Node.js production runtime; do not introduce an alternative runtime unless the relevant ADR/docs explicitly approve it.
 - Do not write code in a style that contradicts `docs/CODESTYLE.md`.
 - Do not write UI code that contradicts `docs/DESIGN-SYSTEM.md`.
 
