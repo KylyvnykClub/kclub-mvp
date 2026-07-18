@@ -31,7 +31,7 @@ export function CabinetLockedPanel({
       <h2 className="mb-3 text-2xl font-semibold text-foreground">{title}</h2>
       <p className="mb-8 max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p>
       <Link
-        href={`/${locale}/m/dashboard?tab=subscription`}
+        href={`/${locale}/m/dashboard?tab=billing`}
         className="inline-flex items-center gap-2 bg-accent px-7 py-3 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {ctaLabel}

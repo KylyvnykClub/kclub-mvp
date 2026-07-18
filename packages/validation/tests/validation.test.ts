@@ -333,8 +333,11 @@ describe('admin mutation schemas', () => {
   });
 
   test('validates business moderation schemas', () => {
-    expect(businessApproveSchema.parse({})).toEqual({});
-    expect(businessApproveSchema.parse({ notes: 'Looks good' })).toEqual({ notes: 'Looks good' });
+    expect(businessApproveSchema.parse({ invoiceOption: 'standard' })).toEqual({ invoiceOption: 'standard' });
+    expect(businessApproveSchema.parse({ notes: 'Looks good', invoiceOption: 'free' })).toEqual({ notes: 'Looks good', invoiceOption: 'free' });
+    expect(businessApproveSchema.parse({ invoiceOption: 'custom', customAmountCents: 4999 })).toEqual({ invoiceOption: 'custom', customAmountCents: 4999 });
+    expect(() => businessApproveSchema.parse({})).toThrow();
+    expect(() => businessApproveSchema.parse({ invoiceOption: 'custom' })).toThrow();
 
     expect(() => businessRejectSchema.parse({})).toThrow();
     expect(businessRejectSchema.parse({ reason: 'Invalid documents' })).toEqual({

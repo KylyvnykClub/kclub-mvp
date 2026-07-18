@@ -355,6 +355,7 @@ export async function handlePlacementCheckoutCompleted(
         published_at: new Date(),
         featured_top: false,
         featured_recommended: false,
+        invoice_status: 'PAID',
       })
       .where(eq(schema.businessProfiles.id, businessId));
 

@@ -97,12 +97,18 @@ export const MEMBER_CAPABILITIES = {
 export type MemberCapability = (typeof MEMBER_CAPABILITIES)[keyof typeof MEMBER_CAPABILITIES];
 
 export const MEMBER_DASHBOARD_TABS = [
+  'overview',
+  'profile',
+  'settings',
+  'billing',
+  'notifications',
+  'inbox',
+  // legacy aliases kept for backwards compat
   'account',
   'catalog',
   'subscription',
   'business',
   'introductions',
-  'settings',
   'details',
   'audit',
   'permissions',

@@ -1,12 +1,26 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
+import {
+  AlignLeft,
+  Building2,
+  Folder,
+  Globe,
+  Link2,
+  Mail,
+  MapPin,
+  Phone,
+  Tags,
+  UserRound,
+} from 'lucide-react';
 
 import { MEMBER_API_ROUTES, type MemberBusinessProfileDto } from '@kclub/contracts';
 
 import { PhoneInput } from '@kclub/ui';
 
+import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
 import {
@@ -36,6 +50,32 @@ type BusinessFormProps = {
   countryOptions: TaxonomyOption[];
   categoryOptions: TaxonomyOption[];
 };
+
+type BusinessFormFieldProps = {
+  icon: ReactNode;
+  children: ReactNode;
+};
+
+const TEXTAREA_CHARACTERS_PER_ROW = 74;
+
+function getBriefDescriptionRows(value: string): number {
+  const rows = value.split('\n').reduce((sum, line) => {
+    return sum + Math.max(1, Math.ceil(line.length / TEXTAREA_CHARACTERS_PER_ROW));
+  }, 0);
+
+  return Math.min(Math.max(rows, 5), 32);
+}
+
+function BusinessFormField({ icon, children }: BusinessFormFieldProps) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="mt-7 flex size-4 shrink-0 items-center justify-center text-muted-foreground">
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
+  );
+}
 
 export function BusinessForm({
   locale,
@@ -71,6 +111,7 @@ export function BusinessForm({
   const [success, setSuccess] = useState(false);
 
   const isEdit = business !== null;
+  const briefDescriptionRows = getBriefDescriptionRows(briefDescription ?? '');
 
   useEffect(() => {
     if (!countryId) {
@@ -186,7 +227,7 @@ export function BusinessForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -199,8 +240,8 @@ export function BusinessForm({
         </Alert>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
+      <div className="space-y-5">
+        <BusinessFormField icon={<Building2 size={16} aria-hidden />}>
           <Label>{t('nameLabel')}</Label>
           <Input
             type="text"
@@ -209,11 +250,11 @@ export function BusinessForm({
             required
             minLength={2}
             maxLength={100}
-            className="mt-1 w-full"
+            className="mt-1 w-full rounded-none"
           />
-        </div>
+        </BusinessFormField>
 
-        <div>
+        <BusinessFormField icon={<UserRound size={16} aria-hidden />}>
           <Label>{t('representativeNameLabel')}</Label>
           <Input
             type="text"
@@ -222,22 +263,22 @@ export function BusinessForm({
             required
             minLength={2}
             maxLength={100}
-            className="mt-1 w-full"
+            className="mt-1 w-full rounded-none"
           />
-        </div>
+        </BusinessFormField>
 
-        <div>
+        <BusinessFormField icon={<Mail size={16} aria-hidden />}>
           <Label>{t('representativeEmailLabel')}</Label>
           <Input
             type="email"
             value={representativeEmail}
             onChange={(e) => setRepresentativeEmail(e.target.value)}
             required
-            className="mt-1 w-full"
+            className="mt-1 w-full rounded-none"
           />
-        </div>
+        </BusinessFormField>
 
-        <div>
+        <BusinessFormField icon={<Phone size={16} aria-hidden />}>
           <Label>{t('representativePhoneLabel')}</Label>
           <PhoneInput
             defaultCountry={defaultCountryForLocale(locale)}
@@ -246,15 +287,13 @@ export function BusinessForm({
             onChange={(value) => setRepresentativePhone(value)}
             required
             wrapperClassName="mt-1"
-            inputClassName={shadcnPhoneInputClassName}
-            triggerClassName={shadcnPhoneTriggerClassName}
+            inputClassName={cn(shadcnPhoneInputClassName, 'rounded-none')}
+            triggerClassName={cn(shadcnPhoneTriggerClassName, 'rounded-none')}
             panelClassName={shadcnPhonePanelClassName}
           />
-        </div>
-      </div>
+        </BusinessFormField>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div>
+        <BusinessFormField icon={<Globe size={16} aria-hidden />}>
           <Label>{t('countryLabel')}</Label>
           <Select
             value={countryId}
@@ -264,7 +303,7 @@ export function BusinessForm({
             }}
             required
           >
-            <SelectTrigger className="mt-1 w-full">
+            <SelectTrigger className="mt-1 w-full rounded-none">
               <SelectValue placeholder={t('selectPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -275,9 +314,9 @@ export function BusinessForm({
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </BusinessFormField>
 
-        <div>
+        <BusinessFormField icon={<MapPin size={16} aria-hidden />}>
           <Label>{t('cityLabel')}</Label>
           <Select
             value={cityId}
@@ -285,7 +324,7 @@ export function BusinessForm({
             disabled={!countryId || isLoadingCities}
             required
           >
-            <SelectTrigger className="mt-1 w-full">
+            <SelectTrigger className="mt-1 w-full rounded-none">
               <SelectValue
                 placeholder={isLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
               />
@@ -299,9 +338,9 @@ export function BusinessForm({
             </SelectContent>
           </Select>
           {cityLoadError && <p className="mt-2 text-xs text-destructive">{cityLoadError}</p>}
-        </div>
+        </BusinessFormField>
 
-        <div>
+        <BusinessFormField icon={<Tags size={16} aria-hidden />}>
           <Label>{t('categoryLabel')}</Label>
           <Select
             value={categoryId}
@@ -311,7 +350,7 @@ export function BusinessForm({
             }}
             required
           >
-            <SelectTrigger className="mt-1 w-full">
+            <SelectTrigger className="mt-1 w-full rounded-none">
               <SelectValue placeholder={t('selectPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -334,44 +373,42 @@ export function BusinessForm({
                 placeholder={t('customCategoryNamePlaceholder')}
                 value={customCategoryName}
                 onChange={(e) => setCustomCategoryName(e.target.value)}
-                className="mt-1 w-full"
+                className="mt-1 w-full rounded-none"
               />
             </div>
           )}
-        </div>
-      </div>
+        </BusinessFormField>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
+        <BusinessFormField icon={<Link2 size={16} aria-hidden />}>
           <Label>{t('websiteUrlLabel')}</Label>
           <Input
             type="url"
             value={websiteUrl}
             onChange={(e) => setWebsiteUrl(e.target.value)}
-            className="mt-1 w-full"
+            className="mt-1 w-full rounded-none"
           />
-        </div>
+        </BusinessFormField>
 
-        <div>
+        <BusinessFormField icon={<Folder size={16} aria-hidden />}>
           <Label>{t('socialUrlLabel')}</Label>
           <Input
             type="url"
             value={socialUrl}
             onChange={(e) => setSocialUrl(e.target.value)}
-            className="mt-1 w-full"
+            className="mt-1 w-full rounded-none"
           />
-        </div>
-      </div>
+        </BusinessFormField>
 
-      <div>
-        <Label>{t('briefDescriptionLabel')}</Label>
-        <Textarea
-          value={briefDescription ?? ''}
-          onChange={(e) => setBriefDescription(e.target.value)}
-          maxLength={2000}
-          rows={3}
-          className="mt-1 w-full"
-        />
+        <BusinessFormField icon={<AlignLeft size={16} aria-hidden />}>
+          <Label>{t('briefDescriptionLabel')}</Label>
+          <Textarea
+            value={briefDescription ?? ''}
+            onChange={(e) => setBriefDescription(e.target.value)}
+            maxLength={2000}
+            rows={briefDescriptionRows}
+            className="mt-1 w-full resize-none overflow-hidden rounded-none"
+          />
+        </BusinessFormField>
       </div>
 
       <CabinetButton type="submit" disabled={isSubmitting}>

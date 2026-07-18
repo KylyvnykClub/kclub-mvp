@@ -4,22 +4,17 @@ import { getTranslations } from 'next-intl/server';
 
 import type {
   CurrentMemberProfileDto,
-  PublicBusinessListItemDto,
+  MemberBusinessProfileDto,
   UserContext,
 } from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
 import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-tabs';
-import { isDashboardTabLocked } from '@/features/member/dashboard-tabs';
-import { CabinetLockedPanel } from '@/features/member/components/cabinet/CabinetLockedPanel';
-import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
+import { getOwnBusinesses } from '@/server/services/business-service';
+import { getIncomingIntroductions } from '@/server/services/introduction-service';
 
-import { AccountPanel } from './AccountPanel';
-import { BusinessPanel } from './BusinessPanel';
+import { BusinessProfilePanel } from './panels/BusinessProfilePanel';
 import { DashboardTabsClient } from './DashboardTabsClient';
-import { IntroductionsPanel } from './IntroductionsPanel';
-import { SettingsPanel } from './SettingsPanel';
-import { SubscriptionUpgradePanel } from './SubscriptionUpgradePanel';
 
 type DashboardTabsProps = {
   locale: Locale;
@@ -28,7 +23,6 @@ type DashboardTabsProps = {
   userContext: UserContext;
   activeTab: ImplementedMemberDashboardTab;
   visibleTabs: readonly ImplementedMemberDashboardTab[];
-  serverPublicBusinesses: PublicBusinessListItemDto[];
 };
 
 export async function DashboardTabs({
@@ -38,81 +32,44 @@ export async function DashboardTabs({
   userContext,
   activeTab,
   visibleTabs,
-  serverPublicBusinesses,
 }: DashboardTabsProps) {
   const t = await getTranslations({ locale, namespace: 'member.dashboard' });
 
   const tabLabels: Record<ImplementedMemberDashboardTab, string> = {
-    details: t('tabs.details'),
-    subscription: t('tabs.subscription'),
-    business: t('tabs.business'),
-    introductions: t('tabs.introductions'),
+    overview: t('tabs.overview'),
+    profile: t('tabs.profile'),
     settings: t('tabs.settings'),
+    billing: t('tabs.billing'),
+    notifications: t('tabs.notifications'),
+    inbox: t('tabs.inbox'),
   };
 
-  const lockLabels = {
-    VIP: t('locks.vip'),
-    BIZ: t('locks.biz'),
-  } as const;
+  const ownBusinesses = await getOwnBusinesses(profile.id);
+  const activeBusiness = ownBusinesses.find((b) => b.status !== 'REJECTED') ?? null;
+  const introductionCount = activeBusiness
+    ? (await getIncomingIntroductions(activeBusiness.id)).length
+    : 0;
 
-  const memberName = profile.displayName ?? profile.phone;
+  const serverPanels: Partial<Record<ImplementedMemberDashboardTab, ReactNode>> = {};
 
-  const panels: Partial<Record<ImplementedMemberDashboardTab, ReactNode>> = {};
-
-  for (const tab of visibleTabs) {
-    if (tab === 'details') {
-      panels.details = <AccountPanel locale={locale} profile={profile} cardNumber={cardNumber} />;
-    } else if (tab === 'subscription') {
-      panels.subscription = <SubscriptionUpgradePanel locale={locale} profile={profile} />;
-    } else if (tab === 'introductions') {
-      panels.introductions = isDashboardTabLocked(userContext, 'introductions') ? (
-        <div className={cabinetContentClasses}>
-          <CabinetLockedPanel
-            locale={locale}
-            eyebrow={t('introductionsLocked.eyebrow')}
-            title={t('introductionsLocked.title')}
-            description={t('introductionsLocked.description')}
-            ctaLabel={t('introductionsLocked.cta')}
-          />
-        </div>
-      ) : (
-        <IntroductionsPanel
-          locale={locale}
-          profile={profile}
-          serverPublicBusinesses={serverPublicBusinesses}
-        />
-      );
-    } else if (tab === 'business') {
-      panels.business = isDashboardTabLocked(userContext, 'business') ? (
-        <div className={cabinetContentClasses}>
-          <CabinetLockedPanel
-            locale={locale}
-            eyebrow={t('businessLocked.eyebrow')}
-            title={t('businessLocked.title')}
-            description={t('businessLocked.description')}
-            ctaLabel={t('businessLocked.cta')}
-          />
-        </div>
-      ) : (
-        <BusinessPanel locale={locale} profile={profile} />
-      );
-    } else if (tab === 'settings') {
-      panels.settings = <SettingsPanel locale={locale} profile={profile} />;
-    }
+  if (visibleTabs.includes('profile')) {
+    serverPanels.profile = (
+      <BusinessProfilePanel locale={locale} profile={profile} />
+    );
   }
 
   return (
     <DashboardTabsClient
       locale={locale}
       profile={profile}
+      business={activeBusiness}
+      cardNumber={cardNumber}
+      introductionCount={introductionCount}
       userContext={userContext}
       initialTab={activeTab}
       visibleTabs={visibleTabs}
       tabLabels={tabLabels}
-      contactLine={profile.phone}
-      tabsAriaLabel={t('tabsLabel')}
-      lockLabels={lockLabels}
-      panels={panels}
+      serverPanels={serverPanels}
     />
   );
 }

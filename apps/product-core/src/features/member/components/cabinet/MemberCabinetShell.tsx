@@ -1,34 +1,56 @@
 'use client';
 
-import { CreditCard, Handshake, Phone, Settings, UserRound } from 'lucide-react';
+import {
+  Bell,
+  CreditCard,
+  Inbox,
+  LayoutDashboard,
+  LogOut,
+  Briefcase,
+  Settings,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import Image from 'next/image';
 
-import type { CurrentMemberProfileDto, UserContext } from '@kclub/contracts';
+import type { CurrentMemberProfileDto, MemberBusinessProfileDto, UserContext } from '@kclub/contracts';
 
 import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
 import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-tabs';
 import { getDashboardTabLockLabel, isDashboardTabLocked } from '@/features/member/dashboard-tabs';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/reui/badge';
 
-import { CabinetButton } from './CabinetButton';
+import cardLogo from '@/assets/logo/card-logo.png';
 import { CabinetSignOut } from './CabinetSignOut';
-import { cabinetMobileNavClasses, cabinetRootClasses, cabinetSidebarClasses } from './styles';
 
 type MemberCabinetShellProps = {
   locale: Locale;
   profile: CurrentMemberProfileDto;
+  business: MemberBusinessProfileDto | null;
   userContext: UserContext;
   activeTab: ImplementedMemberDashboardTab;
   visibleTabs: readonly ImplementedMemberDashboardTab[];
   tabLabels: Record<ImplementedMemberDashboardTab, string>;
-  contactLine: string;
-  tabsAriaLabel: string;
-  lockLabels: Record<'VIP' | 'BIZ', string>;
   onTabChange: (tab: ImplementedMemberDashboardTab) => void;
   children: React.ReactNode;
+};
+
+const TAB_PAGE_TITLES: Record<ImplementedMemberDashboardTab, string> = {
+  overview: 'Overview',
+  profile: 'Business Profile',
+  settings: 'Settings',
+  billing: 'Billing',
+  notifications: 'Notifications',
+  inbox: 'Inbox',
+};
+
+const DASHBOARD_TAB_ICONS: Record<ImplementedMemberDashboardTab, LucideIcon> = {
+  overview: LayoutDashboard,
+  profile: Briefcase,
+  settings: Settings,
+  billing: CreditCard,
+  notifications: Bell,
+  inbox: Inbox,
 };
 
 function getInitials(name: string): string {
@@ -41,175 +63,152 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-function getPlanLabel(tier: CurrentMemberProfileDto['membershipTier']): string {
-  return tier === 'VIP' ? 'VIP' : 'MEMBER';
-}
-
-function getPrimaryTabs(
-  visibleTabs: readonly ImplementedMemberDashboardTab[],
-): readonly ImplementedMemberDashboardTab[] {
-  return visibleTabs.filter((tab) => tab !== 'settings');
-}
-
-const DASHBOARD_TAB_ICONS: Partial<Record<ImplementedMemberDashboardTab, LucideIcon>> = {
-  details: UserRound,
-  subscription: CreditCard,
-  introductions: Handshake,
-};
-
-function renderTabTriggers({
-  visibleTabs,
-  tabLabels,
-  userContext,
-  lockLabels,
-  itemClassName,
-}: {
-  visibleTabs: readonly ImplementedMemberDashboardTab[];
-  tabLabels: Record<ImplementedMemberDashboardTab, string>;
-  userContext: UserContext;
-  lockLabels: Record<'VIP' | 'BIZ', string>;
-  itemClassName: string;
-}) {
-  return visibleTabs.map((tab) => {
-    const locked = isDashboardTabLocked(userContext, tab);
-    const lockLabel = getDashboardTabLockLabel(tab);
-    const TabIcon = DASHBOARD_TAB_ICONS[tab];
-
-    return (
-      <TabsTrigger key={tab} value={tab} className={cn(itemClassName, locked && 'text-muted')}>
-        {TabIcon ? <TabIcon size={16} aria-hidden /> : null}
-        <span>{tabLabels[tab]}</span>
-        {locked && lockLabel ? (
-          <Badge variant="outline" size="xs">
-            {lockLabels[lockLabel]}
-          </Badge>
-        ) : null}
-      </TabsTrigger>
-    );
-  });
-}
-
 export function MemberCabinetShell({
   locale,
   profile,
+  business,
   userContext,
   activeTab,
   visibleTabs,
   tabLabels,
-  contactLine,
-  tabsAriaLabel,
-  lockLabels,
   onTabChange,
   children,
 }: MemberCabinetShellProps) {
   const displayName = profile.displayName ?? profile.phone;
-  const planLabel = getPlanLabel(profile.membershipTier);
-  const primaryTabs = getPrimaryTabs(visibleTabs);
-  const canShowSettings = visibleTabs.includes('settings');
-
-  const handleValueChange = (value: string) => {
-    onTabChange(value as ImplementedMemberDashboardTab);
-  };
-
-  const handleSettingsClick = () => {
-    onTabChange('settings');
-  };
-
-  const settingsAction = canShowSettings ? (
-    <CabinetButton
-      type="button"
-      tone="ghost"
-      density="compact"
-      onClick={handleSettingsClick}
-      className={cn(
-        'h-auto gap-1.5 px-0 py-0 tracking-wide text-muted hover:bg-transparent hover:text-foreground',
-        activeTab === 'settings' && 'text-foreground',
-      )}
-      iconStart={<Settings size={14} aria-hidden />}
-    >
-      {tabLabels.settings}
-    </CabinetButton>
-  ) : null;
+  const businessName = business?.name ?? displayName;
+  const isVerified = business?.status === 'PUBLISHED' || business?.status === 'APPROVED';
 
   return (
-    <div className={cabinetRootClasses}>
-      {/* Unified header spanning full width */}
-      <header className="sticky top-0 z-20 col-span-full flex w-full shrink-0 items-center justify-between gap-4 border-b border-border bg-surface px-6 py-4 sm:px-10 lg:order-first lg:col-span-full">
-        <div className="flex items-center gap-3">
-          <Avatar size="lg" className="border-accent/30 border bg-surface-muted">
-            <AvatarFallback className="bg-transparent text-sm font-semibold text-accent">
-              {getInitials(displayName)}
-            </AvatarFallback>
-          </Avatar>
+    <div className="flex min-h-screen bg-background text-foreground">
+      {/* SIDEBAR */}
+      <aside className="hidden w-[260px] shrink-0 flex-col border-r border-border bg-surface lg:flex lg:sticky lg:top-0 lg:h-screen">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 border-b border-border px-5 py-5">
+          <Image
+            src={cardLogo}
+            alt=""
+            className="h-6 w-6 shrink-0 object-contain"
+          />
+          <span className="text-xs font-bold tracking-[0.14em] text-accent">
+            KYLYVNYK CLUB
+          </span>
+        </div>
+
+        {/* Business identity */}
+        <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-muted font-mono text-xs font-semibold text-muted-foreground">
+            {getInitials(businessName)}
+          </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
-            <Badge
-              variant={planLabel === 'VIP' ? 'success-light' : 'outline'}
-              size="sm"
-              className="mt-1"
-            >
-              {planLabel}
-            </Badge>
+            <p className="truncate text-sm font-semibold text-foreground">{businessName}</p>
+            {isVerified && (
+              <Badge variant="success" size="xs" className="mt-1">
+                Verified
+              </Badge>
+            )}
           </div>
         </div>
-        <p className="hidden items-center gap-2 text-sm text-muted sm:flex">
-          <Phone size={16} aria-hidden />
-          {contactLine}
-        </p>
-      </header>
 
-      {/* Mobile tabs */}
-      <Tabs value={activeTab} onValueChange={handleValueChange} className={cabinetMobileNavClasses}>
-        <TabsList
-          aria-label={tabsAriaLabel}
-          variant="line"
-          className="h-auto w-full justify-start gap-0 rounded-none bg-transparent p-0"
-        >
-          {renderTabTriggers({
-            visibleTabs,
-            tabLabels,
-            userContext,
-            lockLabels,
-            itemClassName:
-              'shrink-0 gap-2 rounded-none px-4 py-3.5 text-sm font-semibold tracking-wide',
+        {/* Nav items */}
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-3">
+          {visibleTabs.filter((t) => t !== 'settings').map((tab) => {
+            const Icon = DASHBOARD_TAB_ICONS[tab];
+            const isActive = tab === activeTab;
+            const locked = isDashboardTabLocked(userContext, tab);
+
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => !locked && onTabChange(tab)}
+                className={cn(
+                  'flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-surface-muted text-foreground font-semibold'
+                    : 'text-muted-foreground hover:bg-surface-muted/50 hover:text-foreground',
+                  locked && 'cursor-not-allowed opacity-50',
+                )}
+              >
+                <Icon
+                  size={17}
+                  className={cn(
+                    isActive ? 'text-accent' : 'text-muted',
+                  )}
+                />
+                <span className="flex-1">{tabLabels[tab]}</span>
+              </button>
+            );
           })}
-        </TabsList>
-      </Tabs>
+        </nav>
 
-      {/* Sidebar + content row */}
-      <div className="flex flex-1 flex-col lg:flex-row">
-        <aside className={cabinetSidebarClasses}>
-          <Tabs
-            value={activeTab}
-            onValueChange={handleValueChange}
-            orientation="vertical"
-            className="flex-1"
+        {/* Footer: Settings + Sign out */}
+        <div className="flex items-center gap-4 border-t border-border px-5 py-4">
+          <button
+            type="button"
+            onClick={() => onTabChange('settings')}
+            className={cn(
+              'flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors',
+              activeTab === 'settings' && 'text-foreground font-semibold',
+            )}
           >
-            <TabsList
-              aria-label={tabsAriaLabel}
-              variant="line"
-              className="h-fit w-full flex-col items-stretch justify-start gap-0 rounded-none bg-transparent p-0 py-2"
-            >
-              {renderTabTriggers({
-                visibleTabs: primaryTabs,
-                tabLabels,
-                userContext,
-                lockLabels,
-                itemClassName:
-                  'h-auto w-full flex-none grow-0 justify-start gap-2 rounded-none px-6 py-3.5 text-sm font-semibold tracking-wide',
-              })}
-            </TabsList>
-          </Tabs>
-
-          <div className="flex shrink-0 items-center gap-5 border-t border-border px-6 py-5">
-            {settingsAction}
-            <CabinetSignOut locale={locale} />
-          </div>
-        </aside>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex-1">{children}</div>
+            <Settings size={15} />
+            {tabLabels.settings}
+          </button>
+          <CabinetSignOut locale={locale} />
         </div>
+      </aside>
+
+      {/* MAIN AREA */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Header */}
+        <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-border bg-surface/90 px-7 py-4 backdrop-blur-sm">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+              Business account
+            </p>
+            <h1 className="mt-1 text-xl font-bold tracking-tight">
+              {tabLabels[activeTab]}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Mobile menu button */}
+            <div className="lg:hidden">
+              <select
+                value={activeTab}
+                onChange={(e) => onTabChange(e.target.value as ImplementedMemberDashboardTab)}
+                className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
+              >
+                {visibleTabs.map((tab) => (
+                  <option key={tab} value={tab}>
+                    {tabLabels[tab]}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Bell */}
+            <button
+              type="button"
+              onClick={() => onTabChange('notifications')}
+              className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Bell size={17} />
+            </button>
+
+            {/* User avatar */}
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface-muted text-xs font-semibold text-muted-foreground">
+              {getInitials(displayName)}
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 px-7 py-8">
+          <div className="mx-auto w-full max-w-[1120px]">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

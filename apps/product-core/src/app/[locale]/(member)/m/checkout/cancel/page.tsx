@@ -8,5 +8,5 @@ export default async function CheckoutCancelPage({
   params: Promise<{ locale: Locale }>;
 }) {
   const { locale } = await params;
-  redirect(`/${locale}/m/dashboard?tab=subscription`);
+  redirect(`/${locale}/m/dashboard?tab=billing`);
 }

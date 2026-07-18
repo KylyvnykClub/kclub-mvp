@@ -13,70 +13,66 @@ const vipCtx: UserContext = { isVip: true, hasBusiness: false, businessPublished
 const businessCtx: UserContext = { isVip: false, hasBusiness: true, businessPublished: true };
 const vipBusinessCtx: UserContext = { isVip: true, hasBusiness: true, businessPublished: true };
 
-const BASE_TABS = ['details', 'subscription', 'settings'] as const;
+const BASE_TABS = ['overview', 'profile', 'settings', 'billing'] as const;
+const WITH_BUSINESS_TABS = [
+  'overview',
+  'profile',
+  'settings',
+  'billing',
+  'notifications',
+  'inbox',
+] as const;
 
 describe('member dashboard tabs', () => {
-  test('plain member sees base 3 tabs', () => {
+  test('plain member sees base 4 tabs', () => {
     expect(getImplementedDashboardTabs(memberCtx)).toEqual(BASE_TABS);
   });
 
-  test('VIP without business sees subscription and introductions, not business', () => {
-    expect(getImplementedDashboardTabs(vipCtx)).toEqual([
-      'details',
-      'subscription',
-      'settings',
-      'introductions',
-    ]);
+  test('VIP without business sees same base tabs', () => {
+    expect(getImplementedDashboardTabs(vipCtx)).toEqual(BASE_TABS);
   });
 
-  test('member with business sees business instead of subscription', () => {
-    expect(getImplementedDashboardTabs(businessCtx)).toEqual(['details', 'business', 'settings']);
+  test('member with business sees all 6 tabs', () => {
+    expect(getImplementedDashboardTabs(businessCtx)).toEqual(WITH_BUSINESS_TABS);
   });
 
-  test('VIP with business sees business, not subscription or introductions', () => {
-    expect(getImplementedDashboardTabs(vipBusinessCtx)).toEqual([
-      'details',
-      'business',
-      'settings',
-    ]);
+  test('VIP with business sees all 6 tabs', () => {
+    expect(getImplementedDashboardTabs(vipBusinessCtx)).toEqual(WITH_BUSINESS_TABS);
   });
 
   test('no tab is locked', () => {
-    expect(isDashboardTabLocked(memberCtx, 'details')).toBe(false);
-    expect(isDashboardTabLocked(memberCtx, 'subscription')).toBe(false);
+    expect(isDashboardTabLocked(memberCtx, 'overview')).toBe(false);
+    expect(isDashboardTabLocked(memberCtx, 'billing')).toBe(false);
   });
 
-  test('normalizes invalid tab to first visible tab (details)', () => {
+  test('normalizes invalid tab to first visible tab (overview)', () => {
     const tabs = getImplementedDashboardTabs(memberCtx);
-    expect(normalizeDashboardTab('catalog', tabs)).toBe('details');
-    expect(normalizeDashboardTab(undefined, tabs)).toBe('details');
+    expect(normalizeDashboardTab('catalog', tabs)).toBe('overview');
+    expect(normalizeDashboardTab(undefined, tabs)).toBe('overview');
   });
 
-  test('maps legacy account and profile tabs to details', () => {
+  test('maps legacy aliases to new tabs', () => {
     const tabs = getImplementedDashboardTabs(memberCtx);
-    expect(normalizeDashboardTab('account', tabs)).toBe('details');
-    expect(normalizeDashboardTab('profile', tabs)).toBe('details');
+    expect(normalizeDashboardTab('account', tabs)).toBe('overview');
+    expect(normalizeDashboardTab('details', tabs)).toBe('overview');
+    expect(normalizeDashboardTab('business', tabs)).toBe('profile');
+    expect(normalizeDashboardTab('subscription', tabs)).toBe('billing');
   });
 
   test('keeps visible tab selection', () => {
     const tabs = getImplementedDashboardTabs(memberCtx);
     expect(normalizeDashboardTab('settings', tabs)).toBe('settings');
-    expect(normalizeDashboardTab('subscription', tabs)).toBe('subscription');
+    expect(normalizeDashboardTab('billing', tabs)).toBe('billing');
   });
 
-  test('falls back when VIP without business requests hidden business tab', () => {
-    const tabs = getImplementedDashboardTabs(vipCtx);
-    expect(normalizeDashboardTab('business', tabs)).toBe('details');
-  });
-
-  test('falls back when legacy audit or permissions tab is requested', () => {
+  test('falls back when hidden tab is requested', () => {
     const tabs = getImplementedDashboardTabs(memberCtx);
-    expect(normalizeDashboardTab('audit', tabs)).toBe('details');
-    expect(normalizeDashboardTab('permissions', tabs)).toBe('details');
+    expect(normalizeDashboardTab('notifications', tabs)).toBe('overview');
+    expect(normalizeDashboardTab('inbox', tabs)).toBe('overview');
   });
 
   test('builds alias redirect hrefs', () => {
-    expect(getDashboardAliasHref('en', 'details')).toBe('/en/m/dashboard?tab=details');
-    expect(getDashboardAliasHref('uk', 'subscription')).toBe('/uk/m/dashboard?tab=subscription');
+    expect(getDashboardAliasHref('en', 'overview')).toBe('/en/m/dashboard?tab=overview');
+    expect(getDashboardAliasHref('uk', 'billing')).toBe('/uk/m/dashboard?tab=billing');
   });
 });

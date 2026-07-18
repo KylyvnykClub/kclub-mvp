@@ -20,6 +20,7 @@ import { CabinetButton } from '@/features/member/components/cabinet/CabinetButto
 import { Badge } from '@/components/reui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { BusinessForm } from './BusinessForm';
+import { PlacementCheckoutButton } from './PlacementCheckoutButton';
 
 export type TaxonomyOption = {
   id: string;
@@ -97,7 +98,7 @@ export async function BusinessPanel({
         <div className="space-y-4">
           {ownBusinesses.map((business) => (
             <div key={business.id} className="space-y-3">
-              <BusinessStatusBanner business={business} t={t} />
+              <BusinessStatusBanner business={business} locale={locale} t={t} />
               <BusinessStatusCard business={business} locale={locale} />
             </div>
           ))}
@@ -237,9 +238,11 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
 
 function BusinessStatusBanner({
   business,
+  locale,
   t,
 }: {
   business: MemberBusinessProfileDto;
+  locale: Locale;
   t: Awaited<ReturnType<typeof getTranslations<'member.dashboard.business'>>>;
 }) {
   if (business.status === 'UNDER_REVIEW') {
@@ -252,10 +255,24 @@ function BusinessStatusBanner({
   }
 
   if (business.status === 'APPROVED') {
+    const hasPendingInvoice =
+      business.invoiceAmountCents != null && business.invoiceStatus === 'PENDING';
+
     return (
       <Alert variant="success">
         <AlertTitle>{t('statusBannerApproved')}</AlertTitle>
         <AlertDescription>{t('statusBannerApprovedSub')}</AlertDescription>
+        {hasPendingInvoice && (
+          <div className="mt-4 space-y-3 rounded-md border border-border/50 bg-background/50 p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">{t('invoiceTitle')}</span>
+              <span className="text-sm font-semibold">
+                ${(business.invoiceAmountCents! / 100).toFixed(2)}/mo
+              </span>
+            </div>
+            <PlacementCheckoutButton businessId={business.id} locale={locale} />
+          </div>
+        )}
       </Alert>
     );
   }

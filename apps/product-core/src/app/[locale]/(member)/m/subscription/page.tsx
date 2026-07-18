@@ -9,5 +9,5 @@ export default async function SubscriptionAliasPage({
   params: Promise<{ locale: Locale }>;
 }) {
   const { locale } = await params;
-  redirect(getDashboardAliasHref(locale, 'subscription'));
+  redirect(getDashboardAliasHref(locale, 'billing'));
 }

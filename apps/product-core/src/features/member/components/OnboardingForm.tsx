@@ -61,7 +61,7 @@ export function OnboardingForm({ locale, profile }: OnboardingFormProps) {
         return;
       }
 
-      router.replace(`/${locale}/m/dashboard?tab=details`);
+      router.replace(`/${locale}/m/dashboard?tab=overview`);
       router.refresh();
     } catch {
       setError(tCommon('genericError'));

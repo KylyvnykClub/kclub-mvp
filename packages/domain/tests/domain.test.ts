@@ -151,8 +151,8 @@ describe('member capability policies', () => {
     });
   });
 
-  test('dashboard tabs follow VIP and submitted-business visibility', () => {
-    const baseTabs = ['details', 'subscription', 'settings'] as const;
+  test('dashboard tabs follow business-account visibility', () => {
+    const baseTabs = ['overview', 'profile', 'settings', 'billing'] as const;
     const member = getUserContext({ subscriptionStatus: 'NONE' });
     const vip = getUserContext({ subscriptionStatus: 'ACTIVE' });
     const memberWithBusiness = getUserContext({
@@ -164,23 +164,18 @@ describe('member capability policies', () => {
       businessStatus: 'PUBLISHED',
     });
 
-    const vipTabs = ['details', 'subscription', 'settings', 'introductions'] as const;
-    const businessTabs = ['details', 'business', 'settings'] as const;
-    const vipBusinessTabs = businessTabs;
+    const withBusinessTabs = ['overview', 'profile', 'settings', 'billing', 'notifications', 'inbox'] as const;
 
     expect(getVisibleDashboardTabs(member)).toEqual(baseTabs);
-    expect(getVisibleDashboardTabs(vip)).toEqual(vipTabs);
-    expect(getVisibleDashboardTabs(memberWithBusiness)).toEqual(businessTabs);
-    expect(getVisibleDashboardTabs(vipWithBusiness)).toEqual(vipBusinessTabs);
+    expect(getVisibleDashboardTabs(vip)).toEqual(baseTabs);
+    expect(getVisibleDashboardTabs(memberWithBusiness)).toEqual(withBusinessTabs);
+    expect(getVisibleDashboardTabs(vipWithBusiness)).toEqual(withBusinessTabs);
 
-    expect(canAccessDashboardTab(member, 'business')).toBe(false);
-    expect(canAccessDashboardTab(member, 'introductions')).toBe(false);
-    expect(canAccessDashboardTab(vip, 'introductions')).toBe(true);
-    expect(canAccessDashboardTab(vip, 'business')).toBe(false);
-    expect(canAccessDashboardTab(memberWithBusiness, 'business')).toBe(true);
-    expect(canAccessDashboardTab(memberWithBusiness, 'subscription')).toBe(false);
-    expect(canAccessDashboardTab(memberWithBusiness, 'introductions')).toBe(false);
-    expect(canAccessDashboardTab(vipWithBusiness, 'introductions')).toBe(false);
+    expect(canAccessDashboardTab(member, 'notifications')).toBe(false);
+    expect(canAccessDashboardTab(member, 'inbox')).toBe(false);
+    expect(canAccessDashboardTab(memberWithBusiness, 'notifications')).toBe(true);
+    expect(canAccessDashboardTab(memberWithBusiness, 'inbox')).toBe(true);
+    expect(canAccessDashboardTab(vipWithBusiness, 'overview')).toBe(true);
   });
 
   test('introduction requires VIP; business submit requires no existing business', () => {

@@ -24,7 +24,7 @@ export default async function MemberLayout(props: {
   }
 
   if (profile.onboardingComplete && onboardingRoute) {
-    redirect(`/${locale}/m/dashboard?tab=details`);
+    redirect(`/${locale}/m/dashboard?tab=overview`);
   }
 
   return (

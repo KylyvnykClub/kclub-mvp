@@ -110,12 +110,16 @@ function canSeeAction(status: string, role: StaffRole): string | null {
 
 async function approveBusiness(
   businessId: string,
-  notes?: string,
+  payload: {
+    notes?: string;
+    invoiceOption: 'standard' | 'custom' | 'free';
+    customAmountCents?: number;
+  },
 ): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(`/api/proxy/businesses/${businessId}/approve`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(notes ? { notes } : {}),
+    body: JSON.stringify(payload),
   });
   return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
 }
@@ -409,6 +413,29 @@ export function BusinessDetailClient({
                             ? new Date(business.approvedAt).toLocaleDateString()
                             : '—',
                         },
+                        ...(business.invoiceAmountCents != null
+                          ? [
+                              {
+                                label: 'Invoice',
+                                value: (
+                                  <span className="inline-flex items-center gap-2">
+                                    ${(business.invoiceAmountCents / 100).toFixed(2)}/mo
+                                    <Badge
+                                      variant={
+                                        business.invoiceStatus === 'PAID'
+                                          ? 'secondary'
+                                          : business.invoiceStatus === 'WAIVED'
+                                            ? 'outline'
+                                            : 'destructive'
+                                      }
+                                    >
+                                      {business.invoiceStatus ?? 'PENDING'}
+                                    </Badge>
+                                  </span>
+                                ),
+                              },
+                            ]
+                          : []),
                         ...(business.rejectionReason
                           ? [{ label: 'Rejection reason', value: business.rejectionReason }]
                           : []),
@@ -1288,9 +1315,23 @@ function ApproveDialog({ businessId, onAction }: { businessId: string; onAction:
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
+  const [invoiceOption, setInvoiceOption] = useState<'standard' | 'custom' | 'free'>('standard');
+  const [customAmount, setCustomAmount] = useState('');
+
+  const resetForm = () => {
+    setNotes('');
+    setInvoiceOption('standard');
+    setCustomAmount('');
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) resetForm();
+      }}
+    >
       <DialogTrigger
         render={
           <Button size="sm">
@@ -1302,40 +1343,108 @@ function ApproveDialog({ businessId, onAction }: { businessId: string; onAction:
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Approve business</DialogTitle>
-          <DialogDescription>
-            This will transition the business to APPROVED. Publication still requires payment via
-            webhook.
-          </DialogDescription>
+          <DialogDescription>Choose how to handle payment for this business.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="approve-notes">Internal notes (optional)</Label>
-          <Input
-            id="approve-notes"
-            placeholder="Add internal notes..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Invoice option</Label>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2 rounded-md border p-3 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="radio"
+                  name="invoiceOption"
+                  value="standard"
+                  checked={invoiceOption === 'standard'}
+                  onChange={() => setInvoiceOption('standard')}
+                  className="accent-primary"
+                />
+                <span className="text-sm font-medium">Send invoice for $19.99</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 rounded-md border p-3 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="radio"
+                  name="invoiceOption"
+                  value="custom"
+                  checked={invoiceOption === 'custom'}
+                  onChange={() => setInvoiceOption('custom')}
+                  className="accent-primary"
+                />
+                <span className="text-sm font-medium">Send invoice for custom amount</span>
+              </label>
+              {invoiceOption === 'custom' && (
+                <div className="ml-6">
+                  <Input
+                    type="number"
+                    min="1"
+                    max="9999"
+                    step="0.01"
+                    placeholder="Amount in USD (e.g. 49.99)"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                  />
+                </div>
+              )}
+              <label className="flex cursor-pointer items-center gap-2 rounded-md border p-3 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="radio"
+                  name="invoiceOption"
+                  value="free"
+                  checked={invoiceOption === 'free'}
+                  onChange={() => setInvoiceOption('free')}
+                  className="accent-primary"
+                />
+                <span className="text-sm font-medium">Publish without payment</span>
+              </label>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="approve-notes">Internal notes (optional)</Label>
+            <Input
+              id="approve-notes"
+              placeholder="Add internal notes..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button
-            disabled={loading}
+            disabled={
+              loading ||
+              (invoiceOption === 'custom' &&
+                (!customAmount || Number(customAmount) <= 0))
+            }
             onClick={async () => {
               setLoading(true);
-              const result = await approveBusiness(businessId, notes || undefined);
+              const customAmountCents =
+                invoiceOption === 'custom'
+                  ? Math.round(Number(customAmount) * 100)
+                  : undefined;
+              const result = await approveBusiness(businessId, {
+                notes: notes || undefined,
+                invoiceOption,
+                customAmountCents,
+              });
               setLoading(false);
               if (!result.ok) {
                 toast.error(result.error ?? 'Failed to approve');
                 return;
               }
               setOpen(false);
-              toast.success('Business approved');
+              toast.success(
+                invoiceOption === 'free' ? 'Business published' : 'Business approved — invoice sent',
+              );
               onAction();
             }}
           >
-            {loading ? 'Approving...' : 'Approve'}
+            {loading
+              ? 'Processing...'
+              : invoiceOption === 'free'
+                ? 'Approve & Publish'
+                : 'Approve & Send Invoice'}
           </Button>
         </DialogFooter>
       </DialogContent>

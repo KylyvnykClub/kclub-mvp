@@ -70,6 +70,8 @@ function createBusinessProfileBase(
       representativePhone: `+1555222${sequence.toString().padStart(4, '0')}`,
       rejectionReason,
       internalNotes: status === 'UNDER_REVIEW' ? 'Awaiting moderation.' : null,
+      invoiceAmountCents: null,
+      invoiceStatus: null,
       approvedAt,
       hiddenAt,
       publishedAt,

@@ -3,36 +3,42 @@
 import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
-import type { CurrentMemberProfileDto, UserContext } from '@kclub/contracts';
+import type { CurrentMemberProfileDto, MemberBusinessProfileDto, UserContext } from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
 import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-tabs';
+
 import { MemberCabinetShell } from './cabinet/MemberCabinetShell';
+import { OverviewPanel } from './panels/OverviewPanel';
+import { SettingsPanel } from './SettingsPanel';
+import { BillingPanel } from './panels/BillingPanel';
+import { NotificationsPanel } from './panels/NotificationsPanel';
+import { InboxPanel } from './panels/InboxPanel';
 
 type DashboardTabsClientProps = {
   locale: Locale;
   profile: CurrentMemberProfileDto;
+  business: MemberBusinessProfileDto | null;
+  cardNumber: string | null;
+  introductionCount: number;
   userContext: UserContext;
   initialTab: ImplementedMemberDashboardTab;
   visibleTabs: readonly ImplementedMemberDashboardTab[];
   tabLabels: Record<ImplementedMemberDashboardTab, string>;
-  contactLine: string;
-  tabsAriaLabel: string;
-  lockLabels: Record<'VIP' | 'BIZ', string>;
-  panels: Partial<Record<ImplementedMemberDashboardTab, ReactNode>>;
+  serverPanels: Partial<Record<ImplementedMemberDashboardTab, ReactNode>>;
 };
 
 export function DashboardTabsClient({
   locale,
   profile,
+  business,
+  cardNumber,
+  introductionCount,
   userContext,
   initialTab,
   visibleTabs,
   tabLabels,
-  contactLine,
-  tabsAriaLabel,
-  lockLabels,
-  panels,
+  serverPanels,
 }: DashboardTabsClientProps) {
   const [activeTab, setActiveTab] = useState<ImplementedMemberDashboardTab>(initialTab);
 
@@ -40,17 +46,34 @@ export function DashboardTabsClient({
     history.replaceState(null, '', `/${locale}/m/dashboard?tab=${activeTab}`);
   }, [activeTab, locale]);
 
+  const clientPanels: Partial<Record<ImplementedMemberDashboardTab, ReactNode>> = {
+    overview: (
+      <OverviewPanel
+        locale={locale}
+        profile={profile}
+        business={business}
+        cardNumber={cardNumber}
+        introductionCount={introductionCount}
+        onNavigate={setActiveTab}
+      />
+    ),
+    settings: <SettingsPanel locale={locale} profile={profile} />,
+    billing: <BillingPanel locale={locale} profile={profile} business={business} />,
+    notifications: <NotificationsPanel />,
+    inbox: <InboxPanel />,
+  };
+
+  const panels = { ...clientPanels, ...serverPanels };
+
   return (
     <MemberCabinetShell
       locale={locale}
       profile={profile}
+      business={business}
       userContext={userContext}
       activeTab={activeTab}
       visibleTabs={visibleTabs}
       tabLabels={tabLabels}
-      contactLine={contactLine}
-      tabsAriaLabel={tabsAriaLabel}
-      lockLabels={lockLabels}
       onTabChange={setActiveTab}
     >
       {visibleTabs.map((tab) => (

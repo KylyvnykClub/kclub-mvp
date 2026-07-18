@@ -32,9 +32,16 @@ export const reissueCardSchema = z.object({
   reason: z.string().min(1).max(500).optional(),
 });
 
-export const businessApproveSchema = z.object({
-  notes: z.string().max(2000).optional(),
-});
+export const businessApproveSchema = z
+  .object({
+    notes: z.string().max(2000).optional(),
+    invoiceOption: z.enum(['standard', 'custom', 'free']),
+    customAmountCents: z.number().int().min(100).max(999900).optional(),
+  })
+  .refine(
+    (d) => d.invoiceOption !== 'custom' || (d.customAmountCents != null && d.customAmountCents > 0),
+    { message: 'customAmountCents required for custom invoice', path: ['customAmountCents'] },
+  );
 
 export const businessRejectSchema = z.object({
   reason: z.string().min(1).max(500),

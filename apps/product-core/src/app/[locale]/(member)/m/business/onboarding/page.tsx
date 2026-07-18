@@ -29,7 +29,7 @@ export default async function BusinessOnboardingPage({
   const ownBusinesses = await getOwnBusinesses(profile.id);
 
   if (ownBusinesses.some((business) => business.status !== 'REJECTED')) {
-    redirect(`/${locale}/m/dashboard?tab=business`);
+    redirect(`/${locale}/m/dashboard?tab=profile`);
   }
 
   const db = getDbClient();
@@ -49,7 +49,7 @@ export default async function BusinessOnboardingPage({
 
   const breadcrumbItems = [
     { label: tDash('breadcrumbs.dashboard'), href: `/${locale}/m/dashboard` },
-    { label: tDash('breadcrumbs.business'), href: `/${locale}/m/dashboard?tab=business` },
+    { label: tDash('breadcrumbs.business'), href: `/${locale}/m/dashboard?tab=profile` },
     { label: t('breadcrumb') },
   ];
   const homeHref = `/${locale}`;

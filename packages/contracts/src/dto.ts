@@ -299,6 +299,8 @@ export type AdminBusinessDetailDto = PublicBusinessDetailDto & {
   representativePhone: string;
   rejectionReason: string | null;
   internalNotes: string | null;
+  invoiceAmountCents: number | null;
+  invoiceStatus: string | null;
   approvedAt: IsoDateTime | null;
   hiddenAt: IsoDateTime | null;
   createdAt: IsoDateTime;
@@ -315,6 +317,8 @@ export type MemberBusinessProfileDto = PublicBusinessDetailDto & {
   representativeEmail: string;
   representativePhone: string;
   rejectionReason: string | null;
+  invoiceAmountCents: number | null;
+  invoiceStatus: string | null;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 };
@@ -399,6 +403,8 @@ export type AdminBusinessListItemDto = {
   representativePhone: string;
   rejectionReason: string | null;
   internalNotes: string | null;
+  invoiceAmountCents: number | null;
+  invoiceStatus: string | null;
   approvedAt: IsoDateTime | null;
   hiddenAt: IsoDateTime | null;
   createdAt: IsoDateTime;

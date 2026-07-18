@@ -196,7 +196,7 @@ export function BusinessSubmitWizard({
         return;
       }
 
-      router.push(`/${locale}/m/dashboard?tab=business`);
+      router.push(`/${locale}/m/dashboard?tab=profile`);
       router.refresh();
     } catch {
       setError(t('submitError'));

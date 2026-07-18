@@ -72,5 +72,5 @@ export default async function CheckoutSuccessPage({
     }
   }
 
-  redirect(`/${locale}/m/dashboard?tab=introductions`);
+  redirect(`/${locale}/m/dashboard?tab=overview`);
 }

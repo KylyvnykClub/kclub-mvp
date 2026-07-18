@@ -874,12 +874,24 @@ export async function approveBusiness(
     });
   }
 
+  const now = new Date();
+  const isFree = input.invoiceOption === 'free';
+  const invoiceAmountCents =
+    input.invoiceOption === 'standard'
+      ? 1999
+      : input.invoiceOption === 'custom'
+        ? input.customAmountCents!
+        : null;
+
   const [updated] = await db
     .update(schema.businessProfiles)
     .set({
-      status: 'APPROVED',
-      approved_at: new Date(),
+      status: isFree ? 'PUBLISHED' : 'APPROVED',
+      approved_at: now,
+      published_at: isFree ? now : undefined,
       internal_notes: input.notes ?? business.internal_notes,
+      invoice_amount_cents: invoiceAmountCents,
+      invoice_status: isFree ? 'WAIVED' : invoiceAmountCents != null ? 'PENDING' : null,
     })
     .where(eq(schema.businessProfiles.id, businessId))
     .returning();
@@ -895,10 +907,27 @@ export async function approveBusiness(
       entityType: 'BusinessProfile',
       entityId: businessId,
       before: { status: business.status },
-      after: { status: updated.status },
+      after: {
+        status: updated.status,
+        invoiceOption: input.invoiceOption,
+        invoiceAmountCents,
+      },
     },
     context,
   );
+
+  if (isFree) {
+    await auditService.log(
+      {
+        action: 'BUSINESS_PUBLISHED',
+        entityType: 'BusinessProfile',
+        entityId: businessId,
+        before: { status: 'APPROVED' },
+        after: { status: 'PUBLISHED', invoiceStatus: 'WAIVED' },
+      },
+      context,
+    );
+  }
 
   revalidateTag('businesses');
   revalidateTag('public-businesses');
@@ -2325,6 +2354,8 @@ function toAdminBusinessListItem(business: any): AdminBusinessListItemDto {
     representativePhone: business.representative_phone,
     rejectionReason: business.rejection_reason,
     internalNotes: business.internal_notes,
+    invoiceAmountCents: business.invoice_amount_cents ?? null,
+    invoiceStatus: business.invoice_status ?? null,
     approvedAt: business.approved_at?.toISOString() ?? null,
     hiddenAt: business.hidden_at?.toISOString() ?? null,
     createdAt: business.created_at.toISOString(),

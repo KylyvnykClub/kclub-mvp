@@ -2,20 +2,23 @@ import { type MemberDashboardTab, type UserContext } from '@kclub/contracts';
 import { getVisibleDashboardTabs } from '@kclub/domain';
 
 export const IMPLEMENTED_MEMBER_DASHBOARD_TABS = [
-  'details',
-  'subscription',
-  'business',
-  'introductions',
+  'overview',
+  'profile',
   'settings',
+  'billing',
+  'notifications',
+  'inbox',
 ] as const satisfies readonly MemberDashboardTab[];
 
 export type ImplementedMemberDashboardTab = (typeof IMPLEMENTED_MEMBER_DASHBOARD_TABS)[number];
 
-const DEFAULT_TAB: ImplementedMemberDashboardTab = 'details';
+const DEFAULT_TAB: ImplementedMemberDashboardTab = 'overview';
 
 const LEGACY_TAB_ALIASES: Record<string, ImplementedMemberDashboardTab> = {
-  account: 'details',
-  profile: 'details',
+  account: 'overview',
+  details: 'overview',
+  business: 'profile',
+  subscription: 'billing',
 };
 
 export function getImplementedDashboardTabs(

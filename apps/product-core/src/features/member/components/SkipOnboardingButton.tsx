@@ -20,7 +20,7 @@ export function SkipOnboardingButton({ locale }: { locale: Locale }) {
     try {
       await fetch(MEMBER_API_ROUTES.SKIP_ONBOARDING, { method: 'POST' });
     } finally {
-      router.replace(`/${locale}/m/dashboard?tab=details`);
+      router.replace(`/${locale}/m/dashboard?tab=overview`);
       router.refresh();
     }
   };

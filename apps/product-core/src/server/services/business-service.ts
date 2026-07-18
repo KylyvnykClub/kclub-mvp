@@ -430,6 +430,8 @@ export function toMemberBusinessProfileDto(business: any): MemberBusinessProfile
     representativeEmail: business.representative_email,
     representativePhone: business.representative_phone,
     rejectionReason: business.rejection_reason,
+    invoiceAmountCents: business.invoice_amount_cents ?? null,
+    invoiceStatus: business.invoice_status ?? null,
     createdAt: business.created_at.toISOString(),
     updatedAt: business.updated_at.toISOString(),
   };

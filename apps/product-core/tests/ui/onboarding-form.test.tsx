@@ -79,7 +79,7 @@ describe('OnboardingForm', () => {
           }),
         }),
       );
-      expect(replace).toHaveBeenCalledWith('/en/m/dashboard?tab=details');
+      expect(replace).toHaveBeenCalledWith('/en/m/dashboard?tab=overview');
       expect(refresh).toHaveBeenCalled();
     });
   });
@@ -96,7 +96,7 @@ describe('OnboardingForm', () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/v1/me/skip-onboarding', { method: 'POST' });
-      expect(replace).toHaveBeenCalledWith('/en/m/dashboard?tab=details');
+      expect(replace).toHaveBeenCalledWith('/en/m/dashboard?tab=overview');
       expect(refresh).toHaveBeenCalled();
     });
   });
