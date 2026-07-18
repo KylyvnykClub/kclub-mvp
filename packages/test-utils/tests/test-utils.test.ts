@@ -148,7 +148,7 @@ describe('permission fixtures', () => {
       'settings',
     ]);
     expect(MEMBER_PERMISSION_FIXTURES.VIP.capabilities).toContain('BUSINESS_SUBMIT');
-    expect(MEMBER_PERMISSION_FIXTURES.HAS_BUSINESS.visibleTabs).toContain('introductions');
+    expect(MEMBER_PERMISSION_FIXTURES.HAS_BUSINESS.visibleTabs).toContain('business');
     expect(ALL_MEMBER_DASHBOARD_TABS_FIXTURE).toContain('settings');
   });
 });

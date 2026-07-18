@@ -29,3 +29,12 @@ blob-report/
 playwright/.cache/
 .vercel
 .env*
+
+# Build artifacts
+*.tsbuildinfo
+
+# IDE
+.idea/
+
+# Legacy backups
+.vercel.old-account.bak/
