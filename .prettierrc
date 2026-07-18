@@ -5,5 +5,20 @@
   "printWidth": 100,
   "tabWidth": 2,
   "endOfLine": "lf",
-  "plugins": ["prettier-plugin-tailwindcss"]
+  "tailwindConfig": "./apps/product-core/tailwind.config.ts",
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "overrides": [
+    {
+      "files": "apps/admin-app/**/*",
+      "options": {
+        "tailwindConfig": "./apps/admin-app/tailwind.config.ts"
+      }
+    },
+    {
+      "files": "packages/ui/**/*",
+      "options": {
+        "tailwindConfig": "./.prettier-tailwind.config.cjs"
+      }
+    }
+  ]
 }
