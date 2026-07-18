@@ -6,7 +6,6 @@
       "outputs": [".next/**", "dist/**", "!.next/cache/**"],
       "env": [
         "NODE_ENV",
-        "BUN_VERSION",
         "DATABASE_URL",
         "DATABASE_URL_DIRECT",
         "NEXT_PUBLIC_APP_URL",
@@ -52,34 +51,28 @@
     },
     "typecheck": {
       "dependsOn": ["^build"],
-      "outputs": [],
-      "env": ["BUN_VERSION"]
+      "outputs": []
     },
     "lint": {
-      "outputs": [],
-      "env": ["BUN_VERSION"]
+      "outputs": []
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"],
-      "env": ["BUN_VERSION"]
+      "outputs": ["coverage/**"]
     },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true,
-      "env": ["BUN_VERSION"]
+      "persistent": true
     },
     "start:e2e": {
       "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true,
-      "env": ["BUN_VERSION"]
+      "persistent": true
     },
     "e2e": {
       "dependsOn": ["build"],
-      "cache": false,
-      "env": ["BUN_VERSION"]
+      "cache": false
     }
   }
 }
