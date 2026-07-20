@@ -13,7 +13,7 @@ Two deployable apps live in one repository:
 
 Shared packages live under `packages/*` and own contracts, validation, domain policies, database artifacts, UI primitives, config, and test utilities.
 
-Package manager: `bun`
+Package manager: `pnpm@9.15.9`
 
 Task runner: `turbo`
 
@@ -37,34 +37,35 @@ Task runner: `turbo`
 
 ## Local Development
 
-Ensure you have [Bun](https://bun.sh) installed.
+Use Node.js 22 or newer. Corepack will select the repository-pinned pnpm version.
 
 ### Install Dependencies
 
 ```bash
-bun install
+corepack enable
+pnpm install --frozen-lockfile
 ```
 
 ### Start Applications
 
 You can start both applications concurrently via Turbo, or run them individually:
 
-- **Start all apps**: `bun run dev` (Runs both apps)
-- **Start Product Core**: `bun --filter @kclub/product-core dev` (Available at http://localhost:3000)
-- **Start Admin App**: `bun --filter @kclub/admin-app dev` (Available at http://localhost:3001)
+- **Start all apps**: `pnpm run dev` (Runs both apps)
+- **Start Product Core**: `pnpm --filter @kclub/product-core dev` (Available at http://localhost:3000)
+- **Start Admin App**: `pnpm --filter @kclub/admin-app-legacy dev` (Available at http://localhost:3002)
 
 ### Check Workspaces
 
 Run quality checks across all workspaces:
 
 ```bash
-bun run format
-bun run lint
-bun run typecheck
-bun run build
+pnpm run format
+pnpm run lint
+pnpm run typecheck
+pnpm run build
 ```
 
-To run checks on specific affected packages, you can use Turbo filtering (e.g., `bunx turbo run build --filter=@kclub/product-core`).
+To run checks on specific affected packages, use pnpm/Turbo filtering (for example, `pnpm exec turbo run build --filter=@kclub/product-core`).
 
 ## Deployment and Previews
 

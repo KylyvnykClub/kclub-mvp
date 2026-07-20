@@ -93,14 +93,14 @@ For every implementation task:
 Use the strongest available subset of:
 
 ```bash
-bun install --frozen-lockfile
-bun run format
-bun run lint
-bun run typecheck
-bun run test
-bun run test:contracts
-bun run build
-bun run e2e
+pnpm install --frozen-lockfile
+pnpm run format
+pnpm run lint
+pnpm run typecheck
+pnpm run test
+pnpm run test:contracts
+pnpm run build
+pnpm run e2e
 ```
 
 If a command does not exist yet, say so and run the nearest useful check.
@@ -126,15 +126,14 @@ Every substantial task should end with:
 - Do not invent new architecture outside `SPEC`, `BLUEPRINT`, or ADRs.
 - Do not add new dependencies without checking existing tooling and documenting why.
 - Do not weaken security or tests to make a step pass.
-- Do not use Bun as production runtime unless the relevant ADR/docs explicitly approve it.
+- Use the Node.js production runtime; do not introduce an alternative runtime unless the relevant ADR/docs explicitly approve it.
 - Do not write code in a style that contradicts `docs/CODESTYLE.md`.
 - Do not write UI code that contradicts `docs/DESIGN-SYSTEM.md`.
 
 <!-- gitnexus:start -->
-
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **kclub-v4** (4825 symbols, 11055 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **kclub-v4** (4884 symbols, 11350 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
@@ -156,22 +155,22 @@ This project is indexed by GitNexus as **kclub-v4** (4825 symbols, 11055 relatio
 
 ## Resources
 
-| Resource                                  | Use for                                  |
-| ----------------------------------------- | ---------------------------------------- |
-| `gitnexus://repo/kclub-v4/context`        | Codebase overview, check index freshness |
-| `gitnexus://repo/kclub-v4/clusters`       | All functional areas                     |
-| `gitnexus://repo/kclub-v4/processes`      | All execution flows                      |
-| `gitnexus://repo/kclub-v4/process/{name}` | Step-by-step execution trace             |
+| Resource | Use for |
+|----------|---------|
+| `gitnexus://repo/kclub-v4/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/kclub-v4/clusters` | All functional areas |
+| `gitnexus://repo/kclub-v4/processes` | All execution flows |
+| `gitnexus://repo/kclub-v4/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 
-| Task                                         | Read this skill file                                        |
-| -------------------------------------------- | ----------------------------------------------------------- |
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md`       |
-| Blast radius / "What breaks if I change X?"  | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?"             | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md`       |
-| Rename / extract / split / refactor          | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md`     |
-| Tools, resources, schema reference           | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md`           |
-| Index, status, clean, wiki CLI commands      | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md`             |
+| Task | Read this skill file |
+|------|---------------------|
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->

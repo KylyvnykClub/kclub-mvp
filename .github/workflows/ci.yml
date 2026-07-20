@@ -13,31 +13,35 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version-file: .node-version
+          cache: pnpm
 
       - name: Install Dependencies
-        run: bun install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Check Formatting
-        run: bun run format
+        run: pnpm run format
 
       - name: Run Linter
-        run: bun run lint
+        run: pnpm run lint
 
       - name: Run Typecheck
-        run: bun run typecheck
+        run: pnpm run typecheck
 
       - name: Run Tests
-        run: bun run test
+        run: pnpm run test
 
       - name: Run Contract Tests
-        run: bun run test:contracts
+        run: pnpm run test:contracts
 
       - name: Build Applications
-        run: bun run build
+        run: pnpm run build
 
   e2e:
     needs: validate
@@ -78,25 +82,29 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version-file: .node-version
+          cache: pnpm
 
       - name: Install Dependencies
-        run: bun install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright Browsers
-        run: bunx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Prepare Test Database
-        run: bun --filter @kclub/database db:migrate:deploy
+        run: pnpm --filter @kclub/database db:migrate:deploy
 
       - name: Build Applications
-        run: bun run build
+        run: pnpm run build
 
       - name: Run E2E Tests
-        run: bun run e2e
+        run: pnpm run e2e
 
       - name: Upload Playwright Report
         if: failure()
