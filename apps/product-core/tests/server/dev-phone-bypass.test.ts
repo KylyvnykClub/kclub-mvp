@@ -5,7 +5,6 @@ import {
   getPhoneLookupCandidates,
   isDevPhoneBypassEnabled,
   isValidDevPhoneBypassOtp,
-  normalizePhoneForAuthLookup,
   phonesMatch,
   toDevBypassEmail,
 } from '@/server/auth/dev-phone-bypass-config';

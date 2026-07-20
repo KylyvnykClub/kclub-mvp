@@ -12,6 +12,7 @@ function Select({
   value?: string;
   onValueChange?: (value: string) => void;
 }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return <SelectPrimitive.Root data-slot="select" {...(props as any)} />;
 }
 

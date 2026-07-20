@@ -1,10 +1,8 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 
 import {
-  ERROR_CODES,
   STAFF_PERMISSIONS,
   type StaffProfileDto,
-  type StaffRole,
 } from '@kclub/contracts';
 
 describe('requireStaffPermission', () => {

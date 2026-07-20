@@ -5,7 +5,6 @@ import {
   formatCardNumber,
   cardNumberSchema,
   cardNumberToTierPrefix,
-  type CardNumberParts,
 } from '../../src/server/services/card-helpers';
 
 describe('parseCardNumber', () => {

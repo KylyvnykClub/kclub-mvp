@@ -1,3 +1,4 @@
+import tailwindcssAnimate from 'tailwindcss-animate';
 import { sharedConfig } from '@kclub/config/tailwind/theme';
 import type { Config } from 'tailwindcss';
 
@@ -27,7 +28,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [tailwindcssAnimate],
 };
 
 export default config;
