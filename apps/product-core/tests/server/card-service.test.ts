@@ -1,7 +1,6 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 
 import { toMemberCardDto, toPublicCardVerificationDto } from '../../src/server/services';
-import { AppError } from '../../src/server/errors';
 
 describe('toMemberCardDto', () => {
   const baseCard = {

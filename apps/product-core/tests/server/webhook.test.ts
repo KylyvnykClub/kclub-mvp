@@ -19,15 +19,15 @@ vi.mock('@/server/stripe/client', () => ({
 // assertions never see the always-present mock used by webhook-route*.test.ts.
 vi.mock('@/server/stripe/env', async (importOriginal) => importOriginal());
 
-function mockPrismaFindUnique(returnValue: unknown) {
+function _mockPrismaFindUnique(returnValue: unknown) {
   return vi.fn(async () => returnValue);
 }
 
-function mockPrismaCreate(returnValue: unknown) {
+function _mockPrismaCreate(returnValue: unknown) {
   return vi.fn(async () => returnValue);
 }
 
-function mockPrismaUpdate(returnValue: unknown) {
+function _mockPrismaUpdate(returnValue: unknown) {
   return vi.fn(async () => returnValue);
 }
 

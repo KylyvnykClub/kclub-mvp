@@ -5,7 +5,6 @@ import { ArrowUp, Star, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { StatusBadge } from '@/components/status-badge';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
