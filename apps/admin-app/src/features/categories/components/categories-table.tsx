@@ -1,9 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useList, useCreate, useUpdate, useDelete } from '@refinedev/core';
+import { Pencil, Plus, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+
+import { categoryCreateSchema } from '@kclub/validation';
+import type { z } from 'zod';
+
+type CategoryFormValues = z.input<typeof categoryCreateSchema>;
+import type { CategoryDto } from '@kclub/contracts';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,11 +22,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
 import {
   Table,
   TableBody,
@@ -34,298 +40,351 @@ import {
   AdminTableDesktop,
   AdminTableMobile,
 } from '@/components/admin-list-layout';
-import type { CategoryDto } from '@kclub/contracts';
 
-type CategoriesTableProps = {
-  categories: CategoryDto[];
-};
+const RESOURCE = 'categories';
 
 function CategoryFormDialog({
   mode,
   category,
-  onAction,
+  onClose,
 }: {
   mode: 'create' | 'edit';
   category?: CategoryDto;
-  onAction: () => void;
+  onClose: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [name, setName] = useState(category?.name ?? '');
-  const [slug, setSlug] = useState(category?.slug ?? '');
-  const [isHighRisk, setIsHighRisk] = useState(category?.isHighRisk ?? false);
-  const [isActive, setIsActive] = useState(category?.isActive ?? true);
-  const [isCustom, setIsCustom] = useState(category?.isCustom ?? false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<CategoryFormValues>({
+    resolver: zodResolver(categoryCreateSchema),
+    defaultValues: {
+      name: category?.name ?? '',
+      slug: category?.slug ?? '',
+      isHighRisk: category?.isHighRisk ?? false,
+      isActive: category?.isActive ?? true,
+      isCustom: category?.isCustom ?? false,
+    },
+  });
 
-  async function handleSubmit() {
-    setLoading(true);
-    const body = { name, slug, isHighRisk, isActive, isCustom };
-    const url =
-      mode === 'create' ? '/api/proxy/categories' : `/api/proxy/categories/${category!.id}`;
-    const method = mode === 'create' ? 'POST' : 'PUT';
-    const res = await fetch(url, {
-      method,
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    setLoading(false);
-    if (!res.ok) {
-      toast.error(`Failed to ${mode} category`);
-      return;
+  const createMutation = useCreate<CategoryDto>();
+  const updateMutation = useUpdate<CategoryDto>();
+  const isSaving = createMutation.mutation.isPending || updateMutation.mutation.isPending;
+
+  function onSubmit(values: CategoryFormValues) {
+    if (mode === 'create') {
+      createMutation.mutate(
+        { resource: RESOURCE, values },
+        {
+          onSuccess: () => {
+            toast.success('Category created');
+            onClose();
+          },
+          onError: () => toast.error('Failed to create category'),
+        },
+      );
+    } else {
+      updateMutation.mutate(
+        { resource: RESOURCE, id: category!.id, values },
+        {
+          onSuccess: () => {
+            toast.success('Category updated');
+            onClose();
+          },
+          onError: () => toast.error('Failed to update category'),
+        },
+      );
     }
-    setOpen(false);
-    toast.success(mode === 'create' ? 'Category created' : 'Category updated');
-    onAction();
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          mode === 'create' ? (
-            <Button size="sm">
-              <Plus className="h-4 w-4" />
-              Add Category
-            </Button>
-          ) : (
-            <Button variant="outline" size="xs">
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-          )
-        }
-      />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{mode === 'create' ? 'Create Category' : 'Edit Category'}</DialogTitle>
-          <DialogDescription>Enter category details below.</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="slug">Slug</Label>
-            <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              id="isHighRisk"
-              type="checkbox"
-              checked={isHighRisk}
-              onChange={(e) => setIsHighRisk(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <Label htmlFor="isHighRisk">High Risk</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              id="isActive"
-              type="checkbox"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <Label htmlFor="isActive">Active</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              id="isCustom"
-              type="checkbox"
-              checked={isCustom}
-              onChange={(e) => setIsCustom(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <Label htmlFor="isCustom">Custom (user-submitted)</Label>
-          </div>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>{mode === 'create' ? 'Create Category' : 'Edit Category'}</DialogTitle>
+        <DialogDescription>Enter category details below.</DialogDescription>
+      </DialogHeader>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" {...register('name')} />
+          {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="slug">Slug</Label>
+          <Input id="slug" {...register('slug')} />
+          {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            id="isHighRisk"
+            type="checkbox"
+            {...register('isHighRisk')}
+            className="h-4 w-4 rounded border-gray-300"
+          />
+          <Label htmlFor="isHighRisk">High Risk</Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            id="isActive"
+            type="checkbox"
+            {...register('isActive')}
+            className="h-4 w-4 rounded border-gray-300"
+          />
+          <Label htmlFor="isActive">Active</Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            id="isCustom"
+            type="checkbox"
+            {...register('isCustom')}
+            className="h-4 w-4 rounded border-gray-300"
+          />
+          <Label htmlFor="isCustom">Custom (user-submitted)</Label>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button disabled={loading || !name.trim() || !slug.trim()} onClick={handleSubmit}>
-            {loading ? 'Saving...' : mode === 'create' ? 'Create' : 'Update'}
+          <Button type="submit" disabled={isSaving || !isValid}>
+            {isSaving ? 'Saving...' : mode === 'create' ? 'Create' : 'Update'}
           </Button>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </form>
+    </DialogContent>
   );
 }
 
 function DeleteCategoryDialog({
-  id,
-  name,
-  onAction,
+  category,
+  onClose,
 }: {
-  id: string;
-  name: string;
-  onAction: () => void;
+  category: CategoryDto;
+  onClose: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const deleteMutation = useDelete();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button variant="destructive" size="xs">
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        }
-      />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Category</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete &ldquo;{name}&rdquo;? This cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            disabled={loading}
-            onClick={async () => {
-              setLoading(true);
-              const res = await fetch(`/api/proxy/categories/${id}`, { method: 'DELETE' });
-              setLoading(false);
-              if (!res.ok) {
-                toast.error('Failed to delete category');
-                return;
-              }
-              setOpen(false);
-              toast.success('Category deleted');
-              onAction();
-            }}
-          >
-            {loading ? 'Deleting...' : 'Delete'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Delete Category</DialogTitle>
+        <DialogDescription>
+          Are you sure you want to delete &ldquo;{category.name}&rdquo;? This cannot be undone.
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          variant="destructive"
+          disabled={deleteMutation.mutation.isPending}
+          onClick={() =>
+            deleteMutation.mutate(
+              { resource: RESOURCE, id: category.id },
+              {
+                onSuccess: () => {
+                  toast.success('Category deleted');
+                  onClose();
+                },
+                onError: () => toast.error('Failed to delete category'),
+              },
+            )
+          }
+        >
+          {deleteMutation.mutation.isPending ? 'Deleting...' : 'Delete'}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
 
-export function CategoriesTable({ categories }: CategoriesTableProps) {
-  const router = useRouter();
+type DialogState =
+  | { type: 'closed' }
+  | { type: 'create' }
+  | { type: 'edit'; category: CategoryDto }
+  | { type: 'delete'; category: CategoryDto };
+
+function CategoryRow({
+  cat,
+  onEdit,
+  onDelete,
+}: {
+  cat: CategoryDto;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <TableRow>
+      <TableCell className="font-medium">{cat.name}</TableCell>
+      <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
+      <TableCell>
+        {cat.isCustom ? (
+          <Badge variant="outline">Custom</Badge>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
+      </TableCell>
+      <TableCell>
+        {cat.isHighRisk ? (
+          <Badge variant="destructive">High Risk</Badge>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
+      </TableCell>
+      <TableCell>
+        <Badge variant={cat.isActive ? 'default' : 'secondary'}>
+          {cat.isActive ? 'Active' : 'Inactive'}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-1">
+          <Button variant="outline" size="xs" onClick={onEdit}>
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="destructive" size="xs" onClick={onDelete}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function CategoryMobileCard({
+  cat,
+  onEdit,
+  onDelete,
+}: {
+  cat: CategoryDto;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="space-y-3 p-4">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium">
+            {cat.name}
+            {cat.isCustom && (
+              <Badge variant="outline" className="ml-2">
+                Custom
+              </Badge>
+            )}
+          </p>
+          <p className="text-xs text-muted-foreground">{cat.slug}</p>
+        </div>
+        <Badge variant={cat.isActive ? 'default' : 'secondary'}>
+          {cat.isActive ? 'Active' : 'Inactive'}
+        </Badge>
+      </div>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div>{cat.isHighRisk && <Badge variant="destructive">High Risk</Badge>}</div>
+        <div className="flex items-center gap-1">
+          <Button variant="outline" size="xs" onClick={onEdit}>
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="destructive" size="xs" onClick={onDelete}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CategoriesTable() {
+  const [dialog, setDialog] = useState<DialogState>({ type: 'closed' });
+  const closeDialog = () => setDialog({ type: 'closed' });
+
+  const { query, result } = useList<CategoryDto>({
+    resource: RESOURCE,
+    pagination: { mode: 'off' },
+  });
+
+  const categories = result.data ?? [];
+
+  if (query.isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
-    <AdminList>
-      <AdminListFilters className="justify-end">
-        <CategoryFormDialog mode="create" onAction={() => router.refresh()} />
-      </AdminListFilters>
+    <>
+      <AdminList>
+        <AdminListFilters className="justify-end">
+          <Button size="sm" onClick={() => setDialog({ type: 'create' })}>
+            <Plus className="h-4 w-4" />
+            Add Category
+          </Button>
+        </AdminListFilters>
 
-      <AdminTableCard>
-        <AdminTableDesktop>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Risk</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.length === 0 ? (
+        <AdminTableCard>
+          <AdminTableDesktop>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                    No categories found
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Risk</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ) : (
-                categories.map((cat) => (
-                  <TableRow key={cat.id}>
-                    <TableCell className="font-medium">{cat.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
-                    <TableCell>
-                      {cat.isCustom ? (
-                        <Badge variant="outline">Custom</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {cat.isHighRisk ? (
-                        <Badge variant="destructive">High Risk</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={cat.isActive ? 'default' : 'secondary'}>
-                        {cat.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <CategoryFormDialog
-                          mode="edit"
-                          category={cat}
-                          onAction={() => router.refresh()}
-                        />
-                        <DeleteCategoryDialog
-                          id={cat.id}
-                          name={cat.name}
-                          onAction={() => router.refresh()}
-                        />
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {categories.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                      No categories found
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </AdminTableDesktop>
+                ) : (
+                  categories.map((cat) => (
+                    <CategoryRow
+                      key={cat.id}
+                      cat={cat}
+                      onEdit={() => setDialog({ type: 'edit', category: cat })}
+                      onDelete={() => setDialog({ type: 'delete', category: cat })}
+                    />
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </AdminTableDesktop>
 
-        <AdminTableMobile>
-          {categories.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              No categories found
-            </div>
-          ) : (
-            categories.map((cat) => (
-              <div key={cat.id} className="space-y-3 p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {cat.name}
-                      {cat.isCustom && (
-                        <Badge variant="outline" className="ml-2">
-                          Custom
-                        </Badge>
-                      )}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{cat.slug}</p>
-                  </div>
-                  <Badge variant={cat.isActive ? 'default' : 'secondary'}>
-                    {cat.isActive ? 'Active' : 'Inactive'}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div>{cat.isHighRisk && <Badge variant="destructive">High Risk</Badge>}</div>
-                  <div className="flex items-center gap-1">
-                    <CategoryFormDialog
-                      mode="edit"
-                      category={cat}
-                      onAction={() => router.refresh()}
-                    />
-                    <DeleteCategoryDialog
-                      id={cat.id}
-                      name={cat.name}
-                      onAction={() => router.refresh()}
-                    />
-                  </div>
-                </div>
+          <AdminTableMobile>
+            {categories.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                No categories found
               </div>
-            ))
-          )}
-        </AdminTableMobile>
-      </AdminTableCard>
-    </AdminList>
+            ) : (
+              categories.map((cat) => (
+                <CategoryMobileCard
+                  key={cat.id}
+                  cat={cat}
+                  onEdit={() => setDialog({ type: 'edit', category: cat })}
+                  onDelete={() => setDialog({ type: 'delete', category: cat })}
+                />
+              ))
+            )}
+          </AdminTableMobile>
+        </AdminTableCard>
+      </AdminList>
+
+      <Dialog open={dialog.type !== 'closed'} onOpenChange={(open) => !open && closeDialog()}>
+        {dialog.type === 'create' && (
+          <CategoryFormDialog mode="create" onClose={closeDialog} />
+        )}
+        {dialog.type === 'edit' && (
+          <CategoryFormDialog mode="edit" category={dialog.category} onClose={closeDialog} />
+        )}
+        {dialog.type === 'delete' && (
+          <DeleteCategoryDialog category={dialog.category} onClose={closeDialog} />
+        )}
+      </Dialog>
+    </>
   );
 }

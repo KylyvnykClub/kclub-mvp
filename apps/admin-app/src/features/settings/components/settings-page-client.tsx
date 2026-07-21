@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import type { AuditLogDto, CategoryDto } from '@kclub/contracts';
+import type { AuditLogDto } from '@kclub/contracts';
 
 import { PageShell } from '@/components/page-shell';
 import { SubTabs, type SubTabItem } from '@/components/sub-tabs';
@@ -17,7 +17,6 @@ type SettingsPageClientProps = {
   auditPage: number;
   auditLimit: number;
   auditFilters: AuditLogSearchParams;
-  categories: CategoryDto[];
 };
 
 const SETTINGS_TABS: SubTabItem[] = [
@@ -38,7 +37,6 @@ export function SettingsPageClient({
   auditPage,
   auditLimit,
   auditFilters,
-  categories,
 }: SettingsPageClientProps) {
   const [activeSection, setActiveSection] = useState(() => normalizeSection(initialSection));
 
@@ -59,7 +57,7 @@ export function SettingsPageClient({
             filters={auditFilters}
           />
         )}
-        {activeSection === 'categories' && <CategoriesTable categories={categories} />}
+        {activeSection === 'categories' && <CategoriesTable />}
         {activeSection === 'platform' && (
           <div className="rounded-lg border p-6">
             <h3 className="text-lg font-medium">Platform Configuration</h3>
