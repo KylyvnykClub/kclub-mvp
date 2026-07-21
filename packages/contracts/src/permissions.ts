@@ -84,6 +84,27 @@ export const STAFF_ROLE_PERMISSIONS = {
   ],
 } as const satisfies Record<StaffRole, readonly StaffPermission[]>;
 
+export function hasStaffPermission(
+  role: StaffRole,
+  permission: StaffPermission,
+  overrides?: StaffPermissionOverrides | null,
+): boolean {
+  if (overrides?.denied?.includes(permission)) return false;
+  if (overrides?.granted?.includes(permission)) return true;
+  return (STAFF_ROLE_PERMISSIONS[role] as readonly StaffPermission[]).includes(permission);
+}
+
+export function getEffectivePermissions(
+  role: StaffRole,
+  overrides?: StaffPermissionOverrides | null,
+): StaffPermission[] {
+  return ALL_STAFF_PERMISSIONS.filter((p) => hasStaffPermission(role, p, overrides));
+}
+
+export function isStaffRoleAtLeast(role: StaffRole, minimumRole: StaffRole): boolean {
+  return STAFF_ROLE_RANK[role] >= STAFF_ROLE_RANK[minimumRole];
+}
+
 export const MEMBER_CAPABILITIES = {
   DIGITAL_CARD_READ: 'DIGITAL_CARD_READ',
   DIRECTORY_READ: 'DIRECTORY_READ',

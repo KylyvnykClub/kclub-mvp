@@ -1,43 +1,21 @@
 import {
-  ALL_STAFF_PERMISSIONS,
   MEMBER_CAPABILITIES,
-  STAFF_ROLE_PERMISSIONS,
-  STAFF_ROLE_RANK,
+  hasStaffPermission,
+  getEffectivePermissions,
+  isStaffRoleAtLeast,
   type MemberCapability,
   type MemberDashboardTab,
-  type StaffPermission,
-  type StaffPermissionOverrides,
-  type StaffRole,
   type SubscriptionStatus,
   type BusinessStatus,
   type UserContext,
 } from '@kclub/contracts';
 
+export { hasStaffPermission, getEffectivePermissions, isStaffRoleAtLeast };
+
 export type MemberCapabilityContext = {
   subscriptionStatus: SubscriptionStatus;
   businessStatus?: BusinessStatus | null;
 };
-
-export function hasStaffPermission(
-  role: StaffRole,
-  permission: StaffPermission,
-  overrides?: StaffPermissionOverrides | null,
-): boolean {
-  if (overrides?.denied?.includes(permission)) return false;
-  if (overrides?.granted?.includes(permission)) return true;
-  return (STAFF_ROLE_PERMISSIONS[role] as readonly StaffPermission[]).includes(permission);
-}
-
-export function getEffectivePermissions(
-  role: StaffRole,
-  overrides?: StaffPermissionOverrides | null,
-): StaffPermission[] {
-  return ALL_STAFF_PERMISSIONS.filter((p) => hasStaffPermission(role, p, overrides));
-}
-
-export function isStaffRoleAtLeast(role: StaffRole, minimumRole: StaffRole): boolean {
-  return STAFF_ROLE_RANK[role] >= STAFF_ROLE_RANK[minimumRole];
-}
 
 export function hasActiveVipAccess(status: SubscriptionStatus): boolean {
   return status === 'ACTIVE' || status === 'CANCELED' || status === 'PAST_DUE';

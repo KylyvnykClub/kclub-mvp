@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useList, useCreate, useUpdate, useDelete } from '@refinedev/core';
+import { useList, useCreate, useUpdate, useDelete, useCan } from '@refinedev/core';
 import { Pencil, Plus, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -206,10 +206,12 @@ type DialogState =
 
 function CategoryRow({
   cat,
+  canMutate,
   onEdit,
   onDelete,
 }: {
   cat: CategoryDto;
+  canMutate: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -236,26 +238,30 @@ function CategoryRow({
           {cat.isActive ? 'Active' : 'Inactive'}
         </Badge>
       </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="xs" onClick={onEdit}>
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button variant="destructive" size="xs" onClick={onDelete}>
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      </TableCell>
+      {canMutate && (
+        <TableCell>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="xs" onClick={onEdit}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="destructive" size="xs" onClick={onDelete}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </TableCell>
+      )}
     </TableRow>
   );
 }
 
 function CategoryMobileCard({
   cat,
+  canMutate,
   onEdit,
   onDelete,
 }: {
   cat: CategoryDto;
+  canMutate: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -279,14 +285,16 @@ function CategoryMobileCard({
       </div>
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <div>{cat.isHighRisk && <Badge variant="destructive">High Risk</Badge>}</div>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="xs" onClick={onEdit}>
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button variant="destructive" size="xs" onClick={onDelete}>
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        {canMutate && (
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="xs" onClick={onEdit}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="destructive" size="xs" onClick={onDelete}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -300,6 +308,11 @@ export function CategoriesTable() {
     resource: RESOURCE,
     pagination: { mode: 'off' },
   });
+
+  const { data: canCreate } = useCan({ resource: RESOURCE, action: 'create' });
+  const { data: canEdit } = useCan({ resource: RESOURCE, action: 'edit' });
+  const { data: canDelete } = useCan({ resource: RESOURCE, action: 'delete' });
+  const canMutate = canEdit?.can || canDelete?.can;
 
   const categories = result.data ?? [];
 
@@ -315,10 +328,12 @@ export function CategoriesTable() {
     <>
       <AdminList>
         <AdminListFilters className="justify-end">
-          <Button size="sm" onClick={() => setDialog({ type: 'create' })}>
-            <Plus className="h-4 w-4" />
-            Add Category
-          </Button>
+          {canCreate?.can && (
+            <Button size="sm" onClick={() => setDialog({ type: 'create' })}>
+              <Plus className="h-4 w-4" />
+              Add Category
+            </Button>
+          )}
         </AdminListFilters>
 
         <AdminTableCard>
@@ -331,7 +346,7 @@ export function CategoriesTable() {
                   <TableHead>Source</TableHead>
                   <TableHead>Risk</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  {canMutate && <TableHead>Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -346,6 +361,7 @@ export function CategoriesTable() {
                     <CategoryRow
                       key={cat.id}
                       cat={cat}
+                      canMutate={!!canMutate}
                       onEdit={() => setDialog({ type: 'edit', category: cat })}
                       onDelete={() => setDialog({ type: 'delete', category: cat })}
                     />
@@ -365,6 +381,7 @@ export function CategoriesTable() {
                 <CategoryMobileCard
                   key={cat.id}
                   cat={cat}
+                  canMutate={!!canMutate}
                   onEdit={() => setDialog({ type: 'edit', category: cat })}
                   onDelete={() => setDialog({ type: 'delete', category: cat })}
                 />
