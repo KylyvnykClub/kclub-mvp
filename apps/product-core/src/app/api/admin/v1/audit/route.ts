@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit'),
       action: searchParams.get('action'),
       actorRole: searchParams.get('actorRole'),
+      actorStaffId: searchParams.get('actorStaffId') ?? undefined,
       entityType: searchParams.get('entityType'),
       dateFrom: searchParams.get('dateFrom'),
       dateTo: searchParams.get('dateTo'),

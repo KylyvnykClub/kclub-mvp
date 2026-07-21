@@ -5,7 +5,7 @@ import { IntroductionsTable } from '@/features/introductions/components/introduc
 
 export default async function IntroductionsPage() {
   const profile = await requireStaffProfile();
-  const introductions = await fetchIntroductions();
+  const result = await fetchIntroductions();
 
   return (
     <PageShell
@@ -13,7 +13,7 @@ export default async function IntroductionsPage() {
       description="Queue and review area for business introductions."
       roleScope="MODERATOR"
     >
-      <IntroductionsTable introductions={introductions ?? []} staffRole={profile.role} />
+      <IntroductionsTable introductions={result?.introductions ?? []} staffRole={profile.role} />
     </PageShell>
   );
 }
