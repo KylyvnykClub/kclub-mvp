@@ -101,6 +101,14 @@ export type DashboardMetricsDto = {
   newUsers7d?: number;
   newBusinesses7d?: number;
   recentActivity?: DashboardActivityItemDto[];
+  topCountries?: DashboardCountryStatDto[];
+};
+
+export type DashboardCountryStatDto = {
+  country: string;
+  code2: string | null;
+  users: number;
+  businesses: number;
 };
 
 export type FinanceRevenuePointDto = {

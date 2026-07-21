@@ -556,6 +556,7 @@
       "business": {
         "title": "Мой бизнес",
         "description": "Управляйте профилем бизнеса. Подача заявки не гарантирует публикацию — все профили проходят модерацию.",
+        "statusSectionTitle": "Статус бизнеса",
         "submitTitle": "Подать бизнес",
         "editTitle": "Редактировать бизнес",
         "nameLabel": "Название бизнеса",
@@ -593,6 +594,9 @@
         "statusBannerRejected": "Заявка отклонена",
         "statusBannerHidden": "Скрыт администратором",
         "incomingRecommendations": "Входящие рекомендации",
+        "placementCheckoutCta": "Оформить размещение",
+        "placementCheckoutLoading": "Перенаправление на оплату...",
+        "placementCheckoutError": "Не удалось начать оплату. Попробуйте ещё раз.",
         "editReapprovalWarning": "После сохранения бизнес будет отправлен на повторную модерацию и временно скрыт из каталога до одобрения.",
         "rejectionReasonLabel": "Причина отклонения",
         "errors": {
@@ -618,6 +622,7 @@
         "messageLabel": "Описание (необязательно)",
         "messagePlaceholder": "Кратко опишите запрос клиента...",
         "selectPlaceholder": "Выберите бизнес...",
+        "noBusinessesAvailable": "Пока нет доступных бизнесов для рекомендаций.",
         "submitCta": "Отправить рекомендацию",
         "submitSuccess": "Рекомендация успешно отправлена.",
         "cancelAction": "Отмена",

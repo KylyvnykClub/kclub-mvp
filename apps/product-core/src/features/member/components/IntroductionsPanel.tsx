@@ -205,10 +205,6 @@ export function IntroductionsPanel({
 
   return (
     <div className={cabinetContentClasses}>
-      <p className="mb-9 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-        {t('description')}
-      </p>
-
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -233,22 +229,26 @@ export function IntroductionsPanel({
 
           <div>
             <label className={labelClassName}>{t('targetBusinessLabel')}</label>
-            <Select
-              value={selectedTargetBusinessId}
-              onValueChange={(value) => setSelectedTargetBusinessId(value ?? '')}
-              required
-            >
-              <SelectTrigger className={cn('mt-2 w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}>
-                <SelectValue placeholder={t('selectPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTargets.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name} — {b.countryName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {availableTargets.length === 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">{t('noBusinessesAvailable')}</p>
+            ) : (
+              <Select
+                value={selectedTargetBusinessId}
+                onValueChange={(value) => setSelectedTargetBusinessId(value ?? '')}
+                required
+              >
+                <SelectTrigger className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}>
+                  <SelectValue placeholder={t('selectPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTargets.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name} — {b.countryName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -260,7 +260,7 @@ export function IntroductionsPanel({
                 onChange={(e) => setClientName(e.target.value)}
                 required
                 maxLength={200}
-                className={cn('mt-2 w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
+                className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
               />
             </div>
             <div>
@@ -272,7 +272,7 @@ export function IntroductionsPanel({
                 required
                 maxLength={255}
                 placeholder={t('clientContactPlaceholder')}
-                className={cn('mt-2 w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
+                className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
               />
             </div>
           </div>
@@ -285,13 +285,13 @@ export function IntroductionsPanel({
               maxLength={500}
               rows={3}
               placeholder={t('messagePlaceholder')}
-              className={cn('mt-2 w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
+              className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
             />
           </div>
 
           <CabinetButton
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || availableTargets.length === 0}
             className={INTRODUCTION_FORM_CONTROL_CLASSES}
           >
             {isSubmitting ? tCommon('saving') : t('submitCta')}

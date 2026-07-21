@@ -36,6 +36,7 @@ import {
   type ClubCardStatus,
   type CountryDto,
   type DashboardActivityItemDto,
+  type DashboardCountryStatDto,
   type DashboardMetricsDto,
   type IntroductionDto,
   type IntroductionStatus,
@@ -206,6 +207,78 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
   const recentBusinesses = arrayOrEmpty(recentBusinessesResult);
   const recentIntroductions = arrayOrEmpty(recentIntroductionsResult);
 
+  const [usersByCountryResult, businessesByCountryResult] = await Promise.allSettled([
+    db
+      .select({
+        country: schema.users.country,
+        cnt: count(),
+      })
+      .from(schema.users)
+      .where(not(isNull(schema.users.country)))
+      .groupBy(schema.users.country)
+      .orderBy(desc(count()))
+      .limit(10),
+    db
+      .select({
+        countryId: schema.businessProfiles.country_id,
+        countryName: schema.countries.name,
+        code2: schema.countries.code2,
+        cnt: count(),
+      })
+      .from(schema.businessProfiles)
+      .innerJoin(schema.countries, eq(schema.businessProfiles.country_id, schema.countries.id))
+      .groupBy(schema.businessProfiles.country_id, schema.countries.name, schema.countries.code2)
+      .orderBy(desc(count()))
+      .limit(10),
+  ]);
+
+  const usersByCountry = arrayOrEmpty(usersByCountryResult);
+  const businessesByCountry = arrayOrEmpty(businessesByCountryResult);
+
+  const countryMap = new Map<string, DashboardCountryStatDto>();
+  for (const row of usersByCountry) {
+    if (!row.country) continue;
+    countryMap.set(row.country, {
+      country: row.country,
+      code2: null,
+      users: row.cnt,
+      businesses: 0,
+    });
+  }
+  for (const row of businessesByCountry) {
+    const existing = countryMap.get(row.countryName);
+    if (existing) {
+      existing.businesses = row.cnt;
+      existing.code2 = row.code2;
+    } else {
+      countryMap.set(row.countryName, {
+        country: row.countryName,
+        code2: row.code2,
+        users: 0,
+        businesses: row.cnt,
+      });
+    }
+  }
+  // Back-fill code2 for user-only countries
+  if (countryMap.size > 0) {
+    const namesWithoutCode = [...countryMap.values()]
+      .filter((c) => c.code2 === null)
+      .map((c) => c.country);
+    if (namesWithoutCode.length > 0) {
+      const codeRows = await db
+        .select({ name: schema.countries.name, code2: schema.countries.code2 })
+        .from(schema.countries)
+        .where(inArray(schema.countries.name, namesWithoutCode));
+      for (const cr of codeRows) {
+        const entry = countryMap.get(cr.name);
+        if (entry) entry.code2 = cr.code2;
+      }
+    }
+  }
+  const topCountries: DashboardCountryStatDto[] = [...countryMap.values()]
+    .sort((a, b) => b.users + b.businesses - (a.users + a.businesses))
+    .slice(0, 5);
+
   const recentActivity: DashboardActivityItemDto[] = [
     ...recentUsers.map((user) => ({
       type: 'USER_REGISTERED' as const,
@@ -241,6 +314,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
     newUsers7d,
     newBusinesses7d,
     recentActivity,
+    topCountries,
   };
 }
 

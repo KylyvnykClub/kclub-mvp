@@ -556,6 +556,7 @@
       "business": {
         "title": "Мій бізнес",
         "description": "Керуйте профілем бізнесу. Подача заявки не гарантує публікацію — всі профілі проходять модерацію.",
+        "statusSectionTitle": "Статус бізнесу",
         "submitTitle": "Подати бізнес",
         "editTitle": "Редагувати бізнес",
         "nameLabel": "Назва бізнесу",
@@ -593,6 +594,9 @@
         "statusBannerRejected": "Заявку відхилено",
         "statusBannerHidden": "Приховано адміністратором",
         "incomingRecommendations": "Вхідні рекомендації",
+        "placementCheckoutCta": "Оформити розміщення",
+        "placementCheckoutLoading": "Перенаправлення на оплату...",
+        "placementCheckoutError": "Не вдалося розпочати оплату. Спробуйте ще раз.",
         "editReapprovalWarning": "Після збереження бізнес буде відправлено на повторну модерацію та тимчасово приховано з каталогу до схвалення.",
         "rejectionReasonLabel": "Причина відхилення",
         "errors": {
@@ -618,6 +622,7 @@
         "messageLabel": "Опис (необов'язково)",
         "messagePlaceholder": "Коротко опишіть запит клієнта...",
         "selectPlaceholder": "Оберіть бізнес...",
+        "noBusinessesAvailable": "Поки немає доступних бізнесів для рекомендацій.",
         "submitCta": "Відправити рекомендацію",
         "submitSuccess": "Рекомендацію успішно відправлено.",
         "cancelAction": "Скасувати",

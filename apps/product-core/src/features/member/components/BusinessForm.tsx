@@ -37,6 +37,32 @@ type BusinessFormProps = {
   categoryOptions: TaxonomyOption[];
 };
 
+function FormRow({
+  label,
+  htmlFor,
+  optional,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  optional?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2 border-b border-border px-0 py-5 last:border-b-0 sm:flex-row sm:items-start sm:gap-8">
+      <div className="w-full shrink-0 sm:w-44 sm:pt-2.5">
+        <Label htmlFor={htmlFor} className="text-sm font-medium text-foreground">
+          {label}
+          {optional && (
+            <span className="ml-1.5 text-xs font-normal text-muted">(optional)</span>
+          )}
+        </Label>
+      </div>
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
+  );
+}
+
 export function BusinessForm({
   locale,
   business,
@@ -186,76 +212,106 @@ export function BusinessForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit}>
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mb-6">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert variant="success">
+        <Alert variant="success" className="mb-6">
           <AlertDescription>{isEdit ? t('editSuccess') : t('submitSuccess')}</AlertDescription>
         </Alert>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label>{t('nameLabel')}</Label>
+      <div className="divide-y-0">
+        <FormRow label={t('nameLabel')} htmlFor="biz-name">
           <Input
+            id="biz-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             minLength={2}
             maxLength={100}
-            className="mt-1 w-full"
+            className="w-full"
           />
-        </div>
+        </FormRow>
 
-        <div>
-          <Label>{t('representativeNameLabel')}</Label>
+        <FormRow label={t('categoryLabel')} htmlFor="biz-category">
+          <Select
+            value={categoryId}
+            onValueChange={(value) => {
+              setCategoryId(value ?? '');
+              if (value !== '__other__') setCustomCategoryName('');
+            }}
+            required
+          >
+            <SelectTrigger id="biz-category" className="w-full">
+              <SelectValue placeholder={t('selectPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {categoryOptions.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+              <SelectItem value="__other__">{t('categoryOther')}</SelectItem>
+            </SelectContent>
+          </Select>
+          {categoryId === '__other__' && (
+            <Input
+              type="text"
+              required
+              minLength={2}
+              maxLength={120}
+              placeholder={t('customCategoryNamePlaceholder')}
+              value={customCategoryName}
+              onChange={(e) => setCustomCategoryName(e.target.value)}
+              className="mt-3 w-full"
+            />
+          )}
+        </FormRow>
+
+        <FormRow label={t('representativeNameLabel')} htmlFor="biz-rep-name">
           <Input
+            id="biz-rep-name"
             type="text"
             value={representativeName}
             onChange={(e) => setRepresentativeName(e.target.value)}
             required
             minLength={2}
             maxLength={100}
-            className="mt-1 w-full"
+            className="w-full"
           />
-        </div>
+        </FormRow>
 
-        <div>
-          <Label>{t('representativeEmailLabel')}</Label>
+        <FormRow label={t('representativeEmailLabel')} htmlFor="biz-rep-email">
           <Input
+            id="biz-rep-email"
             type="email"
             value={representativeEmail}
             onChange={(e) => setRepresentativeEmail(e.target.value)}
             required
-            className="mt-1 w-full"
+            className="w-full"
           />
-        </div>
+        </FormRow>
 
-        <div>
-          <Label>{t('representativePhoneLabel')}</Label>
+        <FormRow label={t('representativePhoneLabel')}>
           <PhoneInput
             defaultCountry={defaultCountryForLocale(locale)}
             renderFlag={renderCountryFlag}
             value={representativePhone}
             onChange={(value) => setRepresentativePhone(value)}
             required
-            wrapperClassName="mt-1"
             inputClassName={shadcnPhoneInputClassName}
             triggerClassName={shadcnPhoneTriggerClassName}
             panelClassName={shadcnPhonePanelClassName}
           />
-        </div>
-      </div>
+        </FormRow>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div>
-          <Label>{t('countryLabel')}</Label>
+        <FormRow label={t('countryLabel')} htmlFor="biz-country">
           <Select
             value={countryId}
             onValueChange={(value) => {
@@ -264,7 +320,7 @@ export function BusinessForm({
             }}
             required
           >
-            <SelectTrigger className="mt-1 w-full">
+            <SelectTrigger id="biz-country" className="w-full">
               <SelectValue placeholder={t('selectPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -275,17 +331,16 @@ export function BusinessForm({
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </FormRow>
 
-        <div>
-          <Label>{t('cityLabel')}</Label>
+        <FormRow label={t('cityLabel')} htmlFor="biz-city">
           <Select
             value={cityId}
             onValueChange={(value) => setCityId(value ?? '')}
             disabled={!countryId || isLoadingCities}
             required
           >
-            <SelectTrigger className="mt-1 w-full">
+            <SelectTrigger id="biz-city" className="w-full">
               <SelectValue
                 placeholder={isLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
               />
@@ -299,84 +354,45 @@ export function BusinessForm({
             </SelectContent>
           </Select>
           {cityLoadError && <p className="mt-2 text-xs text-destructive">{cityLoadError}</p>}
-        </div>
+        </FormRow>
 
-        <div>
-          <Label>{t('categoryLabel')}</Label>
-          <Select
-            value={categoryId}
-            onValueChange={(value) => {
-              setCategoryId(value ?? '');
-              if (value !== '__other__') setCustomCategoryName('');
-            }}
-            required
-          >
-            <SelectTrigger className="mt-1 w-full">
-              <SelectValue placeholder={t('selectPlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryOptions.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-              <SelectItem value="__other__">{t('categoryOther')}</SelectItem>
-            </SelectContent>
-          </Select>
-          {categoryId === '__other__' && (
-            <div className="mt-2">
-              <Label>{t('customCategoryName')}</Label>
-              <Input
-                type="text"
-                required
-                minLength={2}
-                maxLength={120}
-                placeholder={t('customCategoryNamePlaceholder')}
-                value={customCategoryName}
-                onChange={(e) => setCustomCategoryName(e.target.value)}
-                className="mt-1 w-full"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label>{t('websiteUrlLabel')}</Label>
+        <FormRow label={t('websiteUrlLabel')} htmlFor="biz-website" optional>
           <Input
+            id="biz-website"
             type="url"
             value={websiteUrl}
             onChange={(e) => setWebsiteUrl(e.target.value)}
-            className="mt-1 w-full"
+            className="w-full"
           />
-        </div>
+        </FormRow>
 
-        <div>
-          <Label>{t('socialUrlLabel')}</Label>
+        <FormRow label={t('socialUrlLabel')} htmlFor="biz-social" optional>
           <Input
+            id="biz-social"
             type="url"
             value={socialUrl}
             onChange={(e) => setSocialUrl(e.target.value)}
-            className="mt-1 w-full"
+            className="w-full"
           />
-        </div>
+        </FormRow>
+
+        <FormRow label={t('briefDescriptionLabel')} htmlFor="biz-desc" optional>
+          <Textarea
+            id="biz-desc"
+            value={briefDescription ?? ''}
+            onChange={(e) => setBriefDescription(e.target.value)}
+            maxLength={2000}
+            rows={3}
+            className="w-full"
+          />
+        </FormRow>
       </div>
 
-      <div>
-        <Label>{t('briefDescriptionLabel')}</Label>
-        <Textarea
-          value={briefDescription ?? ''}
-          onChange={(e) => setBriefDescription(e.target.value)}
-          maxLength={2000}
-          rows={3}
-          className="mt-1 w-full"
-        />
+      <div className="flex justify-end pt-6">
+        <CabinetButton type="submit" disabled={isSubmitting}>
+          {isSubmitting ? tCommon('saving') : isEdit ? t('editSubmit') : t('submitCta')}
+        </CabinetButton>
       </div>
-
-      <CabinetButton type="submit" disabled={isSubmitting}>
-        {isSubmitting ? tCommon('saving') : isEdit ? t('editSubmit') : t('submitCta')}
-      </CabinetButton>
     </form>
   );
 }

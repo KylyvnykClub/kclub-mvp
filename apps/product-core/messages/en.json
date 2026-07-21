@@ -556,6 +556,7 @@
       "business": {
         "title": "My Business",
         "description": "Manage your business profile. Submission does not guarantee publication — all profiles are moderated.",
+        "statusSectionTitle": "Business Status",
         "submitTitle": "Submit a Business",
         "editTitle": "Edit Your Business",
         "nameLabel": "Business Name",
@@ -593,6 +594,9 @@
         "statusBannerRejected": "Application rejected",
         "statusBannerHidden": "Hidden by admin",
         "incomingRecommendations": "Incoming Recommendations",
+        "placementCheckoutCta": "Set Up Placement",
+        "placementCheckoutLoading": "Redirecting to payment...",
+        "placementCheckoutError": "Could not start checkout. Please try again.",
         "editReapprovalWarning": "After saving, your business will be sent for re-approval. It will be temporarily hidden from the directory until approved.",
         "rejectionReasonLabel": "Rejection Reason",
         "errors": {
@@ -618,6 +622,7 @@
         "messageLabel": "Description (optional)",
         "messagePlaceholder": "Briefly describe the client's request...",
         "selectPlaceholder": "Select a business...",
+        "noBusinessesAvailable": "No partner businesses are available for recommendations yet.",
         "submitCta": "Send Recommendation",
         "submitSuccess": "Recommendation sent successfully.",
         "cancelAction": "Cancel",

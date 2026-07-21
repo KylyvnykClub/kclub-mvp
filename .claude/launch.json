@@ -12,9 +12,10 @@
     {
       "name": "admin-app",
       "runtimeExecutable": "bunx",
-      "runtimeArgs": ["next", "dev", "--turbopack", "--port", "3002"],
+      "runtimeArgs": ["next", "dev", "--turbopack"],
       "cwd": "apps/admin-app",
-      "port": 3002
+      "port": 3002,
+      "autoPort": true
     }
   ]
 }

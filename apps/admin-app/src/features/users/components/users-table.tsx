@@ -367,6 +367,7 @@ export function UsersTable({
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Phone</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Registered</TableHead>
@@ -376,7 +377,7 @@ export function UsersTable({
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -384,6 +385,7 @@ export function UsersTable({
                   users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>{user.displayName ?? '—'}</TableCell>
+                      <TableCell className="font-mono text-xs">{user.phone}</TableCell>
                       <TableCell>
                         <StatusBadge status={user.status} />
                       </TableCell>
@@ -416,6 +418,7 @@ export function UsersTable({
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{user.displayName ?? '—'}</p>
+                      <p className="truncate text-xs text-muted-foreground">{user.phone}</p>
                     </div>
                     <StatusBadge status={user.status} />
                   </div>

@@ -6,12 +6,8 @@ import type {
   MemberBusinessProfileDto,
 } from '@kclub/contracts';
 
-import { cn } from '@/lib/utils';
 import type { Locale } from '@/i18n/routing';
-import {
-  cabinetContentClasses,
-  cabinetGridPanelClasses,
-} from '@/features/member/components/cabinet/styles';
+import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 import { getOwnBusinesses } from '@/server/services/business-service';
 import { getIncomingIntroductions } from '@/server/services/introduction-service';
 import { getDbClient, schema } from '@/server/db';
@@ -20,6 +16,7 @@ import { CabinetButton } from '@/features/member/components/cabinet/CabinetButto
 import { Badge } from '@/components/reui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { BusinessForm } from './BusinessForm';
+import { PlacementCheckoutButton } from './PlacementCheckoutButton';
 
 export type TaxonomyOption = {
   id: string;
@@ -89,62 +86,91 @@ export async function BusinessPanel({
 
   return (
     <div className={cabinetContentClasses}>
-      <p className="mb-9 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+      <p className="mb-10 max-w-2xl text-sm leading-relaxed text-muted-foreground">
         {t('description')}
       </p>
 
-      {ownBusinesses.length > 0 && (
-        <div className="space-y-4">
-          {ownBusinesses.map((business) => (
-            <div key={business.id} className="space-y-3">
-              <BusinessStatusBanner business={business} t={t} />
-              <BusinessStatusCard business={business} locale={locale} />
+      <div className="space-y-8">
+        {ownBusinesses.length > 0 && (
+          <FrontCard>
+            <FrontCardHeader title={t('statusSectionTitle')} />
+            <div className="divide-y divide-border">
+              {ownBusinesses.map((business) => (
+                <div key={business.id} className="space-y-4 p-6 sm:p-8">
+                  <BusinessStatusBanner business={business} t={t} />
+                  <BusinessStatusCard business={business} locale={locale} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          </FrontCard>
+        )}
 
-      {canSubmit && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-foreground">{t('submitTitle')}</h3>
-          <BusinessForm
-            locale={locale}
-            business={null}
-            countryOptions={countryOptions}
-            categoryOptions={categoryOptions}
-          />
-        </div>
-      )}
+        {canSubmit && (
+          <FrontCard>
+            <FrontCardHeader title={t('submitTitle')} />
+            <div className="p-6 sm:p-8">
+              <BusinessForm
+                locale={locale}
+                business={null}
+                countryOptions={countryOptions}
+                categoryOptions={categoryOptions}
+              />
+            </div>
+          </FrontCard>
+        )}
 
-      {incomingIntroductions.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-foreground">{t('incomingRecommendations')}</h3>
-          <IncomingIntroductionsList introductions={incomingIntroductions} locale={locale} />
-        </div>
-      )}
+        {incomingIntroductions.length > 0 && (
+          <FrontCard>
+            <FrontCardHeader title={t('incomingRecommendations')} />
+            <div className="p-6 sm:p-8">
+              <IncomingIntroductionsList introductions={incomingIntroductions} locale={locale} />
+            </div>
+          </FrontCard>
+        )}
 
-      {editBusiness && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-foreground">{t('editTitle')}</h3>
-          {editNeedsReapproval && (
-            <Alert variant="warning">
-              <AlertDescription>{t('editReapprovalWarning')}</AlertDescription>
-            </Alert>
-          )}
-          <BusinessForm
-            locale={locale}
-            business={editBusiness}
-            countryOptions={countryOptions}
-            categoryOptions={categoryOptions}
-          />
-        </div>
-      )}
+        {editBusiness && (
+          <FrontCard>
+            <FrontCardHeader title={t('editTitle')} />
+            <div className="p-6 sm:p-8">
+              {editNeedsReapproval && (
+                <Alert variant="warning" className="mb-6">
+                  <AlertDescription>{t('editReapprovalWarning')}</AlertDescription>
+                </Alert>
+              )}
+              <BusinessForm
+                locale={locale}
+                business={editBusiness}
+                countryOptions={countryOptions}
+                categoryOptions={categoryOptions}
+              />
+            </div>
+          </FrontCard>
+        )}
 
-      {!canSubmit && !editBusiness && (
-        <div className={cn(cabinetGridPanelClasses, 'text-sm text-muted-foreground')}>
-          {t('noEditAvailable')}
-        </div>
-      )}
+        {!canSubmit && !editBusiness && (
+          <FrontCard>
+            <div className="p-6 text-sm text-muted-foreground sm:p-8">
+              {t('noEditAvailable')}
+            </div>
+          </FrontCard>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FrontCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+      {children}
+    </div>
+  );
+}
+
+function FrontCardHeader({ title }: { title: string }) {
+  return (
+    <div className="border-b border-border px-6 py-4 sm:px-8">
+      <h3 className="text-base font-semibold text-foreground">{title}</h3>
     </div>
   );
 }
@@ -166,21 +192,23 @@ function IncomingIntroductionsList({
   locale: Locale;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="divide-y divide-border">
       {introductions.map((intro) => (
-        <div key={intro.id} className={cn(cabinetGridPanelClasses, 'space-y-2')}>
+        <div key={intro.id} className="py-5 first:pt-0 last:pb-0">
           <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <p className="text-sm font-semibold text-foreground">{intro.clientName}</p>
               <p className="text-xs text-muted-foreground">{intro.clientContact}</p>
-              {intro.message && <p className="text-sm text-muted-foreground">{intro.message}</p>}
+              {intro.message && (
+                <p className="text-sm leading-relaxed text-muted-foreground">{intro.message}</p>
+              )}
               {intro.requesterDisplayName && (
                 <p className="text-xs text-muted">от: {intro.requesterDisplayName}</p>
               )}
             </div>
-            <div className="shrink-0">
-              <Badge variant="outline">{INTRO_STATUS_LABELS[intro.status] ?? intro.status}</Badge>
-            </div>
+            <Badge variant="outline" className="shrink-0">
+              {INTRO_STATUS_LABELS[intro.status] ?? intro.status}
+            </Badge>
           </div>
           <IncomingIntroductionActions intro={intro} />
         </div>
@@ -197,7 +225,7 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
           type="submit"
           tone="link"
           density="compact"
-          className="h-auto px-0 py-0 text-xs text-accent underline hover:bg-transparent hover:text-accent-hover"
+          className="mt-3 h-auto px-0 py-0 text-xs text-accent underline hover:bg-transparent hover:text-accent-hover"
         >
           Рассмотреть
         </CabinetButton>
@@ -207,7 +235,7 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
 
   if (intro.status === 'IN_REVIEW') {
     return (
-      <div className="flex gap-3">
+      <div className="mt-3 flex gap-3">
         <form action={`/api/v1/me/business/introductions/${intro.id}/approve`} method="POST">
           <CabinetButton
             type="submit"
@@ -253,10 +281,19 @@ function BusinessStatusBanner({
 
   if (business.status === 'APPROVED') {
     return (
-      <Alert variant="success">
-        <AlertTitle>{t('statusBannerApproved')}</AlertTitle>
-        <AlertDescription>{t('statusBannerApprovedSub')}</AlertDescription>
-      </Alert>
+      <div className="rounded-lg border border-success/30 bg-success/5 p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <h4 className="text-base font-semibold text-foreground">
+              {t('statusBannerApproved')}
+            </h4>
+            <p className="text-sm text-muted-foreground">{t('statusBannerApprovedSub')}</p>
+          </div>
+          <div className="shrink-0">
+            <PlacementCheckoutButton businessId={business.id} />
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -301,18 +338,16 @@ async function BusinessStatusCard({
   const t = await getTranslations({ locale, namespace: 'member.dashboard.business' });
 
   return (
-    <div className={cn(cabinetGridPanelClasses, 'space-y-3')}>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h4 className="font-semibold text-foreground">{business.name}</h4>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {business.categoryName} &middot; {business.cityName}, {business.countryName}
-          </p>
-        </div>
-        <Badge variant={getStatusBadgeVariant(business.status)}>
-          {t(STATUS_LABEL_KEYS[business.status] ?? business.status)}
-        </Badge>
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface-muted p-5">
+      <div className="min-w-0">
+        <h4 className="text-sm font-semibold text-foreground">{business.name}</h4>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {business.categoryName} &middot; {business.cityName}, {business.countryName}
+        </p>
       </div>
+      <Badge variant={getStatusBadgeVariant(business.status)} className="shrink-0">
+        {t(STATUS_LABEL_KEYS[business.status] ?? business.status)}
+      </Badge>
     </div>
   );
 }
