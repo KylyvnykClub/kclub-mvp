@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { dataProvider } from './data-provider';
 import { authProvider } from './auth-provider';
+import { createAccessControlProvider } from './access-control-provider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,12 +37,26 @@ type RefineProviderProps = {
   children: ReactNode;
 };
 
+const accessControlProvider = createAccessControlProvider(async () => {
+  const identity = await authProvider.getIdentity?.();
+  if (!identity) return null;
+  const { role, permissionOverrides } = identity as {
+    role: string;
+    permissionOverrides: { granted: string[]; denied: string[] } | null;
+  };
+  return {
+    role: role as import('@kclub/contracts').StaffRole,
+    permissionOverrides: permissionOverrides as import('@kclub/contracts').StaffPermissionOverrides | null,
+  };
+});
+
 export function RefineProvider({ children }: RefineProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <Refine
         dataProvider={dataProvider}
         authProvider={authProvider}
+        accessControlProvider={accessControlProvider}
         routerProvider={routerProvider}
         resources={resources}
         options={{ disableTelemetry: true, reactQuery: { clientConfig: queryClient } }}
