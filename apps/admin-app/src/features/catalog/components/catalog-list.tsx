@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowUp, Star, AlertCircle } from 'lucide-react';
+import { useList, useCan } from '@refinedev/core';
+import { ArrowUp, Star, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { StatusBadge } from '@/components/status-badge';
@@ -15,14 +16,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { AdminBusinessListItemDto, StaffRole } from '@kclub/contracts';
+import type { AdminBusinessListItemDto } from '@kclub/contracts';
 
 const FEATURED_TOP_MAX = 3;
 const FEATURED_RECOMMENDED_MAX = 3;
-
-function canToggleFeatured(role: StaffRole): boolean {
-  return role === 'OWNER' || role === 'ADMIN' || role === 'MODERATOR';
-}
 
 async function updateFeatured(
   businessId: string,
@@ -44,15 +41,23 @@ async function updateFeatured(
   return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
 }
 
-type CatalogListProps = {
-  businesses: AdminBusinessListItemDto[];
-  staffRole: StaffRole;
-};
+export function CatalogList() {
+  const { query, result } = useList<AdminBusinessListItemDto>({
+    resource: 'businesses',
+    pagination: { mode: 'off' },
+  });
 
-export function CatalogList({ businesses: initialBusinesses, staffRole }: CatalogListProps) {
-  const [businesses, setBusinesses] = useState(initialBusinesses);
+  const { data: canToggle } = useCan({ resource: 'businesses', action: 'featured' });
+
+  const [localOverrides, setLocalOverrides] = useState<
+    Record<string, { featuredTop?: boolean; featuredRecommended?: boolean }>
+  >({});
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const canToggle = canToggleFeatured(staffRole);
+
+  const businesses = (result.data ?? []).map((b) => ({
+    ...b,
+    ...localOverrides[b.id],
+  }));
 
   const featuredTopCount = businesses.filter((b) => b.featuredTop).length;
   const featuredRecommendedCount = businesses.filter((b) => b.featuredRecommended).length;
@@ -62,35 +67,44 @@ export function CatalogList({ businesses: initialBusinesses, staffRole }: Catalo
     field: 'featuredTop' | 'featuredRecommended',
     currentValue: boolean,
   ) {
-    if (!canToggle) return;
+    if (!canToggle?.can) return;
     const newValue = !currentValue;
     const payload =
       field === 'featuredTop' ? { featuredTop: newValue } : { featuredRecommended: newValue };
 
     setLoadingId(businessId);
-    const result = await updateFeatured(businessId, payload);
+    const toggleResult = await updateFeatured(businessId, payload);
     setLoadingId(null);
 
-    if (!result.ok) {
-      if (result.error === 'FEATURED_LIMIT_REACHED') {
+    if (!toggleResult.ok) {
+      if (toggleResult.error === 'FEATURED_LIMIT_REACHED') {
         toast.error(
           `Maximum ${field === 'featuredTop' ? 'featured top' : 'featured recommended'} (3) already reached.`,
         );
-      } else if (result.error === 'FEATURED_BUSINESS_NOT_PUBLISHED') {
+      } else if (toggleResult.error === 'FEATURED_BUSINESS_NOT_PUBLISHED') {
         toast.error('Only PUBLISHED businesses can be featured.');
       } else {
-        toast.error(result.error ?? 'Failed to update featured flag');
+        toast.error(toggleResult.error ?? 'Failed to update featured flag');
       }
       return;
     }
 
-    setBusinesses((prev) =>
-      prev.map((b) => (b.id === businessId ? { ...b, [field]: newValue } : b)),
-    );
+    setLocalOverrides((prev) => ({
+      ...prev,
+      [businessId]: { ...prev[businessId], [field]: newValue },
+    }));
     toast.success(
       field === 'featuredTop'
         ? `Featured top ${newValue ? 'enabled' : 'disabled'}`
         : `Featured recommended ${newValue ? 'enabled' : 'disabled'}`,
+    );
+  }
+
+  if (query.isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
@@ -171,7 +185,7 @@ export function CatalogList({ businesses: initialBusinesses, staffRole }: Catalo
                         <Button
                           variant={b.featuredTop ? 'default' : 'outline'}
                           size="sm"
-                          disabled={!canToggle || !isPublished || isLoading}
+                          disabled={!canToggle?.can || !isPublished || isLoading}
                           onClick={() => handleToggle(b.id, 'featuredTop', b.featuredTop)}
                         >
                           {b.featuredTop ? 'On' : 'Off'}
@@ -186,7 +200,7 @@ export function CatalogList({ businesses: initialBusinesses, staffRole }: Catalo
                         <Button
                           variant={b.featuredRecommended ? 'default' : 'outline'}
                           size="sm"
-                          disabled={!canToggle || !isPublished || isLoading}
+                          disabled={!canToggle?.can || !isPublished || isLoading}
                           onClick={() =>
                             handleToggle(b.id, 'featuredRecommended', b.featuredRecommended)
                           }
@@ -232,7 +246,7 @@ export function CatalogList({ businesses: initialBusinesses, staffRole }: Catalo
                       <Button
                         variant={b.featuredTop ? 'default' : 'outline'}
                         size="sm"
-                        disabled={!canToggle || !isPublished || isLoading}
+                        disabled={!canToggle?.can || !isPublished || isLoading}
                         onClick={() => handleToggle(b.id, 'featuredTop', b.featuredTop)}
                       >
                         {b.featuredTop ? 'On' : 'Off'}
@@ -243,7 +257,7 @@ export function CatalogList({ businesses: initialBusinesses, staffRole }: Catalo
                       <Button
                         variant={b.featuredRecommended ? 'default' : 'outline'}
                         size="sm"
-                        disabled={!canToggle || !isPublished || isLoading}
+                        disabled={!canToggle?.can || !isPublished || isLoading}
                         onClick={() =>
                           handleToggle(b.id, 'featuredRecommended', b.featuredRecommended)
                         }
@@ -259,7 +273,7 @@ export function CatalogList({ businesses: initialBusinesses, staffRole }: Catalo
         </div>
       </div>
 
-      {(!canToggle || businesses.some((b) => b.status !== 'PUBLISHED')) && (
+      {(!canToggle?.can || businesses.some((b) => b.status !== 'PUBLISHED')) && (
         <div className="flex items-start gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
