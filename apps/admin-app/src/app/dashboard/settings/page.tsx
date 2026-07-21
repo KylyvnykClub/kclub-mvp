@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 
 import { requireStaffProfile } from '@/server/auth/profile';
 import { fetchAuditLogs } from '@/features/audit/api';
-import { fetchCategories } from '@/features/categories/api';
 import { SettingsPageClient } from '@/features/settings/components/settings-page-client';
 
 type SettingsPageProps = {
@@ -36,10 +35,11 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     dateTo: sp.dateTo,
   };
 
-  const [auditResult, categories] = await Promise.all([
-    fetchAuditLogs({ ...auditFilters, page: auditPage, limit: auditLimit }),
-    fetchCategories(),
-  ]);
+  const auditResult = await fetchAuditLogs({
+    ...auditFilters,
+    page: auditPage,
+    limit: auditLimit,
+  });
 
   return (
     <SettingsPageClient
@@ -49,7 +49,6 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       auditPage={auditResult?.page ?? auditPage}
       auditLimit={auditResult?.limit ?? auditLimit}
       auditFilters={auditFilters}
-      categories={categories ?? []}
     />
   );
 }
