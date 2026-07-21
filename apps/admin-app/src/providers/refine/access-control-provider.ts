@@ -6,7 +6,7 @@ import {
   type StaffRole,
 } from '@kclub/contracts';
 
-type ResourceAction = 'list' | 'show' | 'create' | 'edit' | 'delete';
+type ResourceAction = 'list' | 'show' | 'create' | 'edit' | 'delete' | 'featured';
 
 const RESOURCE_PERMISSION_MAP: Record<string, Partial<Record<ResourceAction, StaffPermission>>> = {
   categories: {
@@ -31,6 +31,7 @@ const RESOURCE_PERMISSION_MAP: Record<string, Partial<Record<ResourceAction, Sta
     list: 'BUSINESSES_MODERATE',
     show: 'BUSINESSES_MODERATE',
     edit: 'BUSINESSES_MODERATE',
+    featured: 'FEATURED_BUSINESSES_MANAGE',
   },
   cards: {
     list: 'CARDS_READ',
