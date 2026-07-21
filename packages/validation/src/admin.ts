@@ -4,6 +4,7 @@ import {
   AUDIT_ACTIONS,
   BUSINESS_STATUSES,
   CLUB_CARD_STATUSES,
+  INTRODUCTION_STATUSES,
   MEMBER_TIERS,
   STAFF_ROLES,
   USER_STATUSES,
@@ -125,11 +126,19 @@ export const adminBusinessListSchema = z.object({
   status: z.enum(BUSINESS_STATUSES).optional(),
 });
 
+export const adminIntroductionListSchema = z.object({
+  page: pageSchema,
+  limit: limitSchema,
+  status: z.enum(INTRODUCTION_STATUSES).optional(),
+  businessId: z.string().uuid().optional(),
+});
+
 export const auditLogListSchema = z.object({
   page: pageSchema,
   limit: limitSchema,
   action: z.enum(AUDIT_ACTIONS).optional(),
   actorRole: z.enum(STAFF_ROLES).optional(),
+  actorStaffId: z.string().uuid().optional(),
   entityType: z.string().max(120).optional(),
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
@@ -181,6 +190,7 @@ export type CityUpdateInput = z.infer<typeof cityUpdateSchema>;
 export type AdminConfigUpdateInput = z.infer<typeof adminConfigUpdateSchema>;
 export type StaffRoleUpdateInput = z.infer<typeof staffRoleUpdateSchema>;
 export type AdminStaffCreateInput = z.infer<typeof adminStaffCreateSchema>;
+export type AdminIntroductionListInput = z.infer<typeof adminIntroductionListSchema>;
 export type AuditLogListInput = z.infer<typeof auditLogListSchema>;
 export type StaffDeactivateInput = z.infer<typeof staffDeactivateSchema>;
 export type StaffPasswordResetInput = z.infer<typeof staffPasswordResetSchema>;

@@ -59,6 +59,7 @@ import type {
   AdminBusinessListInput,
   AdminBusinessUpdateInput,
   AdminCardListInput,
+  AdminIntroductionListInput,
   AdminUserListInput,
   AuditLogListInput,
   BusinessApproveInput,
@@ -1248,18 +1249,37 @@ const INTRODUCTION_LIST_INCLUDE = {
   targetBusiness: { columns: { id: true, name: true, slug: true } },
 };
 
-export async function listIntroductions(opts?: {
-  targetBusinessId?: string;
-}): Promise<AdminIntroductionListItemDto[]> {
+export async function listIntroductions(
+  filters: Partial<AdminIntroductionListInput> = {},
+): Promise<{ data: AdminIntroductionListItemDto[]; total: number }> {
   const db = getDbClient();
-  const introductions = await db.query.businessIntroductions.findMany({
-    with: INTRODUCTION_LIST_INCLUDE as any,
-    orderBy: [desc(schema.businessIntroductions.created_at)],
-    ...(opts?.targetBusinessId
-      ? { where: eq(schema.businessIntroductions.target_business_id, opts.targetBusinessId) }
-      : {}),
-  });
-  return introductions.map(toAdminIntroductionListItem);
+  const conditions = [];
+
+  if (filters.businessId)
+    conditions.push(eq(schema.businessIntroductions.target_business_id, filters.businessId));
+  if (filters.status)
+    conditions.push(eq(schema.businessIntroductions.status, filters.status));
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const page = filters.page ?? 1;
+  const limit = filters.limit ?? 20;
+
+  const [introductions, total] = await Promise.all([
+    db.query.businessIntroductions.findMany({
+      with: INTRODUCTION_LIST_INCLUDE as any,
+      where: whereClause,
+      orderBy: [desc(schema.businessIntroductions.created_at)],
+      offset: (page - 1) * limit,
+      limit: limit,
+    }),
+    db.$count(schema.businessIntroductions, whereClause),
+  ]);
+
+  return {
+    data: introductions.map(toAdminIntroductionListItem),
+    total,
+  };
 }
 
 export async function getIntroductionDetail(
@@ -1799,6 +1819,8 @@ export async function listAuditLogs(
 
   if (filters.action) conditions.push(eq(schema.auditLogs.action, filters.action));
   if (filters.actorRole) conditions.push(eq(schema.auditLogs.actor_role, filters.actorRole as any));
+  if (filters.actorStaffId)
+    conditions.push(eq(schema.auditLogs.actor_staff_id, filters.actorStaffId));
   if (filters.entityType)
     conditions.push(ilike(schema.auditLogs.entity_type, `%${filters.entityType}%`));
   if (filters.dateFrom) conditions.push(sql`${schema.auditLogs.created_at} >= ${filters.dateFrom}`);
