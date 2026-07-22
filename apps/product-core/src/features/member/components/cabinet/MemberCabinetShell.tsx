@@ -1,6 +1,6 @@
 'use client';
 
-import { CreditCard, Handshake, Phone, Settings, UserRound } from 'lucide-react';
+import { Building2, CreditCard, Handshake, Phone, Settings, UserRound } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import type { CurrentMemberProfileDto, UserContext } from '@kclub/contracts';
@@ -54,6 +54,7 @@ function getPrimaryTabs(
 const DASHBOARD_TAB_ICONS: Partial<Record<ImplementedMemberDashboardTab, LucideIcon>> = {
   details: UserRound,
   subscription: CreditCard,
+  business: Building2,
   introductions: Handshake,
 };
 

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { MembershipTierBadge } from '@/components/membership-tier-badge';
 import { StatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -237,33 +238,33 @@ export function BusinessDetailClient({
       </div>
 
       <Card className="overflow-hidden">
-        <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <Avatar className="h-16 w-16 text-lg">
+        <CardContent className="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <Avatar className="h-12 w-12 text-base sm:h-16 sm:w-16 sm:text-lg">
               <AvatarFallback>{getInitials(business.name)}</AvatarFallback>
             </Avatar>
-            <div className="min-w-0 space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-0 space-y-1.5 sm:space-y-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <StatusBadge status={business.status} />
-                <Badge variant="outline" className="gap-1">
+                <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
                   <Tag size={12} aria-hidden />
                   {business.categoryName}
                 </Badge>
-                <Badge variant="outline" className="gap-1">
+                <Badge variant="outline" className="hidden gap-1 sm:inline-flex">
                   <MapPin size={12} aria-hidden />
                   {business.cityName}, {business.countryName}
                 </Badge>
               </div>
-              <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-4">
-                <span className="inline-flex items-center gap-1.5">
-                  <Mail size={14} aria-hidden />
+              <div className="flex flex-col gap-0.5 text-xs text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-4 sm:text-sm">
+                <span className="inline-flex items-center gap-1.5 truncate">
+                  <Mail size={14} aria-hidden className="shrink-0" />
                   {business.representativeEmail}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <Phone size={14} aria-hidden />
+                  <Phone size={14} aria-hidden className="shrink-0" />
                   {business.representativePhone}
                 </span>
-                <span className="inline-flex items-center gap-1.5">
+                <span className="hidden items-center gap-1.5 sm:inline-flex">
                   <Building2 size={14} aria-hidden />
                   Joined {new Date(business.createdAt).toLocaleDateString()}
                 </span>
@@ -308,7 +309,7 @@ export function BusinessDetailClient({
         </CardContent>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full border-t">
-          <div className="overflow-x-auto px-6 pt-2">
+          <div className="overflow-x-auto px-4 pt-2 sm:px-6">
             <TabsList variant="line" className="min-w-max sm:w-full sm:min-w-0">
               <TabsTrigger value="overview">
                 <LayoutGrid aria-hidden />
@@ -350,7 +351,7 @@ export function BusinessDetailClient({
             </TabsList>
           </div>
 
-          <div className="p-6 pt-4">
+          <div className="p-4 pt-3 sm:p-6 sm:pt-4">
             <TabsContent value="overview" className="mt-0 space-y-4">
               <div className="grid gap-4 lg:grid-cols-7">
                 <Card className="lg:col-span-4">
@@ -597,7 +598,7 @@ export function BusinessDetailClient({
                       <p className="text-sm text-muted-foreground">{business.owner.phone}</p>
                       <div className="flex flex-wrap items-center gap-2 pt-1">
                         <StatusBadge status={business.owner.status} />
-                        <StatusBadge status={business.owner.membershipTier} />
+                        <MembershipTierBadge tier={business.owner.membershipTier} />
                       </div>
                     </div>
                   </div>
@@ -612,7 +613,7 @@ export function BusinessDetailClient({
                       { label: 'Display name', value: business.owner.displayName ?? '—' },
                       {
                         label: 'Membership',
-                        value: <StatusBadge status={business.owner.membershipTier} />,
+                        value: <MembershipTierBadge tier={business.owner.membershipTier} />,
                       },
                       {
                         label: 'Status',
@@ -1063,69 +1064,73 @@ function LogsTab({ entries, onRefresh }: LogsTabProps) {
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Select value={actionFilter} onValueChange={setActionFilter}>
-          <SelectTrigger className="h-9 w-[200px] text-sm">
-            <SelectValue placeholder="All actions" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All actions</SelectItem>
-            {uniqueActions.map((a) => (
-              <SelectItem key={a} value={a}>
-                {a}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={actionFilter} onValueChange={setActionFilter}>
+            <SelectTrigger className="h-9 w-full text-sm sm:w-[200px]">
+              <SelectValue placeholder="All actions" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All actions</SelectItem>
+              {uniqueActions.map((a) => (
+                <SelectItem key={a} value={a}>
+                  {a}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <div className="flex items-center gap-1.5">
-          <Input
-            type="date"
-            className="h-9 w-[140px] text-sm"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            placeholder="From"
-          />
-          <span className="text-xs text-muted-foreground">–</span>
-          <Input
-            type="date"
-            className="h-9 w-[140px] text-sm"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            placeholder="To"
-          />
+          <div className="flex items-center gap-1.5">
+            <Input
+              type="date"
+              className="h-9 w-[120px] text-xs sm:w-[140px] sm:text-sm"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              placeholder="From"
+            />
+            <span className="text-xs text-muted-foreground">–</span>
+            <Input
+              type="date"
+              className="h-9 w-[120px] text-xs sm:w-[140px] sm:text-sm"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              placeholder="To"
+            />
+          </div>
+
+          {(actionFilter !== 'all' || dateFrom || dateTo) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setActionFilter('all');
+                setDateFrom('');
+                setDateTo('');
+              }}
+            >
+              Clear
+            </Button>
+          )}
         </div>
 
-        {(actionFilter !== 'all' || dateFrom || dateTo) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setActionFilter('all');
-              setDateFrom('');
-              setDateTo('');
-            }}
-          >
-            Clear
-          </Button>
-        )}
-
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs text-muted-foreground">
             {filtered.length}/{entries.length} rows
           </span>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={cn('h-3.5 w-3.5', refreshing && 'animate-spin')} />
-            Refresh
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExportCSV}>
-            <Download className="h-3.5 w-3.5" />
-            CSV
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExportJSON}>
-            <Download className="h-3.5 w-3.5" />
-            JSON
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
+              <RefreshCw className={cn('h-3.5 w-3.5', refreshing && 'animate-spin')} />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportCSV}>
+              <Download className="h-3.5 w-3.5" />
+              CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportJSON}>
+              <Download className="h-3.5 w-3.5" />
+              JSON
+            </Button>
+          </div>
         </div>
       </div>
 

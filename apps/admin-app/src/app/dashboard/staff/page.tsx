@@ -2,6 +2,7 @@ import type { AdminStaffListItemDto } from '@kclub/contracts';
 
 import { PageShell } from '@/components/page-shell';
 import { StaffTable } from '@/features/staff/components/staff-table';
+import { StatCard } from '@/features/dashboard/components/stat-card';
 import { fetchStaffList } from '@/features/staff/api';
 import { requireStaffProfile } from '@/server/auth/profile';
 
@@ -25,13 +26,30 @@ export default async function StaffPage() {
       : [selfEntry, ...fetchedStaff]
     : [selfEntry];
 
+  const activeStaff = staff.filter((s) => s.isActive).length;
+
   return (
     <PageShell
       title="Staff"
       description="Approve staff phones, assign roles, and control admin dashboard access."
-      roleScope="OWNER"
-      count={staff.length}
+      breadcrumbs="Pages / Staff / Overview"
     >
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <StatCard
+          label="Total Staff"
+          value={staff.length}
+        />
+        <StatCard
+          label="Active"
+          value={activeStaff}
+          detail={`of ${staff.length}`}
+        />
+        <StatCard
+          label="Owners"
+          value={staff.filter((s) => s.role === 'OWNER').length}
+        />
+      </div>
+
       <StaffTable staff={staff} staffRole={profile.role} />
     </PageShell>
   );

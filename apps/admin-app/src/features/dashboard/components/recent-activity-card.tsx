@@ -38,13 +38,18 @@ export function RecentActivityCard({ items }: { items: DashboardActivityItemDto[
             {items.map((item, index) => (
               <li
                 key={`${item.type}-${item.timestamp}-${index}`}
-                className="flex items-center gap-3 py-2"
+                className="flex items-start gap-3 py-2 sm:items-center"
               >
-                <Badge variant={ACTIVITY_BADGE_VARIANTS[item.type]}>
+                <Badge variant={ACTIVITY_BADGE_VARIANTS[item.type]} className="mt-0.5 shrink-0 sm:mt-0">
                   {ACTIVITY_LABELS[item.type]}
                 </Badge>
-                <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate text-sm">{item.title}</span>
+                  <span className="text-xs text-muted-foreground sm:hidden">
+                    {formatTimestamp(item.timestamp)}
+                  </span>
+                </div>
+                <span className="hidden shrink-0 text-xs text-muted-foreground sm:block">
                   {formatTimestamp(item.timestamp)}
                 </span>
               </li>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { PageShell } from '@/components/page-shell';
+import { StatCard } from '@/features/dashboard/components/stat-card';
 import { SubTabs, type SubTabItem } from '@/components/sub-tabs';
 import { SubscriptionsTable } from '@/features/subscriptions/components/subscriptions-table';
 import { MembershipsView } from '@/features/memberships/components/memberships-view';
@@ -14,12 +15,19 @@ import type {
   StaffRole,
 } from '@kclub/contracts';
 
+type BillingStats = {
+  activeSubscriptions: number;
+  pastDueSubscriptions: number;
+  totalPlans: number;
+};
+
 type BillingPageClientProps = {
   staffRole: StaffRole;
   initialSection?: string;
   subscriptions: AdminSubscriptionListItemDto[];
   plans: MembershipPlanDto[];
   prices: AdminConfigEntryDto[];
+  stats?: BillingStats;
 };
 
 function getBillingTabs(role: StaffRole): SubTabItem[] {
@@ -44,6 +52,7 @@ export function BillingPageClient({
   subscriptions,
   plans,
   prices,
+  stats,
 }: BillingPageClientProps) {
   const tabs = getBillingTabs(staffRole);
   const [activeSection, setActiveSection] = useState(() => normalizeSection(initialSection, tabs));
@@ -52,8 +61,16 @@ export function BillingPageClient({
     <PageShell
       title="Billing"
       description="Subscriptions, memberships, and pricing."
-      roleScope="ADMIN"
+      breadcrumbs="Pages / Billing / Overview"
     >
+      {stats && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <StatCard label="Active Subscriptions" value={stats.activeSubscriptions} />
+          <StatCard label="Past Due" value={stats.pastDueSubscriptions} />
+          <StatCard label="Membership Plans" value={stats.totalPlans} />
+        </div>
+      )}
+
       <div className="space-y-6">
         <SubTabs tabs={tabs} activeTab={activeSection} onTabChange={setActiveSection} />
         {activeSection === 'subscriptions' && (

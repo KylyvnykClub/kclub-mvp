@@ -42,7 +42,7 @@ export function TopCountriesCard({ data }: { data: DashboardMetricsDto }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex gap-6">
+        <div className="mb-4 grid grid-cols-3 gap-3 sm:flex sm:gap-6">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
             <div>

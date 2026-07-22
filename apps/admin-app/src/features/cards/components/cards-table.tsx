@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Search, RotateCcw, ShieldX } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { MembershipTierBadge } from '@/components/membership-tier-badge';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -248,17 +249,17 @@ export function CardsTable({
   return (
     <AdminList>
       <AdminListFilters as="form" onSubmit={handleSearch}>
-        <div className="relative min-w-[200px] max-w-sm flex-1">
+        <div className="relative w-full sm:min-w-[200px] sm:max-w-sm sm:flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             className="pl-8"
-            placeholder="Search by user phone or name..."
+            placeholder="Search by phone or name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="min-w-0 flex-1 sm:w-[140px] sm:flex-none">
             <SelectValue placeholder="All statuses" />
           </SelectTrigger>
           <SelectContent>
@@ -269,7 +270,7 @@ export function CardsTable({
           </SelectContent>
         </Select>
         <Select value={tierFilter} onValueChange={setTierFilter}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="min-w-0 flex-1 sm:w-[140px] sm:flex-none">
             <SelectValue placeholder="All tiers" />
           </SelectTrigger>
           <SelectContent>
@@ -319,7 +320,7 @@ export function CardsTable({
                       <StatusBadge status={card.status} />
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={card.membershipTier} />
+                      <MembershipTierBadge tier={card.membershipTier} />
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(card.issuedAt).toLocaleDateString()}
