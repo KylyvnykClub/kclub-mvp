@@ -5,10 +5,17 @@ import { useState } from 'react';
 import type { AuditLogDto } from '@kclub/contracts';
 
 import { PageShell } from '@/components/page-shell';
+import { StatCard } from '@/features/dashboard/components/stat-card';
 import { SubTabs, type SubTabItem } from '@/components/sub-tabs';
 import { AuditTable } from '@/features/audit/components/audit-table';
 import { CategoriesTable } from '@/features/categories/components/categories-table';
 import type { AuditLogSearchParams } from '@/features/audit/api';
+
+type SettingsStats = {
+  auditTotal: number;
+  totalUsers: number;
+  totalBusinesses: number;
+};
 
 type SettingsPageClientProps = {
   initialSection?: string;
@@ -17,6 +24,7 @@ type SettingsPageClientProps = {
   auditPage: number;
   auditLimit: number;
   auditFilters: AuditLogSearchParams;
+  stats?: SettingsStats;
 };
 
 const SETTINGS_TABS: SubTabItem[] = [
@@ -37,6 +45,7 @@ export function SettingsPageClient({
   auditPage,
   auditLimit,
   auditFilters,
+  stats,
 }: SettingsPageClientProps) {
   const [activeSection, setActiveSection] = useState(() => normalizeSection(initialSection));
 
@@ -44,8 +53,16 @@ export function SettingsPageClient({
     <PageShell
       title="Settings"
       description="Audit logs, categories, and platform configuration."
-      roleScope="ADMIN"
+      breadcrumbs="Pages / Settings / Overview"
     >
+      {stats && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <StatCard label="Audit Events" value={stats.auditTotal} />
+          <StatCard label="Total Users" value={stats.totalUsers} />
+          <StatCard label="Total Businesses" value={stats.totalBusinesses} />
+        </div>
+      )}
+
       <div className="space-y-6">
         <SubTabs tabs={SETTINGS_TABS} activeTab={activeSection} onTabChange={setActiveSection} />
         {activeSection === 'audit' && (

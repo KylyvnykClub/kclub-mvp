@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { requireStaffProfile } from '@/server/auth/profile';
 import { fetchAuditLogs } from '@/features/audit/api';
+import { fetchDashboardMetrics } from '@/features/dashboard/api';
 import { SettingsPageClient } from '@/features/settings/components/settings-page-client';
 
 type SettingsPageProps = {
@@ -35,11 +36,16 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     dateTo: sp.dateTo,
   };
 
-  const auditResult = await fetchAuditLogs({
-    ...auditFilters,
-    page: auditPage,
-    limit: auditLimit,
-  });
+  const [auditResult, metrics] = await Promise.all([
+    fetchAuditLogs({
+      ...auditFilters,
+      page: auditPage,
+      limit: auditLimit,
+    }),
+    fetchDashboardMetrics(),
+  ]);
+
+  const m = metrics.status === 'success' ? metrics.data : null;
 
   return (
     <SettingsPageClient
@@ -49,6 +55,11 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       auditPage={auditResult?.page ?? auditPage}
       auditLimit={auditResult?.limit ?? auditLimit}
       auditFilters={auditFilters}
+      stats={m ? {
+        auditTotal: auditResult?.total ?? 0,
+        totalUsers: m.totalUsers,
+        totalBusinesses: m.totalBusinesses ?? 0,
+      } : undefined}
     />
   );
 }

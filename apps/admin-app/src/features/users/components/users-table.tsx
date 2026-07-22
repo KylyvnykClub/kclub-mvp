@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Search, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+import { MembershipTierBadge } from '@/components/membership-tier-badge';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,13 +43,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { AdminPagination } from '@/components/admin-pagination';
-import {
-  AdminList,
-  AdminListFilters,
-  AdminTableCard,
-  AdminTableDesktop,
-  AdminTableMobile,
-} from '@/components/admin-list-layout';
+import { cn } from '@/lib/utils';
 import type { AdminUserListItemDto, EntityId, StaffRole } from '@kclub/contracts';
 
 function canMutateUsers(role: StaffRole): boolean {
@@ -70,6 +66,46 @@ async function unblockUser(userId: string, reason?: string) {
     body: JSON.stringify(reason ? { reason } : {}),
   });
   return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+}
+
+const avatarColors = [
+  'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+  'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
+  'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
+  'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300',
+];
+
+function getAvatarColor(name: string) {
+  let hash = 0;
+  for (const ch of name) hash = ch.charCodeAt(0) + ((hash << 5) - hash);
+  return avatarColors[Math.abs(hash) % avatarColors.length];
+}
+
+function getInitials(displayName: string | null, phone: string): string {
+  if (!displayName) return phone.slice(-2);
+  const parts = displayName.trim().split(/\s+/);
+  if (parts.length >= 2)
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return parts[0].slice(0, 2).toUpperCase();
+}
+
+function StatusDot({ status }: { status: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span
+        className={cn(
+          'inline-block h-2 w-2 rounded-full',
+          status === 'ACTIVE' && 'bg-green-500',
+          status === 'BLOCKED' && 'bg-red-500',
+        )}
+      />
+      <span className="text-sm capitalize">
+        {status.toLowerCase()}
+      </span>
+    </span>
+  );
 }
 
 type UsersTableProps = {
@@ -319,83 +355,120 @@ export function UsersTable({
     startTransition(() => router.push(buildUrl({ tier: value, page: 1 })));
   }
 
+  const activeFilterCount =
+    (statusFilter !== 'all' ? 1 : 0) + (tierFilter !== 'all' ? 1 : 0);
+
   return (
-    <AdminList>
-      <AdminListFilters as="form" onSubmit={handleSearch}>
-        <div className="relative min-w-[200px] max-w-sm flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="rounded-xl border bg-card">
+      {/* Card header — search & filters */}
+      <form
+        onSubmit={handleSearch}
+        className="flex flex-col gap-3 border-b px-4 py-3 sm:px-6 sm:py-4 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div className="relative flex-1 sm:max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            className="pl-8"
-            placeholder="Search by phone or name..."
+            className="pl-9"
+            placeholder="Search users"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={statusFilter} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="BLOCKED">Blocked</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={tierFilter} onValueChange={handleTierChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="All tiers" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All tiers</SelectItem>
-            <SelectItem value="MEMBER">Member</SelectItem>
-            <SelectItem value="VIP">VIP</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button type="submit" size="sm" disabled={isPending}>
-          Search
-        </Button>
-      </AdminListFilters>
+        <div className="flex items-center gap-2">
+          <Select value={statusFilter} onValueChange={handleStatusChange}>
+            <SelectTrigger className="min-w-0 flex-1 sm:w-[140px] sm:flex-none">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="BLOCKED">Blocked</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={tierFilter} onValueChange={handleTierChange}>
+            <SelectTrigger className="min-w-0 flex-1 sm:w-[140px] sm:flex-none">
+              <SelectValue placeholder="All tiers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All tiers</SelectItem>
+              <SelectItem value="MEMBER">Member</SelectItem>
+              <SelectItem value="VIP">VIP</SelectItem>
+            </SelectContent>
+          </Select>
+          {activeFilterCount > 0 && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+              {activeFilterCount}
+            </span>
+          )}
+        </div>
+      </form>
 
+      {/* Table content */}
       <div
         className={
           isPending ? 'pointer-events-none opacity-60 transition-opacity' : 'transition-opacity'
         }
       >
-        <AdminTableCard>
-          <AdminTableDesktop>
-            <Table>
-              <TableHeader>
+        {/* Desktop table */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pl-6">Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Tier</TableHead>
+                <TableHead>Registered</TableHead>
+                <TableHead className="pr-6 text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.length === 0 ? (
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tier</TableHead>
-                  <TableHead>Registered</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableCell colSpan={5} className="py-16 text-center text-muted-foreground">
+                    No users found
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                      No users found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>{user.displayName ?? '—'}</TableCell>
-                      <TableCell className="font-mono text-xs">{user.phone}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={user.status} />
+              ) : (
+                users.map((user) => {
+                  const label = user.displayName ?? user.phone;
+                  const initials = getInitials(user.displayName, user.phone);
+                  const colorClass = getAvatarColor(label);
+                  return (
+                    <TableRow key={user.id} className="group">
+                      <TableCell className="pl-6">
+                        <Link
+                          href={`/dashboard/users/${user.id}`}
+                          className="flex items-center gap-3"
+                        >
+                          <Avatar>
+                            <AvatarFallback className={colorClass}>
+                              {initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium transition-colors group-hover:text-primary">
+                              {user.displayName ?? '—'}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {user.phone}
+                            </p>
+                          </div>
+                        </Link>
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={user.membershipTier} />
+                        <StatusDot status={user.status} />
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                      <TableCell>
+                        <MembershipTierBadge tier={user.membershipTier} />
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(user.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </TableCell>
+                      <TableCell className="pr-6 text-right">
                         <UserRowActions
                           user={user}
                           canMutate={canMutate}
@@ -403,30 +476,41 @@ export function UsersTable({
                         />
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </AdminTableDesktop>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
-          <AdminTableMobile>
-            {users.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">No users found</div>
-            ) : (
-              users.map((user) => (
-                <div key={user.id} className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{user.displayName ?? '—'}</p>
-                      <p className="truncate text-xs text-muted-foreground">{user.phone}</p>
+        {/* Mobile cards */}
+        <div className="divide-y md:hidden">
+          {users.length === 0 ? (
+            <div className="py-16 text-center text-sm text-muted-foreground">
+              No users found
+            </div>
+          ) : (
+            users.map((user) => {
+              const label = user.displayName ?? user.phone;
+              const initials = getInitials(user.displayName, user.phone);
+              const colorClass = getAvatarColor(label);
+              return (
+                <div key={user.id} className="flex items-center gap-3 px-4 py-3">
+                  <Avatar>
+                    <AvatarFallback className={colorClass}>{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <Link
+                        href={`/dashboard/users/${user.id}`}
+                        className="truncate text-sm font-medium hover:text-primary"
+                      >
+                        {user.displayName ?? '—'}
+                      </Link>
+                      <StatusDot status={user.status} />
                     </div>
-                    <StatusBadge status={user.status} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-between">
+                      <p className="truncate text-xs text-muted-foreground">{user.phone}</p>
                       <UserRowActions
                         user={user}
                         canMutate={canMutate}
@@ -435,13 +519,16 @@ export function UsersTable({
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-          </AdminTableMobile>
-        </AdminTableCard>
+              );
+            })
+          )}
+        </div>
 
-        <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
+        {/* Pagination inside the card */}
+        <div className="border-t px-4 sm:px-6">
+          <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
+        </div>
       </div>
-    </AdminList>
+    </div>
   );
 }

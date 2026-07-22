@@ -1,37 +1,26 @@
+import { PageShell } from '@/components/page-shell';
 import { fetchDashboardMetrics } from '@/features/dashboard/api';
 import { DashboardErrorState } from '@/features/dashboard/components/dashboard-error-state';
 import { OpsOverviewCard } from '@/features/dashboard/components/ops-overview-card';
 import { RecentActivityCard } from '@/features/dashboard/components/recent-activity-card';
 import { StatsGrid } from '@/features/dashboard/components/stats-grid';
 import { TopCountriesCard } from '@/features/dashboard/components/top-countries-card';
-import { Separator } from '@/components/ui/separator';
 
 export default async function DashboardPage() {
   const metrics = await fetchDashboardMetrics();
 
   if (metrics.status !== 'success') {
     return (
-      <div className="space-y-4">
-        <div>
-          <p className="text-xs text-muted-foreground">Pages / Overview</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        </div>
-        <Separator />
+      <PageShell title="Dashboard" breadcrumbs="Pages / Overview">
         <DashboardErrorState
           code={metrics.status === 'unreachable' ? 'NETWORK_ERROR' : metrics.code}
         />
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-xs text-muted-foreground">Pages / Overview</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-      </div>
-      <Separator />
-
+    <PageShell title="Dashboard" breadcrumbs="Pages / Overview">
       <StatsGrid data={metrics.data} />
 
       <TopCountriesCard data={metrics.data} />
@@ -44,6 +33,6 @@ export default async function DashboardPage() {
           <OpsOverviewCard data={metrics.data} />
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

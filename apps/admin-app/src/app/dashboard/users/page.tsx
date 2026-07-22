@@ -1,10 +1,11 @@
+import { PageShell } from '@/components/page-shell';
 import { requireStaffProfile } from '@/server/auth/profile';
 import { fetchUsers } from '@/features/users/api';
 import { fetchDashboardMetrics } from '@/features/dashboard/api';
 import { UsersTable } from '@/features/users/components/users-table';
 import { StatCard } from '@/features/dashboard/components/stat-card';
 import { percentDelta } from '@/features/dashboard/format';
-import { Separator } from '@/components/ui/separator';
+
 
 type UsersPageProps = {
   searchParams: Promise<{
@@ -39,25 +40,13 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   const m = metrics.status === 'success' ? metrics.data : null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs text-muted-foreground">Pages / Users / Overview</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
-        </div>
-        {result?.total !== undefined && (
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-            {result.total.toLocaleString()} total
-          </span>
-        )}
-      </div>
-      <Separator />
-
+    <PageShell title="Users" breadcrumbs="Pages / Users / Overview">
       {m && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Total Users"
             value={m.totalUsers}
+            from={m.newUsers7d != null ? m.totalUsers - m.newUsers7d : null}
             delta={
               m.newUsers7d != null
                 ? percentDelta(m.totalUsers, m.totalUsers - m.newUsers7d)
@@ -65,7 +54,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
             }
           />
           <StatCard
-            label="Active"
+            label="Active Members"
             value={m.activeUsers}
             detail={`of ${m.totalUsers}`}
           />
@@ -90,6 +79,6 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
         tierFilter={tierFilter}
         staffRole={profile.role}
       />
-    </div>
+    </PageShell>
   );
 }

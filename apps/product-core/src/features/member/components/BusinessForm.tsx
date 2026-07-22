@@ -214,13 +214,13 @@ export function BusinessForm({
   return (
     <form onSubmit={handleSubmit}>
       {error && (
-        <Alert variant="destructive" className="mb-6">
+        <Alert variant="destructive" className="mb-6 rounded-none">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert variant="success" className="mb-6">
+        <Alert variant="success" className="mb-6 rounded-none">
           <AlertDescription>{isEdit ? t('editSuccess') : t('submitSuccess')}</AlertDescription>
         </Alert>
       )}
@@ -235,7 +235,7 @@ export function BusinessForm({
             required
             minLength={2}
             maxLength={100}
-            className="w-full"
+            className="w-full rounded-none"
           />
         </FormRow>
 
@@ -248,7 +248,7 @@ export function BusinessForm({
             }}
             required
           >
-            <SelectTrigger id="biz-category" className="w-full">
+            <SelectTrigger id="biz-category" className="w-full rounded-none">
               <SelectValue placeholder={t('selectPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -269,7 +269,7 @@ export function BusinessForm({
               placeholder={t('customCategoryNamePlaceholder')}
               value={customCategoryName}
               onChange={(e) => setCustomCategoryName(e.target.value)}
-              className="mt-3 w-full"
+              className="mt-3 w-full rounded-none"
             />
           )}
         </FormRow>
@@ -283,7 +283,7 @@ export function BusinessForm({
             required
             minLength={2}
             maxLength={100}
-            className="w-full"
+            className="w-full rounded-none"
           />
         </FormRow>
 
@@ -294,7 +294,7 @@ export function BusinessForm({
             value={representativeEmail}
             onChange={(e) => setRepresentativeEmail(e.target.value)}
             required
-            className="w-full"
+            className="w-full rounded-none"
           />
         </FormRow>
 
@@ -320,7 +320,7 @@ export function BusinessForm({
             }}
             required
           >
-            <SelectTrigger id="biz-country" className="w-full">
+            <SelectTrigger id="biz-country" className="w-full rounded-none">
               <SelectValue placeholder={t('selectPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -340,7 +340,7 @@ export function BusinessForm({
             disabled={!countryId || isLoadingCities}
             required
           >
-            <SelectTrigger id="biz-city" className="w-full">
+            <SelectTrigger id="biz-city" className="w-full rounded-none">
               <SelectValue
                 placeholder={isLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
               />
@@ -362,7 +362,7 @@ export function BusinessForm({
             type="url"
             value={websiteUrl}
             onChange={(e) => setWebsiteUrl(e.target.value)}
-            className="w-full"
+            className="w-full rounded-none"
           />
         </FormRow>
 
@@ -372,7 +372,7 @@ export function BusinessForm({
             type="url"
             value={socialUrl}
             onChange={(e) => setSocialUrl(e.target.value)}
-            className="w-full"
+            className="w-full rounded-none"
           />
         </FormRow>
 
@@ -382,8 +382,7 @@ export function BusinessForm({
             value={briefDescription ?? ''}
             onChange={(e) => setBriefDescription(e.target.value)}
             maxLength={2000}
-            rows={3}
-            className="w-full"
+            className="w-full rounded-none"
           />
         </FormRow>
       </div>

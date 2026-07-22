@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -5,24 +6,26 @@ import { cn } from '@/lib/utils';
 type StatCardProps = {
   label: string;
   value: number | string;
-  detail?: string;
+  detail?: ReactNode;
   delta?: number | null;
+  from?: number | string | null;
 };
 
-export function StatCard({ label, value, detail, delta }: StatCardProps) {
+export function StatCard({ label, value, detail, delta, from }: StatCardProps) {
   const isPositive = delta != null && delta > 0;
   const isNegative = delta != null && delta < 0;
   const isNeutral = delta != null && delta === 0;
 
   return (
-    <div className="rounded-lg border bg-card p-5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-primary/70">{label}</p>
+    <div className="bg-card rounded-xl border p-4 sm:p-5">
+      <p className="text-primary/70 text-xs font-semibold uppercase tracking-wider">{label}</p>
       <div className="mt-2 flex items-end justify-between gap-2">
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold tracking-tight">{value}</span>
-          {detail && (
-            <span className="text-sm text-muted-foreground">{detail}</span>
-          )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold tracking-tight sm:text-3xl">{value}</span>
+            {from != null && <span className="text-sm text-muted-foreground">from {from}</span>}
+          </div>
+          {detail && <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm">{detail}</p>}
         </div>
         {delta != null && (
           <span

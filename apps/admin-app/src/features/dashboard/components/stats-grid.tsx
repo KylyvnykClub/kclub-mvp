@@ -26,7 +26,22 @@ export function StatsGrid({ data }: { data: DashboardMetricsDto }) {
       <StatCard
         label="Businesses"
         value={data.totalBusinesses ?? 0}
-        detail={`${data.publishedBusinesses ?? 0} published`}
+        detail={
+          <>
+            {data.publishedBusinesses ?? 0} published
+            {data.businessesUnderReview > 0 ? (
+              <>
+                {' '}
+                ·{' '}
+                <span className="font-medium text-yellow-700 dark:text-yellow-300">
+                  {data.businessesUnderReview} under review
+                </span>
+              </>
+            ) : (
+              ` · 0 under review`
+            )}
+          </>
+        }
         delta={
           data.newBusinesses7d != null && data.totalBusinesses
             ? percentDelta(data.totalBusinesses, data.totalBusinesses - data.newBusinesses7d)
@@ -37,9 +52,24 @@ export function StatsGrid({ data }: { data: DashboardMetricsDto }) {
         label="Introductions"
         value={totalPending}
         detail={
-          totalPending > 0
-            ? `${data.introductionsSubmitted} submitted · ${data.introductionsInReview} in review`
-            : 'none pending'
+          totalPending > 0 ? (
+            <>
+              {data.introductionsSubmitted} submitted
+              {data.introductionsInReview > 0 ? (
+                <>
+                  {' '}
+                  ·{' '}
+                  <span className="font-medium text-yellow-700 dark:text-yellow-300">
+                    {data.introductionsInReview} in review
+                  </span>
+                </>
+              ) : (
+                ` · 0 in review`
+              )}
+            </>
+          ) : (
+            'none pending'
+          )
         }
       />
     </div>

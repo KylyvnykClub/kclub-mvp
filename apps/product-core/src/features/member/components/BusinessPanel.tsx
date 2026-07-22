@@ -35,8 +35,8 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   HIDDEN: 'hidden',
 };
 
-const STATUS_BADGE_VARIANTS: Record<string, 'default' | 'outline' | 'success' | 'destructive'> = {
-  UNDER_REVIEW: 'outline',
+const STATUS_BADGE_VARIANTS: Record<string, 'default' | 'outline' | 'success' | 'destructive' | 'warning-light'> = {
+  UNDER_REVIEW: 'warning-light',
   APPROVED: 'success',
   PUBLISHED: 'success',
   REJECTED: 'destructive',
@@ -86,9 +86,6 @@ export async function BusinessPanel({
 
   return (
     <div className={cabinetContentClasses}>
-      <p className="mb-10 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-        {t('description')}
-      </p>
 
       <div className="space-y-8">
         {ownBusinesses.length > 0 && (
@@ -133,7 +130,7 @@ export async function BusinessPanel({
             <FrontCardHeader title={t('editTitle')} />
             <div className="p-6 sm:p-8">
               {editNeedsReapproval && (
-                <Alert variant="warning" className="mb-6">
+                <Alert variant="warning" className="mb-6 rounded-none">
                   <AlertDescription>{t('editReapprovalWarning')}</AlertDescription>
                 </Alert>
               )}
@@ -161,7 +158,7 @@ export async function BusinessPanel({
 
 function FrontCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+    <div className="overflow-hidden border border-border bg-surface shadow-sm">
       {children}
     </div>
   );
@@ -272,7 +269,7 @@ function BusinessStatusBanner({
 }) {
   if (business.status === 'UNDER_REVIEW') {
     return (
-      <Alert variant="warning">
+      <Alert variant="warning" className="rounded-none">
         <AlertTitle>{t('statusBannerUnderReview')}</AlertTitle>
         <AlertDescription>{t('statusBannerUnderReviewSub')}</AlertDescription>
       </Alert>
@@ -281,7 +278,7 @@ function BusinessStatusBanner({
 
   if (business.status === 'APPROVED') {
     return (
-      <div className="rounded-lg border border-success/30 bg-success/5 p-6">
+      <div className="border border-success/30 bg-success/5 p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <h4 className="text-base font-semibold text-foreground">
@@ -299,7 +296,7 @@ function BusinessStatusBanner({
 
   if (business.status === 'PUBLISHED') {
     return (
-      <Alert variant="info">
+      <Alert variant="info" className="rounded-none">
         <AlertTitle>{t('statusBannerPublished')}</AlertTitle>
         <AlertDescription>{t('statusBannerPublishedSub')}</AlertDescription>
       </Alert>
@@ -308,7 +305,7 @@ function BusinessStatusBanner({
 
   if (business.status === 'REJECTED') {
     return (
-      <Alert variant="destructive">
+      <Alert variant="destructive" className="rounded-none">
         <AlertTitle>{t('statusBannerRejected')}</AlertTitle>
         {business.rejectionReason && (
           <AlertDescription>{business.rejectionReason}</AlertDescription>
@@ -319,7 +316,7 @@ function BusinessStatusBanner({
 
   if (business.status === 'HIDDEN') {
     return (
-      <Alert variant="default">
+      <Alert variant="default" className="rounded-none">
         <AlertTitle>{t('statusBannerHidden')}</AlertTitle>
       </Alert>
     );
@@ -338,14 +335,14 @@ async function BusinessStatusCard({
   const t = await getTranslations({ locale, namespace: 'member.dashboard.business' });
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface-muted p-5">
+    <div className="flex items-center justify-between gap-4 border border-border bg-surface-muted p-5">
       <div className="min-w-0">
         <h4 className="text-sm font-semibold text-foreground">{business.name}</h4>
         <p className="mt-1 text-xs text-muted-foreground">
           {business.categoryName} &middot; {business.cityName}, {business.countryName}
         </p>
       </div>
-      <Badge variant={getStatusBadgeVariant(business.status)} className="shrink-0">
+      <Badge variant={getStatusBadgeVariant(business.status)} size="xs" className="shrink-0">
         {t(STATUS_LABEL_KEYS[business.status] ?? business.status)}
       </Badge>
     </div>
