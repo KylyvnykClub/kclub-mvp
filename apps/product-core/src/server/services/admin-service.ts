@@ -1943,6 +1943,22 @@ export type StripePriceKey = (typeof STRIPE_PRICE_KEYS)[number];
 
 export type StripePricesMap = Record<StripePriceKey, string | null>;
 
+function isStripePriceKey(key: string): key is StripePriceKey {
+  return STRIPE_PRICE_KEYS.includes(key as StripePriceKey);
+}
+
+function normalizeAdminConfigValue(key: string, value: unknown): unknown {
+  if (!isStripePriceKey(key)) {
+    return value;
+  }
+
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  return { priceId: value.trim() };
+}
+
 export async function getStripePrices(): Promise<StripePricesMap> {
   const db = getDbClient();
   const configs = await db.query.adminConfigs.findMany({
@@ -1968,7 +1984,7 @@ export async function updateStripePrices(
   const db = getDbClient();
 
   for (const [key, priceId] of Object.entries(input)) {
-    if (!STRIPE_PRICE_KEYS.includes(key as StripePriceKey)) continue;
+    if (!isStripePriceKey(key)) continue;
 
     const existing = await db.query.adminConfigs.findFirst({
       where: eq(schema.adminConfigs.key, key),
@@ -2008,6 +2024,7 @@ export async function updateAdminConfig(
   input: AdminConfigUpdateInput,
 ): Promise<AdminConfigEntryDto> {
   const db = getDbClient();
+  const normalizedValue = normalizeAdminConfigValue(key, input.value);
   const existing = await db.query.adminConfigs.findFirst({
     where: eq(schema.adminConfigs.key, key),
   });
@@ -2017,7 +2034,7 @@ export async function updateAdminConfig(
     const [updated] = await db
       .update(schema.adminConfigs)
       .set({
-        value: input.value,
+        value: normalizedValue,
         description: input.description ?? existing.description,
       })
       .where(eq(schema.adminConfigs.key, key))
@@ -2028,7 +2045,7 @@ export async function updateAdminConfig(
       .insert(schema.adminConfigs)
       .values({
         key,
-        value: input.value,
+        value: normalizedValue,
         description: input.description ?? null,
       })
       .returning();

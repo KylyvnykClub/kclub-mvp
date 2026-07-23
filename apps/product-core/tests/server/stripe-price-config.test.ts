@@ -31,6 +31,7 @@ describe('stripe price config', () => {
   });
 
   test('parseAdminConfigPriceId reads admin_config value shape', () => {
+    expect(parseAdminConfigPriceId('price_string')).toBe('price_string');
     expect(parseAdminConfigPriceId({ priceId: 'price_admin' })).toBe('price_admin');
     expect(parseAdminConfigPriceId({ stripePriceId: 'price_legacy' })).toBeUndefined();
     expect(parseAdminConfigPriceId({ priceId: '   ' })).toBeUndefined();
