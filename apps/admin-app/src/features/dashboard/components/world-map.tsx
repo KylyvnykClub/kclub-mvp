@@ -35,7 +35,7 @@ type WorldMapProps = {
 export function WorldMap({ markers = [], className }: WorldMapProps) {
   const reactId = useId();
   const domId = `jvm-${reactId.replace(/:/g, '')}`;
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<{ destroy: () => void } | null>(null);
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {

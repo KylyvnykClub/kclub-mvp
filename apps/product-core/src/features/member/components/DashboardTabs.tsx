@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
 
 import type {
+  CityDto,
   CurrentMemberProfileDto,
   PublicBusinessListItemDto,
   UserContext,
@@ -13,13 +14,13 @@ import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-
 import { isDashboardTabLocked } from '@/features/member/dashboard-tabs';
 import { CabinetLockedPanel } from '@/features/member/components/cabinet/CabinetLockedPanel';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
+import { getCachedCities, getCachedCountries } from '@/server/cache/taxonomy-cache';
 
 import { AccountPanel } from './AccountPanel';
 import { BusinessPanel } from './BusinessPanel';
 import { DashboardTabsClient } from './DashboardTabsClient';
 import { IntroductionsPanel } from './IntroductionsPanel';
 import { SettingsPanel } from './SettingsPanel';
-import { SubscriptionUpgradePanel } from './SubscriptionUpgradePanel';
 
 type DashboardTabsProps = {
   locale: Locale;
@@ -41,10 +42,16 @@ export async function DashboardTabs({
   serverPublicBusinesses,
 }: DashboardTabsProps) {
   const t = await getTranslations({ locale, namespace: 'member.dashboard' });
+  const [cities, countries] = await Promise.all([getCachedCities(), getCachedCountries()]);
+  const countryOptions = countries
+    .filter((country) => country.isActive)
+    .map((country) => country.name);
+  const cityOptions: Pick<CityDto, 'countryName' | 'name'>[] = cities
+    .filter((city) => city.isActive)
+    .map((city) => ({ countryName: city.countryName, name: city.name }));
 
   const tabLabels: Record<ImplementedMemberDashboardTab, string> = {
     details: t('tabs.details'),
-    subscription: t('tabs.subscription'),
     business: t('tabs.business'),
     introductions: t('tabs.introductions'),
     settings: t('tabs.settings'),
@@ -62,8 +69,6 @@ export async function DashboardTabs({
   for (const tab of visibleTabs) {
     if (tab === 'details') {
       panels.details = <AccountPanel locale={locale} profile={profile} cardNumber={cardNumber} />;
-    } else if (tab === 'subscription') {
-      panels.subscription = <SubscriptionUpgradePanel locale={locale} profile={profile} />;
     } else if (tab === 'introductions') {
       panels.introductions = isDashboardTabLocked(userContext, 'introductions') ? (
         <div className={cabinetContentClasses}>
@@ -97,7 +102,14 @@ export async function DashboardTabs({
         <BusinessPanel locale={locale} profile={profile} />
       );
     } else if (tab === 'settings') {
-      panels.settings = <SettingsPanel locale={locale} profile={profile} />;
+      panels.settings = (
+        <SettingsPanel
+          cityOptions={cityOptions}
+          countryOptions={countryOptions}
+          locale={locale}
+          profile={profile}
+        />
+      );
     }
   }
 

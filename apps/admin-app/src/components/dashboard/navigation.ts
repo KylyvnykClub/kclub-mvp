@@ -1,6 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  BadgeCheck,
   Building2,
   CreditCard,
   LayoutDashboard,
@@ -27,7 +26,7 @@ export const dashboardNav: DashboardNavItem[] = [
     roles: ['OWNER', 'ADMIN', 'MODERATOR'],
   },
   { title: 'Users', href: '/dashboard/users', icon: Users, roles: ['OWNER', 'ADMIN'] },
-  { title: 'Cards', href: '/dashboard/cards', icon: BadgeCheck, roles: ['OWNER', 'ADMIN'] },
+  // { title: 'Cards', href: '/dashboard/cards', icon: BadgeCheck, roles: ['OWNER', 'ADMIN'] },
   {
     title: 'Businesses',
     href: '/dashboard/businesses',

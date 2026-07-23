@@ -3,7 +3,6 @@ import { getVisibleDashboardTabs } from '@kclub/domain';
 
 export const IMPLEMENTED_MEMBER_DASHBOARD_TABS = [
   'details',
-  'subscription',
   'business',
   'introductions',
   'settings',

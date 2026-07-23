@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, MoreHorizontal } from 'lucide-react';
+import { Search, MoreHorizontal, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import { MembershipTierBadge } from '@/components/membership-tier-badge';
-import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -375,6 +374,21 @@ export function UsersTable({
           />
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              startTransition(() => {
+                router.refresh();
+              });
+            }}
+            disabled={isPending}
+            aria-label="Refresh data"
+            title="Refresh data"
+          >
+            <RefreshCw className={cn('h-4 w-4', isPending && 'animate-spin')} />
+          </Button>
           <Select value={statusFilter} onValueChange={handleStatusChange}>
             <SelectTrigger className="min-w-0 flex-1 sm:w-[140px] sm:flex-none">
               <SelectValue placeholder="All statuses" />

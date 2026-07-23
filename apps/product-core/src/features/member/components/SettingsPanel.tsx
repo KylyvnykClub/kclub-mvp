@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Camera } from 'lucide-react';
 import { toast } from 'sonner';
 
-import type { CurrentMemberProfileDto } from '@kclub/contracts';
+import type { CityDto, CurrentMemberProfileDto } from '@kclub/contracts';
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
 import { Spinner } from '@kclub/ui';
 
@@ -35,9 +35,14 @@ import {
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/reui/alert';
 
 type SettingsPanelProps = {
+  cityOptions: readonly Pick<CityDto, 'countryName' | 'name'>[];
+  countryOptions: readonly string[];
   locale: Locale;
   profile: CurrentMemberProfileDto;
 };
+
+const EMPTY_COUNTRY_VALUE = '__empty_country__';
+const EMPTY_CITY_VALUE = '__empty_city__';
 
 function SettingsToggle({
   enabled,
@@ -79,7 +84,12 @@ function getButtonLabel(label: string): string {
   return label.replace(/\s*\u2192\s*$/, '');
 }
 
-export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
+export function SettingsPanel({
+  cityOptions,
+  countryOptions,
+  locale,
+  profile,
+}: SettingsPanelProps) {
   const t = useTranslations('member.dashboard.settings');
   const tAccount = useTranslations('member.dashboard.account');
   const tCommon = useTranslations('member.common');
@@ -101,6 +111,29 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const memberName = displayName || profile.displayName || profile.phone;
+  const countrySelectOptions = Array.from(
+    new Set([profile.country, ...countryOptions].filter((value): value is string => !!value)),
+  );
+  const citySelectOptions = Array.from(
+    new Set(
+      [
+        profile.city,
+        city,
+        ...cityOptions
+          .filter((option) => option.countryName === country)
+          .map((option) => option.name),
+      ].filter((value): value is string => !!value),
+    ),
+  );
+
+  const handleCountryValueChange = (value: string): void => {
+    const nextCountry = value === EMPTY_COUNTRY_VALUE ? '' : value;
+
+    setCountry(nextCountry);
+    if (nextCountry !== country) {
+      setCity('');
+    }
+  };
 
   const handleAvatarClick = () => fileInputRef.current?.click();
 
@@ -240,30 +273,46 @@ export function SettingsPanel({ locale, profile }: SettingsPanelProps) {
             <label htmlFor="settings-country" className={cabinetFieldLabelClasses}>
               {tAccount('country')}
             </label>
-            <Input
-              id="settings-country"
-              type="text"
-              value={country}
-              onChange={(event) => setCountry(event.target.value)}
-              maxLength={100}
+            <Select
+              value={country || EMPTY_COUNTRY_VALUE}
+              onValueChange={handleCountryValueChange}
               disabled={isSaving}
-              className="mt-2 w-full rounded-none"
-            />
+            >
+              <SelectTrigger id="settings-country" className="mt-2 w-full rounded-none">
+                <SelectValue placeholder={tAccount('notSet')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={EMPTY_COUNTRY_VALUE}>{tAccount('notSet')}</SelectItem>
+                {countrySelectOptions.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
             <label htmlFor="settings-city" className={cabinetFieldLabelClasses}>
               {tAccount('city')}
             </label>
-            <Input
-              id="settings-city"
-              type="text"
-              value={city}
-              onChange={(event) => setCity(event.target.value)}
-              maxLength={100}
-              disabled={isSaving}
-              className="mt-2 w-full rounded-none"
-            />
+            <Select
+              value={city || EMPTY_CITY_VALUE}
+              onValueChange={(value) => setCity(value === EMPTY_CITY_VALUE ? '' : value)}
+              disabled={isSaving || !country}
+            >
+              <SelectTrigger id="settings-city" className="mt-2 w-full rounded-none">
+                <SelectValue placeholder={tAccount('notSet')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={EMPTY_CITY_VALUE}>{tAccount('notSet')}</SelectItem>
+                {citySelectOptions.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

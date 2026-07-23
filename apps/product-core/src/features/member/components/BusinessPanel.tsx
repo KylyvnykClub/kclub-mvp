@@ -11,7 +11,7 @@ import { cabinetContentClasses } from '@/features/member/components/cabinet/styl
 import { getOwnBusinesses } from '@/server/services/business-service';
 import { getIncomingIntroductions } from '@/server/services/introduction-service';
 import { getDbClient, schema } from '@/server/db';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 import { Badge } from '@/components/reui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
@@ -74,6 +74,19 @@ export async function BusinessPanel({
     ? await getIncomingIntroductions(activeBusiness.id)
     : [];
 
+  const businessIds = ownBusinesses.map((b) => b.id);
+  const paidPlacements = businessIds.length
+    ? await db.query.subscriptions.findMany({
+        where: and(
+          inArray(schema.subscriptions.business_profile_id, businessIds),
+          eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'),
+          eq(schema.subscriptions.status, 'ACTIVE'),
+        ),
+        columns: { business_profile_id: true },
+      })
+    : [];
+  const paidBusinessIds = new Set(paidPlacements.map((s) => s.business_profile_id));
+
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
   const categoryOptions: TaxonomyOption[] = categories.map((c) => ({ id: c.id, name: c.name }));
 
@@ -94,7 +107,11 @@ export async function BusinessPanel({
             <div className="divide-y divide-border">
               {ownBusinesses.map((business) => (
                 <div key={business.id} className="space-y-4 p-6 sm:p-8">
-                  <BusinessStatusBanner business={business} t={t} />
+                  <BusinessStatusBanner
+                    business={business}
+                    placementPaid={paidBusinessIds.has(business.id)}
+                    t={t}
+                  />
                   <BusinessStatusCard business={business} locale={locale} />
                 </div>
               ))}
@@ -262,9 +279,11 @@ function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntrodu
 
 function BusinessStatusBanner({
   business,
+  placementPaid,
   t,
 }: {
   business: MemberBusinessProfileDto;
+  placementPaid: boolean;
   t: Awaited<ReturnType<typeof getTranslations<'member.dashboard.business'>>>;
 }) {
   if (business.status === 'UNDER_REVIEW') {
@@ -277,6 +296,15 @@ function BusinessStatusBanner({
   }
 
   if (business.status === 'APPROVED') {
+    if (placementPaid) {
+      return (
+        <Alert variant="info" className="rounded-none">
+          <AlertTitle>{t('statusBannerPaid')}</AlertTitle>
+          <AlertDescription>{t('statusBannerPaidSub')}</AlertDescription>
+        </Alert>
+      );
+    }
+
     return (
       <div className="border border-success/30 bg-success/5 p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

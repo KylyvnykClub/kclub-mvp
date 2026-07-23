@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { LogOut, Menu, User } from 'lucide-react';
 
+import Link from 'next/link';
 import { logoutAction } from '@/server/auth/actions';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';

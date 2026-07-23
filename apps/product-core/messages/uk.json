@@ -428,6 +428,24 @@
         "uk": "Ukrainian"
       }
     },
+    "checkout": {
+      "success": {
+        "metaTitle": "Оплата успішна | KCLUB",
+        "title": "Оплата пройшла успішно",
+        "subtitle": "Дякуємо! Ваш платіж підтверджено, доступ активовано.",
+        "subtitleBusiness": "Дякуємо! Платіж підтверджено. Бізнес буде опубліковано після перевірки адміністратором.",
+        "planLabel": "Тариф",
+        "planVip": "VIP-членство",
+        "planBusiness": "Розміщення бізнесу",
+        "amountLabel": "Сума",
+        "dateLabel": "Дата",
+        "invoiceLabel": "Номер рахунку",
+        "statusLabel": "Статус",
+        "statusPaid": "Оплачено",
+        "receiptLink": "Відкрити квитанцію",
+        "goToAccount": "Перейти в акаунт"
+      }
+    },
     "onboarding": {
       "metaTitle": "Complete Onboarding | KCLUB",
       "metaDescription": "Complete your KCLUB member onboarding to unlock your card and dashboard.",
@@ -589,6 +607,8 @@
         "statusBannerUnderReviewSub": "Вашу заявку подано та очікує перевірки адміністратором. Зазвичай це займає 1–3 робочих дні.",
         "statusBannerApproved": "Бізнес схвалено!",
         "statusBannerApprovedSub": "Ваш бізнес схвалено. Щоб опублікувати його в каталозі, оформіть підписку на розміщення.",
+        "statusBannerPaid": "Оплату отримано — очікуйте публікації",
+        "statusBannerPaidSub": "Розміщення оплачено. Адміністратор перевірить і опублікує ваш бізнес у каталозі найближчим часом.",
         "statusBannerPublished": "Активний у каталозі учасників",
         "statusBannerPublishedSub": "Ваш бізнес видно всім учасникам клубу.",
         "statusBannerRejected": "Заявку відхилено",

@@ -209,6 +209,8 @@ export function BusinessDetailClient({
   const router = useRouter();
   const action = canSeeAction(business.status, staffRole);
   const canEdit = canMutateBusiness(staffRole);
+  const awaitingPublication =
+    business.status === 'APPROVED' && business.placementSubscription?.status === 'ACTIVE';
   const [activeTab, setActiveTab] = useState<BusinessDetailTab>('overview');
 
   function handleTabChange(value: string): void {
@@ -237,6 +239,19 @@ export function BusinessDetailClient({
         </div>
       </div>
 
+      {awaitingPublication && (
+        <div className="flex items-start gap-3 rounded-xl border border-blue-500/30 bg-blue-500/10 p-4 text-sm">
+          <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" aria-hidden />
+          <div>
+            <p className="font-medium">This business has been paid</p>
+            <p className="text-muted-foreground">
+              The placement subscription is active. Review and publish the business to make it
+              visible in the directory.
+            </p>
+          </div>
+        </div>
+      )}
+
       <Card className="overflow-hidden">
         <CardContent className="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
@@ -246,6 +261,14 @@ export function BusinessDetailClient({
             <div className="min-w-0 space-y-1.5 sm:space-y-2">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <StatusBadge status={business.status} />
+                {awaitingPublication && (
+                  <Badge
+                    variant="outline"
+                    className="border-blue-500/20 bg-blue-500/15 text-blue-500 dark:border-blue-500/30 dark:bg-blue-500/20 dark:text-blue-300"
+                  >
+                    PAID
+                  </Badge>
+                )}
                 <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
                   <Tag size={12} aria-hidden />
                   {business.categoryName}

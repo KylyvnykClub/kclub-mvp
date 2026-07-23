@@ -120,7 +120,6 @@ export type MemberCapability = (typeof MEMBER_CAPABILITIES)[keyof typeof MEMBER_
 export const MEMBER_DASHBOARD_TABS = [
   'account',
   'catalog',
-  'subscription',
   'business',
   'introductions',
   'settings',

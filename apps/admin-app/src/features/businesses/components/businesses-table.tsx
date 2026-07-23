@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -31,6 +31,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { AdminPagination } from '@/components/admin-pagination';
+import { cn } from '@/lib/utils';
 import type { AdminBusinessListItemDto, StaffRole } from '@kclub/contracts';
 
 const BUSINESS_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'PUBLISHED', 'REJECTED', 'HIDDEN'] as const;
@@ -55,6 +56,22 @@ function BusinessStatusBadge({ status }: { status: AdminBusinessListItemDto['sta
       className={businessStatusClassNames[status]}
     >
       {status}
+    </Badge>
+  );
+}
+
+function isAwaitingPublication(b: AdminBusinessListItemDto): boolean {
+  return b.status === 'APPROVED' && b.placementSubscription?.status === 'ACTIVE';
+}
+
+function PaidBadge() {
+  return (
+    <Badge
+      variant="outline"
+      className="border-blue-500/20 bg-blue-500/15 text-blue-500 dark:border-blue-500/30 dark:bg-blue-500/20 dark:text-blue-300"
+      title="Placement paid — awaiting publication"
+    >
+      PAID
     </Badge>
   );
 }
@@ -101,6 +118,10 @@ export function BusinessesTable({
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [businesses, setBusinesses] = useState(initialBusinesses);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setBusinesses(initialBusinesses);
+  }, [initialBusinesses]);
 
   const canToggle = staffRole === 'OWNER' || staffRole === 'ADMIN' || staffRole === 'MODERATOR';
 
@@ -165,6 +186,20 @@ export function BusinessesTable({
       <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
         <div className="hidden sm:block" />
         <div className="flex items-center gap-2 sm:ml-auto">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              startTransition(() => {
+                router.refresh();
+              });
+            }}
+            disabled={isPending}
+            aria-label="Refresh data"
+            title="Refresh data"
+          >
+            <RefreshCw className={cn('h-4 w-4', isPending && 'animate-spin')} />
+          </Button>
           <Select value={statusFilter} onValueChange={handleStatusChange}>
             <SelectTrigger className="min-w-0 flex-1 sm:w-[180px] sm:flex-none">
               <SelectValue placeholder="All statuses" />
@@ -191,6 +226,7 @@ export function BusinessesTable({
               <TableRow className="hover:bg-transparent">
                 <TableHead className="pl-6">Business</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Country</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="pr-6 text-right">Actions</TableHead>
@@ -199,7 +235,7 @@ export function BusinessesTable({
             <TableBody>
               {businesses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-16 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="py-16 text-center text-muted-foreground">
                     No businesses found
                   </TableCell>
                 </TableRow>
@@ -236,7 +272,15 @@ export function BusinessesTable({
                         </span>
                       </TableCell>
                       <TableCell>
-                        <BusinessStatusBadge status={b.status} />
+                        <span className="text-sm text-muted-foreground">
+                          {b.countryName || '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <BusinessStatusBadge status={b.status} />
+                          {isAwaitingPublication(b) && <PaidBadge />}
+                        </div>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {new Date(b.createdAt).toLocaleDateString()}
@@ -359,10 +403,21 @@ export function BusinessesTable({
                         </Badge>
                       )}
                     </div>
-                    <BusinessStatusBadge status={b.status} />
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <BusinessStatusBadge status={b.status} />
+                      {isAwaitingPublication(b) && <PaidBadge />}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{b.categoryName || '-'}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>{b.categoryName || '-'}</span>
+                      {b.countryName && (
+                        <>
+                          <span>•</span>
+                          <span>{b.countryName}</span>
+                        </>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3">
                       <DropdownMenu>
                         <DropdownMenuTrigger

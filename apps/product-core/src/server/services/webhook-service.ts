@@ -347,17 +347,9 @@ export async function handlePlacementCheckoutCompleted(
     // Non-critical
   }
 
+  // Payment activates the placement subscription only. The business stays
+  // APPROVED until an admin publishes it manually from the admin app.
   await db.transaction(async (tx) => {
-    await tx
-      .update(schema.businessProfiles)
-      .set({
-        status: 'PUBLISHED',
-        published_at: new Date(),
-        featured_top: false,
-        featured_recommended: false,
-      })
-      .where(eq(schema.businessProfiles.id, businessId));
-
     if (existingPlacementSub) {
       await tx
         .update(schema.subscriptions)
@@ -392,11 +384,18 @@ export async function handlePlacementCheckoutCompleted(
 
   await auditService.log(
     {
-      action: 'BUSINESS_PUBLISHED',
+      action: 'BUSINESS_PLACEMENT_PAID',
       entityType: 'BusinessProfile',
       entityId: businessId,
-      before: { status: 'APPROVED' },
-      after: { status: 'PUBLISHED', stripeSubscriptionId: subscriptionId },
+      before: {
+        status: business?.status ?? null,
+        placementSubscriptionStatus: existingPlacementSub?.status ?? null,
+      },
+      after: {
+        status: business?.status ?? null,
+        placementSubscriptionStatus: 'ACTIVE',
+        stripeSubscriptionId: subscriptionId,
+      },
     },
     systemContext,
   );
