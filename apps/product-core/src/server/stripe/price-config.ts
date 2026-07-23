@@ -21,6 +21,20 @@ export function resolveStripePriceIdFromEnv(configKey: string): string | undefin
 }
 
 export function parseAdminConfigPriceId(value: unknown): string | undefined {
-  const priceId = (value as { priceId?: string })?.priceId?.trim();
+  if (typeof value === 'string') {
+    const priceId = value.trim();
+    return priceId || undefined;
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return undefined;
+  }
+
+  const candidate = value as { priceId?: unknown };
+  if (typeof candidate.priceId !== 'string') {
+    return undefined;
+  }
+
+  const priceId = candidate.priceId.trim();
   return priceId || undefined;
 }
