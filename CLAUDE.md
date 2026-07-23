@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **kclub-v4** (4971 symbols, 11535 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **kclub-mvp** (5005 symbols, 11554 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
@@ -25,10 +25,10 @@ This project is indexed by GitNexus as **kclub-v4** (4971 symbols, 11535 relatio
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/kclub-v4/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/kclub-v4/clusters` | All functional areas |
-| `gitnexus://repo/kclub-v4/processes` | All execution flows |
-| `gitnexus://repo/kclub-v4/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/kclub-mvp/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/kclub-mvp/clusters` | All functional areas |
+| `gitnexus://repo/kclub-mvp/processes` | All execution flows |
+| `gitnexus://repo/kclub-mvp/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 
