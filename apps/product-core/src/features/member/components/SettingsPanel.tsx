@@ -1,12 +1,12 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Camera } from 'lucide-react';
 import { toast } from 'sonner';
 
-import type { CityDto, CurrentMemberProfileDto } from '@kclub/contracts';
+import type { CountryDto, CurrentMemberProfileDto } from '@kclub/contracts';
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
 import { Spinner } from '@kclub/ui';
 
@@ -35,14 +35,21 @@ import {
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/reui/alert';
 
 type SettingsPanelProps = {
-  cityOptions: readonly Pick<CityDto, 'countryName' | 'name'>[];
-  countryOptions: readonly string[];
+  countryOptions: readonly Pick<CountryDto, 'id' | 'name'>[];
   locale: Locale;
   profile: CurrentMemberProfileDto;
 };
 
 const EMPTY_COUNTRY_VALUE = '__empty_country__';
 const EMPTY_CITY_VALUE = '__empty_city__';
+const settingsSelectContentClassName = 'rounded-none';
+const settingsSelectItemClassName = 'rounded-none';
+
+type SettingsCityOption = {
+  countryId: string;
+  id: string;
+  name: string;
+};
 
 function SettingsToggle({
   enabled,
@@ -85,7 +92,6 @@ function getButtonLabel(label: string): string {
 }
 
 export function SettingsPanel({
-  cityOptions,
   countryOptions,
   locale,
   profile,
@@ -107,24 +113,84 @@ export function SettingsPanel({
   const [emailNotifs, setEmailNotifs] = useState(true);
   const [pushNotifs, setPushNotifs] = useState(false);
   const [newsletter, setNewsletter] = useState(true);
+  const [availableCities, setAvailableCities] = useState<SettingsCityOption[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
 
   const memberName = displayName || profile.displayName || profile.phone;
   const countrySelectOptions = Array.from(
-    new Set([profile.country, ...countryOptions].filter((value): value is string => !!value)),
+    new Set(
+      [profile.country, ...countryOptions.map((option) => option.name)].filter(
+        (value): value is string => !!value,
+      ),
+    ),
   );
+  const selectedCountryId = countryOptions.find((option) => option.name === country)?.id ?? null;
   const citySelectOptions = Array.from(
     new Set(
       [
         profile.city,
         city,
-        ...cityOptions
-          .filter((option) => option.countryName === country)
+        ...availableCities
+          .filter((option) => option.countryId === selectedCountryId)
           .map((option) => option.name),
       ].filter((value): value is string => !!value),
     ),
   );
+
+  useEffect(() => {
+    if (!selectedCountryId) {
+      setAvailableCities([]);
+      setIsLoadingCities(false);
+      return;
+    }
+
+    let isActive = true;
+    const controller = new AbortController();
+
+    async function loadCities(): Promise<void> {
+      setIsLoadingCities(true);
+
+      try {
+        const response = await fetch(
+          `${MEMBER_API_ROUTES.TAXONOMY_CITIES}?countryId=${encodeURIComponent(selectedCountryId)}`,
+          { signal: controller.signal },
+        );
+        const result = await parseAuthResponse<SettingsCityOption[]>(response);
+
+        if (!isActive) {
+          return;
+        }
+
+        if (!result.success || !result.data) {
+          setAvailableCities([]);
+          return;
+        }
+
+        setAvailableCities(result.data);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
+
+        if (isActive) {
+          setAvailableCities([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingCities(false);
+        }
+      }
+    }
+
+    void loadCities();
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [selectedCountryId]);
 
   const handleCountryValueChange = (value: string): void => {
     const nextCountry = value === EMPTY_COUNTRY_VALUE ? '' : value;
@@ -281,10 +347,16 @@ export function SettingsPanel({
               <SelectTrigger id="settings-country" className="mt-2 w-full rounded-none">
                 <SelectValue placeholder={tAccount('notSet')} />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={EMPTY_COUNTRY_VALUE}>{tAccount('notSet')}</SelectItem>
+              <SelectContent className={settingsSelectContentClassName}>
+                <SelectItem className={settingsSelectItemClassName} value={EMPTY_COUNTRY_VALUE}>
+                  {tAccount('notSet')}
+                </SelectItem>
                 {countrySelectOptions.map((value) => (
-                  <SelectItem key={value} value={value}>
+                  <SelectItem
+                    key={value}
+                    className={settingsSelectItemClassName}
+                    value={value}
+                  >
                     {value}
                   </SelectItem>
                 ))}
@@ -299,15 +371,21 @@ export function SettingsPanel({
             <Select
               value={city || EMPTY_CITY_VALUE}
               onValueChange={(value) => setCity(value === EMPTY_CITY_VALUE ? '' : value)}
-              disabled={isSaving || !country}
+              disabled={isSaving || !selectedCountryId || isLoadingCities}
             >
               <SelectTrigger id="settings-city" className="mt-2 w-full rounded-none">
                 <SelectValue placeholder={tAccount('notSet')} />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={EMPTY_CITY_VALUE}>{tAccount('notSet')}</SelectItem>
+              <SelectContent className={settingsSelectContentClassName}>
+                <SelectItem className={settingsSelectItemClassName} value={EMPTY_CITY_VALUE}>
+                  {tAccount('notSet')}
+                </SelectItem>
                 {citySelectOptions.map((value) => (
-                  <SelectItem key={value} value={value}>
+                  <SelectItem
+                    key={value}
+                    className={settingsSelectItemClassName}
+                    value={value}
+                  >
                     {value}
                   </SelectItem>
                 ))}
@@ -327,9 +405,13 @@ export function SettingsPanel({
               <SelectTrigger id="settings-locale" className="mt-2 w-full rounded-none">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className={settingsSelectContentClassName}>
                 {locales.map((value) => (
-                  <SelectItem key={value} value={value}>
+                  <SelectItem
+                    key={value}
+                    className={settingsSelectItemClassName}
+                    value={value}
+                  >
                     {tCommon(`locales.${value}`)}
                   </SelectItem>
                 ))}

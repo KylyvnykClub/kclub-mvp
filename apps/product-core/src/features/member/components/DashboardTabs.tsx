@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
 
 import type {
-  CityDto,
+  CountryDto,
   CurrentMemberProfileDto,
   PublicBusinessListItemDto,
   UserContext,
@@ -14,7 +14,7 @@ import type { ImplementedMemberDashboardTab } from '@/features/member/dashboard-
 import { isDashboardTabLocked } from '@/features/member/dashboard-tabs';
 import { CabinetLockedPanel } from '@/features/member/components/cabinet/CabinetLockedPanel';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
-import { getCachedCities, getCachedCountries } from '@/server/cache/taxonomy-cache';
+import { getCachedCountries } from '@/server/cache/taxonomy-cache';
 
 import { AccountPanel } from './AccountPanel';
 import { BusinessPanel } from './BusinessPanel';
@@ -42,13 +42,10 @@ export async function DashboardTabs({
   serverPublicBusinesses,
 }: DashboardTabsProps) {
   const t = await getTranslations({ locale, namespace: 'member.dashboard' });
-  const [cities, countries] = await Promise.all([getCachedCities(), getCachedCountries()]);
-  const countryOptions = countries
+  const countries = await getCachedCountries();
+  const countryOptions: Pick<CountryDto, 'id' | 'name'>[] = countries
     .filter((country) => country.isActive)
-    .map((country) => country.name);
-  const cityOptions: Pick<CityDto, 'countryName' | 'name'>[] = cities
-    .filter((city) => city.isActive)
-    .map((city) => ({ countryName: city.countryName, name: city.name }));
+    .map((country) => ({ id: country.id, name: country.name }));
 
   const tabLabels: Record<ImplementedMemberDashboardTab, string> = {
     details: t('tabs.details'),
@@ -104,7 +101,6 @@ export async function DashboardTabs({
     } else if (tab === 'settings') {
       panels.settings = (
         <SettingsPanel
-          cityOptions={cityOptions}
           countryOptions={countryOptions}
           locale={locale}
           profile={profile}
