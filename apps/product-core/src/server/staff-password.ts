@@ -1,38 +1,45 @@
-import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import { scryptSync, timingSafeEqual } from 'node:crypto';
 
-const SCRYPT_N = 16384;
-const SCRYPT_R = 8;
-const SCRYPT_P = 1;
-const KEY_LENGTH = 64;
-const SALT_LENGTH = 16;
-const HASH_PREFIX = 'scrypt';
+import { hash, verify } from '@node-rs/argon2';
+
+const ARGON2_PREFIX = 'argon2';
+const SCRYPT_PREFIX = 'scrypt';
 
 export async function hashStaffPassword(password: string): Promise<string> {
-  const salt = randomBytes(SALT_LENGTH);
-  const hash = scryptSync(password, salt, KEY_LENGTH, {
-    N: SCRYPT_N,
-    r: SCRYPT_R,
-    p: SCRYPT_P,
+  const hashed = await hash(password, {
+    memoryCost: 65536,
+    timeCost: 3,
+    outputLen: 64,
+    parallelism: 4,
   });
-
-  return [
-    HASH_PREFIX,
-    String(SCRYPT_N),
-    String(SCRYPT_R),
-    String(SCRYPT_P),
-    salt.toString('base64url'),
-    hash.toString('base64url'),
-  ].join('$');
+  return `${ARGON2_PREFIX}$${hashed}`;
 }
 
 export async function verifyStaffPassword(password: string, storedHash: string): Promise<boolean> {
+  if (storedHash.startsWith(`${ARGON2_PREFIX}$`)) {
+    const raw = storedHash.slice(ARGON2_PREFIX.length + 1);
+    return verify(raw, password);
+  }
+
+  if (storedHash.startsWith(`${SCRYPT_PREFIX}$`)) {
+    return verifyScryptLegacy(password, storedHash);
+  }
+
+  return false;
+}
+
+export function needsRehash(storedHash: string): boolean {
+  return !storedHash.startsWith(`${ARGON2_PREFIX}$`);
+}
+
+function verifyScryptLegacy(password: string, storedHash: string): boolean {
   const [prefix, nValue, rValue, pValue, saltValue, hashValue] = storedHash.split('$');
-  if (prefix !== HASH_PREFIX || !nValue || !rValue || !pValue || !saltValue || !hashValue) {
+  if (prefix !== SCRYPT_PREFIX || !nValue || !rValue || !pValue || !saltValue || !hashValue) {
     return false;
   }
 
   const expectedHash = Buffer.from(hashValue, 'base64url');
-  const actualHash = scryptSync(password, Buffer.from(saltValue, 'base64url'), KEY_LENGTH, {
+  const actualHash = scryptSync(password, Buffer.from(saltValue, 'base64url'), 64, {
     N: Number(nValue),
     r: Number(rValue),
     p: Number(pValue),
