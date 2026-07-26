@@ -156,7 +156,7 @@ export const staffPermissionOverridesUpdateSchema = z
       const overlap = data.granted.filter((p) => data.denied.includes(p));
       return overlap.length === 0;
     },
-    { message: 'A permission cannot be both granted and denied' },
+    { message: 'validation.permissions.grantDenyConflict' },
   );
 
 export const staffDeactivateSchema = z.object({

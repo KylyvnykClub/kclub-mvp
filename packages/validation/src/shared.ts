@@ -5,44 +5,44 @@ export const phoneSchema = z
   .string()
   .trim()
   .transform((val) => val.replace(/[\s\-()]/g, ''))
-  .pipe(z.string().regex(/^\+[1-9]\d{7,14}$/, 'Phone must use E.164 format'));
+  .pipe(z.string().regex(/^\+[1-9]\d{7,14}$/, 'validation.phone.invalidFormat'));
 
 export const otpCodeSchema = z
   .string()
   .trim()
-  .regex(/^\d{4,8}$/, 'OTP code must contain 4 to 8 digits');
+  .regex(/^\d{4,8}$/, 'validation.otp.invalidFormat');
 
 export const totpCodeSchema = z
   .string()
   .trim()
-  .regex(/^\d{6}$/, 'TOTP code must contain 6 digits');
+  .regex(/^\d{6}$/, 'validation.totp.invalidFormat');
 
 export const passwordSchema = z
   .string()
-  .min(10, 'Password must contain at least 10 characters')
-  .max(128, 'Password must contain at most 128 characters');
+  .min(10, 'validation.password.tooShort')
+  .max(128, 'validation.password.tooLong');
 
 export const localeSchema = z.enum(LOCALES, {
-  errorMap: () => ({ message: 'Locale must be en, ru, or uk' }),
+  errorMap: () => ({ message: 'validation.locale.invalid' }),
 });
 
 export const safeTextSchema = z.string().trim().min(1);
 
 export function withoutHtml<T extends z.ZodString>(schema: T): z.ZodEffects<T, string, string> {
-  return schema.refine((value) => !/[<>]/.test(value), 'Text must not contain HTML');
+  return schema.refine((value) => !/[<>]/.test(value), 'validation.text.noHtml');
 }
 
 export const optionalSafeTextSchema = (max: number) =>
   withoutHtml(z.string().trim().max(max)).optional().nullable();
 
-export const urlSchema = z.string().trim().url('Must be a valid URL');
+export const urlSchema = z.string().trim().url('validation.url.invalid');
 
-export const uuidSchema = z.string().trim().uuid('Must be a valid UUID');
+export const uuidSchema = z.string().trim().uuid('validation.uuid.invalid');
 
 export const cuidSchema = z
   .string()
   .trim()
-  .regex(/^c[a-z0-9]{8,32}$/i, 'Must be a valid CUID-like id');
+  .regex(/^c[a-z0-9]{8,32}$/i, 'validation.cuid.invalid');
 
 export const entityIdSchema = z.union([uuidSchema, cuidSchema]);
 
@@ -51,9 +51,9 @@ export const slugSchema = z
   .trim()
   .min(2)
   .max(120)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase kebab-case');
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'validation.slug.invalidFormat');
 
-export const emailSchema = z.string().trim().email('Must be a valid email');
+export const emailSchema = z.string().trim().email('validation.email.invalid');
 
 export const pageSchema = z.coerce.number().int().min(1).default(1);
 export const limitSchema = z.coerce.number().int().min(1).max(100).default(20);
