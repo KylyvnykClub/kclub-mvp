@@ -1,5 +1,9 @@
 import type { PublicBusinessListItemDto, PublicCardVerificationDto } from '@kclub/contracts';
 
+export function getSiteUrl(): string {
+  return process.env.NEXT_PUBLIC_SITE_URL ?? 'https://kylyvnyk.club';
+}
+
 export function getFeaturedBusinessGroups(businesses: PublicBusinessListItemDto[]) {
   const top = businesses.filter((business) => business.featuredTop).slice(0, 3);
   const topIds = new Set(top.map((business) => business.id));

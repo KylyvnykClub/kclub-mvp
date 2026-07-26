@@ -1,10 +1,16 @@
+import type { PublicBusinessDetailDto } from '@kclub/contracts';
 import { CalendarDays, ExternalLink, MapPin, UserRound } from 'lucide-react';
+import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 
 import { Badge, getButtonClasses } from '@kclub/ui';
 
-import { getBusinessLocation, getPrimaryBusinessUrl } from '@/features/public/public-page-helpers';
+import {
+  getBusinessLocation,
+  getPrimaryBusinessUrl,
+  getSiteUrl,
+} from '@/features/public/public-page-helpers';
 import { Locale } from '@/i18n/routing';
 import { AppError } from '@/server/errors';
 import { getCachedPublicBusinessBySlug } from '@/server/cache/business-cache';
@@ -26,10 +32,11 @@ type Params = {
   params: Promise<{ locale: Locale; slug: string }>;
 };
 
-export async function generateMetadata({ params }: Params) {
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale, slug } = await params;
   const t = await getTranslations({ locale, namespace: 'publicSeo.businessDetail' });
   const business = await getPublishedBusinessOrNull(slug);
+  const siteUrl = getSiteUrl();
 
   if (!business) {
     return {
@@ -38,10 +45,59 @@ export async function generateMetadata({ params }: Params) {
     };
   }
 
+  const title = t('title', { name: business.name });
+  const description = business.briefDescription ?? t('description', { name: business.name });
+  const url = `${siteUrl}/${locale}/directory/${slug}`;
+
   return {
-    title: t('title', { name: business.name }),
-    description: business.briefDescription ?? t('description', { name: business.name }),
+    title,
+    description,
+    alternates: {
+      canonical: url,
+      languages: {
+        en: `${siteUrl}/en/directory/${slug}`,
+        ru: `${siteUrl}/ru/directory/${slug}`,
+        uk: `${siteUrl}/uk/directory/${slug}`,
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'KCLUB',
+      type: 'article',
+      ...(business.coverImageUrl ? { images: [{ url: business.coverImageUrl, alt: business.name }] } : {}),
+    },
+    twitter: {
+      card: business.coverImageUrl ? 'summary_large_image' : 'summary',
+      title,
+      description,
+    },
   };
+}
+
+function buildBusinessJsonLd(business: PublicBusinessDetailDto, locale: Locale) {
+  const siteUrl = getSiteUrl();
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: business.name,
+    url: `${siteUrl}/${locale}/directory/${business.slug}`,
+    ...(business.briefDescription ? { description: business.briefDescription } : {}),
+    ...(business.logoUrl ? { image: business.logoUrl } : {}),
+    ...(business.websiteUrl ? { sameAs: business.websiteUrl } : {}),
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: business.cityName,
+      addressCountry: business.countryName,
+    },
+    isPartOf: {
+      '@type': 'Organization',
+      name: 'KCLUB',
+      url: siteUrl,
+    },
+  };
+  return jsonLd;
 }
 
 export default async function BusinessDetailPage({ params }: Params) {
@@ -54,9 +110,14 @@ export default async function BusinessDetailPage({ params }: Params) {
   }
 
   const externalUrl = getPrimaryBusinessUrl(business);
+  const jsonLd = buildBusinessJsonLd(business, locale);
 
   return (
     <article className="kclub-page-band">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="kclub-shell py-16 sm:py-20">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div>

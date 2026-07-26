@@ -12,12 +12,14 @@ import {
   LayoutGrid,
   ChevronRight,
 } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
 import { EmptyState, getButtonClasses } from '@kclub/ui';
 
 import { BusinessCard } from '@/features/public/components/BusinessCard';
+import { getSiteUrl } from '@/features/public/public-page-helpers';
 import { Locale } from '@/i18n/routing';
 import { getCachedPublicBusinesses } from '@/server/cache/business-cache';
 import { getCachedCategories } from '@/server/cache/taxonomy-cache';
@@ -47,13 +49,60 @@ export async function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ru' }, { locale: 'uk' }];
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'publicSeo.directory' });
+  const siteUrl = getSiteUrl();
+  const url = `${siteUrl}/${locale}/directory`;
 
   return {
     title: t('title'),
     description: t('description'),
+    alternates: {
+      canonical: url,
+      languages: {
+        en: `${siteUrl}/en/directory`,
+        ru: `${siteUrl}/ru/directory`,
+        uk: `${siteUrl}/uk/directory`,
+      },
+    },
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      url,
+      siteName: 'KCLUB',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary',
+      title: t('title'),
+      description: t('description'),
+    },
+  };
+}
+
+function buildDirectoryJsonLd(
+  businesses: Array<{ name: string; slug: string; briefDescription: string | null }>,
+  locale: Locale,
+) {
+  const siteUrl = getSiteUrl();
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'KCLUB Partner Directory',
+    url: `${siteUrl}/${locale}/directory`,
+    numberOfItems: businesses.length,
+    itemListElement: businesses.map((b, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${siteUrl}/${locale}/directory/${b.slug}`,
+      name: b.name,
+      ...(b.briefDescription ? { description: b.briefDescription } : {}),
+    })),
   };
 }
 
@@ -81,8 +130,14 @@ export default async function DirectoryPage({
       )
     : allBusinesses;
 
+  const jsonLd = buildDirectoryJsonLd(allBusinesses, locale);
+
   return (
     <div className="kclub-page-band">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="kclub-page-band bg-white dark:bg-[#09090b]">
         <div className="container py-16 sm:py-20">
           <div>

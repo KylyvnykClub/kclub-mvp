@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import type { Metadata } from 'next';
 import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
@@ -10,11 +11,16 @@ import '../globals.css';
 import { Toaster } from 'sonner';
 import { SkipLink, cn } from '@kclub/ui';
 import { Footer } from '@/features/marketing/components/Footer';
+import { getSiteUrl } from '@/features/public/public-page-helpers';
 import { ThemeProvider } from '@/features/marketing/components/ThemeProvider';
 import { TopBar } from '@/features/marketing/components/TopBar';
 import { isLocale, Locale } from '@/i18n/routing';
 import { titilliumWeb } from '@/lib/fonts';
 import { getCurrentMemberProfileForPage } from '@/server/member-page';
+
+export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
+};
 
 export default async function LocaleLayout(props: {
   children: ReactNode;
