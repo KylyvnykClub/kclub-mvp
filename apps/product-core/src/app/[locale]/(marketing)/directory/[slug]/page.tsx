@@ -66,7 +66,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       url,
       siteName: 'KCLUB',
       type: 'article',
-      ...(business.coverImageUrl ? { images: [{ url: business.coverImageUrl, alt: business.name }] } : {}),
+      ...(business.coverImageUrl
+        ? { images: [{ url: business.coverImageUrl, alt: business.name }] }
+        : {}),
     },
     twitter: {
       card: business.coverImageUrl ? 'summary_large_image' : 'summary',
