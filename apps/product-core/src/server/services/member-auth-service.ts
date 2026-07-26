@@ -84,7 +84,7 @@ async function findMemberByPhone(phone: string): Promise<ExistingMember | null> 
 }
 
 function throwSupabaseAuthError(
-  error: { code?: string; message: string },
+  error: { code?: string | undefined; message: string },
   code: ErrorCode,
   status = 400,
 ): never {
@@ -221,7 +221,7 @@ async function verifyPhoneOtpWithSupabase(
       code: ERROR_CODES.AUTH_OTP_INVALID,
       message: error?.message ?? 'Invalid or expired OTP code',
       status: 401,
-      details: error ? { supabaseCode: error.code ?? undefined } : undefined,
+      ...(error ? { details: { supabaseCode: error.code ?? 'unknown' } } : {}),
     });
   }
 

@@ -14,7 +14,7 @@ const DASHBOARD_ROUTE_ROLES: Record<string, StaffRole[]> = {
 
 export function getRequiredRoles(pathname: string): StaffRole[] | null {
   if (pathname === '/dashboard') {
-    return DASHBOARD_ROUTE_ROLES['/dashboard'];
+    return DASHBOARD_ROUTE_ROLES['/dashboard'] ?? null;
   }
 
   for (const [route, roles] of Object.entries(DASHBOARD_ROUTE_ROLES)) {

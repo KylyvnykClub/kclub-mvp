@@ -33,13 +33,13 @@ export function decryptSecret(ciphertext: string): string {
   }
 
   const [ivHex, tagHex, encrypted] = parts;
-  const iv = Buffer.from(ivHex, 'hex');
-  const tag = Buffer.from(tagHex, 'hex');
+  const iv = Buffer.from(ivHex!, 'hex');
+  const tag = Buffer.from(tagHex!, 'hex');
 
   const decipher = createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(tag);
 
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  let decrypted: string = decipher.update(encrypted!, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
 
   return decrypted;

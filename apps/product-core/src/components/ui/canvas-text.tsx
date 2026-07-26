@@ -135,7 +135,7 @@ export function CanvasText({
         const curve2 = Math.sin(phase + 0.5) * curveIntensity * 0.6;
 
         const colorIndex = i % resolvedColors.length;
-        ctx.strokeStyle = resolvedColors[colorIndex];
+        ctx.strokeStyle = resolvedColors[colorIndex]!;
         ctx.lineWidth = lineWidth;
 
         ctx.beginPath();

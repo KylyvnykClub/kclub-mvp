@@ -181,7 +181,7 @@ export default async function DirectoryPage({
             <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
               {businesses.map((business) => {
                 // Add a featured label to display just to keep parity
-                let featuredLabel = undefined;
+                let featuredLabel: string | undefined;
                 if (business.featuredTop) featuredLabel = t('featuredTopLabel');
                 else if (business.featuredRecommended) featuredLabel = t('recommendedLabel');
 
@@ -192,7 +192,7 @@ export default async function DirectoryPage({
                     href={`/${locale}/directory/${business.slug}`}
                     actionLabel={t('viewDetails')}
                     externalLabel={t('website')}
-                    featuredLabel={featuredLabel}
+                    {...(featuredLabel ? { featuredLabel } : {})}
                     locale={locale}
                   />
                 );

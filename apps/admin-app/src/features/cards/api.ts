@@ -2,11 +2,11 @@ import { adminApiFetch } from '@/server/proxy/admin-client';
 import type { AdminCardListItemDto, ApiListResponse } from '@kclub/contracts';
 
 export type CardsSearchParams = {
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: string;
-  membershipTier?: string;
+  page?: number | undefined;
+  limit?: number | undefined;
+  search?: string | undefined;
+  status?: string | undefined;
+  membershipTier?: string | undefined;
 };
 
 export type CardsListResult = {

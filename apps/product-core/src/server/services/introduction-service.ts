@@ -85,7 +85,7 @@ export async function submitIntroduction(
   const todayStart = new Date(now);
   todayStart.setUTCHours(0, 0, 0, 0);
 
-  const [{ count: introductionsToday }] = await db
+  const introductionsTodayResult = await db
     .select({ count: count() })
     .from(schema.businessIntroductions)
     .where(
@@ -94,6 +94,7 @@ export async function submitIntroduction(
         gte(schema.businessIntroductions.created_at, todayStart),
       ),
     );
+  const introductionsToday = introductionsTodayResult[0]!.count;
 
   if (!canCreateIntroductionForDay(introductionsToday)) {
     throw new AppError({
@@ -106,7 +107,7 @@ export async function submitIntroduction(
   const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const [{ count: targetIntroductionsIn30Days }] = await db
+  const targetIntroResult = await db
     .select({ count: count() })
     .from(schema.businessIntroductions)
     .where(
@@ -116,6 +117,7 @@ export async function submitIntroduction(
         gte(schema.businessIntroductions.created_at, thirtyDaysAgo),
       ),
     );
+  const targetIntroductionsIn30Days = targetIntroResult[0]!.count;
 
   if (!canCreateIntroductionForTarget(targetIntroductionsIn30Days)) {
     throw new AppError({
@@ -125,7 +127,7 @@ export async function submitIntroduction(
     });
   }
 
-  const [{ count: pendingCount }] = await db
+  const pendingCountResult = await db
     .select({ count: count() })
     .from(schema.businessIntroductions)
     .where(
@@ -135,6 +137,7 @@ export async function submitIntroduction(
         inArray(schema.businessIntroductions.status, ['SUBMITTED', 'IN_REVIEW']),
       ),
     );
+  const pendingCount = pendingCountResult[0]!.count;
 
   if (!canCreatePendingIntroduction(pendingCount)) {
     throw new AppError({
@@ -158,7 +161,7 @@ export async function submitIntroduction(
     .returning();
 
   const introduction = (await db.query.businessIntroductions.findFirst({
-    where: eq(schema.businessIntroductions.id, introductionRaw.id),
+    where: eq(schema.businessIntroductions.id, introductionRaw!.id),
     with: { targetBusiness: { columns: { name: true, slug: true } } },
   })) as any;
 

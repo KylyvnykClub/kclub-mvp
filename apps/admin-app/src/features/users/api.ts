@@ -10,11 +10,11 @@ import type {
 import { adminApiFetch } from '@/server/proxy/admin-client';
 
 export type UsersSearchParams = {
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: string;
-  membershipTier?: string;
+  page?: number | undefined;
+  limit?: number | undefined;
+  search?: string | undefined;
+  status?: string | undefined;
+  membershipTier?: string | undefined;
 };
 
 export type UsersListResult = {

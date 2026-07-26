@@ -6,7 +6,7 @@ export function formatMaskedCardNumber(cardNumber: string): string {
   const match = cardNumber.match(CARD_NUMBER_PATTERN);
   if (!match) return cardNumber;
 
-  const digits = match[2].padStart(6, '0');
+  const digits = match[2]!.padStart(6, '0');
   const lastFour = digits.slice(-4);
 
   return `•••• •••• •••• ${lastFour}`;

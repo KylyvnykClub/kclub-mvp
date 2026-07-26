@@ -102,7 +102,7 @@ describe('route contracts', () => {
   });
 
   test('defines staff auth states for the admin-app handshake', () => {
-    expect(STAFF_AUTH_STATES).toEqual(['AUTHENTICATED']);
+    expect(STAFF_AUTH_STATES).toEqual(['AUTHENTICATED', 'TOTP_REQUIRED', 'TOTP_SETUP_REQUIRED']);
   });
 
   test('builds parameterized route patterns', () => {

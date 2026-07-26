@@ -93,10 +93,11 @@ export async function issueCardForUser(
 ): Promise<CardRecord> {
   const db = getDbClient();
 
-  const [{ count: activeCardCount }] = await db
+  const activeCardResult = await db
     .select({ count: count() })
     .from(schema.memberCards)
     .where(and(eq(schema.memberCards.user_id, userId), eq(schema.memberCards.status, 'ACTIVE')));
+  const activeCardCount = activeCardResult[0]!.count;
 
   if (!canIssueNewActiveCard(activeCardCount)) {
     throw new AppError({

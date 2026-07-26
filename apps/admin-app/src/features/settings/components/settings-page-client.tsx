@@ -18,13 +18,13 @@ type SettingsStats = {
 };
 
 type SettingsPageClientProps = {
-  initialSection?: string;
+  initialSection?: string | undefined;
   auditLogs: AuditLogDto[];
   auditTotal: number;
   auditPage: number;
   auditLimit: number;
   auditFilters: AuditLogSearchParams;
-  stats?: SettingsStats;
+  stats?: SettingsStats | undefined;
 };
 
 const SETTINGS_TABS: SubTabItem[] = [

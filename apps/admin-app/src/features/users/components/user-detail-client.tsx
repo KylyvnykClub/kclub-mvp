@@ -72,7 +72,7 @@ type UserDetailClientProps = {
 
 async function syncVipSubscription(userId: string): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(`/api/proxy/users/${userId}/sync-vip`, { method: 'POST' });
-  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+  return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
 }
 
 export function UserDetailClient({ user }: UserDetailClientProps) {
@@ -189,7 +189,7 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
               </div>
 
               {/* Meta row */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:text-sm sm:gap-x-5">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:gap-x-5 sm:text-sm">
                 {user.phone && (
                   <span className="inline-flex items-center gap-1.5">
                     <Phone className="h-3.5 w-3.5" aria-hidden />

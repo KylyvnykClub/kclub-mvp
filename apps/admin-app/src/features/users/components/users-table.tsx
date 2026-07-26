@@ -85,9 +85,8 @@ function getAvatarColor(name: string) {
 function getInitials(displayName: string | null, phone: string): string {
   if (!displayName) return phone.slice(-2);
   const parts = displayName.trim().split(/\s+/);
-  if (parts.length >= 2)
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return parts[0].slice(0, 2).toUpperCase();
+  if (parts.length >= 2) return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
+  return parts[0]!.slice(0, 2).toUpperCase();
 }
 
 function StatusDot({ status }: { status: string }) {
@@ -100,9 +99,7 @@ function StatusDot({ status }: { status: string }) {
           status === 'BLOCKED' && 'bg-red-500',
         )}
       />
-      <span className="text-sm capitalize">
-        {status.toLowerCase()}
-      </span>
+      <span className="text-sm capitalize">{status.toLowerCase()}</span>
     </span>
   );
 }
@@ -354,15 +351,14 @@ export function UsersTable({
     startTransition(() => router.push(buildUrl({ tier: value, page: 1 })));
   }
 
-  const activeFilterCount =
-    (statusFilter !== 'all' ? 1 : 0) + (tierFilter !== 'all' ? 1 : 0);
+  const activeFilterCount = (statusFilter !== 'all' ? 1 : 0) + (tierFilter !== 'all' ? 1 : 0);
 
   return (
-    <div className="rounded-xl border bg-card">
+    <div className="bg-card rounded-xl border">
       {/* Card header — search & filters */}
       <form
         onSubmit={handleSearch}
-        className="flex flex-col gap-3 border-b px-4 py-3 sm:px-6 sm:py-4 sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4"
       >
         <div className="relative flex-1 sm:max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -455,17 +451,13 @@ export function UsersTable({
                           className="flex items-center gap-3"
                         >
                           <Avatar>
-                            <AvatarFallback className={colorClass}>
-                              {initials}
-                            </AvatarFallback>
+                            <AvatarFallback className={colorClass}>{initials}</AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium transition-colors group-hover:text-primary">
                               {user.displayName ?? '—'}
                             </p>
-                            <p className="truncate text-xs text-muted-foreground">
-                              {user.phone}
-                            </p>
+                            <p className="truncate text-xs text-muted-foreground">{user.phone}</p>
                           </div>
                         </Link>
                       </TableCell>
@@ -500,9 +492,7 @@ export function UsersTable({
         {/* Mobile cards */}
         <div className="divide-y md:hidden">
           {users.length === 0 ? (
-            <div className="py-16 text-center text-sm text-muted-foreground">
-              No users found
-            </div>
+            <div className="py-16 text-center text-sm text-muted-foreground">No users found</div>
           ) : (
             users.map((user) => {
               const label = user.displayName ?? user.phone;

@@ -1,10 +1,4 @@
-import type {
-  DataProvider,
-  HttpError,
-  Pagination,
-  CrudFilter,
-  CrudSort,
-} from '@refinedev/core';
+import type { DataProvider, HttpError, Pagination, CrudFilter, CrudSort } from '@refinedev/core';
 
 const API_PROXY_URL = '/api/proxy';
 
@@ -48,8 +42,8 @@ function buildListParams(
   }
 
   if (sorters?.length) {
-    params.set('sort', sorters[0].field);
-    params.set('order', sorters[0].order);
+    params.set('sort', sorters[0]!.field);
+    params.set('order', sorters[0]!.order);
   }
 
   if (filters?.length) {
@@ -80,7 +74,7 @@ export const dataProvider: DataProvider = {
 
     return {
       data: json.data ?? [],
-      total: json.meta?.total ?? (json.data?.length ?? 0),
+      total: json.meta?.total ?? json.data?.length ?? 0,
     };
   },
 

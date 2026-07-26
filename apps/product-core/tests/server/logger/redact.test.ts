@@ -57,10 +57,10 @@ describe('redactSensitiveFields', () => {
 
     const result = redactSensitiveFields(input);
     const items = result.items as Array<Record<string, unknown>>;
-    expect(items[0].phone).toBe('[REDACTED]');
-    expect(items[0].name).toBe('A');
-    expect(items[1].phone).toBe('[REDACTED]');
-    expect(items[1].name).toBe('B');
+    expect(items[0]!.phone).toBe('[REDACTED]');
+    expect(items[0]!.name).toBe('A');
+    expect(items[1]!.phone).toBe('[REDACTED]');
+    expect(items[1]!.name).toBe('B');
   });
 
   test('handles empty object', () => {

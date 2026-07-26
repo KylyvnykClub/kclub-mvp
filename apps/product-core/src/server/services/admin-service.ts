@@ -520,7 +520,7 @@ export async function syncVipSubscriptionForUser(
       action: 'STRIPE_WEBHOOK_REPLAYED',
       entityType: 'VipSubscription',
       entityId: userId,
-      after: { subscriptionId: localSub.id, status: newStatus },
+      after: { subscriptionId: localSub!.id, status: newStatus },
     },
     context,
   );
@@ -579,12 +579,12 @@ export async function blockUser(
       entityType: 'User',
       entityId: userId,
       before: { status: user.status },
-      after: { status: updated.status },
+      after: { status: updated!.status },
     },
     context,
   );
 
-  return toAdminUserDetail(updated);
+  return toAdminUserDetail(updated!);
 }
 
 export async function unblockUser(
@@ -623,12 +623,12 @@ export async function unblockUser(
       entityType: 'User',
       entityId: userId,
       before: { status: user.status },
-      after: { status: updated.status },
+      after: { status: updated!.status },
     },
     context,
   );
 
-  return toAdminUserDetail(updated);
+  return toAdminUserDetail(updated!);
 }
 
 // ── Cards ──
@@ -914,7 +914,7 @@ export async function adminUpdateBusiness(
         name: business.name,
         representativeEmail: business.representative_email,
       },
-      after: { name: updated.name, representativeEmail: updated.representative_email },
+      after: { name: updated!.name, representativeEmail: updated!.representative_email },
     },
     context,
   );
@@ -970,7 +970,7 @@ export async function approveBusiness(
       entityType: 'BusinessProfile',
       entityId: businessId,
       before: { status: business.status },
-      after: { status: updated.status },
+      after: { status: updated!.status },
     },
     context,
   );
@@ -1036,7 +1036,7 @@ export async function publishBusiness(
       entityType: 'BusinessProfile',
       entityId: businessId,
       before: { status: business.status },
-      after: { status: updated.status },
+      after: { status: updated!.status },
     },
     context,
   );
@@ -1104,7 +1104,7 @@ export async function rejectBusiness(
       entityType: 'BusinessProfile',
       entityId: businessId,
       before: { status: business.status },
-      after: { status: updated.status, reason: input.reason },
+      after: { status: updated!.status, reason: input.reason },
     },
     context,
   );
@@ -1168,7 +1168,7 @@ export async function hideBusiness(
         featuredTop: business.featured_top,
         featuredRecommended: business.featured_recommended,
       },
-      after: { status: updated.status, featuredTop: false, featuredRecommended: false },
+      after: { status: updated!.status, featuredTop: false, featuredRecommended: false },
     },
     context,
   );
@@ -1300,10 +1300,10 @@ export async function updateBusinessFeatured(
         discountMuted: business.discount_muted,
       },
       after: {
-        featuredTop: updated.featured_top,
-        featuredRecommended: updated.featured_recommended,
-        memberDiscountPercent: updated.member_discount_percent,
-        discountMuted: updated.discount_muted,
+        featuredTop: updated!.featured_top,
+        featuredRecommended: updated!.featured_recommended,
+        memberDiscountPercent: updated!.member_discount_percent,
+        discountMuted: updated!.discount_muted,
       },
     },
     context,
@@ -1331,8 +1331,7 @@ export async function listIntroductions(
 
   if (filters.businessId)
     conditions.push(eq(schema.businessIntroductions.target_business_id, filters.businessId));
-  if (filters.status)
-    conditions.push(eq(schema.businessIntroductions.status, filters.status));
+  if (filters.status) conditions.push(eq(schema.businessIntroductions.status, filters.status));
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -1724,7 +1723,7 @@ export async function createCity(input: CityCreateInput): Promise<CityDto> {
     .returning();
 
   const city = await db.query.cities.findFirst({
-    where: eq(schema.cities.id, inserted.id),
+    where: eq(schema.cities.id, inserted!.id),
     with: { country: { columns: { id: true, name: true } } },
   });
   return toCityDto(city!);
@@ -2107,19 +2106,19 @@ export async function createStaff(
     {
       action: 'STAFF_CREATED',
       entityType: 'AdminUser',
-      entityId: created.id,
+      entityId: created!.id,
       before: null,
       after: {
-        phone: created.phone,
-        role: created.role,
-        displayName: created.display_name,
+        phone: created!.phone,
+        role: created!.role,
+        displayName: created!.display_name,
         passwordStatus: 'NOT_SET',
       },
     },
     context,
   );
 
-  return toAdminStaffListItem(created);
+  return toAdminStaffListItem(created!);
 }
 
 export async function getStaffDetail(staffId: string): Promise<AdminStaffListItemDto> {
@@ -2168,12 +2167,12 @@ export async function updateStaffRole(
       entityType: 'AdminUser',
       entityId: staffId,
       before: { role: staff.role },
-      after: { role: updated.role },
+      after: { role: updated!.role },
     },
     context,
   );
 
-  return toAdminStaffListItem(updated);
+  return toAdminStaffListItem(updated!);
 }
 
 export async function deactivateStaff(

@@ -87,7 +87,7 @@ function readSessionToken(token: string): StaffSessionPayload | null {
 
   const [header, body, signature] = parts;
   const expected = sign(`${header}.${body}`);
-  const actualBuffer = Buffer.from(signature);
+  const actualBuffer = Buffer.from(signature!);
   const expectedBuffer = Buffer.from(expected);
 
   if (
@@ -98,7 +98,7 @@ function readSessionToken(token: string): StaffSessionPayload | null {
   }
 
   try {
-    const payload = JSON.parse(base64UrlDecode(body)) as StaffSessionPayload;
+    const payload = JSON.parse(base64UrlDecode(body!)) as StaffSessionPayload;
     if (!payload.exp || payload.exp * 1000 <= Date.now()) return null;
     return payload;
   } catch {
