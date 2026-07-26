@@ -22,18 +22,9 @@ export default async function IntroductionsPage() {
     >
       {m && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <StatCard
-            label="Submitted"
-            value={m.introductionsSubmitted}
-          />
-          <StatCard
-            label="In Review"
-            value={m.introductionsInReview}
-          />
-          <StatCard
-            label="Total Businesses"
-            value={m.totalBusinesses ?? 0}
-          />
+          <StatCard label="Submitted" value={m.introductionsSubmitted} />
+          <StatCard label="In Review" value={m.introductionsInReview} />
+          <StatCard label="Total Businesses" value={m.totalBusinesses ?? 0} />
         </div>
       )}
 

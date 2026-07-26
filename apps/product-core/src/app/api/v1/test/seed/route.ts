@@ -13,12 +13,12 @@ type SeedRequestBody = {
 };
 
 type SeedResult = {
-  userId?: string;
-  phone?: string;
-  cardNumber?: string;
-  businessId?: string;
-  businessSlug?: string;
-  staffPhone?: string;
+  userId?: string | undefined;
+  phone?: string | undefined;
+  cardNumber?: string | undefined;
+  businessId?: string | undefined;
+  businessSlug?: string | undefined;
+  staffPhone?: string | undefined;
 };
 
 export async function POST(request: Request): Promise<Response> {
@@ -102,14 +102,14 @@ async function seedScenario(
       [city] = await db
         .insert(schema.cities)
         .values({
-          country_id: country.id,
+          country_id: country!.id,
           name: 'New York',
           slug: 'new-york',
         })
         .returning();
     }
 
-    return { categoryId: category.id, countryId: country.id, cityId: city.id };
+    return { categoryId: category!.id, countryId: country!.id, cityId: city!.id };
   };
 
   switch (scenario) {
@@ -138,7 +138,7 @@ async function seedScenario(
       const [card] = await db
         .insert(schema.memberCards)
         .values({
-          user_id: user.id,
+          user_id: user!.id,
           card_number: `MEM-${timestamp.toString().slice(-6)}`,
           membership_tier: 'MEMBER',
           status: 'ACTIVE',
@@ -148,9 +148,9 @@ async function seedScenario(
         .returning();
 
       return {
-        userId: user.id,
+        userId: user!.id,
         phone: testPhone,
-        cardNumber: card.card_number,
+        cardNumber: card!.card_number,
       };
     }
 
@@ -168,10 +168,10 @@ async function seedScenario(
         })
         .returning();
 
-      await createActiveVipSubscription(user.id, `vip-member-${timestamp}`);
-      await createActiveCard(user.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
+      await createActiveVipSubscription(user!.id, `vip-member-${timestamp}`);
+      await createActiveCard(user!.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
 
-      return { userId: user.id, phone: testPhone };
+      return { userId: user!.id, phone: testPhone };
     }
 
     case 'vip-with-business': {
@@ -188,15 +188,15 @@ async function seedScenario(
         })
         .returning();
 
-      await createActiveVipSubscription(user.id, `vip-business-${timestamp}`);
-      await createActiveCard(user.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
+      await createActiveVipSubscription(user!.id, `vip-business-${timestamp}`);
+      await createActiveCard(user!.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
 
       const relations = await getBusinessRelations();
 
       const [business] = await db
         .insert(schema.businessProfiles)
         .values({
-          user_id: user.id,
+          user_id: user!.id,
           name: `E2E Business ${timestamp}`,
           slug: `e2e-business-${timestamp}`,
           representative_name: 'E2E Representative',
@@ -210,10 +210,10 @@ async function seedScenario(
         .returning();
 
       return {
-        userId: user.id,
+        userId: user!.id,
         phone: testPhone,
-        businessId: business.id,
-        businessSlug: business.slug,
+        businessId: business!.id,
+        businessSlug: business!.slug,
       };
     }
 
@@ -231,15 +231,15 @@ async function seedScenario(
         })
         .returning();
 
-      await createActiveVipSubscription(user.id, `vip-published-${timestamp}`);
-      await createActiveCard(user.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
+      await createActiveVipSubscription(user!.id, `vip-published-${timestamp}`);
+      await createActiveCard(user!.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
 
       const relations = await getBusinessRelations();
 
       const [business] = await db
         .insert(schema.businessProfiles)
         .values({
-          user_id: user.id,
+          user_id: user!.id,
           name: `E2E Published Business ${timestamp}`,
           slug: `e2e-published-${timestamp}`,
           representative_name: 'E2E Rep',
@@ -253,10 +253,10 @@ async function seedScenario(
         .returning();
 
       return {
-        userId: user.id,
+        userId: user!.id,
         phone: testPhone,
-        businessId: business.id,
-        businessSlug: business.slug,
+        businessId: business!.id,
+        businessSlug: business!.slug,
       };
     }
 
@@ -295,12 +295,12 @@ async function seedScenario(
           const [bp] = await db
             .insert(schema.businessProfiles)
             .values({
-              user_id: owner.id,
+              user_id: owner!.id,
               name: `E2E ${name} Business`,
               slug: `e2e-${name.toLowerCase()}-${timestamp}`,
               representative_name: `${name} Rep`,
               representative_email: `e2e-${name.toLowerCase()}-${timestamp}@test.com`,
-              representative_phone: owner.phone,
+              representative_phone: owner!.phone,
               country_id: relations.countryId,
               city_id: relations.cityId,
               category_id: relations.categoryId,

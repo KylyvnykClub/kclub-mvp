@@ -303,7 +303,7 @@ async function seedBootstrapOwner(db: ReturnType<typeof getDbClient>): Promise<v
     .limit(1);
   if (existing.length > 0) {
     const passwordPatch =
-      ownerPassword && !existing[0].password_hash
+      ownerPassword && !existing[0]!.password_hash
         ? {
             password_hash: await hashSeedPassword(ownerPassword),
             password_set_at: new Date(),
@@ -375,7 +375,7 @@ async function seedDemoBusinesses(db: ReturnType<typeof getDbClient>): Promise<v
           })
           .where(eq(schema.users.phone, demo.userPhone))
           .returning()
-      )[0];
+      )[0]!;
     } else {
       user = (
         await db
@@ -387,7 +387,7 @@ async function seedDemoBusinesses(db: ReturnType<typeof getDbClient>): Promise<v
             terms_accepted_at: now,
           })
           .returning()
-      )[0];
+      )[0]!;
     }
 
     const demoDescription = 'description' in demo ? demo.description : undefined;

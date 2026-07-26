@@ -6,14 +6,14 @@ export type AppErrorOptions = {
   code: ErrorCode;
   message: string;
   status?: number;
-  details?: Record<string, unknown>;
+  details?: Record<string, unknown> | undefined;
   cause?: unknown;
 };
 
 export class AppError extends Error {
   readonly code: ErrorCode;
   readonly status: number;
-  readonly details?: Record<string, unknown>;
+  readonly details?: Record<string, unknown> | undefined;
 
   constructor(options: AppErrorOptions) {
     super(options.message, { cause: options.cause });

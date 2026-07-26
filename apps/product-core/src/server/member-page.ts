@@ -24,12 +24,12 @@ export async function getCurrentMemberProfileForPage(): Promise<CurrentMemberPro
           cookiesToSet: {
             name: string;
             value: string;
-            options?: Record<string, unknown>;
+            options?: Record<string, unknown> | undefined;
           }[],
         ) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
+              cookieStore.set(name, value, options as Record<string, unknown>),
             );
           } catch {
             // Server components cannot always commit refreshed cookies.

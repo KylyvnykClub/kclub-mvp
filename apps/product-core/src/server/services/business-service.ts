@@ -57,7 +57,7 @@ async function resolveCustomCategory(customName: string): Promise<string> {
       is_custom: true,
     })
     .returning();
-  return newCategory.id;
+  return newCategory!.id;
 }
 
 export async function submitBusiness(
@@ -151,7 +151,7 @@ export async function submitBusiness(
     .returning();
 
   const newBusiness = await db.query.businessProfiles.findFirst({
-    where: eq(schema.businessProfiles.id, newBusinessData.id),
+    where: eq(schema.businessProfiles.id, newBusinessData!.id),
     with: {
       category: true,
       country: true,

@@ -35,19 +35,9 @@ export default async function StaffPage() {
       breadcrumbs="Pages / Staff / Overview"
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard
-          label="Total Staff"
-          value={staff.length}
-        />
-        <StatCard
-          label="Active"
-          value={activeStaff}
-          detail={`of ${staff.length}`}
-        />
-        <StatCard
-          label="Owners"
-          value={staff.filter((s) => s.role === 'OWNER').length}
-        />
+        <StatCard label="Total Staff" value={staff.length} />
+        <StatCard label="Active" value={activeStaff} detail={`of ${staff.length}`} />
+        <StatCard label="Owners" value={staff.filter((s) => s.role === 'OWNER').length} />
       </div>
 
       <StaffTable staff={staff} staffRole={profile.role} />

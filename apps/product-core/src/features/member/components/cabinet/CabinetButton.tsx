@@ -17,7 +17,7 @@ type CabinetButtonProps = Omit<ComponentProps<typeof Button>, 'variant' | 'size'
 };
 
 const toneClassNames: Record<CabinetButtonTone, ComponentProps<typeof Button>['variant']> = {
-  primary: 'default',
+  primary: 'gold',
   secondary: 'outline',
   ghost: 'ghost',
   danger: 'destructive',

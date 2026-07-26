@@ -46,7 +46,7 @@ describe('Auth Forms', () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/v1/auth/sign-in', expect.any(Object));
-      expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+      expect(JSON.parse(mockFetch.mock.calls[0]![1].body)).toEqual({
         phone: '+1234567890',
         password: 'StrongPassword123',
       });
@@ -70,7 +70,7 @@ describe('Auth Forms', () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/v1/auth/sign-up', expect.any(Object));
-      expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+      expect(JSON.parse(mockFetch.mock.calls[0]![1].body)).toEqual({
         phone: '+1234567890',
         password: 'StrongPassword123',
         locale: 'en',
@@ -113,7 +113,7 @@ describe('Auth Forms', () => {
         '/api/v1/auth/password-recovery/verify',
         expect.any(Object),
       );
-      expect(JSON.parse(mockFetch.mock.calls[1][1].body)).toEqual({
+      expect(JSON.parse(mockFetch.mock.calls[1]![1].body)).toEqual({
         phone: '+1234567890',
         code: '123456',
         password: 'NewPassword123',

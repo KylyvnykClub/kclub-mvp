@@ -392,9 +392,7 @@ export function CategoriesTable() {
       </AdminList>
 
       <Dialog open={dialog.type !== 'closed'} onOpenChange={(open) => !open && closeDialog()}>
-        {dialog.type === 'create' && (
-          <CategoryFormDialog mode="create" onClose={closeDialog} />
-        )}
+        {dialog.type === 'create' && <CategoryFormDialog mode="create" onClose={closeDialog} />}
         {dialog.type === 'edit' && (
           <CategoryFormDialog mode="edit" category={dialog.category} onClose={closeDialog} />
         )}

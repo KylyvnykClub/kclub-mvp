@@ -4,8 +4,8 @@ import { localeSchema, otpCodeSchema, phoneSchema } from './shared';
 
 export const memberPasswordSchema = z
   .string()
-  .min(6, 'Password must contain at least 6 characters')
-  .max(128, 'Password must contain at most 128 characters');
+  .min(6, 'validation.password.tooShort')
+  .max(128, 'validation.password.tooLong');
 
 export const memberSignUpSchema = z.object({
   phone: phoneSchema,

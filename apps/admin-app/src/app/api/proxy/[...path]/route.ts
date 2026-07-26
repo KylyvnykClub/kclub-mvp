@@ -77,7 +77,7 @@ async function proxy(request: NextRequest, path: string[], method: string) {
       authorization: `Bearer ${session.token}`,
       ...(body ? { 'content-type': 'application/json' } : {}),
     },
-    body,
+    body: body ?? null,
   });
 
   const responseBody = await response.text();

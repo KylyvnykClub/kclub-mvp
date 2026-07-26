@@ -21,11 +21,7 @@ describe('member dashboard tabs', () => {
   });
 
   test('VIP without business sees introductions, not business', () => {
-    expect(getImplementedDashboardTabs(vipCtx)).toEqual([
-      'details',
-      'settings',
-      'introductions',
-    ]);
+    expect(getImplementedDashboardTabs(vipCtx)).toEqual(['details', 'settings', 'introductions']);
   });
 
   test('member with business sees business', () => {

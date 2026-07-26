@@ -23,7 +23,7 @@ function CountryRow({ stat }: { stat: DashboardCountryStatDto }) {
           <span className="text-sm font-medium">{stat.country}</span>
         </div>
       </td>
-      <td className="py-3 px-4 text-right text-sm tabular-nums">{stat.users}</td>
+      <td className="px-4 py-3 text-right text-sm tabular-nums">{stat.users}</td>
       <td className="py-3 pl-4 text-right text-sm tabular-nums">{stat.businesses}</td>
     </tr>
   );
@@ -78,7 +78,7 @@ export function TopCountriesCard({ data }: { data: DashboardMetricsDto }) {
               <thead>
                 <tr className="border-b text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <th className="pb-2 pr-4 text-left">Country</th>
-                  <th className="pb-2 px-4 text-right">Users</th>
+                  <th className="px-4 pb-2 text-right">Users</th>
                   <th className="pb-2 pl-4 text-right">Businesses</th>
                 </tr>
               </thead>

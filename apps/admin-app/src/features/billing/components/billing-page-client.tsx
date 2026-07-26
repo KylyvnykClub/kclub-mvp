@@ -23,11 +23,11 @@ type BillingStats = {
 
 type BillingPageClientProps = {
   staffRole: StaffRole;
-  initialSection?: string;
+  initialSection?: string | undefined;
   subscriptions: AdminSubscriptionListItemDto[];
   plans: MembershipPlanDto[];
   prices: AdminConfigEntryDto[];
-  stats?: BillingStats;
+  stats?: BillingStats | undefined;
 };
 
 function getBillingTabs(role: StaffRole): SubTabItem[] {

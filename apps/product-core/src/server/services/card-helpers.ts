@@ -19,8 +19,8 @@ export function parseCardNumber(cardNumber: string): CardNumberParts {
     throw new Error(`Invalid card number format: ${cardNumber}`);
   }
   return {
-    tier: match[1] as 'MEM' | 'VIP',
-    sequence: parseInt(match[2], 10),
+    tier: match[1]! as 'MEM' | 'VIP',
+    sequence: parseInt(match[2]!, 10),
   };
 }
 

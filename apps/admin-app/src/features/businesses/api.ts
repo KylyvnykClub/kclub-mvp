@@ -8,9 +8,9 @@ import type {
 } from '@kclub/contracts';
 
 export type BusinessesSearchParams = {
-  page?: number;
-  limit?: number;
-  status?: string;
+  page?: number | undefined;
+  limit?: number | undefined;
+  status?: string | undefined;
 };
 
 export type BusinessesListResult = {

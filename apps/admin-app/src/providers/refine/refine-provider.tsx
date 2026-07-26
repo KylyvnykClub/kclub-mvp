@@ -22,10 +22,20 @@ const resources = [
   { name: 'categories', list: '/dashboard/settings', meta: { label: 'Categories' } },
   { name: 'countries', list: '/dashboard/settings', meta: { label: 'Countries' } },
   { name: 'cities', list: '/dashboard/settings', meta: { label: 'Cities' } },
-  { name: 'businesses', list: '/dashboard/businesses', show: '/dashboard/businesses/:id', meta: { label: 'Businesses' } },
+  {
+    name: 'businesses',
+    list: '/dashboard/businesses',
+    show: '/dashboard/businesses/:id',
+    meta: { label: 'Businesses' },
+  },
   { name: 'cards', list: '/dashboard/cards', meta: { label: 'Cards' } },
   { name: 'introductions', list: '/dashboard/introductions', meta: { label: 'Introductions' } },
-  { name: 'users', list: '/dashboard/users', show: '/dashboard/users/:id', meta: { label: 'Users' } },
+  {
+    name: 'users',
+    list: '/dashboard/users',
+    show: '/dashboard/users/:id',
+    meta: { label: 'Users' },
+  },
   { name: 'staff', list: '/dashboard/staff', meta: { label: 'Staff' } },
   { name: 'audit', list: '/dashboard/settings', meta: { label: 'Audit' } },
   { name: 'subscriptions', list: '/dashboard/billing', meta: { label: 'Subscriptions' } },
@@ -46,7 +56,8 @@ const accessControlProvider = createAccessControlProvider(async () => {
   };
   return {
     role: role as import('@kclub/contracts').StaffRole,
-    permissionOverrides: permissionOverrides as import('@kclub/contracts').StaffPermissionOverrides | null,
+    permissionOverrides: permissionOverrides as
+      import('@kclub/contracts').StaffPermissionOverrides | null,
   };
 });
 

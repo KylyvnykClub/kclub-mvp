@@ -53,7 +53,6 @@ function getPrimaryTabs(
 
 const DASHBOARD_TAB_ICONS: Partial<Record<ImplementedMemberDashboardTab, LucideIcon>> = {
   details: UserRound,
-  subscription: CreditCard,
   business: Building2,
   introductions: Handshake,
 };

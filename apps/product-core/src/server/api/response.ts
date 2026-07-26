@@ -38,7 +38,7 @@ export function jsonSuccess<T>(
 ): NextResponse<ApiResponse<T>> {
   return NextResponse.json(successResponse(data, withTimestamp(meta)), {
     status: init?.status ?? 200,
-    headers: init?.headers,
+    ...(init?.headers ? { headers: init.headers } : {}),
   });
 }
 
@@ -49,7 +49,7 @@ export function jsonError(
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json(errorResponse(error, withTimestamp(meta)), {
     status: init?.status ?? 500,
-    headers: init?.headers,
+    ...(init?.headers ? { headers: init.headers } : {}),
   });
 }
 

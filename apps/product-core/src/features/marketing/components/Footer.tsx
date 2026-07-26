@@ -14,36 +14,47 @@ export function Footer({ locale }: { locale: Locale }) {
   const linkGroups = [
     {
       title: t('footer.links'),
-      links: [
-        { label: t('footer.directory'), href: `/${locale}/directory` },
-        { label: t('footer.signUp'), href: `/${locale}/sign-up` },
-        { label: t('footer.signIn'), href: `/${locale}/sign-in` },
-        { label: t('footer.verifyCard'), href: `/${locale}/verify-card` },
+      columns: [
+        [
+          { label: t('footer.directory'), href: `/${locale}/directory` },
+          { label: t('footer.signUp'), href: `/${locale}/sign-up` },
+          { label: t('footer.signIn'), href: `/${locale}/sign-in` },
+          { label: t('footer.verifyCard'), href: `/${locale}/verify-card` },
+        ],
       ],
     },
     {
       title: t('footer.legal'),
-      links: [
-        { label: t('footer.terms'), href: `/legal/${locale}/terms-of-use` },
-        { label: t('footer.privacy'), href: `/legal/${locale}/privacy-policy` },
-        { label: t('footer.cookiePolicy'), href: `/legal/${locale}/cookie-policy` },
-        { label: t('footer.clubRules'), href: `/legal/${locale}/club-rules` },
-        { label: t('footer.partnerRules'), href: `/legal/${locale}/partner-rules` },
-        {
-          label: t('footer.businessIntroRules'),
-          href: `/legal/${locale}/business-introduction-rules`,
-        },
-        { label: t('footer.refundPolicy'), href: `/legal/${locale}/refund-policy` },
-        { label: t('footer.disclaimer'), href: `/legal/${locale}/disclaimer` },
-        { label: t('footer.contactUs'), href: `/legal/${locale}/contact-us` },
+      columns: [
+        [
+          { label: t('footer.terms'), href: `/legal/${locale}/terms-of-use` },
+          { label: t('footer.privacy'), href: `/legal/${locale}/privacy-policy` },
+          { label: t('footer.cookiePolicy'), href: `/legal/${locale}/cookie-policy` },
+          { label: t('footer.refundPolicy'), href: `/legal/${locale}/refund-policy` },
+        ],
+      ],
+    },
+    {
+      title: t('footer.rules'),
+      columns: [
+        [
+          { label: t('footer.clubRules'), href: `/legal/${locale}/club-rules` },
+          { label: t('footer.partnerRules'), href: `/legal/${locale}/partner-rules` },
+          {
+            label: t('footer.businessIntroRules'),
+            href: `/legal/${locale}/business-introduction-rules`,
+          },
+          { label: t('footer.disclaimer'), href: `/legal/${locale}/disclaimer` },
+          { label: t('footer.contactUs'), href: `/legal/${locale}/contact-us` },
+        ],
       ],
     },
   ];
 
   return (
     <footer className="kclub-border border-t bg-zinc-100 text-zinc-950 dark:bg-surface dark:text-white">
-      <div className="kclub-shell grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
+      <div className="kclub-shell grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="sm:col-span-2 lg:col-span-1">
           <h2 className="inline-flex items-center gap-3 text-sm font-bold uppercase">
             <Image
               src={crowLogo}
@@ -56,22 +67,30 @@ export function Footer({ locale }: { locale: Locale }) {
           <p className="kclub-section-copy mt-5 dark:text-white/70">{t('footer.aboutText')}</p>
         </div>
         {linkGroups.map((group) => (
-          <div key={group.title}>
+          <div key={group.title} className={group.columns.length > 1 ? 'sm:col-span-2' : ''}>
             <h3 className="text-xs font-bold uppercase text-zinc-500 dark:text-white/50">
               {group.title}
             </h3>
-            <ul className="mt-5 grid gap-3">
-              {group.links.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="dark:text-white/68 text-sm font-medium text-zinc-600 transition hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:hover:text-white dark:focus-visible:ring-white"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
+            <div
+              className={`mt-5 grid gap-x-10 gap-y-3 ${
+                group.columns.length > 1 ? 'sm:grid-cols-2' : ''
+              }`}
+            >
+              {group.columns.map((col, colIndex) => (
+                <ul key={colIndex} className="grid h-fit gap-3">
+                  {col.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="dark:text-white/68 text-sm font-medium text-zinc-600 transition hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:hover:text-white dark:focus-visible:ring-white"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               ))}
-            </ul>
+            </div>
           </div>
         ))}
         <div>

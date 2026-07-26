@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
 export default function TwoFactorRequiredPage(): never {
-  redirect('/auth/sign-in');
+  redirect('/auth/mfa');
 }

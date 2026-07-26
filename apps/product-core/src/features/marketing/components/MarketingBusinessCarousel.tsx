@@ -45,7 +45,9 @@ export function MarketingBusinessCarousel({
 
   return (
     <MarketingCarousel header={header} itemCount={businesses.length} labels={carouselLabels}>
-      {businesses.map((business) => (
+      {businesses.map((business) => {
+        const label = getFeaturedLabel(business, t('featured.topLabel'), t('featured.recommendedLabel'));
+        return (
         <div
           key={business.id}
           className="flex w-[20rem] shrink-0 snap-start sm:w-[22rem]"
@@ -57,18 +59,13 @@ export function MarketingBusinessCarousel({
               business={business}
               externalLabel={t('common.website')}
               locale={locale}
-              featuredLabel={
-                getFeaturedLabel(
-                  business,
-                  t('featured.topLabel'),
-                  t('featured.recommendedLabel'),
-                ) ?? undefined
-              }
+              {...(label ? { featuredLabel: label } : {})}
               href={`/${locale}/directory/${business.slug}`}
             />
           </div>
         </div>
-      ))}
+        );
+      })}
     </MarketingCarousel>
   );
 }

@@ -35,7 +35,9 @@ describe('dataProvider', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         '/api/proxy/users?page=2&limit=10',
-        expect.objectContaining({ headers: expect.objectContaining({ 'Content-Type': 'application/json' }) }),
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+        }),
       );
       expect(result.data).toEqual([{ id: '1' }]);
       expect(result.total).toBe(25);
@@ -43,7 +45,11 @@ describe('dataProvider', () => {
 
     it('returns data.length as total when meta.total is absent', async () => {
       mockFetch.mockResolvedValueOnce(
-        jsonResponse({ data: [{ id: '1' }, { id: '2' }], meta: { timestamp: '2026-01-01' }, error: null }),
+        jsonResponse({
+          data: [{ id: '1' }, { id: '2' }],
+          meta: { timestamp: '2026-01-01' },
+          error: null,
+        }),
       );
 
       const result = await dataProvider.getList({
@@ -69,8 +75,8 @@ describe('dataProvider', () => {
         ],
       });
 
-      const calledUrl = mockFetch.mock.calls[0][0] as string;
-      const params = new URLSearchParams(calledUrl.split('?')[1]);
+      const calledUrl = mockFetch.mock.calls[0]![0] as string;
+      const params = new URLSearchParams(calledUrl.split('?')[1]!);
       expect(params.get('status')).toBe('ACTIVE');
       expect(params.get('membershipTier')).toBe('GOLD');
     });
@@ -86,15 +92,13 @@ describe('dataProvider', () => {
         filters: [{ field: 'search', operator: 'contains', value: 'john' }],
       });
 
-      const calledUrl = mockFetch.mock.calls[0][0] as string;
-      const params = new URLSearchParams(calledUrl.split('?')[1]);
+      const calledUrl = mockFetch.mock.calls[0]![0] as string;
+      const params = new URLSearchParams(calledUrl.split('?')[1]!);
       expect(params.get('search')).toBe('john');
     });
 
     it('skips filters with empty/null values', async () => {
-      mockFetch.mockResolvedValueOnce(
-        jsonResponse({ data: [], meta: { total: 0 }, error: null }),
-      );
+      mockFetch.mockResolvedValueOnce(jsonResponse({ data: [], meta: { total: 0 }, error: null }));
 
       await dataProvider.getList({
         resource: 'users',
@@ -105,8 +109,8 @@ describe('dataProvider', () => {
         ],
       });
 
-      const calledUrl = mockFetch.mock.calls[0][0] as string;
-      const params = new URLSearchParams(calledUrl.split('?')[1]);
+      const calledUrl = mockFetch.mock.calls[0]![0] as string;
+      const params = new URLSearchParams(calledUrl.split('?')[1]!);
       expect(params.has('status')).toBe(false);
       expect(params.has('tier')).toBe(false);
     });
@@ -115,7 +119,11 @@ describe('dataProvider', () => {
   describe('getOne', () => {
     it('unwraps the envelope and returns data', async () => {
       mockFetch.mockResolvedValueOnce(
-        jsonResponse({ data: { id: 'abc', name: 'Test' }, meta: { timestamp: '2026-01-01' }, error: null }),
+        jsonResponse({
+          data: { id: 'abc', name: 'Test' },
+          meta: { timestamp: '2026-01-01' },
+          error: null,
+        }),
       );
 
       const result = await dataProvider.getOne({ resource: 'categories', id: 'abc' });
@@ -186,9 +194,7 @@ describe('dataProvider', () => {
 
   describe('deleteOne', () => {
     it('sends DELETE and unwraps response', async () => {
-      mockFetch.mockResolvedValueOnce(
-        jsonResponse({ data: { success: true }, error: null }),
-      );
+      mockFetch.mockResolvedValueOnce(jsonResponse({ data: { success: true }, error: null }));
 
       const result = await dataProvider.deleteOne({ resource: 'categories', id: 'c1' });
 
@@ -204,14 +210,15 @@ describe('dataProvider', () => {
     it('throws HttpError with message from envelope error', async () => {
       mockFetch.mockResolvedValueOnce(
         new Response(
-          JSON.stringify({ data: null, error: { code: 'PERMISSION_DENIED', message: 'Forbidden' } }),
+          JSON.stringify({
+            data: null,
+            error: { code: 'PERMISSION_DENIED', message: 'Forbidden' },
+          }),
           { status: 403, headers: { 'Content-Type': 'application/json' } },
         ),
       );
 
-      await expect(
-        dataProvider.getOne({ resource: 'users', id: '1' }),
-      ).rejects.toMatchObject({
+      await expect(dataProvider.getOne({ resource: 'users', id: '1' })).rejects.toMatchObject({
         statusCode: 403,
         message: 'Forbidden',
       });
@@ -222,9 +229,7 @@ describe('dataProvider', () => {
         new Response('Internal Server Error', { status: 500, statusText: 'Internal Server Error' }),
       );
 
-      await expect(
-        dataProvider.getList({ resource: 'users' }),
-      ).rejects.toMatchObject({
+      await expect(dataProvider.getList({ resource: 'users' })).rejects.toMatchObject({
         statusCode: 500,
         message: 'Internal Server Error',
       });
@@ -233,14 +238,15 @@ describe('dataProvider', () => {
     it('throws HttpError on 401 unauthenticated', async () => {
       mockFetch.mockResolvedValueOnce(
         new Response(
-          JSON.stringify({ data: null, error: { code: 'UNAUTHENTICATED', message: 'No staff session' } }),
+          JSON.stringify({
+            data: null,
+            error: { code: 'UNAUTHENTICATED', message: 'No staff session' },
+          }),
           { status: 401, headers: { 'Content-Type': 'application/json' } },
         ),
       );
 
-      await expect(
-        dataProvider.getList({ resource: 'staff' }),
-      ).rejects.toMatchObject({
+      await expect(dataProvider.getList({ resource: 'staff' })).rejects.toMatchObject({
         statusCode: 401,
         message: 'No staff session',
       });
@@ -249,9 +255,7 @@ describe('dataProvider', () => {
 
   describe('custom', () => {
     it('calls a custom endpoint via proxy', async () => {
-      mockFetch.mockResolvedValueOnce(
-        jsonResponse({ data: { success: true }, error: null }),
-      );
+      mockFetch.mockResolvedValueOnce(jsonResponse({ data: { success: true }, error: null }));
 
       const result = await dataProvider.custom!({
         url: '/businesses/b1/approve',

@@ -2,14 +2,14 @@ import { adminApiFetch } from '@/server/proxy/admin-client';
 import type { ApiListResponse, AuditLogDto } from '@kclub/contracts';
 
 export type AuditLogSearchParams = {
-  page?: number;
-  limit?: number;
-  action?: string;
-  actorRole?: string;
-  actorStaffId?: string;
-  entityType?: string;
-  dateFrom?: string;
-  dateTo?: string;
+  page?: number | undefined;
+  limit?: number | undefined;
+  action?: string | undefined;
+  actorRole?: string | undefined;
+  actorStaffId?: string | undefined;
+  entityType?: string | undefined;
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
 };
 
 export type AuditLogListResult = {

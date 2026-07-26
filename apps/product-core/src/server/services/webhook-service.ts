@@ -174,7 +174,7 @@ async function handleCheckoutCompleted(session: Record<string, unknown>): Promis
       entityType: 'VipSubscription',
       entityId: userId,
       after: {
-        subscriptionId: createdSub.id,
+        subscriptionId: createdSub!.id,
         stripeSubscriptionId: subscriptionId,
         status: 'ACTIVE',
       },

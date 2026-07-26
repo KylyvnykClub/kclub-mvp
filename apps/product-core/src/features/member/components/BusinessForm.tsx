@@ -53,9 +53,7 @@ function FormRow({
       <div className="w-full shrink-0 sm:w-44 sm:pt-2.5">
         <Label htmlFor={htmlFor} className="text-sm font-medium text-foreground">
           {label}
-          {optional && (
-            <span className="ml-1.5 text-xs font-normal text-muted">(optional)</span>
-          )}
+          {optional && <span className="ml-1.5 text-xs font-normal text-muted">(optional)</span>}
         </Label>
       </div>
       <div className="min-w-0 flex-1">{children}</div>

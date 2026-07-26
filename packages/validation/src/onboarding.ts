@@ -23,7 +23,7 @@ export const memberOnboardingSchema = z.object({
   email: optionalEmailSchema,
   localePreference: localeSchema,
   termsAccepted: z.literal(true, {
-    errorMap: () => ({ message: 'Terms must be accepted' }),
+    errorMap: () => ({ message: 'validation.terms.required' }),
   }),
 });
 
@@ -37,7 +37,7 @@ export const memberProfileUpdateSchema = z
     avatarUrl: z.string().url().optional().nullable(),
   })
   .refine((value) => Object.values(value).some((v) => v !== undefined), {
-    message: 'At least one profile field is required',
+    message: 'validation.profile.atLeastOneField',
   });
 
 export type MemberOnboardingInput = z.infer<typeof memberOnboardingSchema>;

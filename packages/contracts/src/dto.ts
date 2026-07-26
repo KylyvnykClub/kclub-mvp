@@ -170,7 +170,7 @@ export type FinanceDashboardDto = {
   upcomingRenewals: FinanceUpcomingRenewalDto[];
 };
 
-export const STAFF_AUTH_STATES = ['AUTHENTICATED'] as const;
+export const STAFF_AUTH_STATES = ['AUTHENTICATED', 'TOTP_REQUIRED', 'TOTP_SETUP_REQUIRED'] as const;
 export type StaffAuthState = (typeof STAFF_AUTH_STATES)[number];
 
 export const STAFF_PASSWORD_STATUSES = ['SET', 'NOT_SET'] as const;
@@ -186,9 +186,11 @@ export type StaffProfileDto = {
 
 export type StaffAuthSessionDto = {
   state: StaffAuthState;
-  profile: StaffProfileDto;
-  token: string;
-  expiresAt: IsoDateTime;
+  profile: StaffProfileDto | null;
+  token: string | null;
+  expiresAt: IsoDateTime | null;
+  challengeToken?: string;
+  totpUri?: string;
 };
 
 export type AdminUserListItemDto = {

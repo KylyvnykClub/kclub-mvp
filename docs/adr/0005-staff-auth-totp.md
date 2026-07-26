@@ -1,29 +1,38 @@
-# ADR 0005: Staff Auth Uses Approved Phones And Passwords
+# ADR 0005: Staff Auth — Password + Mandatory TOTP
 
 ## Status
 
-Accepted
+Accepted (updated 2026-07-25: TOTP enforcement enabled)
 
 ## Context
 
-Staff users can access operational and sensitive member, billing, business, and audit data. The MVP staff auth model now avoids SMS and TOTP verification for the admin panel. Access must still be explicitly controlled by platform ownership.
+Staff users access operational and sensitive member, billing, business, and audit data. Password-only authentication is insufficient for admin panel security — a compromised password gives full access. TOTP (Time-based One-Time Password) adds a second factor that requires physical device possession.
 
 ## Decision
 
-Staff authentication requires an OWNER-approved phone number plus a staff password. OWNER users manage which staff phones are active and may reset a staff password. Unapproved or inactive phones cannot register a password or sign in.
+Staff authentication uses a two-step flow:
 
-Admin sessions remain app-owned, signed, httpOnly, sameSite=strict cookies with an 8-hour TTL. Product-core remains the enforcement point for staff session validation and RBAC permission checks.
+1. **Password verification** — OWNER-approved phone + password (argon2id hashing)
+2. **TOTP verification** — mandatory 6-digit TOTP code from an authenticator app
+
+On first sign-in after password registration, staff are prompted to set up TOTP (the API returns `TOTP_SETUP_REQUIRED` state with an `otpauth://` URI for QR scanning). Subsequent sign-ins return `TOTP_REQUIRED` until the code is verified.
+
+TOTP secrets are encrypted at rest with AES-256-GCM (`TOTP_ENCRYPTION_KEY`). Eight backup codes are generated during setup, stored as SHA-256 hashes, and consumed on use.
+
+The bootstrap owner (env-var based) bypasses TOTP to allow initial system access.
+
+Admin sessions remain app-owned, HMAC-SHA256 signed, httpOnly, sameSite=strict cookies with an 8-hour TTL. Product-core remains the enforcement point for staff session validation and RBAC permission checks.
 
 ## Consequences
 
-- Staff auth differs from member auth.
-- Staff identities remain separate from member identities.
-- Password hashes remain server-only.
-- OWNER-managed staff access must be audited.
-- Route guards and API permission checks must both enforce staff access.
+- Staff auth now requires both password and TOTP for DB-backed staff
+- TOTP secrets are encrypted, not stored in plaintext
+- Backup codes provide account recovery without admin intervention
+- Legacy scrypt password hashes are transparently rehashed to argon2 on login
+- Admin-app must handle the multi-step auth flow (password → TOTP setup/verify → session)
 
 ## Alternatives Considered
 
-- Phone OTP plus TOTP for staff.
-- Shared member/staff account sessions.
-- Invite-token password setup for v1.
+- Phone OTP plus TOTP for staff — rejected: SMS is not a reliable second factor
+- Password-only (previous implementation) — rejected: insufficient for admin access
+- WebAuthn/FIDO2 — deferred: higher implementation complexity, TOTP is sufficient for MVP

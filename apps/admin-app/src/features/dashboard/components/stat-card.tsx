@@ -25,7 +25,9 @@ export function StatCard({ label, value, detail, delta, from }: StatCardProps) {
             <span className="text-2xl font-bold tracking-tight sm:text-3xl">{value}</span>
             {from != null && <span className="text-sm text-muted-foreground">from {from}</span>}
           </div>
-          {detail && <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm">{detail}</p>}
+          {detail && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm">{detail}</p>
+          )}
         </div>
         {delta != null && (
           <span

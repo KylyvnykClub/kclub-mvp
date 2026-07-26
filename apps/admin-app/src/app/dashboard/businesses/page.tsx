@@ -39,19 +39,13 @@ export default async function BusinessesPage({ searchParams }: BusinessesPagePro
     >
       {m && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <StatCard
-            label="Total Businesses"
-            value={m.totalBusinesses ?? 0}
-          />
+          <StatCard label="Total Businesses" value={m.totalBusinesses ?? 0} />
           <StatCard
             label="Published"
             value={m.publishedBusinesses ?? 0}
             detail={m.totalBusinesses ? `of ${m.totalBusinesses}` : undefined}
           />
-          <StatCard
-            label="Under Review"
-            value={m.businessesUnderReview}
-          />
+          <StatCard label="Under Review" value={m.businessesUnderReview} />
         </div>
       )}
 

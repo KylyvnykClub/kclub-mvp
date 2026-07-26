@@ -91,11 +91,7 @@ function getButtonLabel(label: string): string {
   return label.replace(/\s*\u2192\s*$/, '');
 }
 
-export function SettingsPanel({
-  countryOptions,
-  locale,
-  profile,
-}: SettingsPanelProps) {
+export function SettingsPanel({ countryOptions, locale, profile }: SettingsPanelProps) {
   const t = useTranslations('member.dashboard.settings');
   const tAccount = useTranslations('member.dashboard.account');
   const tCommon = useTranslations('member.common');
@@ -154,7 +150,7 @@ export function SettingsPanel({
 
       try {
         const response = await fetch(
-          `${MEMBER_API_ROUTES.TAXONOMY_CITIES}?countryId=${encodeURIComponent(selectedCountryId)}`,
+          `${MEMBER_API_ROUTES.TAXONOMY_CITIES}?countryId=${encodeURIComponent(selectedCountryId!)}`,
           { signal: controller.signal },
         );
         const result = await parseAuthResponse<SettingsCityOption[]>(response);
@@ -352,11 +348,7 @@ export function SettingsPanel({
                   {tAccount('notSet')}
                 </SelectItem>
                 {countrySelectOptions.map((value) => (
-                  <SelectItem
-                    key={value}
-                    className={settingsSelectItemClassName}
-                    value={value}
-                  >
+                  <SelectItem key={value} className={settingsSelectItemClassName} value={value}>
                     {value}
                   </SelectItem>
                 ))}
@@ -381,11 +373,7 @@ export function SettingsPanel({
                   {tAccount('notSet')}
                 </SelectItem>
                 {citySelectOptions.map((value) => (
-                  <SelectItem
-                    key={value}
-                    className={settingsSelectItemClassName}
-                    value={value}
-                  >
+                  <SelectItem key={value} className={settingsSelectItemClassName} value={value}>
                     {value}
                   </SelectItem>
                 ))}
@@ -407,11 +395,7 @@ export function SettingsPanel({
               </SelectTrigger>
               <SelectContent className={settingsSelectContentClassName}>
                 {locales.map((value) => (
-                  <SelectItem
-                    key={value}
-                    className={settingsSelectItemClassName}
-                    value={value}
-                  >
+                  <SelectItem key={value} className={settingsSelectItemClassName} value={value}>
                     {tCommon(`locales.${value}`)}
                   </SelectItem>
                 ))}

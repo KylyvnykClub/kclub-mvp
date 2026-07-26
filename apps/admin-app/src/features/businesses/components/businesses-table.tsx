@@ -51,10 +51,7 @@ const businessStatusClassNames = {
 
 function BusinessStatusBadge({ status }: { status: AdminBusinessListItemDto['status'] }) {
   return (
-    <Badge
-      variant="outline"
-      className={businessStatusClassNames[status]}
-    >
+    <Badge variant="outline" className={businessStatusClassNames[status]}>
       {status}
     </Badge>
   );
@@ -182,7 +179,7 @@ export function BusinessesTable({
   }
 
   return (
-    <div className="rounded-xl border bg-card">
+    <div className="bg-card rounded-xl border">
       <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
         <div className="hidden sm:block" />
         <div className="flex items-center gap-2 sm:ml-auto">

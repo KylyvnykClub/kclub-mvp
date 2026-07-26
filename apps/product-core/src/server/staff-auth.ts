@@ -17,7 +17,8 @@ import {
 import { and, eq, isNull } from 'drizzle-orm';
 
 import { getDbClient, schema } from '@/server/db';
-import { hashStaffPassword, verifyStaffPassword } from '@/server/staff-password';
+import { hashStaffPassword, needsRehash, verifyStaffPassword } from '@/server/staff-password';
+import { hasVerifiedTotp, setupTotp } from '@/server/staff-totp';
 
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -86,7 +87,7 @@ function readSessionToken(token: string): StaffSessionPayload | null {
 
   const [header, body, signature] = parts;
   const expected = sign(`${header}.${body}`);
-  const actualBuffer = Buffer.from(signature);
+  const actualBuffer = Buffer.from(signature!);
   const expectedBuffer = Buffer.from(expected);
 
   if (
@@ -97,7 +98,7 @@ function readSessionToken(token: string): StaffSessionPayload | null {
   }
 
   try {
-    const payload = JSON.parse(base64UrlDecode(body)) as StaffSessionPayload;
+    const payload = JSON.parse(base64UrlDecode(body!)) as StaffSessionPayload;
     if (!payload.exp || payload.exp * 1000 <= Date.now()) return null;
     return payload;
   } catch {
@@ -412,6 +413,43 @@ export async function handleStaffPasswordSignIn(request: Request): Promise<Respo
 
   if (!isValidPassword) {
     return error(ERROR_CODES.AUTH_PASSWORD_INVALID, 'Invalid staff phone or password', 401);
+  }
+
+  // Transparently rehash scrypt → argon2 on successful login
+  if (staff.password_hash && needsRehash(staff.password_hash) && isUuid(staff.id)) {
+    const rehashed = await hashStaffPassword(parsed.data.password);
+    const db = getDbClient();
+    db.update(schema.adminUsers)
+      .set({ password_hash: rehashed, updated_at: new Date() })
+      .where(eq(schema.adminUsers.id, staff.id))
+      .catch(() => {});
+  }
+
+  // Check TOTP requirement for DB-backed staff (skip for bootstrap owner)
+  if (isUuid(staff.id)) {
+    const totpVerified = await hasVerifiedTotp(staff.id);
+
+    if (!totpVerified) {
+      // Staff hasn't set up TOTP yet — generate and return setup URI
+      const { uri } = await setupTotp(staff.id, staff.phone);
+      const session = await createAuthenticatedSession(staff, request);
+      return Response.json(
+        success<StaffAuthSessionDto>({
+          ...session,
+          state: 'TOTP_SETUP_REQUIRED',
+          totpUri: uri,
+        }),
+      );
+    }
+
+    // Staff has TOTP configured — require code before granting full session
+    const session = await createAuthenticatedSession(staff, request);
+    return Response.json(
+      success<StaffAuthSessionDto>({
+        ...session,
+        state: 'TOTP_REQUIRED',
+      }),
+    );
   }
 
   return Response.json(

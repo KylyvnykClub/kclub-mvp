@@ -85,6 +85,14 @@ vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(() => undefined),
 }));
 
+vi.mock('@/server/staff-totp', () => ({
+  hasVerifiedTotp: vi.fn(async () => false),
+  setupTotp: vi.fn(async () => ({
+    uri: 'otpauth://totp/KYLYVNYK%20CLUB%20Admin:+15557654321?secret=TEST&issuer=KYLYVNYK%20CLUB%20Admin',
+    backupCodes: ['aaaaaaaa'],
+  })),
+}));
+
 const { handleStaffPasswordRegister, handleStaffPasswordSignIn, handleStaffSession } =
   await import('../src/server/staff-auth');
 const { deactivateStaff, resetStaffPassword, updateStaffRole } =
@@ -122,7 +130,7 @@ describe('staff password auth with approved DB staff', () => {
 
     expect(registerResponse.status).toBe(200);
     expect(registerPayload.data.registered).toBe(true);
-    expect(staff.password_hash).toMatch(/^scrypt\$16384\$8\$1\$/);
+    expect(staff.password_hash).toMatch(/^argon2\$/);
     expect(staff.password_set_at).toBeInstanceOf(Date);
 
     const duplicateResponse = await handleStaffPasswordRegister(
@@ -137,12 +145,13 @@ describe('staff password auth with approved DB staff', () => {
       passwordRequest({ phone: STAFF_PHONE, password: PASSWORD }),
     );
     const signInPayload = await readJson<{
-      data: { state: string; token: string; profile: { id: string } };
+      data: { state: string; token: string; profile: { id: string }; totpUri?: string };
     }>(signInResponse);
 
     expect(signInResponse.status).toBe(200);
-    expect(signInPayload.data.state).toBe('AUTHENTICATED');
+    expect(signInPayload.data.state).toBe('TOTP_SETUP_REQUIRED');
     expect(signInPayload.data.profile.id).toBe(STAFF_ID);
+    expect(signInPayload.data.totpUri).toBeDefined();
 
     expect(signInPayload.data.token.split('.')).toHaveLength(3);
 

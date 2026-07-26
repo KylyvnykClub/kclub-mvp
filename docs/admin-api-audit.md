@@ -45,14 +45,14 @@ Refine dataProvider будет вызывать `/api/proxy/<resource>` — эт
 type ApiResponse<T> = {
   data: T | null;
   meta?: ApiMeta;
-  error: ApiError | null;   // null при успехе
+  error: ApiError | null; // null при успехе
 };
 
 type ApiMeta = {
   page?: number;
   limit?: number;
   total?: number;
-  timestamp?: string;       // всегда инжектируется withTimestamp()
+  timestamp?: string; // всегда инжектируется withTimestamp()
 };
 
 type ApiListResponse<T> = ApiResponse<T[]>;
@@ -76,6 +76,7 @@ HttpError       → { code: response.error.code, message: response.error.message
 ## Permission-система
 
 **Файлы:**
+
 - `packages/contracts/src/permissions.ts` — `STAFF_PERMISSIONS` enum
 - `packages/domain/src/rbac-policy.ts` — `hasStaffPermission()`, `STAFF_ROLE_PERMISSIONS`
 - `apps/product-core/src/server/admin-guard.ts` — `adminGuard(request, permission)`
@@ -90,25 +91,25 @@ deny override  >  grant override  >  role defaults
 
 ### Role → permission matrix
 
-| Permission | OWNER | ADMIN | MODERATOR |
-|---|:---:|:---:|:---:|
-| `DASHBOARD_METRICS_READ` | ✓ | ✓ | ✓ |
-| `FINANCE_METRICS_READ` | ✓ | ✓ | — |
-| `USERS_READ` | ✓ | ✓ | — |
-| `USERS_BLOCK` | ✓ | ✓ | — |
-| `CARDS_READ` | ✓ | ✓ | — |
-| `CARDS_REISSUE` | ✓ | ✓ | — |
-| `CARDS_REVOKE` | ✓ | ✓ | — |
-| `SUBSCRIPTIONS_READ` | ✓ | ✓ | ✓ |
-| `SUBSCRIPTIONS_CANCEL_ADMIN` | ✓ | ✓ | — |
-| `BUSINESSES_MODERATE` | ✓ | ✓ | ✓ |
-| `INTRODUCTIONS_MODERATE` | ✓ | ✓ | ✓ |
-| `TAXONOMY_MANAGE` | ✓ | ✓ | ✓ |
-| `FEATURED_BUSINESSES_MANAGE` | ✓ | ✓ | ✓ |
-| `STRIPE_PRICES_MANAGE` | ✓ | ✓ | — |
-| `STAFF_MANAGE` | ✓ | — | — |
-| `AUDIT_READ` | ✓ | ✓ | — |
-| `INTERNAL_NOTES_CREATE` | ✓ | ✓ | ✓ |
+| Permission                   | OWNER | ADMIN | MODERATOR |
+| ---------------------------- | :---: | :---: | :-------: |
+| `DASHBOARD_METRICS_READ`     |   ✓   |   ✓   |     ✓     |
+| `FINANCE_METRICS_READ`       |   ✓   |   ✓   |     —     |
+| `USERS_READ`                 |   ✓   |   ✓   |     —     |
+| `USERS_BLOCK`                |   ✓   |   ✓   |     —     |
+| `CARDS_READ`                 |   ✓   |   ✓   |     —     |
+| `CARDS_REISSUE`              |   ✓   |   ✓   |     —     |
+| `CARDS_REVOKE`               |   ✓   |   ✓   |     —     |
+| `SUBSCRIPTIONS_READ`         |   ✓   |   ✓   |     ✓     |
+| `SUBSCRIPTIONS_CANCEL_ADMIN` |   ✓   |   ✓   |     —     |
+| `BUSINESSES_MODERATE`        |   ✓   |   ✓   |     ✓     |
+| `INTRODUCTIONS_MODERATE`     |   ✓   |   ✓   |     ✓     |
+| `TAXONOMY_MANAGE`            |   ✓   |   ✓   |     ✓     |
+| `FEATURED_BUSINESSES_MANAGE` |   ✓   |   ✓   |     ✓     |
+| `STRIPE_PRICES_MANAGE`       |   ✓   |   ✓   |     —     |
+| `STAFF_MANAGE`               |   ✓   |   —   |     —     |
+| `AUDIT_READ`                 |   ✓   |   ✓   |     —     |
+| `INTERNAL_NOTES_CREATE`      |   ✓   |   ✓   |     ✓     |
 
 UI-route гейтинг (`route-permissions.ts`) работает по ролям, а не по permissions — отдельная карта `DASHBOARD_ROUTE_ROLES`.
 
@@ -118,19 +119,19 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 1. categories
 
-| | |
-|---|---|
+|                |                         |
+| -------------- | ----------------------- |
 | **Proxy path** | `/api/proxy/categories` |
-| **Permission** | `TAXONOMY_MANAGE` |
-| **Тип** | Full CRUD |
+| **Permission** | `TAXONOMY_MANAGE`       |
+| **Тип**        | Full CRUD               |
 
-| Операция | Method | Server path | Тело |
-|---|---|---|---|
-| List | GET | `/categories` | — |
-| Get | GET | `/categories/:id` | — |
-| Create | POST | `/categories` | `createCategorySchema` |
-| Update | PUT | `/categories/:id` | `updateCategorySchema` |
-| Delete | DELETE | `/categories/:id` | — |
+| Операция | Method | Server path       | Тело                   |
+| -------- | ------ | ----------------- | ---------------------- |
+| List     | GET    | `/categories`     | —                      |
+| Get      | GET    | `/categories/:id` | —                      |
+| Create   | POST   | `/categories`     | `createCategorySchema` |
+| Update   | PUT    | `/categories/:id` | `updateCategorySchema` |
+| Delete   | DELETE | `/categories/:id` | —                      |
 
 **Envelope list:** `{ data: CategoryDto[], meta: { timestamp }, error: null }` — **нет `total/page/limit`**
 **List-параметры:** нет (unpaginated full fetch)
@@ -139,19 +140,19 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 2. countries
 
-| | |
-|---|---|
+|                |                        |
+| -------------- | ---------------------- |
 | **Proxy path** | `/api/proxy/countries` |
-| **Permission** | `TAXONOMY_MANAGE` |
-| **Тип** | Full CRUD |
+| **Permission** | `TAXONOMY_MANAGE`      |
+| **Тип**        | Full CRUD              |
 
-| Операция | Method | Server path | Тело |
-|---|---|---|---|
-| List | GET | `/countries` | — |
-| Get | GET | `/countries/:id` | — |
-| Create | POST | `/countries` | schema |
-| Update | PUT | `/countries/:id` | schema |
-| Delete | DELETE | `/countries/:id` | — |
+| Операция | Method | Server path      | Тело   |
+| -------- | ------ | ---------------- | ------ |
+| List     | GET    | `/countries`     | —      |
+| Get      | GET    | `/countries/:id` | —      |
+| Create   | POST   | `/countries`     | schema |
+| Update   | PUT    | `/countries/:id` | schema |
+| Delete   | DELETE | `/countries/:id` | —      |
 
 **Envelope list:** `{ data: CountryDto[], meta: { timestamp }, error: null }` — **нет `total/page/limit`**
 **List-параметры:** нет
@@ -160,19 +161,19 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 3. cities
 
-| | |
-|---|---|
+|                |                     |
+| -------------- | ------------------- |
 | **Proxy path** | `/api/proxy/cities` |
-| **Permission** | `TAXONOMY_MANAGE` |
-| **Тип** | Full CRUD |
+| **Permission** | `TAXONOMY_MANAGE`   |
+| **Тип**        | Full CRUD           |
 
-| Операция | Method | Server path | Тело |
-|---|---|---|---|
-| List | GET | `/cities` | — |
-| Get | GET | `/cities/:id` | — |
-| Create | POST | `/cities` | schema |
-| Update | PUT | `/cities/:id` | schema |
-| Delete | DELETE | `/cities/:id` | — |
+| Операция | Method | Server path   | Тело   |
+| -------- | ------ | ------------- | ------ |
+| List     | GET    | `/cities`     | —      |
+| Get      | GET    | `/cities/:id` | —      |
+| Create   | POST   | `/cities`     | schema |
+| Update   | PUT    | `/cities/:id` | schema |
+| Delete   | DELETE | `/cities/:id` | —      |
 
 **Envelope list:** `{ data: CityDto[], meta: { timestamp }, error: null }` — **нет `total/page/limit`**
 **List-параметры:** нет
@@ -183,24 +184,24 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 4. businesses (он же catalog)
 
-| | |
-|---|---|
-| **Proxy path** | `/api/proxy/businesses` |
+|                |                                                                |
+| -------------- | -------------------------------------------------------------- |
+| **Proxy path** | `/api/proxy/businesses`                                        |
 | **Permission** | `BUSINESSES_MODERATE` (featured: `FEATURED_BUSINESSES_MANAGE`) |
-| **Тип** | CRUD + domain commands |
+| **Тип**        | CRUD + domain commands                                         |
 
 > Feature `catalog` в admin-app — это клиентская обёртка над тем же серверным ресурсом `businesses`.
 
-| Операция | Method | Server path | Тип | Тело |
-|---|---|---|---|---|
-| List | GET | `/businesses` | CRUD | — |
-| Get | GET | `/businesses/:id` | CRUD | — |
-| Update | **PATCH** | `/businesses/:id` | CRUD | `adminBusinessUpdateSchema` |
-| Approve | POST | `/businesses/:id/approve` | **Domain** | `businessApproveSchema` |
-| Reject | POST | `/businesses/:id/reject` | **Domain** | `businessRejectSchema` |
-| Hide | POST | `/businesses/:id/hide` | **Domain** | `businessHideSchema` |
-| Publish | POST | `/businesses/:id/publish` | **Domain** | нет тела |
-| Featured | POST | `/businesses/:id/featured` | **Domain** | `businessFeaturedSchema` |
+| Операция | Method    | Server path                | Тип        | Тело                        |
+| -------- | --------- | -------------------------- | ---------- | --------------------------- |
+| List     | GET       | `/businesses`              | CRUD       | —                           |
+| Get      | GET       | `/businesses/:id`          | CRUD       | —                           |
+| Update   | **PATCH** | `/businesses/:id`          | CRUD       | `adminBusinessUpdateSchema` |
+| Approve  | POST      | `/businesses/:id/approve`  | **Domain** | `businessApproveSchema`     |
+| Reject   | POST      | `/businesses/:id/reject`   | **Domain** | `businessRejectSchema`      |
+| Hide     | POST      | `/businesses/:id/hide`     | **Domain** | `businessHideSchema`        |
+| Publish  | POST      | `/businesses/:id/publish`  | **Domain** | нет тела                    |
+| Featured | POST      | `/businesses/:id/featured` | **Domain** | `businessFeaturedSchema`    |
 
 **Envelope list:** `{ data: T[], meta: { page, limit, total, timestamp }, error: null }` — **✓ полная пагинация**
 **List-параметры:** `page`, `limit`, `status` (через `adminBusinessListSchema`)
@@ -211,18 +212,18 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 5. cards
 
-| | |
-|---|---|
-| **Proxy path** | `/api/proxy/cards` |
+|                |                                                                 |
+| -------------- | --------------------------------------------------------------- |
+| **Proxy path** | `/api/proxy/cards`                                              |
 | **Permission** | `CARDS_READ` (reissue: `CARDS_REISSUE`, revoke: `CARDS_REVOKE`) |
-| **Тип** | Read + domain commands |
+| **Тип**        | Read + domain commands                                          |
 
-| Операция | Method | Server path | Тип | Тело |
-|---|---|---|---|---|
-| List | GET | `/cards` | CRUD | — |
-| Get | GET | `/cards/:id` | CRUD | — |
-| Reissue | POST | `/cards/:id/reissue` | **Domain** | `reissueCardSchema` |
-| Revoke | POST | `/cards/:id/revoke` | **Domain** | `revokeCardSchema` |
+| Операция | Method | Server path          | Тип        | Тело                |
+| -------- | ------ | -------------------- | ---------- | ------------------- |
+| List     | GET    | `/cards`             | CRUD       | —                   |
+| Get      | GET    | `/cards/:id`         | CRUD       | —                   |
+| Reissue  | POST   | `/cards/:id/reissue` | **Domain** | `reissueCardSchema` |
+| Revoke   | POST   | `/cards/:id/revoke`  | **Domain** | `revokeCardSchema`  |
 
 **Envelope list:** `{ data: T[], meta: { page, limit, total, timestamp }, error: null }` — **✓ полная пагинация**
 **List-параметры:** `page`, `limit`, `search`, `status`, `membershipTier`
@@ -233,19 +234,19 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 6. introductions
 
-| | |
-|---|---|
+|                |                            |
+| -------------- | -------------------------- |
 | **Proxy path** | `/api/proxy/introductions` |
-| **Permission** | `INTRODUCTIONS_MODERATE` |
-| **Тип** | Read + domain commands |
+| **Permission** | `INTRODUCTIONS_MODERATE`   |
+| **Тип**        | Read + domain commands     |
 
-| Операция | Method | Server path | Тип | Тело |
-|---|---|---|---|---|
-| List | GET | `/introductions` | CRUD | — |
-| Get | GET | `/introductions/:id` | CRUD | — |
-| Approve | POST | `/introductions/:id/approve` | **Domain** | `introductionApproveSchema` |
-| Reject | POST | `/introductions/:id/reject` | **Domain** | `introductionRejectSchema` |
-| Complete | POST | `/introductions/:id/complete` | **Domain** | нет тела |
+| Операция | Method | Server path                   | Тип        | Тело                        |
+| -------- | ------ | ----------------------------- | ---------- | --------------------------- |
+| List     | GET    | `/introductions`              | CRUD       | —                           |
+| Get      | GET    | `/introductions/:id`          | CRUD       | —                           |
+| Approve  | POST   | `/introductions/:id/approve`  | **Domain** | `introductionApproveSchema` |
+| Reject   | POST   | `/introductions/:id/reject`   | **Domain** | `introductionRejectSchema`  |
+| Complete | POST   | `/introductions/:id/complete` | **Domain** | нет тела                    |
 
 **Envelope list:** `{ data: T[], meta: { timestamp }, error: null }` — **⚠️ НЕТ `total/page/limit`**
 **List-параметры:** только `businessId` (server-side, вручную из `searchParams.get`)
@@ -256,20 +257,20 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 7. users
 
-| | |
-|---|---|
-| **Proxy path** | `/api/proxy/users` |
+|                |                                                                                     |
+| -------------- | ----------------------------------------------------------------------------------- |
+| **Proxy path** | `/api/proxy/users`                                                                  |
 | **Permission** | `USERS_READ` (block/unblock: `USERS_BLOCK`, sync-vip: `SUBSCRIPTIONS_CANCEL_ADMIN`) |
-| **Тип** | Read + domain commands + sub-resource |
+| **Тип**        | Read + domain commands + sub-resource                                               |
 
-| Операция | Method | Server path | Тип | Тело |
-|---|---|---|---|---|
-| List | GET | `/users` | CRUD | — |
-| Get | GET | `/users/:id` | CRUD | — |
-| Block | POST | `/users/:id/block` | **Domain** | `blockUserSchema` |
-| Unblock | POST | `/users/:id/unblock` | **Domain** | `unblockUserSchema` |
-| Sync VIP | POST | `/users/:id/sync-vip` | **Domain** | нет тела |
-| Invoices | GET | `/users/:id/invoices` | Sub-resource | — |
+| Операция | Method | Server path           | Тип          | Тело                |
+| -------- | ------ | --------------------- | ------------ | ------------------- |
+| List     | GET    | `/users`              | CRUD         | —                   |
+| Get      | GET    | `/users/:id`          | CRUD         | —                   |
+| Block    | POST   | `/users/:id/block`    | **Domain**   | `blockUserSchema`   |
+| Unblock  | POST   | `/users/:id/unblock`  | **Domain**   | `unblockUserSchema` |
+| Sync VIP | POST   | `/users/:id/sync-vip` | **Domain**   | нет тела            |
+| Invoices | GET    | `/users/:id/invoices` | Sub-resource | —                   |
 
 **Envelope list:** `{ data: T[], meta: { page, limit, total, timestamp }, error: null }` — **✓ полная пагинация**
 **List-параметры:** `page`, `limit`, `search`, `status`, `membershipTier`
@@ -278,21 +279,21 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 8. staff
 
-| | |
-|---|---|
-| **Proxy path** | `/api/proxy/staff` |
-| **Permission** | `STAFF_MANAGE` (всё) |
-| **Тип** | CRUD + domain commands |
+|                |                        |
+| -------------- | ---------------------- |
+| **Proxy path** | `/api/proxy/staff`     |
+| **Permission** | `STAFF_MANAGE` (всё)   |
+| **Тип**        | CRUD + domain commands |
 
-| Операция | Method | Server path | Тип | Тело |
-|---|---|---|---|---|
-| List | GET | `/staff` | CRUD | — |
-| Create | POST | `/staff` | CRUD | `adminStaffCreateSchema` |
-| Get | GET | `/staff/:id` | CRUD | — |
-| Deactivate | POST | `/staff/:id/deactivate` | **Domain** | `staffDeactivateSchema` |
-| Password reset | POST | `/staff/:id/password-reset` | **Domain** | `staffPasswordResetSchema` |
-| Update permissions | PUT | `/staff/:id/permissions` | **Domain** | `staffPermissionOverridesUpdateSchema` |
-| Update role | PUT | `/staff/:id/role` | **Domain** | `staffRoleUpdateSchema` |
+| Операция           | Method | Server path                 | Тип        | Тело                                   |
+| ------------------ | ------ | --------------------------- | ---------- | -------------------------------------- |
+| List               | GET    | `/staff`                    | CRUD       | —                                      |
+| Create             | POST   | `/staff`                    | CRUD       | `adminStaffCreateSchema`               |
+| Get                | GET    | `/staff/:id`                | CRUD       | —                                      |
+| Deactivate         | POST   | `/staff/:id/deactivate`     | **Domain** | `staffDeactivateSchema`                |
+| Password reset     | POST   | `/staff/:id/password-reset` | **Domain** | `staffPasswordResetSchema`             |
+| Update permissions | PUT    | `/staff/:id/permissions`    | **Domain** | `staffPermissionOverridesUpdateSchema` |
+| Update role        | PUT    | `/staff/:id/role`           | **Domain** | `staffRoleUpdateSchema`                |
 
 **Envelope list:** `{ data: T[], meta: { timestamp }, error: null }` — **⚠️ НЕТ `total/page/limit`**
 **List-параметры:** нет
@@ -301,15 +302,15 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 9. audit
 
-| | |
-|---|---|
+|                |                    |
+| -------------- | ------------------ |
 | **Proxy path** | `/api/proxy/audit` |
-| **Permission** | `AUDIT_READ` |
-| **Тип** | Read-only |
+| **Permission** | `AUDIT_READ`       |
+| **Тип**        | Read-only          |
 
-| Операция | Method | Server path | Тип |
-|---|---|---|---|
-| List | GET | `/audit` | Read-only query |
+| Операция | Method | Server path | Тип             |
+| -------- | ------ | ----------- | --------------- |
+| List     | GET    | `/audit`    | Read-only query |
 
 **Envelope list:** `{ data: T[], meta: { page, limit, total, timestamp }, error: null }` — **✓ полная пагинация**
 **List-параметры:** `page`, `limit`, `action`, `actorRole`, `entityType`, `dateFrom`, `dateTo`
@@ -320,17 +321,17 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 10. subscriptions
 
-| | |
-|---|---|
-| **Proxy path** | `/api/proxy/subscriptions` |
+|                |                                                             |
+| -------------- | ----------------------------------------------------------- |
+| **Proxy path** | `/api/proxy/subscriptions`                                  |
 | **Permission** | `SUBSCRIPTIONS_READ` (cancel: `SUBSCRIPTIONS_CANCEL_ADMIN`) |
-| **Тип** | Read + domain command |
+| **Тип**        | Read + domain command                                       |
 
-| Операция | Method | Server path | Тип | Тело |
-|---|---|---|---|---|
-| List | GET | `/subscriptions` | CRUD | — |
-| Get | GET | `/subscriptions/:id` | CRUD | — |
-| Cancel | POST | `/subscriptions/:id/cancel` | **Domain** | нет тела |
+| Операция | Method | Server path                 | Тип        | Тело     |
+| -------- | ------ | --------------------------- | ---------- | -------- |
+| List     | GET    | `/subscriptions`            | CRUD       | —        |
+| Get      | GET    | `/subscriptions/:id`        | CRUD       | —        |
+| Cancel   | POST   | `/subscriptions/:id/cancel` | **Domain** | нет тела |
 
 **Envelope list:** `{ data: T[], meta: { timestamp }, error: null }` — **⚠️ НЕТ `total/page/limit`**
 **List-параметры:** нет
@@ -339,15 +340,15 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 11. memberships
 
-| | |
-|---|---|
+|                |                          |
+| -------------- | ------------------------ |
 | **Proxy path** | `/api/proxy/memberships` |
-| **Permission** | `SUBSCRIPTIONS_READ` |
-| **Тип** | Read-only |
+| **Permission** | `SUBSCRIPTIONS_READ`     |
+| **Тип**        | Read-only                |
 
-| Операция | Method | Server path | Тип |
-|---|---|---|---|
-| List | GET | `/memberships` | Read-only |
+| Операция | Method | Server path    | Тип       |
+| -------- | ------ | -------------- | --------- |
+| List     | GET    | `/memberships` | Read-only |
 
 **Envelope list:** `{ data: T[], meta: { timestamp }, error: null }` — **нет `total/page/limit`**
 **List-параметры:** нет
@@ -356,16 +357,16 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 12. stripe-prices
 
-| | |
-|---|---|
+|                |                            |
+| -------------- | -------------------------- |
 | **Proxy path** | `/api/proxy/stripe-prices` |
-| **Permission** | `STRIPE_PRICES_MANAGE` |
-| **Тип** | Read + bulk update |
+| **Permission** | `STRIPE_PRICES_MANAGE`     |
+| **Тип**        | Read + bulk update         |
 
-| Операция | Method | Server path | Тип | Тело |
-|---|---|---|---|---|
-| List | GET | `/stripe-prices` | CRUD | — |
-| Bulk update | PUT | `/stripe-prices` | **Domain** (batch config write) | key-value pairs |
+| Операция    | Method | Server path      | Тип                             | Тело            |
+| ----------- | ------ | ---------------- | ------------------------------- | --------------- |
+| List        | GET    | `/stripe-prices` | CRUD                            | —               |
+| Bulk update | PUT    | `/stripe-prices` | **Domain** (batch config write) | key-value pairs |
 
 **Envelope list:** `{ data: T[], meta: { timestamp }, error: null }` — нет пагинации
 **List-параметры:** нет
@@ -376,16 +377,16 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 13. admin-config
 
-| | |
-|---|---|
+|                |                                |
+| -------------- | ------------------------------ |
 | **Proxy path** | `/api/proxy/admin-config/:key` |
-| **Permission** | `STRIPE_PRICES_MANAGE` |
-| **Тип** | Single-resource CRUD |
+| **Permission** | `STRIPE_PRICES_MANAGE`         |
+| **Тип**        | Single-resource CRUD           |
 
-| Операция | Method | Server path | Тело |
-|---|---|---|---|
-| Get | GET | `/admin-config/:key` | — |
-| Update | PUT | `/admin-config/:key` | `adminConfigUpdateSchema` |
+| Операция | Method | Server path          | Тело                      |
+| -------- | ------ | -------------------- | ------------------------- |
+| Get      | GET    | `/admin-config/:key` | —                         |
+| Update   | PUT    | `/admin-config/:key` | `adminConfigUpdateSchema` |
 
 Адресуется по ключу, не по id. Потребитель — `StripePricesForm`.
 
@@ -393,15 +394,15 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 14. dashboard-metrics
 
-| | |
-|---|---|
+|                |                                |
+| -------------- | ------------------------------ |
 | **Proxy path** | `/api/proxy/dashboard-metrics` |
-| **Permission** | `DASHBOARD_METRICS_READ` |
-| **Тип** | Read-only aggregation |
+| **Permission** | `DASHBOARD_METRICS_READ`       |
+| **Тип**        | Read-only aggregation          |
 
-| Операция | Method | Server path |
-|---|---|---|
-| Get metrics | GET | `/dashboard-metrics` |
+| Операция    | Method | Server path          |
+| ----------- | ------ | -------------------- |
+| Get metrics | GET    | `/dashboard-metrics` |
 
 Единственный объект, не список. Не является ресурсом для Refine.
 
@@ -409,15 +410,15 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 15. finance-metrics
 
-| | |
-|---|---|
+|                |                              |
+| -------------- | ---------------------------- |
 | **Proxy path** | `/api/proxy/finance-metrics` |
-| **Permission** | `FINANCE_METRICS_READ` |
-| **Тип** | Read-only aggregation |
+| **Permission** | `FINANCE_METRICS_READ`       |
+| **Тип**        | Read-only aggregation        |
 
-| Операция | Method | Server path |
-|---|---|---|
-| Get metrics | GET | `/finance-metrics` |
+| Операция    | Method | Server path        |
+| ----------- | ------ | ------------------ |
+| Get metrics | GET    | `/finance-metrics` |
 
 Единственный объект. Клиент использует 60s таймаут (Stripe invoice aggregation). Не является ресурсом для Refine.
 
@@ -425,22 +426,22 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ### 16. staff-auth
 
-| | |
-|---|---|
-| **Proxy path** | `/api/proxy/staff-auth/*` |
-| **Permission** | нет (pre-auth) |
-| **Тип** | Auth lifecycle (domain commands) |
+|                |                                  |
+| -------------- | -------------------------------- |
+| **Proxy path** | `/api/proxy/staff-auth/*`        |
+| **Permission** | нет (pre-auth)                   |
+| **Тип**        | Auth lifecycle (domain commands) |
 
-| Операция | Method | Server path | Статус |
-|---|---|---|---|
-| Get session | GET | `/staff-auth/session` | Active |
-| Logout | POST | `/staff-auth/logout` | Active |
-| Register password | POST | `/staff-auth/password/register` | Active |
-| Sign in | POST | `/staff-auth/password/sign-in` | Active |
-| Phone OTP send | POST | `/staff-auth/phone-otp/send` | **410 GONE** |
-| Phone OTP verify | POST | `/staff-auth/phone-otp/verify` | **410 GONE** |
-| TOTP setup | GET | `/staff-auth/totp/setup` | **410 GONE** |
-| TOTP verify | POST | `/staff-auth/totp/verify` | **410 GONE** |
+| Операция          | Method | Server path                     | Статус       |
+| ----------------- | ------ | ------------------------------- | ------------ |
+| Get session       | GET    | `/staff-auth/session`           | Active       |
+| Logout            | POST   | `/staff-auth/logout`            | Active       |
+| Register password | POST   | `/staff-auth/password/register` | Active       |
+| Sign in           | POST   | `/staff-auth/password/sign-in`  | Active       |
+| Phone OTP send    | POST   | `/staff-auth/phone-otp/send`    | **410 GONE** |
+| Phone OTP verify  | POST   | `/staff-auth/phone-otp/verify`  | **410 GONE** |
+| TOTP setup        | GET    | `/staff-auth/totp/setup`        | **410 GONE** |
+| TOTP verify       | POST   | `/staff-auth/totp/verify`       | **410 GONE** |
 
 > Остаётся на server actions навсегда. Не мигрируется в Refine.
 
@@ -458,24 +459,24 @@ UI-route гейтинг (`route-permissions.ts`) работает по роля�
 
 ## Сводная таблица
 
-| # | Ресурс | List pagination | List params | CRUD ops | Domain commands | Permission |
-|---|---|---|---|---|---|---|
-| 1 | categories | ❌ нет | — | list/get/create/update/delete | — | `TAXONOMY_MANAGE` |
-| 2 | countries | ❌ нет | — | list/get/create/update/delete | — | `TAXONOMY_MANAGE` |
-| 3 | cities | ❌ нет | — | list/get/create/update/delete | — | `TAXONOMY_MANAGE` |
-| 4 | businesses | ✅ page/limit/total | page, limit, status | list/get/update(PATCH) | approve, reject, hide, publish, featured | `BUSINESSES_MODERATE` |
-| 5 | cards | ✅ page/limit/total | page, limit, search, status, membershipTier | list/get | reissue, revoke | `CARDS_READ` |
-| 6 | introductions | ❌ нет | businessId | list/get | approve, reject, complete | `INTRODUCTIONS_MODERATE` |
-| 7 | users | ✅ page/limit/total | page, limit, search, status, membershipTier | list/get | block, unblock, sync-vip | `USERS_READ` |
-| 8 | staff | ❌ нет | — | list/get/create | deactivate, pwd-reset, permissions, role | `STAFF_MANAGE` |
-| 9 | audit | ✅ page/limit/total | page, limit, action, actorRole, entityType, dateFrom, dateTo | list (read-only) | — | `AUDIT_READ` |
-| 10 | subscriptions | ❌ нет | — | list/get | cancel | `SUBSCRIPTIONS_READ` |
-| 11 | memberships | ❌ нет | — | list (read-only) | — | `SUBSCRIPTIONS_READ` |
-| 12 | stripe-prices | ❌ нет | — | list | bulk update | `STRIPE_PRICES_MANAGE` |
-| 13 | admin-config | N/A | key | get/update (per key) | — | `STRIPE_PRICES_MANAGE` |
-| 14 | dashboard-metrics | N/A | — | get (singleton) | — | `DASHBOARD_METRICS_READ` |
-| 15 | finance-metrics | N/A | — | get (singleton) | — | `FINANCE_METRICS_READ` |
-| 16 | staff-auth | N/A | — | — | auth lifecycle | нет (pre-auth) |
+| #   | Ресурс            | List pagination     | List params                                                  | CRUD ops                      | Domain commands                          | Permission               |
+| --- | ----------------- | ------------------- | ------------------------------------------------------------ | ----------------------------- | ---------------------------------------- | ------------------------ |
+| 1   | categories        | ❌ нет              | —                                                            | list/get/create/update/delete | —                                        | `TAXONOMY_MANAGE`        |
+| 2   | countries         | ❌ нет              | —                                                            | list/get/create/update/delete | —                                        | `TAXONOMY_MANAGE`        |
+| 3   | cities            | ❌ нет              | —                                                            | list/get/create/update/delete | —                                        | `TAXONOMY_MANAGE`        |
+| 4   | businesses        | ✅ page/limit/total | page, limit, status                                          | list/get/update(PATCH)        | approve, reject, hide, publish, featured | `BUSINESSES_MODERATE`    |
+| 5   | cards             | ✅ page/limit/total | page, limit, search, status, membershipTier                  | list/get                      | reissue, revoke                          | `CARDS_READ`             |
+| 6   | introductions     | ❌ нет              | businessId                                                   | list/get                      | approve, reject, complete                | `INTRODUCTIONS_MODERATE` |
+| 7   | users             | ✅ page/limit/total | page, limit, search, status, membershipTier                  | list/get                      | block, unblock, sync-vip                 | `USERS_READ`             |
+| 8   | staff             | ❌ нет              | —                                                            | list/get/create               | deactivate, pwd-reset, permissions, role | `STAFF_MANAGE`           |
+| 9   | audit             | ✅ page/limit/total | page, limit, action, actorRole, entityType, dateFrom, dateTo | list (read-only)              | —                                        | `AUDIT_READ`             |
+| 10  | subscriptions     | ❌ нет              | —                                                            | list/get                      | cancel                                   | `SUBSCRIPTIONS_READ`     |
+| 11  | memberships       | ❌ нет              | —                                                            | list (read-only)              | —                                        | `SUBSCRIPTIONS_READ`     |
+| 12  | stripe-prices     | ❌ нет              | —                                                            | list                          | bulk update                              | `STRIPE_PRICES_MANAGE`   |
+| 13  | admin-config      | N/A                 | key                                                          | get/update (per key)          | —                                        | `STRIPE_PRICES_MANAGE`   |
+| 14  | dashboard-metrics | N/A                 | —                                                            | get (singleton)               | —                                        | `DASHBOARD_METRICS_READ` |
+| 15  | finance-metrics   | N/A                 | —                                                            | get (singleton)               | —                                        | `FINANCE_METRICS_READ`   |
+| 16  | staff-auth        | N/A                 | —                                                            | —                             | auth lifecycle                           | нет (pre-auth)           |
 
 ---
 
@@ -544,24 +545,24 @@ getList, getOne, create, update, deleteOne
 
 Все domain commands используют **POST** (кроме staff permissions/role — **PUT**). Не вносить в dataProvider.
 
-| Resource | Command | Method | Path |
-|---|---|---|---|
-| businesses | approve | POST | `/:id/approve` |
-| businesses | reject | POST | `/:id/reject` |
-| businesses | hide | POST | `/:id/hide` |
-| businesses | publish | POST | `/:id/publish` |
-| businesses | featured | POST | `/:id/featured` |
-| cards | reissue | POST | `/:id/reissue` |
-| cards | revoke | POST | `/:id/revoke` |
-| introductions | approve | POST | `/:id/approve` |
-| introductions | reject | POST | `/:id/reject` |
-| introductions | complete | POST | `/:id/complete` |
-| users | block | POST | `/:id/block` |
-| users | unblock | POST | `/:id/unblock` |
-| users | sync-vip | POST | `/:id/sync-vip` |
-| staff | deactivate | POST | `/:id/deactivate` |
-| staff | password-reset | POST | `/:id/password-reset` |
-| staff | permissions | PUT | `/:id/permissions` |
-| staff | role | PUT | `/:id/role` |
-| subscriptions | cancel | POST | `/:id/cancel` |
-| stripe-prices | bulk update | PUT | `/stripe-prices` |
+| Resource      | Command        | Method | Path                  |
+| ------------- | -------------- | ------ | --------------------- |
+| businesses    | approve        | POST   | `/:id/approve`        |
+| businesses    | reject         | POST   | `/:id/reject`         |
+| businesses    | hide           | POST   | `/:id/hide`           |
+| businesses    | publish        | POST   | `/:id/publish`        |
+| businesses    | featured       | POST   | `/:id/featured`       |
+| cards         | reissue        | POST   | `/:id/reissue`        |
+| cards         | revoke         | POST   | `/:id/revoke`         |
+| introductions | approve        | POST   | `/:id/approve`        |
+| introductions | reject         | POST   | `/:id/reject`         |
+| introductions | complete       | POST   | `/:id/complete`       |
+| users         | block          | POST   | `/:id/block`          |
+| users         | unblock        | POST   | `/:id/unblock`        |
+| users         | sync-vip       | POST   | `/:id/sync-vip`       |
+| staff         | deactivate     | POST   | `/:id/deactivate`     |
+| staff         | password-reset | POST   | `/:id/password-reset` |
+| staff         | permissions    | PUT    | `/:id/permissions`    |
+| staff         | role           | PUT    | `/:id/role`           |
+| subscriptions | cancel         | POST   | `/:id/cancel`         |
+| stripe-prices | bulk update    | PUT    | `/stripe-prices`      |

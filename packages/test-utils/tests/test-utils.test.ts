@@ -144,7 +144,6 @@ describe('permission fixtures', () => {
   test('exposes member capability fixtures and stable dashboard tabs', () => {
     expect(MEMBER_PERMISSION_FIXTURES.MEMBER.visibleTabs).toEqual([
       'details',
-      'subscription',
       'settings',
     ]);
     expect(MEMBER_PERMISSION_FIXTURES.VIP.capabilities).toContain('BUSINESS_SUBMIT');

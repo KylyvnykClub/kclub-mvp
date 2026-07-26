@@ -40,7 +40,10 @@ export function RecentActivityCard({ items }: { items: DashboardActivityItemDto[
                 key={`${item.type}-${item.timestamp}-${index}`}
                 className="flex items-start gap-3 py-2 sm:items-center"
               >
-                <Badge variant={ACTIVITY_BADGE_VARIANTS[item.type]} className="mt-0.5 shrink-0 sm:mt-0">
+                <Badge
+                  variant={ACTIVITY_BADGE_VARIANTS[item.type]}
+                  className="mt-0.5 shrink-0 sm:mt-0"
+                >
                   {ACTIVITY_LABELS[item.type]}
                 </Badge>
                 <div className="min-w-0 flex-1">

@@ -1,7 +1,14 @@
 import { cn } from '../classes';
 
 type ButtonColor =
-  'primary' | 'secondary' | 'outline' | 'brand' | 'brand-secondary' | 'destructive' | 'ghost';
+  | 'primary'
+  | 'secondary'
+  | 'outline'
+  | 'brand'
+  | 'brand-secondary'
+  | 'destructive'
+  | 'ghost'
+  | 'gold';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 export function getButtonClasses({
@@ -10,10 +17,10 @@ export function getButtonClasses({
   fullWidth,
   className,
 }: {
-  color?: ButtonColor;
-  size?: ButtonSize;
-  fullWidth?: boolean;
-  className?: string;
+  color?: ButtonColor | undefined;
+  size?: ButtonSize | undefined;
+  fullWidth?: boolean | undefined;
+  className?: string | undefined;
 }) {
   return cn(
     'focus-visible:ring-focus focus-visible:ring-offset-focus relative inline-flex items-center justify-center font-semibold uppercase transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
@@ -32,6 +39,7 @@ export function getButtonClasses({
         color === 'destructive',
       'text-muted-foreground hover:text-foreground border border-transparent rounded-md':
         color === 'ghost',
+      'kclub-btn-gold rounded-md': color === 'gold',
     },
     {
       'px-4 py-2.5 text-[10px] tracking-[0.2em]': size === 'sm',

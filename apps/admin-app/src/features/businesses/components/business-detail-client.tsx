@@ -118,7 +118,7 @@ async function approveBusiness(
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(notes ? { notes } : {}),
   });
-  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+  return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
 }
 
 async function rejectBusiness(
@@ -130,12 +130,12 @@ async function rejectBusiness(
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ reason }),
   });
-  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+  return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
 }
 
 async function publishBusiness(businessId: string): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(`/api/proxy/businesses/${businessId}/publish`, { method: 'POST' });
-  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+  return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
 }
 
 async function hideBusiness(
@@ -147,7 +147,7 @@ async function hideBusiness(
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(reason ? { reason } : {}),
   });
-  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+  return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
 }
 
 async function updateBusiness(
@@ -159,7 +159,7 @@ async function updateBusiness(
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(data),
   });
-  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+  return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
 }
 
 async function updateBusinessSettings(
@@ -184,7 +184,7 @@ async function updateBusinessSettings(
     return { ok: false, error: code || message };
   }
 
-  return { ok: res.ok, error: res.ok ? undefined : `Request failed (${res.status})` };
+  return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
 }
 
 function getInitials(name: string): string {

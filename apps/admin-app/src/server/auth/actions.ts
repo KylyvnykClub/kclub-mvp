@@ -54,6 +54,21 @@ export async function signInStaffAction(formData: FormData): Promise<void> {
     redirectWithError('/auth/sign-in', payload?.error?.message ?? 'Unable to sign in');
   }
 
+  if (payload.data.state === 'TOTP_SETUP_REQUIRED' && payload.data.token) {
+    await setStaffSession(payload.data.token, payload.data.expiresAt ?? undefined);
+    const uri = encodeURIComponent(payload.data.totpUri ?? '');
+    redirect(`/auth/mfa?setup=1&uri=${uri}`);
+  }
+
+  if (payload.data.state === 'TOTP_REQUIRED' && payload.data.token) {
+    await setStaffSession(payload.data.token, payload.data.expiresAt ?? undefined);
+    redirect('/auth/mfa');
+  }
+
+  if (!payload.data.token || !payload.data.expiresAt) {
+    redirectWithError('/auth/sign-in', 'Unexpected auth state');
+  }
+
   await setStaffSession(payload.data.token, payload.data.expiresAt);
   redirect('/dashboard');
 }
@@ -77,6 +92,29 @@ export async function registerStaffPasswordAction(formData: FormData): Promise<v
   }
 
   redirect(`/auth/sign-in?registered=1&phone=${encodeURIComponent(phone)}`);
+}
+
+export async function verifyTotpAction(formData: FormData): Promise<void> {
+  const log = createLogger();
+  const code = formValue(formData, 'code');
+  const session = await readStaffSession();
+
+  if (!session?.token) {
+    redirect('/auth/sign-in');
+  }
+
+  const { response, payload } = await postProductCore<{ verified: boolean }>(
+    ADMIN_API_ROUTES.STAFF_AUTH_TOTP_VERIFY,
+    { code },
+    session.token,
+  );
+
+  if (!response.ok || !payload?.data?.verified) {
+    log.auth('TOTP verification failed', { status: response.status, error: payload?.error });
+    redirectWithError('/auth/mfa', payload?.error?.message ?? 'Invalid code');
+  }
+
+  redirect('/dashboard');
 }
 
 export async function logoutAction(): Promise<void> {

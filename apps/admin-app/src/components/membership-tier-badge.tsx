@@ -14,10 +14,7 @@ type MembershipTierBadgeProps = {
   className?: string;
 };
 
-export function MembershipTierBadge({
-  tier,
-  className,
-}: MembershipTierBadgeProps) {
+export function MembershipTierBadge({ tier, className }: MembershipTierBadgeProps) {
   return (
     <Badge
       variant="outline"

@@ -37,7 +37,7 @@ export async function adminApiFetch<T>(
         authorization: `Bearer ${session.token}`,
         ...options.headers,
       },
-      body: options.body ? JSON.stringify(options.body) : undefined,
+      body: options.body ? JSON.stringify(options.body) : null,
       // Fail fast instead of hanging for undici's default 300s headers timeout
       // when product-core (or its database) is stuck.
       signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_ADMIN_API_TIMEOUT_MS),

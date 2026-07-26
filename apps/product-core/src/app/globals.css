@@ -230,6 +230,31 @@ main {
     @apply relative overflow-hidden rounded-lg border border-border bg-surface p-4 text-foreground shadow-[rgba(0,0,0,0.15)_0px_8px_16px_0px] sm:p-5;
   }
 
+  .kclub-btn-gold {
+    background: linear-gradient(
+      180deg,
+      #f2dc82 0%,
+      #dbbf4a 20%,
+      #caa83a 40%,
+      #b89230 70%,
+      #9a7824 100%
+    );
+    border: 1px solid #b89230;
+    color: #2a1e08;
+    text-shadow: 0 1px 0 rgba(220, 190, 90, 0.6);
+    box-shadow:
+      0 1px 6px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 245, 200, 0.4);
+  }
+
+  .kclub-btn-gold:hover {
+    opacity: 0.9;
+  }
+
+  .kclub-btn-gold:active {
+    opacity: 0.8;
+  }
+
   .kclub-toggle-button {
     @apply inline-flex h-11 w-11 items-center justify-center border border-border bg-surface text-foreground transition hover:bg-surface-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus;
   }

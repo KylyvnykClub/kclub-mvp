@@ -35,6 +35,8 @@ export const ADMIN_API_ROUTES = {
   STAFF_AUTH_PASSWORD_SIGN_IN: `${ADMIN_API_BASE_PATH}/staff-auth/password/sign-in`,
   STAFF_AUTH_SESSION: `${ADMIN_API_BASE_PATH}/staff-auth/session`,
   STAFF_AUTH_LOGOUT: `${ADMIN_API_BASE_PATH}/staff-auth/logout`,
+  STAFF_AUTH_TOTP_SETUP: `${ADMIN_API_BASE_PATH}/staff-auth/totp/setup`,
+  STAFF_AUTH_TOTP_VERIFY: `${ADMIN_API_BASE_PATH}/staff-auth/totp/verify`,
   USERS: `${ADMIN_API_BASE_PATH}/users`,
   USER_DETAIL: `${ADMIN_API_BASE_PATH}/users/:id`,
   USER_INVOICES: `${ADMIN_API_BASE_PATH}/users/:id/invoices`,

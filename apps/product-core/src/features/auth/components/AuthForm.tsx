@@ -191,7 +191,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
                 defaultCountry={defaultCountryForLocale(locale)}
                 renderFlag={renderCountryFlag}
                 required
-                aria-describedby={phoneDescriptionIds || undefined}
+                {...(phoneDescriptionIds ? { 'aria-describedby': phoneDescriptionIds } : {})}
                 placeholder={t('phonePlaceholder')}
                 value={phone}
                 onChange={setPhone}

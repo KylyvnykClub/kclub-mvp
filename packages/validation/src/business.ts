@@ -38,21 +38,21 @@ export const businessProfileSubmitSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['categoryId'],
-        message: 'Category selection or custom category name is required',
+        message: 'validation.business.categoryRequired',
       });
     }
     if (value.categoryId && value.customCategoryName) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['customCategoryName'],
-        message: 'Provide either a category selection or a custom name, not both',
+        message: 'validation.business.categoryOrCustom',
       });
     }
     if (!value.websiteUrl && !value.socialUrl) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['websiteUrl'],
-        message: 'Website or social URL is required',
+        message: 'validation.business.urlRequired',
       });
     }
   });
@@ -72,21 +72,21 @@ export const businessProfileEditableFieldsSchema = z
     briefDescription: businessBriefDescriptionSchema,
   })
   .refine((value) => Object.values(value).some((field) => field !== undefined), {
-    message: 'At least one business field is required',
+    message: 'validation.business.atLeastOneField',
   })
   .superRefine((value, context) => {
     if (value.categoryId && value.customCategoryName) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['customCategoryName'],
-        message: 'Provide either a category selection or a custom name, not both',
+        message: 'validation.business.categoryOrCustom',
       });
     }
     if (value.websiteUrl === null && value.socialUrl === null) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['websiteUrl'],
-        message: 'Website or social URL is required',
+        message: 'validation.business.urlRequired',
       });
     }
   });

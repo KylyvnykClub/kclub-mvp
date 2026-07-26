@@ -152,7 +152,7 @@ describe('member capability policies', () => {
   });
 
   test('dashboard tabs follow VIP and submitted-business visibility', () => {
-    const baseTabs = ['details', 'subscription', 'settings'] as const;
+    const baseTabs = ['details', 'settings'] as const;
     const member = getUserContext({ subscriptionStatus: 'NONE' });
     const vip = getUserContext({ subscriptionStatus: 'ACTIVE' });
     const memberWithBusiness = getUserContext({
@@ -164,7 +164,7 @@ describe('member capability policies', () => {
       businessStatus: 'PUBLISHED',
     });
 
-    const vipTabs = ['details', 'subscription', 'settings', 'introductions'] as const;
+    const vipTabs = ['details', 'settings', 'introductions'] as const;
     const businessTabs = ['details', 'business', 'settings'] as const;
     const vipBusinessTabs = businessTabs;
 
@@ -178,7 +178,7 @@ describe('member capability policies', () => {
     expect(canAccessDashboardTab(vip, 'introductions')).toBe(true);
     expect(canAccessDashboardTab(vip, 'business')).toBe(false);
     expect(canAccessDashboardTab(memberWithBusiness, 'business')).toBe(true);
-    expect(canAccessDashboardTab(memberWithBusiness, 'subscription')).toBe(false);
+    expect(canAccessDashboardTab(memberWithBusiness, 'audit')).toBe(false);
     expect(canAccessDashboardTab(memberWithBusiness, 'introductions')).toBe(false);
     expect(canAccessDashboardTab(vipWithBusiness, 'introductions')).toBe(false);
   });
