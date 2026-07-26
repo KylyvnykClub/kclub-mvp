@@ -76,7 +76,10 @@ function CountryFormDialog({
       createMutation.mutate(
         { resource: RESOURCE, values: payload },
         {
-          onSuccess: () => { toast.success('Country created'); onClose(); },
+          onSuccess: () => {
+            toast.success('Country created');
+            onClose();
+          },
           onError: () => toast.error('Failed to create country'),
         },
       );
@@ -84,7 +87,10 @@ function CountryFormDialog({
       updateMutation.mutate(
         { resource: RESOURCE, id: country!.id, values: payload },
         {
-          onSuccess: () => { toast.success('Country updated'); onClose(); },
+          onSuccess: () => {
+            toast.success('Country updated');
+            onClose();
+          },
           onError: () => toast.error('Failed to update country'),
         },
       );
@@ -130,7 +136,9 @@ function CountryFormDialog({
           <Label htmlFor="isActive">Active</Label>
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button type="submit" disabled={isSaving || !isValid}>
             {isSaving ? 'Saving...' : mode === 'create' ? 'Create' : 'Update'}
           </Button>
@@ -140,13 +148,7 @@ function CountryFormDialog({
   );
 }
 
-function DeleteCountryDialog({
-  country,
-  onClose,
-}: {
-  country: CountryDto;
-  onClose: () => void;
-}) {
+function DeleteCountryDialog({ country, onClose }: { country: CountryDto; onClose: () => void }) {
   const deleteMutation = useDelete();
 
   return (
@@ -158,7 +160,9 @@ function DeleteCountryDialog({
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
         <Button
           variant="destructive"
           disabled={deleteMutation.mutation.isPending}
@@ -166,7 +170,10 @@ function DeleteCountryDialog({
             deleteMutation.mutate(
               { resource: RESOURCE, id: country.id },
               {
-                onSuccess: () => { toast.success('Country deleted'); onClose(); },
+                onSuccess: () => {
+                  toast.success('Country deleted');
+                  onClose();
+                },
                 onError: () => toast.error('Failed to delete country'),
               },
             )
@@ -237,7 +244,10 @@ export function CountriesTable() {
               <TableBody>
                 {countries.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={canMutate ? 6 : 5} className="py-8 text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={canMutate ? 6 : 5}
+                      className="py-8 text-center text-muted-foreground"
+                    >
                       No countries found
                     </TableCell>
                   </TableRow>
@@ -256,10 +266,18 @@ export function CountriesTable() {
                       {canMutate && (
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <Button variant="outline" size="xs" onClick={() => setDialog({ type: 'edit', country: c })}>
+                            <Button
+                              variant="outline"
+                              size="xs"
+                              onClick={() => setDialog({ type: 'edit', country: c })}
+                            >
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
-                            <Button variant="destructive" size="xs" onClick={() => setDialog({ type: 'delete', country: c })}>
+                            <Button
+                              variant="destructive"
+                              size="xs"
+                              onClick={() => setDialog({ type: 'delete', country: c })}
+                            >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -274,7 +292,9 @@ export function CountriesTable() {
 
           <AdminTableMobile>
             {countries.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">No countries found</div>
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                No countries found
+              </div>
             ) : (
               countries.map((c) => (
                 <div key={c.id} className="space-y-3 p-4">
@@ -293,10 +313,18 @@ export function CountriesTable() {
                     <span className="text-muted-foreground">{c.slug}</span>
                     {canMutate && (
                       <div className="flex items-center gap-1">
-                        <Button variant="outline" size="xs" onClick={() => setDialog({ type: 'edit', country: c })}>
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          onClick={() => setDialog({ type: 'edit', country: c })}
+                        >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="destructive" size="xs" onClick={() => setDialog({ type: 'delete', country: c })}>
+                        <Button
+                          variant="destructive"
+                          size="xs"
+                          onClick={() => setDialog({ type: 'delete', country: c })}
+                        >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -311,8 +339,12 @@ export function CountriesTable() {
 
       <Dialog open={dialog.type !== 'closed'} onOpenChange={(open) => !open && closeDialog()}>
         {dialog.type === 'create' && <CountryFormDialog mode="create" onClose={closeDialog} />}
-        {dialog.type === 'edit' && <CountryFormDialog mode="edit" country={dialog.country} onClose={closeDialog} />}
-        {dialog.type === 'delete' && <DeleteCountryDialog country={dialog.country} onClose={closeDialog} />}
+        {dialog.type === 'edit' && (
+          <CountryFormDialog mode="edit" country={dialog.country} onClose={closeDialog} />
+        )}
+        {dialog.type === 'delete' && (
+          <DeleteCountryDialog country={dialog.country} onClose={closeDialog} />
+        )}
       </Dialog>
     </>
   );

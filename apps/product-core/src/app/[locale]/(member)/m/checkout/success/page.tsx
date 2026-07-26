@@ -21,7 +21,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
 async function syncVipSubscription(session: Stripe.Checkout.Session, userId: string) {
   const db = getDbClient();
   const stripeCustomerId = typeof session.customer === 'string' ? session.customer : null;
-  const stripeSubscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
+  const stripeSubscriptionId =
+    typeof session.subscription === 'string' ? session.subscription : null;
 
   const existing = await db.query.vipSubscriptions.findFirst({
     where: eq(schema.vipSubscriptions.user_id, userId),
@@ -57,7 +58,8 @@ async function syncVipSubscription(session: Stripe.Checkout.Session, userId: str
 async function syncPlacementSubscription(session: Stripe.Checkout.Session, userId: string) {
   const businessId = session.metadata?.businessId;
   const stripeCustomerId = typeof session.customer === 'string' ? session.customer : null;
-  const stripeSubscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
+  const stripeSubscriptionId =
+    typeof session.subscription === 'string' ? session.subscription : null;
 
   if (!businessId || !stripeSubscriptionId) return;
 

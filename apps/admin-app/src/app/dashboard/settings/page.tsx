@@ -55,11 +55,15 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       auditPage={auditResult?.page ?? auditPage}
       auditLimit={auditResult?.limit ?? auditLimit}
       auditFilters={auditFilters}
-      stats={m ? {
-        auditTotal: auditResult?.total ?? 0,
-        totalUsers: m.totalUsers,
-        totalBusinesses: m.totalBusinesses ?? 0,
-      } : undefined}
+      stats={
+        m
+          ? {
+              auditTotal: auditResult?.total ?? 0,
+              totalUsers: m.totalUsers,
+              totalBusinesses: m.totalBusinesses ?? 0,
+            }
+          : undefined
+      }
     />
   );
 }

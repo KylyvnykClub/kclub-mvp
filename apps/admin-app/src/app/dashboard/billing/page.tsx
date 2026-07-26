@@ -29,11 +29,15 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       subscriptions={subscriptions ?? []}
       plans={plans ?? []}
       prices={prices ?? []}
-      stats={m ? {
-        activeSubscriptions: m.activeSubscriptions,
-        pastDueSubscriptions: m.pastDueSubscriptions,
-        totalPlans: plans?.length ?? 0,
-      } : undefined}
+      stats={
+        m
+          ? {
+              activeSubscriptions: m.activeSubscriptions,
+              pastDueSubscriptions: m.pastDueSubscriptions,
+              totalPlans: plans?.length ?? 0,
+            }
+          : undefined
+      }
     />
   );
 }

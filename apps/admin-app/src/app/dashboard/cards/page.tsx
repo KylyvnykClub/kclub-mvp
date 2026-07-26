@@ -38,22 +38,16 @@ export default async function CardsPage({ searchParams }: CardsPageProps) {
   const m = metrics.status === 'success' ? metrics.data : null;
 
   return (
-    <PageShell title="Cards" description="Manage club cards — revoke, re-issue." breadcrumbs="Pages / Cards / Overview">
+    <PageShell
+      title="Cards"
+      description="Manage club cards — revoke, re-issue."
+      breadcrumbs="Pages / Cards / Overview"
+    >
       {m && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <StatCard
-            label="Total Cards"
-            value={result?.total ?? 0}
-          />
-          <StatCard
-            label="Active Members"
-            value={m.activeUsers}
-            detail={`of ${m.totalUsers}`}
-          />
-          <StatCard
-            label="VIP Members"
-            value={m.activeSubscriptions}
-          />
+          <StatCard label="Total Cards" value={result?.total ?? 0} />
+          <StatCard label="Active Members" value={m.activeUsers} detail={`of ${m.totalUsers}`} />
+          <StatCard label="VIP Members" value={m.activeSubscriptions} />
         </div>
       )}
 

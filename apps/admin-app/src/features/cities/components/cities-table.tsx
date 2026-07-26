@@ -84,7 +84,10 @@ function CityFormDialog({
       createMutation.mutate(
         { resource: RESOURCE, values },
         {
-          onSuccess: () => { toast.success('City created'); onClose(); },
+          onSuccess: () => {
+            toast.success('City created');
+            onClose();
+          },
           onError: () => toast.error('Failed to create city'),
         },
       );
@@ -92,7 +95,10 @@ function CityFormDialog({
       updateMutation.mutate(
         { resource: RESOURCE, id: city!.id, values },
         {
-          onSuccess: () => { toast.success('City updated'); onClose(); },
+          onSuccess: () => {
+            toast.success('City updated');
+            onClose();
+          },
           onError: () => toast.error('Failed to update city'),
         },
       );
@@ -126,7 +132,9 @@ function CityFormDialog({
               </Select>
             )}
           />
-          {errors.countryId && <p className="text-xs text-destructive">{errors.countryId.message}</p>}
+          {errors.countryId && (
+            <p className="text-xs text-destructive">{errors.countryId.message}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
@@ -148,7 +156,9 @@ function CityFormDialog({
           <Label htmlFor="isActive">Active</Label>
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button type="submit" disabled={isSaving || !isValid}>
             {isSaving ? 'Saving...' : mode === 'create' ? 'Create' : 'Update'}
           </Button>
@@ -158,13 +168,7 @@ function CityFormDialog({
   );
 }
 
-function DeleteCityDialog({
-  city,
-  onClose,
-}: {
-  city: CityDto;
-  onClose: () => void;
-}) {
+function DeleteCityDialog({ city, onClose }: { city: CityDto; onClose: () => void }) {
   const deleteMutation = useDelete();
 
   return (
@@ -176,7 +180,9 @@ function DeleteCityDialog({
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
         <Button
           variant="destructive"
           disabled={deleteMutation.mutation.isPending}
@@ -184,7 +190,10 @@ function DeleteCityDialog({
             deleteMutation.mutate(
               { resource: RESOURCE, id: city.id },
               {
-                onSuccess: () => { toast.success('City deleted'); onClose(); },
+                onSuccess: () => {
+                  toast.success('City deleted');
+                  onClose();
+                },
                 onError: () => toast.error('Failed to delete city'),
               },
             )
@@ -260,7 +269,10 @@ export function CitiesTable() {
               <TableBody>
                 {cities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={canMutate ? 5 : 4} className="py-8 text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={canMutate ? 5 : 4}
+                      className="py-8 text-center text-muted-foreground"
+                    >
                       No cities found
                     </TableCell>
                   </TableRow>
@@ -278,10 +290,18 @@ export function CitiesTable() {
                       {canMutate && (
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <Button variant="outline" size="xs" onClick={() => setDialog({ type: 'edit', city })}>
+                            <Button
+                              variant="outline"
+                              size="xs"
+                              onClick={() => setDialog({ type: 'edit', city })}
+                            >
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
-                            <Button variant="destructive" size="xs" onClick={() => setDialog({ type: 'delete', city })}>
+                            <Button
+                              variant="destructive"
+                              size="xs"
+                              onClick={() => setDialog({ type: 'delete', city })}
+                            >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -313,10 +333,18 @@ export function CitiesTable() {
                     <span className="text-muted-foreground">{city.slug}</span>
                     {canMutate && (
                       <div className="flex items-center gap-1">
-                        <Button variant="outline" size="xs" onClick={() => setDialog({ type: 'edit', city })}>
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          onClick={() => setDialog({ type: 'edit', city })}
+                        >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="destructive" size="xs" onClick={() => setDialog({ type: 'delete', city })}>
+                        <Button
+                          variant="destructive"
+                          size="xs"
+                          onClick={() => setDialog({ type: 'delete', city })}
+                        >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -330,8 +358,17 @@ export function CitiesTable() {
       </AdminList>
 
       <Dialog open={dialog.type !== 'closed'} onOpenChange={(open) => !open && closeDialog()}>
-        {dialog.type === 'create' && <CityFormDialog mode="create" countries={countries} onClose={closeDialog} />}
-        {dialog.type === 'edit' && <CityFormDialog mode="edit" city={dialog.city} countries={countries} onClose={closeDialog} />}
+        {dialog.type === 'create' && (
+          <CityFormDialog mode="create" countries={countries} onClose={closeDialog} />
+        )}
+        {dialog.type === 'edit' && (
+          <CityFormDialog
+            mode="edit"
+            city={dialog.city}
+            countries={countries}
+            onClose={closeDialog}
+          />
+        )}
         {dialog.type === 'delete' && <DeleteCityDialog city={dialog.city} onClose={closeDialog} />}
       </Dialog>
     </>

@@ -100,11 +100,7 @@ export async function DashboardTabs({
       );
     } else if (tab === 'settings') {
       panels.settings = (
-        <SettingsPanel
-          countryOptions={countryOptions}
-          locale={locale}
-          profile={profile}
-        />
+        <SettingsPanel countryOptions={countryOptions} locale={locale} profile={profile} />
       );
     }
   }

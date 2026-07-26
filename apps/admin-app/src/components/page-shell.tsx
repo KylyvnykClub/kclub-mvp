@@ -13,13 +13,9 @@ export function PageShell({ title, description, breadcrumbs, children }: PageShe
   return (
     <div className="space-y-4 sm:space-y-6">
       <div>
-        {breadcrumbs && (
-          <p className="text-xs text-muted-foreground">{breadcrumbs}</p>
-        )}
+        {breadcrumbs && <p className="text-xs text-muted-foreground">{breadcrumbs}</p>}
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        {description && (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-        )}
+        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </div>
       <Separator />
       {children}

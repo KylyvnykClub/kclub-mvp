@@ -6,7 +6,6 @@ import { UsersTable } from '@/features/users/components/users-table';
 import { StatCard } from '@/features/dashboard/components/stat-card';
 import { percentDelta } from '@/features/dashboard/format';
 
-
 type UsersPageProps = {
   searchParams: Promise<{
     page?: string;
@@ -48,24 +47,12 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
             value={m.totalUsers}
             from={m.newUsers7d != null ? m.totalUsers - m.newUsers7d : null}
             delta={
-              m.newUsers7d != null
-                ? percentDelta(m.totalUsers, m.totalUsers - m.newUsers7d)
-                : null
+              m.newUsers7d != null ? percentDelta(m.totalUsers, m.totalUsers - m.newUsers7d) : null
             }
           />
-          <StatCard
-            label="Active Members"
-            value={m.activeUsers}
-            detail={`of ${m.totalUsers}`}
-          />
-          <StatCard
-            label="New (7 days)"
-            value={m.newUsers7d ?? 0}
-          />
-          <StatCard
-            label="Blocked"
-            value={m.blockedUsers}
-          />
+          <StatCard label="Active Members" value={m.activeUsers} detail={`of ${m.totalUsers}`} />
+          <StatCard label="New (7 days)" value={m.newUsers7d ?? 0} />
+          <StatCard label="Blocked" value={m.blockedUsers} />
         </div>
       )}
 

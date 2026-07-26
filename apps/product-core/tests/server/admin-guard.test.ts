@@ -1,9 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import {
-  STAFF_PERMISSIONS,
-  type StaffProfileDto,
-} from '@kclub/contracts';
+import { STAFF_PERMISSIONS, type StaffProfileDto } from '@kclub/contracts';
 
 describe('requireStaffPermission', () => {
   test('throws AppError when permission is not granted', async () => {

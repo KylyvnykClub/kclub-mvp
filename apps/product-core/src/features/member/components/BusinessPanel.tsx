@@ -35,7 +35,10 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   HIDDEN: 'hidden',
 };
 
-const STATUS_BADGE_VARIANTS: Record<string, 'default' | 'outline' | 'success' | 'destructive' | 'warning-light'> = {
+const STATUS_BADGE_VARIANTS: Record<
+  string,
+  'default' | 'outline' | 'success' | 'destructive' | 'warning-light'
+> = {
   UNDER_REVIEW: 'warning-light',
   APPROVED: 'success',
   PUBLISHED: 'success',
@@ -99,7 +102,6 @@ export async function BusinessPanel({
 
   return (
     <div className={cabinetContentClasses}>
-
       <div className="space-y-8">
         {ownBusinesses.length > 0 && (
           <FrontCard>
@@ -163,9 +165,7 @@ export async function BusinessPanel({
 
         {!canSubmit && !editBusiness && (
           <FrontCard>
-            <div className="p-6 text-sm text-muted-foreground sm:p-8">
-              {t('noEditAvailable')}
-            </div>
+            <div className="p-6 text-sm text-muted-foreground sm:p-8">{t('noEditAvailable')}</div>
           </FrontCard>
         )}
       </div>
@@ -175,9 +175,7 @@ export async function BusinessPanel({
 
 function FrontCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden border border-border bg-surface shadow-sm">
-      {children}
-    </div>
+    <div className="overflow-hidden border border-border bg-surface shadow-sm">{children}</div>
   );
 }
 
@@ -306,12 +304,10 @@ function BusinessStatusBanner({
     }
 
     return (
-      <div className="border border-success/30 bg-success/5 p-6">
+      <div className="border-success/30 bg-success/5 border p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <h4 className="text-base font-semibold text-foreground">
-              {t('statusBannerApproved')}
-            </h4>
+            <h4 className="text-base font-semibold text-foreground">{t('statusBannerApproved')}</h4>
             <p className="text-sm text-muted-foreground">{t('statusBannerApprovedSub')}</p>
           </div>
           <div className="shrink-0">
