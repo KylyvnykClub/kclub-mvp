@@ -27,6 +27,7 @@ type MemberCabinetShellProps = {
   contactLine: string;
   tabsAriaLabel: string;
   lockLabels: Record<'VIP' | 'BIZ', string>;
+  tabBadges?: Partial<Record<ImplementedMemberDashboardTab, number>>;
   onTabChange: (tab: ImplementedMemberDashboardTab) => void;
   children: React.ReactNode;
 };
@@ -62,18 +63,21 @@ function renderTabTriggers({
   tabLabels,
   userContext,
   lockLabels,
+  tabBadges,
   itemClassName,
 }: {
   visibleTabs: readonly ImplementedMemberDashboardTab[];
   tabLabels: Record<ImplementedMemberDashboardTab, string>;
   userContext: UserContext;
   lockLabels: Record<'VIP' | 'BIZ', string>;
+  tabBadges?: Partial<Record<ImplementedMemberDashboardTab, number>> | undefined;
   itemClassName: string;
 }) {
   return visibleTabs.map((tab) => {
     const locked = isDashboardTabLocked(userContext, tab);
     const lockLabel = getDashboardTabLockLabel(tab);
     const TabIcon = DASHBOARD_TAB_ICONS[tab];
+    const badgeCount = tabBadges?.[tab] ?? 0;
 
     return (
       <TabsTrigger key={tab} value={tab} className={cn(itemClassName, locked && 'text-muted')}>
@@ -82,6 +86,11 @@ function renderTabTriggers({
         {locked && lockLabel ? (
           <Badge variant="outline" size="xs">
             {lockLabels[lockLabel]}
+          </Badge>
+        ) : null}
+        {!locked && badgeCount > 0 ? (
+          <Badge variant="success-light" size="xs">
+            {badgeCount}
           </Badge>
         ) : null}
       </TabsTrigger>
@@ -99,6 +108,7 @@ export function MemberCabinetShell({
   contactLine,
   tabsAriaLabel,
   lockLabels,
+  tabBadges,
   onTabChange,
   children,
 }: MemberCabinetShellProps) {
@@ -170,6 +180,7 @@ export function MemberCabinetShell({
             tabLabels,
             userContext,
             lockLabels,
+            tabBadges,
             itemClassName:
               'shrink-0 gap-2 rounded-none px-4 py-3.5 text-sm font-semibold tracking-wide',
           })}
@@ -195,6 +206,7 @@ export function MemberCabinetShell({
                 tabLabels,
                 userContext,
                 lockLabels,
+                tabBadges,
                 itemClassName:
                   'h-auto w-full flex-none grow-0 justify-start gap-2 rounded-none px-6 py-3.5 text-sm font-semibold tracking-wide',
               })}

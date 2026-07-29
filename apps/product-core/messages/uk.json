@@ -492,6 +492,11 @@
         "introductions": "Рекомендувати клієнта",
         "profile": "Мій акаунт"
       },
+      "introductionsNotice": {
+        "title": "Нові рекомендації",
+        "description": "{count, plural, one {У вас # нова рекомендація клієнта, що очікує на відповідь.} few {У вас # нові рекомендації клієнтів, що очікують на відповідь.} many {У вас # нових рекомендацій клієнтів, що очікують на відповідь.} other {У вас # нової рекомендації клієнтів, що очікують на відповідь.}}",
+        "cta": "Відкрити"
+      },
       "card": {
         "eyebrow": "Digital club card",
         "cardNumber": "Card number",
@@ -640,6 +645,11 @@
         "clientNameLabel": "Ім'я клієнта",
         "clientContactLabel": "Контакт клієнта (телефон або email)",
         "clientContactPlaceholder": "+380 00 000 0000 або email@example.com",
+        "clientPhoneLabel": "Телефон клієнта",
+        "clientViberLabel": "Viber",
+        "clientTelegramLabel": "Telegram",
+        "clientWhatsappLabel": "WhatsApp",
+        "clientEmailLabel": "Email клієнта",
         "messageLabel": "Опис (необов'язково)",
         "messagePlaceholder": "Коротко опишіть запит клієнта...",
         "selectPlaceholder": "Оберіть бізнес...",
