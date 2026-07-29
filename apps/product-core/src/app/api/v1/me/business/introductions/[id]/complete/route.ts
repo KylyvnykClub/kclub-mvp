@@ -5,7 +5,7 @@ import { ERROR_CODES } from '@kclub/contracts';
 import { createSupabaseServerClient } from '@/server/auth';
 import { jsonSuccess, jsonError, jsonErrorFromUnknown } from '@/server/api';
 import { getMemberBySupabaseUserId } from '@/server/services';
-import { reviewIntroduction } from '@/server/services/introduction-service';
+import { completeIntroduction } from '@/server/services/introduction-service';
 import { createRequestContext } from '@/server/context';
 
 type Params = { params: Promise<{ id: string }> };
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       headers: request.headers,
     });
 
-    const result = await reviewIntroduction(id, context);
+    const result = await completeIntroduction(id, context);
     return jsonSuccess(result);
   } catch (error) {
     return jsonErrorFromUnknown(error);

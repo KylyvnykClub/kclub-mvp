@@ -73,21 +73,20 @@ export async function BusinessPanel({
   ]);
 
   const activeBusiness = ownBusinesses.find((b) => b.status !== 'REJECTED');
-  const incomingIntroductions = activeBusiness
-    ? await getIncomingIntroductions(activeBusiness.id)
-    : [];
-
   const businessIds = ownBusinesses.map((b) => b.id);
-  const paidPlacements = businessIds.length
-    ? await db.query.subscriptions.findMany({
-        where: and(
-          inArray(schema.subscriptions.business_profile_id, businessIds),
-          eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'),
-          eq(schema.subscriptions.status, 'ACTIVE'),
-        ),
-        columns: { business_profile_id: true },
-      })
-    : [];
+  const [incomingIntroductions, paidPlacements] = await Promise.all([
+    activeBusiness ? getIncomingIntroductions(activeBusiness.id) : [],
+    businessIds.length
+      ? db.query.subscriptions.findMany({
+          where: and(
+            inArray(schema.subscriptions.business_profile_id, businessIds),
+            eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'),
+            eq(schema.subscriptions.status, 'ACTIVE'),
+          ),
+          columns: { business_profile_id: true },
+        })
+      : [],
+  ]);
   const paidBusinessIds = new Set(paidPlacements.map((s) => s.business_profile_id));
 
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
@@ -230,32 +229,17 @@ function IncomingIntroductionsList({
 }
 
 function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntroductionDto }) {
-  if (intro.status === 'SUBMITTED') {
-    return (
-      <form action={`/api/v1/me/business/introductions/${intro.id}/review`} method="POST">
-        <CabinetButton
-          type="submit"
-          tone="link"
-          density="compact"
-          className="mt-3 h-auto px-0 py-0 text-xs text-accent underline hover:bg-transparent hover:text-accent-hover"
-        >
-          Рассмотреть
-        </CabinetButton>
-      </form>
-    );
-  }
-
-  if (intro.status === 'IN_REVIEW') {
+  if (intro.status === 'APPROVED') {
     return (
       <div className="mt-3 flex gap-3">
-        <form action={`/api/v1/me/business/introductions/${intro.id}/approve`} method="POST">
+        <form action={`/api/v1/me/business/introductions/${intro.id}/complete`} method="POST">
           <CabinetButton
             type="submit"
             tone="link"
             density="compact"
             className="h-auto px-0 py-0 text-xs text-success underline hover:bg-transparent"
           >
-            Принять
+            Завершить
           </CabinetButton>
         </form>
         <form action={`/api/v1/me/business/introductions/${intro.id}/reject`} method="POST">
