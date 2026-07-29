@@ -1626,6 +1626,7 @@ export async function createCountry(input: CountryCreateInput): Promise<CountryD
       is_active: input.isActive ?? true,
     })
     .returning();
+  revalidateTag('countries');
   return toCountryDto(country);
 }
 
@@ -1656,6 +1657,7 @@ export async function updateCountry(
     })
     .where(eq(schema.countries.id, countryId))
     .returning();
+  revalidateTag('countries');
   return toCountryDto(country);
 }
 
@@ -1672,6 +1674,7 @@ export async function deleteCountry(countryId: string): Promise<void> {
     });
   }
   await db.delete(schema.countries).where(eq(schema.countries.id, countryId));
+  revalidateTag('countries');
 }
 
 export async function listCities(): Promise<CityDto[]> {
@@ -1726,6 +1729,7 @@ export async function createCity(input: CityCreateInput): Promise<CityDto> {
     where: eq(schema.cities.id, inserted!.id),
     with: { country: { columns: { id: true, name: true } } },
   });
+  revalidateTag('cities');
   return toCityDto(city!);
 }
 
@@ -1767,6 +1771,7 @@ export async function updateCity(cityId: string, input: CityUpdateInput): Promis
     where: eq(schema.cities.id, cityId),
     with: { country: { columns: { id: true, name: true } } },
   });
+  revalidateTag('cities');
   return toCityDto(city!);
 }
 
@@ -1781,6 +1786,7 @@ export async function deleteCity(cityId: string): Promise<void> {
     });
   }
   await db.delete(schema.cities).where(eq(schema.cities.id, cityId));
+  revalidateTag('cities');
 }
 
 // ── Subscriptions (Admin Read) ──
@@ -2487,24 +2493,26 @@ function toAdminIntroductionListItem(intro: any): AdminIntroductionListItemDto {
     requesterBusinessId: intro.requester_business_id,
     targetBusinessId: intro.target_business_id,
     status: intro.status as IntroductionStatus,
+    clientName: intro.client_name ?? '',
+    clientContact: intro.client_contact ?? '',
     message: intro.message,
     rejectionReason: intro.rejection_reason,
     createdAt: intro.created_at.toISOString(),
     updatedAt: intro.updated_at.toISOString(),
     requesterUser: {
-      id: intro.requester_user?.id ?? '',
-      phone: intro.requester_user?.phone ?? '',
-      displayName: intro.requester_user?.display_name ?? null,
+      id: intro.requesterUser?.id ?? '',
+      phone: intro.requesterUser?.phone ?? '',
+      displayName: intro.requesterUser?.display_name ?? null,
     },
     requesterBusiness: {
-      id: intro.requester_business?.id ?? '',
-      name: intro.requester_business?.name ?? '',
-      slug: intro.requester_business?.slug ?? '',
+      id: intro.requesterBusiness?.id ?? '',
+      name: intro.requesterBusiness?.name ?? '',
+      slug: intro.requesterBusiness?.slug ?? '',
     },
     targetBusiness: {
-      id: intro.target_business?.id ?? '',
-      name: intro.target_business?.name ?? '',
-      slug: intro.target_business?.slug ?? '',
+      id: intro.targetBusiness?.id ?? '',
+      name: intro.targetBusiness?.name ?? '',
+      slug: intro.targetBusiness?.slug ?? '',
     },
   };
 }

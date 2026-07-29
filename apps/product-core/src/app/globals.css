@@ -642,6 +642,30 @@ main {
     transform: scaleY(0);
   }
 
+  .kclub-hero-reveal > * {
+    animation: kclub-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .kclub-hero-reveal > :nth-child(1) {
+    animation-delay: 0.3s;
+  }
+
+  .kclub-hero-reveal > :nth-child(2) {
+    animation-delay: 0.45s;
+  }
+
+  .kclub-hero-reveal > :nth-child(3) {
+    animation-delay: 0.6s;
+  }
+
+  .kclub-hero-reveal > :nth-child(4) {
+    animation-delay: 0.75s;
+  }
+
+  .kclub-hero-reveal > :nth-child(5) {
+    animation-delay: 0.9s;
+  }
+
   @keyframes kclub-draw-x {
     to {
       transform: scaleX(1);
@@ -651,6 +675,18 @@ main {
   @keyframes kclub-draw-y {
     to {
       transform: scaleY(1);
+    }
+  }
+
+  @keyframes kclub-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(1.875rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }

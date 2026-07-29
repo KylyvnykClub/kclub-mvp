@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 import type { CountryCode } from '@kclub/ui';
 import type { Locale } from '@/i18n/routing';
 
@@ -12,23 +10,7 @@ function emojiFlag(code: string): string {
 }
 
 export function CountryFlagIcon({ code }: { code: CountryCode }) {
-  const [errored, setErrored] = useState(false);
-
-  if (errored) {
-    return <span aria-hidden="true">{emojiFlag(code)}</span>;
-  }
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`/api/flags/${code.toLowerCase()}`}
-      alt=""
-      aria-hidden="true"
-      loading="lazy"
-      className="h-full w-full object-cover"
-      onError={() => setErrored(true)}
-    />
-  );
+  return <span aria-hidden="true">{emojiFlag(code)}</span>;
 }
 
 export function renderCountryFlag(code: CountryCode) {

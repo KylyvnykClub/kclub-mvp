@@ -19,7 +19,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { IconButton, cn } from '@kclub/ui';
-import crownGoldLogo from '@/assets/logo/crown-gold--logo.png';
+import crownGoldLogo from '@/assets/logo/crown-gold--logo.webp';
 import { Locale } from '@/i18n/routing';
 
 import { LocaleSwitcherLinks } from './LocaleSwitcherLinks';
@@ -32,7 +32,7 @@ type NavItem = {
 
 export function TopBar({
   locale,
-  isAuthenticated = false,
+  isAuthenticated,
 }: {
   locale: Locale;
   isAuthenticated?: boolean;
@@ -43,7 +43,7 @@ export function TopBar({
   const [open, setOpen] = useState(false);
   const [localeOpen, setLocaleOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [authState, setAuthState] = useState(isAuthenticated);
+  const [authState, setAuthState] = useState(isAuthenticated ?? false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -62,7 +62,28 @@ export function TopBar({
       return;
     }
 
-    setAuthState(isAuthenticated);
+    if (isAuthenticated !== undefined) {
+      setAuthState(isAuthenticated);
+      return;
+    }
+
+    let isCurrent = true;
+
+    void fetch('/api/v1/me', { cache: 'no-store' })
+      .then((response) => {
+        if (isCurrent) {
+          setAuthState(response.ok);
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setAuthState(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
   }, [isAuthenticated, locale, pathname]);
 
   useEffect(() => {

@@ -259,8 +259,12 @@ export async function getIncomingIntroductions(
   businessId: string,
 ): Promise<BusinessIncomingIntroductionDto[]> {
   const db = getDbClient();
+  // Businesses only see recommendations after admin moderation approved them.
   const introductions = await db.query.businessIntroductions.findMany({
-    where: eq(schema.businessIntroductions.target_business_id, businessId),
+    where: and(
+      eq(schema.businessIntroductions.target_business_id, businessId),
+      inArray(schema.businessIntroductions.status, ['APPROVED', 'COMPLETED']),
+    ),
     with: {
       requesterUser: { columns: { display_name: true } },
       targetBusiness: { columns: { name: true, slug: true } },
@@ -270,18 +274,72 @@ export async function getIncomingIntroductions(
   return introductions.map(toBusinessIncomingIntroductionDto);
 }
 
-export async function reviewIntroduction(
-  introductionId: string,
-  context: RequestContext,
-): Promise<BusinessIncomingIntroductionDto> {
-  return updateIntroductionStatus(introductionId, 'IN_REVIEW', 'INTRODUCTION_APPROVED', context);
+export async function countPendingIncomingIntroductions(businessId: string): Promise<number> {
+  const db = getDbClient();
+  // APPROVED = admin approved, awaiting the business owner's response.
+  return db.$count(
+    schema.businessIntroductions,
+    and(
+      eq(schema.businessIntroductions.target_business_id, businessId),
+      eq(schema.businessIntroductions.status, 'APPROVED'),
+    ),
+  );
 }
 
-export async function approveIntroduction(
+export async function completeIntroduction(
   introductionId: string,
   context: RequestContext,
 ): Promise<BusinessIncomingIntroductionDto> {
-  return updateIntroductionStatus(introductionId, 'APPROVED', 'INTRODUCTION_APPROVED', context);
+  const db = getDbClient();
+  const businessId = await resolveActorBusinessId(context);
+
+  const introduction = await db.query.businessIntroductions.findFirst({
+    where: eq(schema.businessIntroductions.id, introductionId),
+  });
+  if (!introduction)
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Recommendation not found',
+      status: 404,
+    });
+  if (introduction.target_business_id !== businessId)
+    throw new AppError({
+      code: ERROR_CODES.PERMISSION_DENIED,
+      message: 'Not your business recommendation',
+      status: 403,
+    });
+  if (introduction.status !== 'APPROVED')
+    throw new AppError({
+      code: ERROR_CODES.INTRODUCTION_INVALID_STATUS_TRANSITION,
+      message: 'Cannot complete from current status',
+      status: 409,
+    });
+
+  await db
+    .update(schema.businessIntroductions)
+    .set({ status: 'COMPLETED' })
+    .where(eq(schema.businessIntroductions.id, introductionId));
+
+  const updated = (await db.query.businessIntroductions.findFirst({
+    where: eq(schema.businessIntroductions.id, introductionId),
+    with: {
+      requesterUser: { columns: { display_name: true } },
+      targetBusiness: { columns: { name: true, slug: true } },
+    },
+  })) as any;
+
+  await auditService.log(
+    {
+      action: 'INTRODUCTION_COMPLETED',
+      entityType: 'BusinessIntroduction',
+      entityId: introductionId,
+      before: { status: introduction.status },
+      after: { status: updated.status },
+    },
+    context,
+  );
+
+  return toBusinessIncomingIntroductionDto(updated);
 }
 
 export async function rejectIntroduction(
@@ -307,7 +365,7 @@ export async function rejectIntroduction(
       message: 'Not your business recommendation',
       status: 403,
     });
-  if (!['SUBMITTED', 'IN_REVIEW'].includes(introduction.status))
+  if (introduction.status !== 'APPROVED')
     throw new AppError({
       code: ERROR_CODES.INTRODUCTION_INVALID_STATUS_TRANSITION,
       message: 'Cannot reject from current status',
@@ -330,67 +388,6 @@ export async function rejectIntroduction(
   await auditService.log(
     {
       action: 'INTRODUCTION_REJECTED',
-      entityType: 'BusinessIntroduction',
-      entityId: introductionId,
-      before: { status: introduction.status },
-      after: { status: updated.status },
-    },
-    context,
-  );
-
-  return toBusinessIncomingIntroductionDto(updated);
-}
-
-async function updateIntroductionStatus(
-  introductionId: string,
-  newStatus: 'IN_REVIEW' | 'APPROVED',
-  auditAction: 'INTRODUCTION_APPROVED',
-  context: RequestContext,
-): Promise<BusinessIncomingIntroductionDto> {
-  const db = getDbClient();
-  const businessId = await resolveActorBusinessId(context);
-
-  const introduction = await db.query.businessIntroductions.findFirst({
-    where: eq(schema.businessIntroductions.id, introductionId),
-  });
-  if (!introduction)
-    throw new AppError({
-      code: ERROR_CODES.RESOURCE_NOT_FOUND,
-      message: 'Recommendation not found',
-      status: 404,
-    });
-  if (introduction.target_business_id !== businessId)
-    throw new AppError({
-      code: ERROR_CODES.PERMISSION_DENIED,
-      message: 'Not your business recommendation',
-      status: 403,
-    });
-
-  const validFrom: Record<string, string[]> = { IN_REVIEW: ['SUBMITTED'], APPROVED: ['IN_REVIEW'] };
-  if (!validFrom[newStatus]?.includes(introduction.status)) {
-    throw new AppError({
-      code: ERROR_CODES.INTRODUCTION_INVALID_STATUS_TRANSITION,
-      message: 'Invalid status transition',
-      status: 409,
-    });
-  }
-
-  await db
-    .update(schema.businessIntroductions)
-    .set({ status: newStatus })
-    .where(eq(schema.businessIntroductions.id, introductionId));
-
-  const updated = (await db.query.businessIntroductions.findFirst({
-    where: eq(schema.businessIntroductions.id, introductionId),
-    with: {
-      requesterUser: { columns: { display_name: true } },
-      targetBusiness: { columns: { name: true, slug: true } },
-    },
-  })) as any;
-
-  await auditService.log(
-    {
-      action: auditAction,
       entityType: 'BusinessIntroduction',
       entityId: introductionId,
       before: { status: introduction.status },

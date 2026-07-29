@@ -52,6 +52,9 @@ const STATUS_BADGE_VARIANTS: Record<string, 'default' | 'outline' | 'success' | 
 
 const CANCELLABLE_STATUSES = new Set(['SUBMITTED', 'IN_REVIEW']);
 const INTRODUCTION_FORM_CONTROL_CLASSES = 'rounded-none';
+const INTRODUCTION_SELECT_CONTENT_CLASSES = 'rounded-none shadow-none';
+const INTRODUCTION_SELECT_ITEM_CLASSES =
+  'rounded-none focus:bg-transparent focus:text-popover-foreground focus:outline focus:outline-1 focus:outline-ring';
 
 function getStatusBadgeVariant(status: string) {
   return STATUS_BADGE_VARIANTS[status] ?? 'outline';
@@ -75,7 +78,11 @@ export function IntroductionsPanel({
 
   const [selectedTargetBusinessId, setSelectedTargetBusinessId] = useState('');
   const [clientName, setClientName] = useState('');
-  const [clientContact, setClientContact] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
+  const [clientViber, setClientViber] = useState('');
+  const [clientTelegram, setClientTelegram] = useState('');
+  const [clientWhatsapp, setClientWhatsapp] = useState('');
+  const [clientEmail, setClientEmail] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -127,7 +134,15 @@ export function IntroductionsPanel({
         body: JSON.stringify({
           targetBusinessId: selectedTargetBusinessId,
           clientName,
-          clientContact,
+          clientContact: [
+            `${t('clientPhoneLabel')}: ${clientPhone.trim()}`,
+            clientViber.trim() ? `Viber: ${clientViber.trim()}` : null,
+            clientTelegram.trim() ? `Telegram: ${clientTelegram.trim()}` : null,
+            clientWhatsapp.trim() ? `WhatsApp: ${clientWhatsapp.trim()}` : null,
+            clientEmail.trim() ? `Email: ${clientEmail.trim()}` : null,
+          ]
+            .filter((contact): contact is string => contact !== null)
+            .join('\n'),
           message: message || null,
         }),
       });
@@ -144,7 +159,11 @@ export function IntroductionsPanel({
 
       setSubmitSuccess(true);
       setClientName('');
-      setClientContact('');
+      setClientPhone('');
+      setClientViber('');
+      setClientTelegram('');
+      setClientWhatsapp('');
+      setClientEmail('');
       setMessage('');
       setSelectedTargetBusinessId('');
 
@@ -240,9 +259,13 @@ export function IntroductionsPanel({
                 <SelectTrigger className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}>
                   <SelectValue placeholder={t('selectPlaceholder')} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className={INTRODUCTION_SELECT_CONTENT_CLASSES}>
                   {availableTargets.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
+                    <SelectItem
+                      key={b.id}
+                      value={b.id}
+                      className={INTRODUCTION_SELECT_ITEM_CLASSES}
+                    >
                       {b.name} — {b.countryName}
                     </SelectItem>
                   ))}
@@ -253,8 +276,11 @@ export function IntroductionsPanel({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={labelClassName}>{t('clientNameLabel')}</label>
+              <label htmlFor="introduction-client-name" className={labelClassName}>
+                {t('clientNameLabel')}
+              </label>
               <Input
+                id="introduction-client-name"
                 type="text"
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
@@ -264,14 +290,72 @@ export function IntroductionsPanel({
               />
             </div>
             <div>
-              <label className={labelClassName}>{t('clientContactLabel')}</label>
+              <label htmlFor="introduction-client-phone" className={labelClassName}>
+                {t('clientPhoneLabel')}
+              </label>
               <Input
-                type="text"
-                value={clientContact}
-                onChange={(e) => setClientContact(e.target.value)}
+                id="introduction-client-phone"
+                type="tel"
+                value={clientPhone}
+                onChange={(e) => setClientPhone(e.target.value)}
                 required
-                maxLength={255}
+                maxLength={32}
                 placeholder={t('clientContactPlaceholder')}
+                className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="introduction-client-viber" className={labelClassName}>
+                {t('clientViberLabel')}
+              </label>
+              <Input
+                id="introduction-client-viber"
+                type="text"
+                value={clientViber}
+                onChange={(e) => setClientViber(e.target.value)}
+                maxLength={32}
+                className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
+              />
+            </div>
+            <div>
+              <label htmlFor="introduction-client-telegram" className={labelClassName}>
+                {t('clientTelegramLabel')}
+              </label>
+              <Input
+                id="introduction-client-telegram"
+                type="text"
+                value={clientTelegram}
+                onChange={(e) => setClientTelegram(e.target.value)}
+                maxLength={32}
+                className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
+              />
+            </div>
+            <div>
+              <label htmlFor="introduction-client-whatsapp" className={labelClassName}>
+                {t('clientWhatsappLabel')}
+              </label>
+              <Input
+                id="introduction-client-whatsapp"
+                type="text"
+                value={clientWhatsapp}
+                onChange={(e) => setClientWhatsapp(e.target.value)}
+                maxLength={32}
+                className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
+              />
+            </div>
+            <div>
+              <label htmlFor="introduction-client-email" className={labelClassName}>
+                {t('clientEmailLabel')}
+              </label>
+              <Input
+                id="introduction-client-email"
+                type="email"
+                value={clientEmail}
+                onChange={(e) => setClientEmail(e.target.value)}
+                maxLength={70}
                 className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
               />
             </div>

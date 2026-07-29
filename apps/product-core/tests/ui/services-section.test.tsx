@@ -1,34 +1,6 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
-import { createElement, type HTMLAttributes, type ReactNode } from 'react';
-
-type MotionElementProps = HTMLAttributes<HTMLElement> & {
-  children?: ReactNode;
-};
-
-function MotionElement({ children, ...props }: MotionElementProps) {
-  const {
-    // Motion-only props are intentionally omitted from the test DOM.
-    initial: _initial,
-    whileInView: _whileInView,
-    viewport: _viewport,
-    transition: _transition,
-    variants: _variants,
-    custom: _custom,
-    ...htmlProps
-  } = props as MotionElementProps & Record<string, unknown>;
-
-  return createElement('div', htmlProps, children);
-}
-
-vi.mock('framer-motion', () => ({
-  motion: {
-    div: MotionElement,
-    article: MotionElement,
-  },
-}));
-
 import en from '../../messages/en.json';
 import ru from '../../messages/ru.json';
 import uk from '../../messages/uk.json';

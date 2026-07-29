@@ -492,6 +492,11 @@
         "introductions": "Recommend a Client",
         "profile": "My Account"
       },
+      "introductionsNotice": {
+        "title": "New recommendations",
+        "description": "{count, plural, one {You have # new client recommendation awaiting your response.} other {You have # new client recommendations awaiting your response.}}",
+        "cta": "Open"
+      },
       "card": {
         "eyebrow": "Digital club card",
         "cardNumber": "Card number",
@@ -640,6 +645,11 @@
         "clientNameLabel": "Client Name",
         "clientContactLabel": "Client Contact (phone or email)",
         "clientContactPlaceholder": "+1 234 567 8900 or email@example.com",
+        "clientPhoneLabel": "Client Phone",
+        "clientViberLabel": "Viber",
+        "clientTelegramLabel": "Telegram",
+        "clientWhatsappLabel": "WhatsApp",
+        "clientEmailLabel": "Client Email",
         "messageLabel": "Description (optional)",
         "messagePlaceholder": "Briefly describe the client's request...",
         "selectPlaceholder": "Select a business...",

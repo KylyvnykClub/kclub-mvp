@@ -1,7 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ArrowUpRight, Building2, ShieldCheck, UserRound } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
@@ -16,34 +15,17 @@ type MembershipCardCopy = {
   cta: string;
 };
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
-  show: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: index * 0.12,
-      duration: 0.7,
-      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
-    },
-  }),
-};
-
-export function ServicesSection({ locale }: { locale: Locale }) {
+export function ServicesSection({ locale }: { locale: Locale }): React.ReactElement {
   const t = useTranslations('home.services');
   const member = t.raw('member') as MembershipCardCopy;
   const partner = t.raw('partner') as MembershipCardCopy;
   const cards = [
     {
       ...member,
-      icon: UserRound,
-      number: '01',
       tone: 'light' as const,
     },
     {
       ...partner,
-      icon: Building2,
-      number: '02',
       tone: 'dark' as const,
     },
   ];
@@ -54,29 +36,17 @@ export function ServicesSection({ locale }: { locale: Locale }) {
       className="kclub-border kclub-section-py border-b bg-zinc-100 dark:bg-background"
     >
       <div className="kclub-shell">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col gap-5"
-        >
+        <div className="flex flex-col gap-5">
           <p className="kclub-section-eyebrow">{t('eyebrow')}</p>
           <h2 className="kclub-section-title max-w-3xl">{t('title')}</h2>
-        </motion.div>
+        </div>
 
         <div className="mt-12 grid gap-4 lg:grid-cols-2">
-          {cards.map((card, index) => {
-            const Icon = card.icon;
+          {cards.map((card) => {
             const isDark = card.tone === 'dark';
 
             return (
-              <motion.article
-                custom={index}
-                variants={cardVariants}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true, margin: '-50px' }}
+              <article
                 key={card.title}
                 className={`kclub-border-strong relative flex flex-col overflow-hidden border border-t-0 p-6 sm:p-9 ${
                   isDark
@@ -143,7 +113,7 @@ export function ServicesSection({ locale }: { locale: Locale }) {
                   {card.cta}
                   <ArrowUpRight aria-hidden="true" size={20} />
                 </Link>
-              </motion.article>
+              </article>
             );
           })}
         </div>

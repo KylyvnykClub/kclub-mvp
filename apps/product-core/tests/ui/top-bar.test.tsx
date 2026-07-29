@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 // vi.mock is hoisted above the imports, so shared state must be hoisted too
@@ -38,6 +38,10 @@ const mockFetch = vi.fn();
 globalThis.fetch = mockFetch as unknown as typeof fetch;
 
 describe('TopBar', () => {
+  beforeEach(() => {
+    mockFetch.mockResolvedValue({ ok: false } as Response);
+  });
+
   afterEach(() => {
     cleanup();
     mockFetch.mockReset();
@@ -47,7 +51,7 @@ describe('TopBar', () => {
   });
 
   test('renders partners directory nav and guest account actions', () => {
-    render(<TopBar locale="en" />);
+    render(<TopBar locale="en" isAuthenticated={false} />);
 
     const partnersLink = screen.getByText('home.nav.partners').closest('a');
     const desktopNav = partnersLink?.closest('nav');
@@ -75,6 +79,21 @@ describe('TopBar', () => {
     expect(screen.queryByText('home.nav.catalog')).toBeNull();
     expect(partnersLink?.getAttribute('href')).toBe('/en/directory');
     expect(screen.queryByText('home.nav.cabinet')).toBeNull();
+
+    fireEvent.click(screen.getByLabelText('home.nav.account'));
+
+    expect(screen.getByText('home.nav.dashboard')).toBeTruthy();
+    expect(screen.getByText('home.nav.signOut')).toBeTruthy();
+  });
+
+  test('loads authenticated account actions client-side when the layout omits auth state', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true } as Response);
+
+    render(<TopBar locale="en" />);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/v1/me', { cache: 'no-store' });
+    });
 
     fireEvent.click(screen.getByLabelText('home.nav.account'));
 

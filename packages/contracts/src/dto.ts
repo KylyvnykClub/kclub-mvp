@@ -437,6 +437,8 @@ export type AdminIntroductionListItemDto = {
   requesterBusinessId: EntityId;
   targetBusinessId: EntityId;
   status: IntroductionStatus;
+  clientName: string;
+  clientContact: string;
   message: string | null;
   rejectionReason: string | null;
   createdAt: IsoDateTime;

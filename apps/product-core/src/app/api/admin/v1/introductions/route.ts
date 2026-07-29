@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
     await adminGuard(request, STAFF_PERMISSIONS.INTRODUCTIONS_MODERATE);
     const { searchParams } = new URL(request.url);
     const filters = adminIntroductionListSchema.parse({
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
+      page: searchParams.get('page') ?? undefined,
+      limit: searchParams.get('limit') ?? undefined,
       status: searchParams.get('status') ?? undefined,
       businessId: searchParams.get('businessId') ?? undefined,
     });

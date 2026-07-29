@@ -52,6 +52,30 @@ Recommended signals:
 - cron failure count
 - checkout start without follow-up webhook completion within expected window
 
+## Performance Baseline
+
+Before a performance change, capture a production or Vercel Preview baseline for
+the public home page, directory, and member dashboard. Record the tested URL,
+device/network profile, cache state, and timestamp with the results.
+
+Run the product-core bundle analyzer locally with:
+
+```bash
+pnpm --filter @kclub/product-core analyze
+```
+
+The command writes client and server bundle reports to the app build output. Do
+not treat the analyzer alone as a user-perceived performance result; compare it
+with Lighthouse and field Web Vitals on the same route.
+
+### Field Web Vitals
+
+When `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` is configured, product-core sends LCP, CLS,
+and INP to Plausible as non-interactive `WebVital` events. The event properties
+are `metric`, `rating`, and rounded `value`; they do not include user identity,
+page URL, or request data. Configure a matching `WebVital` custom-event goal in
+Plausible before relying on the dashboard for performance monitoring.
+
 ## Alert Priorities
 
 High:

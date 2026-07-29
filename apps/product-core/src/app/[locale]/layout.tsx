@@ -10,13 +10,11 @@ import '../globals.css';
 
 import { Toaster } from 'sonner';
 import { SkipLink, cn } from '@kclub/ui';
-import { Footer } from '@/features/marketing/components/Footer';
+import { WebVitals } from '@/components/web-vitals';
 import { getSiteUrl } from '@/features/public/public-page-helpers';
 import { ThemeProvider } from '@/features/marketing/components/ThemeProvider';
-import { TopBar } from '@/features/marketing/components/TopBar';
-import { isLocale, Locale } from '@/i18n/routing';
+import { isLocale } from '@/i18n/routing';
 import { titilliumWeb } from '@/lib/fonts';
-import { getCurrentMemberProfileForPage } from '@/server/member-page';
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -31,17 +29,7 @@ export default async function LocaleLayout(props: {
     notFound();
   }
 
-  const locale = params.locale as Locale;
-
   const messages = await getMessages();
-
-  let isAuthenticated = false;
-  try {
-    const profile = await getCurrentMemberProfileForPage();
-    isAuthenticated = profile !== null;
-  } catch {
-    // auth check failure should not break public pages
-  }
 
   return (
     <html lang={params.locale} suppressHydrationWarning>
@@ -64,13 +52,10 @@ export default async function LocaleLayout(props: {
         suppressHydrationWarning
       >
         <SkipLink />
-        <NextIntlClientProvider messages={messages}>
+        <WebVitals />
+        <NextIntlClientProvider messages={{ home: messages.home }}>
           <ThemeProvider>
-            <TopBar locale={locale} isAuthenticated={isAuthenticated} />
-            <main id="content" className="relative z-10 flex-1">
-              {props.children}
-            </main>
-            <Footer locale={locale} />
+            {props.children}
             <Toaster position="top-center" richColors closeButton />
           </ThemeProvider>
         </NextIntlClientProvider>

@@ -30,6 +30,7 @@ type DashboardTabsProps = {
   activeTab: ImplementedMemberDashboardTab;
   visibleTabs: readonly ImplementedMemberDashboardTab[];
   serverPublicBusinesses: PublicBusinessListItemDto[];
+  pendingIntroductionsCount: number;
 };
 
 export async function DashboardTabs({
@@ -40,6 +41,7 @@ export async function DashboardTabs({
   activeTab,
   visibleTabs,
   serverPublicBusinesses,
+  pendingIntroductionsCount,
 }: DashboardTabsProps) {
   const t = await getTranslations({ locale, namespace: 'member.dashboard' });
   const countries = await getCachedCountries();
@@ -117,6 +119,12 @@ export async function DashboardTabs({
       tabsAriaLabel={t('tabsLabel')}
       lockLabels={lockLabels}
       panels={panels}
+      pendingIntroductionsCount={pendingIntroductionsCount}
+      introductionsNotice={{
+        title: t('introductionsNotice.title'),
+        description: t('introductionsNotice.description', { count: pendingIntroductionsCount }),
+        cta: t('introductionsNotice.cta'),
+      }}
     />
   );
 }

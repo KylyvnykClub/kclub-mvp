@@ -3,9 +3,11 @@ import { getTranslations } from 'next-intl/server';
 import type { UserContext } from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
+import { getCachedPublicBusinesses } from '@/server/cache/business-cache';
 import { requireCurrentMember } from '@/server/member-page';
-import { getOwnBusinesses, getPublicBusinesses } from '@/server/services/business-service';
+import { getOwnBusinesses } from '@/server/services/business-service';
 import { getActiveCardForUser } from '@/server/services/card-service';
+import { countPendingIncomingIntroductions } from '@/server/services/introduction-service';
 import { DashboardTabs } from '@/features/member/components/DashboardTabs';
 import {
   getImplementedDashboardTabs,
@@ -35,7 +37,7 @@ export default async function DashboardPage({
   const profile = await requireCurrentMember(locale);
   const [ownBusinesses, publicBusinesses, activeCardRecord] = await Promise.all([
     getOwnBusinesses(profile.id),
-    getPublicBusinesses(),
+    getCachedPublicBusinesses(),
     getActiveCardForUser(profile.id),
   ]);
 
@@ -44,6 +46,11 @@ export default async function DashboardPage({
     hasBusiness: ownBusinesses.some((b) => b.status !== 'REJECTED'),
     businessPublished: ownBusinesses.some((b) => b.status === 'PUBLISHED'),
   };
+
+  const activeBusiness = ownBusinesses.find((b) => b.status !== 'REJECTED');
+  const pendingIntroductionsCount = activeBusiness
+    ? await countPendingIncomingIntroductions(activeBusiness.id)
+    : 0;
 
   const visibleTabs = getImplementedDashboardTabs(userContext);
   const activeTab = normalizeDashboardTab(query.tab, visibleTabs);
@@ -57,6 +64,7 @@ export default async function DashboardPage({
       activeTab={activeTab}
       visibleTabs={visibleTabs}
       serverPublicBusinesses={publicBusinesses}
+      pendingIntroductionsCount={pendingIntroductionsCount}
     />
   );
 }

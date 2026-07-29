@@ -10,7 +10,7 @@ import { useTranslations } from 'next-intl';
 import { ERROR_CODES } from '@kclub/contracts';
 import { Button, Field, Input, Label, linkClasses, PhoneInput, textMuted } from '@kclub/ui';
 
-import crowLogo from '@/assets/logo/crow--logo.png';
+import crowLogo from '@/assets/logo/crow--logo.webp';
 import {
   defaultCountryForLocale,
   kclubPhonePanelClassName,

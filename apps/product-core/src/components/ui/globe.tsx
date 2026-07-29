@@ -4,7 +4,7 @@ import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from 'three';
 import ThreeGlobe from 'three-globe';
 import { useThree, Canvas, extend, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import countries from '@/data/globe.json';
+
 declare module '@react-three/fiber' {
   interface ThreeElements {
     threeGlobe: ThreeElements['mesh'] & {
@@ -61,12 +61,17 @@ interface WorldProps {
   data: Position[];
 }
 
+type GlobeGeoJson = {
+  features: Record<string, unknown>[];
+};
+
 let numbersOfRings = [0];
 
 export function Globe({ globeConfig, data }: WorldProps) {
   const globeRef = useRef<ThreeGlobe | null>(null);
   const groupRef = useRef<InstanceType<typeof Scene>>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [countries, setCountries] = useState<GlobeGeoJson | null>(null);
 
   const defaultProps = {
     pointSize: 1,
@@ -95,6 +100,26 @@ export function Globe({ globeConfig, data }: WorldProps) {
     }
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    void fetch('/data/globe.v1.json', { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Unable to load globe data: ${response.status}`);
+        }
+
+        return response.json() as Promise<GlobeGeoJson>;
+      })
+      .then(setCountries)
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        console.error('Unable to load globe data.', error);
+      });
+
+    return () => controller.abort();
+  }, []);
+
   // Build material when globe is initialized or when relevant props change
   useEffect(() => {
     if (!globeRef.current || !isInitialized) return;
@@ -119,7 +144,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
 
   // Build data when globe is initialized or when data changes
   useEffect(() => {
-    if (!globeRef.current || !isInitialized || !data) return;
+    if (!globeRef.current || !isInitialized || !countries) return;
 
     const arcs = data;
     let points = [];
@@ -188,6 +213,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
       .ringRepeatPeriod((defaultProps.arcTime * defaultProps.arcLength) / defaultProps.rings);
   }, [
     isInitialized,
+    countries,
     data,
     defaultProps.pointSize,
     defaultProps.showAtmosphere,
@@ -257,17 +283,17 @@ export function World(props: WorldProps) {
   return (
     <Canvas scene={scene} camera={{ fov: 50, near: 180, far: 1800, position: [0, 0, cameraZ] }}>
       <WebGLRendererConfig />
-      <ambientLight color={globeConfig.ambientLight ?? "#ffffff"} intensity={0.6} />
+      <ambientLight color={globeConfig.ambientLight ?? '#ffffff'} intensity={0.6} />
       <directionalLight
-        color={globeConfig.directionalLeftLight ?? "#ffffff"}
+        color={globeConfig.directionalLeftLight ?? '#ffffff'}
         position={new Vector3(-400, 100, 400)}
       />
       <directionalLight
-        color={globeConfig.directionalTopLight ?? "#ffffff"}
+        color={globeConfig.directionalTopLight ?? '#ffffff'}
         position={new Vector3(-200, 500, 200)}
       />
       <pointLight
-        color={globeConfig.pointLight ?? "#ffffff"}
+        color={globeConfig.pointLight ?? '#ffffff'}
         position={new Vector3(-200, 500, 200)}
         intensity={0.8}
       />
