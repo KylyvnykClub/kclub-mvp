@@ -10,14 +10,14 @@ export async function GET(request: NextRequest) {
     await adminGuard(request, STAFF_PERMISSIONS.AUDIT_READ);
     const { searchParams } = new URL(request.url);
     const filters = auditLogListSchema.parse({
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
-      action: searchParams.get('action'),
-      actorRole: searchParams.get('actorRole'),
+      page: searchParams.get('page') ?? undefined,
+      limit: searchParams.get('limit') ?? undefined,
+      action: searchParams.get('action') ?? undefined,
+      actorRole: searchParams.get('actorRole') ?? undefined,
       actorStaffId: searchParams.get('actorStaffId') ?? undefined,
-      entityType: searchParams.get('entityType'),
-      dateFrom: searchParams.get('dateFrom'),
-      dateTo: searchParams.get('dateTo'),
+      entityType: searchParams.get('entityType') ?? undefined,
+      dateFrom: searchParams.get('dateFrom') ?? undefined,
+      dateTo: searchParams.get('dateTo') ?? undefined,
     });
     const result = await listAuditLogs(filters);
     return jsonSuccess(result.data, {
