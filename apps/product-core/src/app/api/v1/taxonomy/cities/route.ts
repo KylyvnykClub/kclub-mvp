@@ -12,6 +12,8 @@ type CityOptionResponse = {
   countryId: string;
 };
 
+const PUBLIC_TAXONOMY_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=86400';
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const parsed = cityListByCountryQuerySchema.safeParse({
@@ -44,7 +46,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       countryId: city.country_id,
     }));
 
-    return jsonSuccess(data);
+    return jsonSuccess(data, undefined, {
+      headers: { 'Cache-Control': PUBLIC_TAXONOMY_CACHE_CONTROL },
+    });
   } catch (error) {
     return jsonErrorFromUnknown(error);
   }

@@ -3,8 +3,9 @@ import { getTranslations } from 'next-intl/server';
 import type { UserContext } from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
+import { getCachedPublicBusinesses } from '@/server/cache/business-cache';
 import { requireCurrentMember } from '@/server/member-page';
-import { getOwnBusinesses, getPublicBusinesses } from '@/server/services/business-service';
+import { getOwnBusinesses } from '@/server/services/business-service';
 import { getActiveCardForUser } from '@/server/services/card-service';
 import { countPendingIncomingIntroductions } from '@/server/services/introduction-service';
 import { DashboardTabs } from '@/features/member/components/DashboardTabs';
@@ -36,7 +37,7 @@ export default async function DashboardPage({
   const profile = await requireCurrentMember(locale);
   const [ownBusinesses, publicBusinesses, activeCardRecord] = await Promise.all([
     getOwnBusinesses(profile.id),
-    getPublicBusinesses(),
+    getCachedPublicBusinesses(),
     getActiveCardForUser(profile.id),
   ]);
 

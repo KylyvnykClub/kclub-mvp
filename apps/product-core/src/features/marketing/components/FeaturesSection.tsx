@@ -2,7 +2,6 @@
 
 import Image, { type StaticImageData } from 'next/image';
 import { type CSSProperties } from 'react';
-import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 
 import { cn } from '@kclub/ui';
@@ -13,7 +12,7 @@ import globePointerIcon from '@/assets/icons/about/globe-pointer.svg';
 import handshakeIcon from '@/assets/icons/about/handshake.svg';
 import shieldCheckIcon from '@/assets/icons/about/shield-check.svg';
 import subscriptionIcon from '@/assets/icons/about/subscription-2.svg';
-import heroBg from '@/assets/images/hero-bg.png';
+import heroBg from '@/assets/images/hero-bg.webp';
 
 type FeatureItem = {
   title: string;
@@ -53,20 +52,14 @@ export function FeaturesSection(): React.ReactElement {
       />
       <div className="bg-background/60 dark:bg-background/40 absolute inset-0" aria-hidden="true" />
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <motion.div
-          className="mb-12 grid gap-4 lg:items-end"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <div className="mb-12 grid gap-4 lg:items-end">
           <p className="border-l-4 border-accent pl-4 text-xs font-bold uppercase text-zinc-500 dark:text-white/60">
             {t('features.eyebrow')}
           </p>
           <h2 className="max-w-3xl text-4xl font-black uppercase leading-tight text-zinc-950 dark:text-white sm:text-6xl">
             {t('features.title')}
           </h2>
-        </motion.div>
+        </div>
 
         <div className="relative z-10 grid grid-cols-1 py-10 md:grid-cols-2 lg:grid-cols-3">
           {items.map((feature, index) => {
@@ -89,11 +82,7 @@ export function FeaturesSection(): React.ReactElement {
 
 function Feature({ title, description, icon, index }: FeatureProps): React.ReactElement {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+    <div
       className={cn(
         'group/feature relative flex flex-col border-border py-10 dark:border-border lg:border-r',
         (index === 0 || index === 3) && 'border-border dark:border-border lg:border-l',
@@ -116,6 +105,6 @@ function Feature({ title, description, icon, index }: FeatureProps): React.React
         </span>
       </div>
       <p className="kclub-section-copy relative z-10 max-w-xs px-10">{description}</p>
-    </motion.div>
+    </div>
   );
 }

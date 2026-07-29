@@ -6,12 +6,10 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { getButtonClasses } from '@kclub/ui';
 import { CanvasText } from '@/components/ui/canvas-text';
-import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 
 import dynamic from 'next/dynamic';
 
-import { HeroFlagsCarousel } from '@/features/marketing/components/HeroFlagsCarousel';
 import { Locale } from '@/i18n/routing';
 
 const Globe = dynamic(() => import('@/components/ui/globe').then((m) => m.World), {
@@ -112,26 +110,6 @@ const baseGlobeData = [
   },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.3,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
-  },
-};
-
 export function HeroSection({ locale }: { locale: Locale }) {
   const t = useTranslations('home');
   const { resolvedTheme } = useTheme();
@@ -183,23 +161,12 @@ export function HeroSection({ locale }: { locale: Locale }) {
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col justify-center gap-11 px-4 py-16 sm:px-6 sm:py-20 lg:gap-20 lg:px-10 lg:py-[6.625rem]">
-        <motion.div
-          className="min-w-0 max-w-3xl lg:pr-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
-          <motion.p
-            variants={itemVariants}
-            className="mb-11 border-l border-accent pl-4 text-xs font-semibold uppercase tracking-[0.24em] text-zinc-600 dark:text-white/70"
-          >
+        <div className="kclub-hero-reveal min-w-0 max-w-3xl lg:pr-6">
+          <p className="mb-11 border-l border-accent pl-4 text-xs font-semibold uppercase tracking-[0.24em] text-zinc-600 dark:text-white/70">
             {t('hero.eyebrow')}
-          </motion.p>
+          </p>
 
-          <motion.h1
-            variants={itemVariants}
-            className="mb-11 w-full font-[helvetica] text-5xl font-bold uppercase leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[90px]"
-          >
+          <h1 className="mb-11 w-full font-[helvetica] text-5xl font-bold uppercase leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[90px]">
             <span className="block">{t('hero.titleLine1')}</span>
             <span className="mt-2 block">
               {t('hero.titleLine2').toUpperCase().split(' ').slice(0, -1).join(' ')}{' '}
@@ -218,16 +185,13 @@ export function HeroSection({ locale }: { locale: Locale }) {
                 curveIntensity={20}
               />
             </span>
-          </motion.h1>
+          </h1>
 
-          <motion.p variants={itemVariants} className="mt-11 text-3xl font-thin">
+          <p className="mt-11 text-3xl font-thin">
             {t('hero.subline')}
-          </motion.p>
+          </p>
 
-          <motion.div
-            variants={itemVariants}
-            className="mt-11 flex w-full flex-col gap-4 sm:w-auto sm:flex-row"
-          >
+          <div className="mt-11 flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
             <Link
               href={`/${locale}/sign-up`}
               className={getButtonClasses({
@@ -250,12 +214,9 @@ export function HeroSection({ locale }: { locale: Locale }) {
               <span>{t('hero.secondaryCta')}</span>
               <ArrowUpRight aria-hidden="true" size={18} strokeWidth={2} />
             </Link>
-          </motion.div>
+          </div>
 
-          <motion.div
-            variants={itemVariants}
-            className="mt-20 grid gap-8 border-t border-zinc-200 pt-8 dark:border-border sm:grid-cols-3"
-          >
+          <div className="mt-20 grid gap-8 border-t border-zinc-200 pt-8 dark:border-border sm:grid-cols-3">
             <div className="kclub-hero-stat">
               <p className="kclub-hero-stat-label">{t('hero.stats.verified.title')}</p>
               <p className="kclub-hero-stat-copy">{t('hero.stats.verified.copy')}</p>
@@ -268,11 +229,9 @@ export function HeroSection({ locale }: { locale: Locale }) {
               <p className="kclub-hero-stat-label">{t('hero.stats.reach.title')}</p>
               <p className="kclub-hero-stat-copy">{t('hero.stats.reach.copy')}</p>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
-
-      {/* <HeroFlagsCarousel /> */}
     </section>
   );
 }

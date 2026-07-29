@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
-import crowLogo from '@/assets/logo/crow--logo.png';
+import crowLogo from '@/assets/logo/crow--logo.webp';
 import { Locale } from '@/i18n/routing';
 
 import { LocaleSwitcherLinks } from './LocaleSwitcherLinks';

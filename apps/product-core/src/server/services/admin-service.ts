@@ -1626,6 +1626,7 @@ export async function createCountry(input: CountryCreateInput): Promise<CountryD
       is_active: input.isActive ?? true,
     })
     .returning();
+  revalidateTag('countries');
   return toCountryDto(country);
 }
 
@@ -1656,6 +1657,7 @@ export async function updateCountry(
     })
     .where(eq(schema.countries.id, countryId))
     .returning();
+  revalidateTag('countries');
   return toCountryDto(country);
 }
 
@@ -1672,6 +1674,7 @@ export async function deleteCountry(countryId: string): Promise<void> {
     });
   }
   await db.delete(schema.countries).where(eq(schema.countries.id, countryId));
+  revalidateTag('countries');
 }
 
 export async function listCities(): Promise<CityDto[]> {
@@ -1726,6 +1729,7 @@ export async function createCity(input: CityCreateInput): Promise<CityDto> {
     where: eq(schema.cities.id, inserted!.id),
     with: { country: { columns: { id: true, name: true } } },
   });
+  revalidateTag('cities');
   return toCityDto(city!);
 }
 
@@ -1767,6 +1771,7 @@ export async function updateCity(cityId: string, input: CityUpdateInput): Promis
     where: eq(schema.cities.id, cityId),
     with: { country: { columns: { id: true, name: true } } },
   });
+  revalidateTag('cities');
   return toCityDto(city!);
 }
 
@@ -1781,6 +1786,7 @@ export async function deleteCity(cityId: string): Promise<void> {
     });
   }
   await db.delete(schema.cities).where(eq(schema.cities.id, cityId));
+  revalidateTag('cities');
 }
 
 // ── Subscriptions (Admin Read) ──
