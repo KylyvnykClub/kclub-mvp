@@ -24,6 +24,13 @@ export const usersRelations = relations(users, ({ many }) => ({
   businessIntroductionsAsRequester: many(businessIntroductions, { relationName: 'requester' }),
 }));
 
+export const memberCardsRelations = relations(memberCards, ({ one }) => ({
+  user: one(users, {
+    fields: [memberCards.user_id],
+    references: [users.id],
+  }),
+}));
+
 export const countriesRelations = relations(countries, ({ many }) => ({
   cities: many(cities),
   businessProfiles: many(businessProfiles),
