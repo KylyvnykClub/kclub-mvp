@@ -489,6 +489,7 @@
         "account": "Аккаунт",
         "catalog": "Каталог",
         "business": "Бизнес",
+        "recommendations": "Входящие рекомендации",
         "introductions": "Рекомендовать клиента",
         "profile": "Мой аккаунт"
       },
@@ -577,6 +578,19 @@
         "description": "Управление командой, API-консоль и расширенные интеграции — доступны на плане Business.",
         "cta": "Смотреть планы →"
       },
+      "recommendations": {
+        "title": "Входящие рекомендации",
+        "empty": "Пока нет входящих рекомендаций от участников клуба.",
+        "fromLabel": "от: {name}",
+        "statusSubmitted": "Новая",
+        "statusInReview": "На рассмотрении",
+        "statusApproved": "Принята",
+        "statusRejected": "Отклонена",
+        "statusCompleted": "Завершена",
+        "statusCanceled": "Отменена",
+        "actionComplete": "Завершить",
+        "actionReject": "Отклонить"
+      },
       "business": {
         "title": "Мой бизнес",
         "description": "Управляйте профилем бизнеса. Подача заявки не гарантирует публикацию — все профили проходят модерацию.",
@@ -619,7 +633,6 @@
         "statusBannerPublishedSub": "Ваш бизнес виден всем участникам клуба.",
         "statusBannerRejected": "Заявка отклонена",
         "statusBannerHidden": "Скрыт администратором",
-        "incomingRecommendations": "Входящие рекомендации",
         "placementCheckoutCta": "Оформить размещение",
         "placementCheckoutLoading": "Перенаправление на оплату...",
         "placementCheckoutError": "Не удалось начать оплату. Попробуйте ещё раз.",

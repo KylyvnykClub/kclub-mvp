@@ -24,14 +24,20 @@ describe('member dashboard tabs', () => {
     expect(getImplementedDashboardTabs(vipCtx)).toEqual(['details', 'settings', 'introductions']);
   });
 
-  test('member with business sees business', () => {
-    expect(getImplementedDashboardTabs(businessCtx)).toEqual(['details', 'business', 'settings']);
+  test('member with business sees business and recommendations', () => {
+    expect(getImplementedDashboardTabs(businessCtx)).toEqual([
+      'details',
+      'business',
+      'recommendations',
+      'settings',
+    ]);
   });
 
   test('VIP with business sees business, not introductions', () => {
     expect(getImplementedDashboardTabs(vipBusinessCtx)).toEqual([
       'details',
       'business',
+      'recommendations',
       'settings',
     ]);
   });

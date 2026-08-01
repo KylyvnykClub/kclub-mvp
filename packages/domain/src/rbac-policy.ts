@@ -54,7 +54,10 @@ export function hasMemberCapability(ctx: UserContext, capability: MemberCapabili
 export function getVisibleDashboardTabs(ctx: UserContext): readonly MemberDashboardTab[] {
   const tabs: MemberDashboardTab[] = ['details'];
 
-  if (ctx.hasBusiness) tabs.push('business');
+  if (ctx.hasBusiness) {
+    tabs.push('business');
+    tabs.push('recommendations');
+  }
   tabs.push('settings');
   if (ctx.isVip && !ctx.hasBusiness) tabs.push('introductions');
 
