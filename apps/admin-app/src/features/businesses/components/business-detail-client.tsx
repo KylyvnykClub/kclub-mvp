@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { AdminFilterBar } from '@/components/admin-filter-bar';
 import { MembershipTierBadge } from '@/components/membership-tier-badge';
 import { StatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -55,13 +56,6 @@ import {
 } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import type {
   AdminBusinessDetailDto,
@@ -1088,53 +1082,50 @@ function LogsTab({ entries, onRefresh }: LogsTabProps) {
     <div className="space-y-4">
       {/* Toolbar */}
       <div className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="h-9 w-full text-sm sm:w-[200px]">
-              <SelectValue placeholder="All actions" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All actions</SelectItem>
-              {uniqueActions.map((a) => (
-                <SelectItem key={a} value={a}>
-                  {a}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center gap-1.5">
-            <Input
-              type="date"
-              className="h-9 w-[120px] text-xs sm:w-[140px] sm:text-sm"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              placeholder="From"
-            />
-            <span className="text-xs text-muted-foreground">–</span>
-            <Input
-              type="date"
-              className="h-9 w-[120px] text-xs sm:w-[140px] sm:text-sm"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              placeholder="To"
-            />
-          </div>
-
-          {(actionFilter !== 'all' || dateFrom || dateTo) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setActionFilter('all');
-                setDateFrom('');
-                setDateTo('');
-              }}
-            >
-              Clear
-            </Button>
-          )}
-        </div>
+        <AdminFilterBar
+          variant="plain"
+          fields={[
+            {
+              id: 'business-log-action-filter',
+              kind: 'select',
+              label: 'Action',
+              value: actionFilter,
+              placeholder: 'All actions',
+              options: [
+                { label: 'All actions', value: 'all' },
+                ...uniqueActions.map((action) => ({
+                  label: action.replaceAll('_', ' '),
+                  value: action,
+                })),
+              ],
+              onValueChange: setActionFilter,
+            },
+            {
+              id: 'business-log-date-from-filter',
+              kind: 'input',
+              label: 'From date',
+              type: 'date',
+              value: dateFrom,
+              onValueChange: setDateFrom,
+            },
+            {
+              id: 'business-log-date-to-filter',
+              kind: 'input',
+              label: 'To date',
+              type: 'date',
+              value: dateTo,
+              onValueChange: setDateTo,
+            },
+          ]}
+          activeFilterCount={
+            (actionFilter !== 'all' ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0)
+          }
+          onReset={() => {
+            setActionFilter('all');
+            setDateFrom('');
+            setDateTo('');
+          }}
+        />
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs text-muted-foreground">

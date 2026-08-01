@@ -14,19 +14,18 @@ import {
   Phone,
   RefreshCw,
   ScrollText,
-  Search,
   User,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import type { AdminInvoiceDto, AdminUserDetailDto, StaffRole } from '@kclub/contracts';
 
+import { AdminFilterBar } from '@/components/admin-filter-bar';
 import { MembershipTierBadge } from '@/components/membership-tier-badge';
 import { StatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
   Table,
@@ -556,15 +555,18 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                       <CardTitle>Logs</CardTitle>
                       <CardDescription>{user.auditEntries.length} recorded events.</CardDescription>
                     </div>
-                    <div className="relative w-full sm:w-64">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Filter logs..."
-                        className="pl-8"
-                        value={logFilter}
-                        onChange={(e) => setLogFilter(e.target.value)}
-                      />
-                    </div>
+                    <AdminFilterBar
+                      variant="plain"
+                      className="w-full sm:w-80"
+                      search={{
+                        label: 'User logs',
+                        placeholder: 'Filter logs',
+                        value: logFilter,
+                        onValueChange: setLogFilter,
+                      }}
+                      activeFilterCount={logFilter.trim() ? 1 : 0}
+                      onReset={() => setLogFilter('')}
+                    />
                   </CardHeader>
                   <CardContent>
                     {filteredLogs.length === 0 ? (

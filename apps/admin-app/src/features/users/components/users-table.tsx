@@ -3,9 +3,10 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, MoreHorizontal, RefreshCw } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { AdminFilterBar } from '@/components/admin-filter-bar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -26,13 +27,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -336,8 +330,7 @@ export function UsersTable({
     startTransition(() => router.push(buildUrl({ page: toPage })));
   }
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
+  function handleSearch() {
     startTransition(() => router.push(buildUrl({ page: 1 })));
   }
 
@@ -351,67 +344,66 @@ export function UsersTable({
     startTransition(() => router.push(buildUrl({ tier: value, page: 1 })));
   }
 
-  const activeFilterCount = (statusFilter !== 'all' ? 1 : 0) + (tierFilter !== 'all' ? 1 : 0);
+  const activeFilterCount =
+    (search.trim() ? 1 : 0) + (statusFilter !== 'all' ? 1 : 0) + (tierFilter !== 'all' ? 1 : 0);
 
   return (
     <div className="bg-card rounded-xl border">
       {/* Card header — search & filters */}
-      <form
+      <AdminFilterBar
+        variant="embedded"
+        search={{
+          label: 'Users',
+          placeholder: 'Search users',
+          value: search,
+          onValueChange: setSearch,
+        }}
+        fields={[
+          {
+            id: 'users-status-filter',
+            kind: 'select',
+            label: 'Status',
+            value: statusFilter,
+            placeholder: 'All statuses',
+            options: [
+              { label: 'All statuses', value: 'all' },
+              { label: 'Active', value: 'ACTIVE' },
+              { label: 'Blocked', value: 'BLOCKED' },
+            ],
+            onValueChange: handleStatusChange,
+          },
+          {
+            id: 'users-tier-filter',
+            kind: 'select',
+            label: 'Membership tier',
+            value: tierFilter,
+            placeholder: 'All tiers',
+            options: [
+              { label: 'All tiers', value: 'all' },
+              { label: 'Member', value: 'MEMBER' },
+              { label: 'VIP', value: 'VIP' },
+            ],
+            onValueChange: handleTierChange,
+          },
+        ]}
+        activeFilterCount={activeFilterCount}
+        isPending={isPending}
         onSubmit={handleSearch}
-        className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4"
-      >
-        <div className="relative flex-1 sm:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder="Search users"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              startTransition(() => {
-                router.refresh();
-              });
-            }}
-            disabled={isPending}
-            aria-label="Refresh data"
-            title="Refresh data"
-          >
-            <RefreshCw className={cn('h-4 w-4', isPending && 'animate-spin')} />
-          </Button>
-          <Select value={statusFilter} onValueChange={handleStatusChange}>
-            <SelectTrigger className="min-w-0 flex-1 sm:w-[140px] sm:flex-none">
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="BLOCKED">Blocked</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={tierFilter} onValueChange={handleTierChange}>
-            <SelectTrigger className="min-w-0 flex-1 sm:w-[140px] sm:flex-none">
-              <SelectValue placeholder="All tiers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All tiers</SelectItem>
-              <SelectItem value="MEMBER">Member</SelectItem>
-              <SelectItem value="VIP">VIP</SelectItem>
-            </SelectContent>
-          </Select>
-          {activeFilterCount > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
-              {activeFilterCount}
-            </span>
-          )}
-        </div>
-      </form>
+        onRefresh={() => {
+          startTransition(() => {
+            router.refresh();
+          });
+        }}
+        onReset={() => {
+          setSearch('');
+          setStatusFilter('all');
+          setTierFilter('all');
+          startTransition(() => {
+            router.push(buildUrl({ page: 1, search: '', status: 'all', tier: 'all' }));
+          });
+        }}
+        submitLabel="Search"
+      />
 
       {/* Table content */}
       <div
