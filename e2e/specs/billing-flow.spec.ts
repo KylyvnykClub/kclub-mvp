@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base';
 import { DashboardPage } from '../page-objects/dashboard.page';
-import { DEV_OTP_CODE, setupMemberAuthMocks } from '../helpers/mock-otp';
+import { signInMember } from '../helpers/auth';
 import { interceptStripeCheckout, simulateVipCheckoutComplete } from '../helpers/mock-stripe';
 
 test.describe('Billing flow', () => {
@@ -11,19 +11,8 @@ test.describe('Billing flow', () => {
       return;
     }
 
-    await setupMemberAuthMocks(page);
-
     // Sign in
-    await page.goto(`/${locale}/sign-in`);
-    await page.locator('[data-testid="auth-phone-input"]').fill(phone);
-    await page.locator('[data-testid="auth-submit-phone"]').click();
-
-    // Wait for state transition to OTP input
-    await page.waitForSelector('[data-testid="auth-otp-input"]');
-
-    await page.locator('[data-testid="auth-otp-input"]').fill(DEV_OTP_CODE);
-    await page.locator('[data-testid="auth-submit-otp"]').click();
-    await expect(page).toHaveURL(new RegExp(`.*/${locale}/m/dashboard.*`), { timeout: 30000 });
+    await signInMember(page, locale, phone);
 
     // Navigate to subscription tab
     const dashboard = new DashboardPage(page, locale);
@@ -52,15 +41,8 @@ test.describe('Billing flow', () => {
     // Simulate webhook before signing in
     await simulateVipCheckoutComplete(userId);
 
-    await setupMemberAuthMocks(page);
-
     // Sign in and check subscription tab
-    await page.goto(`/${locale}/sign-in`);
-    await page.locator('[data-testid="auth-phone-input"]').fill(phone);
-    await page.locator('[data-testid="auth-submit-phone"]').click();
-    await page.locator('[data-testid="auth-otp-input"]').fill(DEV_OTP_CODE);
-    await page.locator('[data-testid="auth-submit-otp"]').click();
-    await expect(page).toHaveURL(new RegExp(`.*/${locale}/m/dashboard.*`), { timeout: 30000 });
+    await signInMember(page, locale, phone);
 
     const dashboard = new DashboardPage(page, locale);
     await dashboard.clickTab('subscription');

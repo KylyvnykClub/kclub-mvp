@@ -18,6 +18,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ pat
     return NextResponse.json({ message_id: 'e2e-mock-message-id' });
   }
 
+  if (endpoint === 'auth/v1/signup') {
+    // supabase.auth.signUp({ phone, password }) for the sign-up flow. Phone
+    // signup requires OTP confirmation, so return a user with no session; the
+    // flow then confirms via auth/v1/verify (which mints the real UUID).
+    const body = await request.json();
+    return NextResponse.json({
+      id: crypto.randomUUID(),
+      phone: body.phone,
+      role: 'authenticated',
+      aud: 'authenticated',
+      app_metadata: { provider: 'phone' },
+      user_metadata: {},
+      confirmation_sent_at: '2026-01-01T00:00:00.000Z',
+    });
+  }
+
   if (endpoint === 'auth/v1/verify') {
     const body = await request.json();
     const phone = body.phone;
@@ -59,6 +75,50 @@ export async function POST(request: Request, { params }: { params: Promise<{ pat
     }
 
     return NextResponse.json({ error: 'Invalid OTP' }, { status: 401 });
+  }
+
+  if (endpoint === 'auth/v1/token') {
+    // Password grant: supabase.auth.signInWithPassword({ phone, password }).
+    // Sign-in requires an existing member; resolve their supabase_auth_user_id by
+    // phone (same reasoning as the verify branch) and ignore the password value —
+    // credential checking is Supabase's job, which we are standing in for.
+    const body = await request.json();
+    const phone = body.phone;
+
+    let mockUserId: string | null = null;
+    try {
+      const db = getDbClient();
+      const existingMember = await db.query.users.findFirst({
+        where: eq(schema.users.phone, phone),
+      });
+      if (existingMember?.supabase_auth_user_id) {
+        mockUserId = existingMember.supabase_auth_user_id;
+      }
+    } catch (e) {
+      console.error('Failed to look up member in mock', e);
+    }
+
+    if (!mockUserId) {
+      return NextResponse.json(
+        { error: 'invalid_grant', error_description: 'Invalid login credentials' },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json({
+      access_token: `e2e-mock-access-token-${mockUserId}`,
+      token_type: 'bearer',
+      expires_in: 3600,
+      refresh_token: 'e2e-mock-refresh-token',
+      user: {
+        id: mockUserId,
+        phone: phone,
+        role: 'authenticated',
+        aud: 'authenticated',
+        app_metadata: { provider: 'phone' },
+        user_metadata: {},
+      },
+    });
   }
 
   return NextResponse.json({ error: 'Not implemented mock' }, { status: 404 });

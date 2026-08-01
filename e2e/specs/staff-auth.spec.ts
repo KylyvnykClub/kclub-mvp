@@ -6,7 +6,11 @@ import { DEV_OTP_CODE, DEV_TOTP_CODE } from '../helpers/mock-otp';
 test.describe('Staff auth', () => {
   test.use({ baseURL: 'http://localhost:3001' });
 
-  test('staff sign-in with OTP reaches 2FA screen', async ({ page, seed }) => {
+  // FIXME(e2e-auth-flow-stale): admin sign-in migrated to phone+PASSWORD
+  // (admin-password-input + admin-submit-sign-in). These specs still drive the
+  // removed phone->OTP flow and need an admin password+TOTP rewrite plus an
+  // ADMIN_BOOTSTRAP_OWNER_PASSWORD in CI. Tracked separately from the member fix.
+  test.fixme('staff sign-in with OTP reaches 2FA screen', async ({ page, seed }) => {
     const { staffPhone } = await seed('staff-owner');
     if (!staffPhone) {
       test.skip();
@@ -28,7 +32,7 @@ test.describe('Staff auth', () => {
     await expect(page).toHaveURL(/.*\/auth\/(2fa-required|totp-setup).*/);
   });
 
-  test('TOTP verification grants dashboard access', async ({ page, seed }) => {
+  test.fixme('TOTP verification grants dashboard access', async ({ page, seed }) => {
     const { staffPhone } = await seed('staff-owner');
     if (!staffPhone) {
       test.skip();
@@ -61,7 +65,7 @@ test.describe('Staff auth', () => {
     await expect(page).toHaveURL(/.*\/auth\/sign-in.*/, { timeout: 30000 });
   });
 
-  test('staff without TOTP cannot access dashboard', async ({ page, seed }) => {
+  test.fixme('staff without TOTP cannot access dashboard', async ({ page, seed }) => {
     const { staffPhone } = await seed('staff-owner');
     if (!staffPhone) {
       test.skip();

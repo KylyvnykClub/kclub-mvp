@@ -1,6 +1,5 @@
 import { test, expect } from '../fixtures/base';
-import { DEV_OTP_CODE } from '../helpers/mock-otp';
-import { waitForNavigation } from '../helpers/wait-for';
+import { signInMember } from '../helpers/auth';
 
 test.describe('Recommendations tab', () => {
   test('business owner sees an APPROVED incoming recommendation with actions', async ({
@@ -15,15 +14,7 @@ test.describe('Recommendations tab', () => {
     }
 
     // Sign in as the business owner (mock-supabase resolves phone -> auth user).
-    await page.goto(`/${locale}/sign-in`);
-    await page.locator('[data-testid="auth-phone-input"]').fill(phone);
-    await page.locator('[data-testid="auth-submit-phone"]').click();
-
-    await page.waitForSelector('[data-testid="auth-otp-input"]');
-    await page.locator('[data-testid="auth-otp-input"]').fill(DEV_OTP_CODE);
-    await page.locator('[data-testid="auth-submit-otp"]').click();
-
-    await waitForNavigation(page, new RegExp(`/${locale}/m/dashboard`));
+    await signInMember(page, locale, phone);
 
     // The recommendations tab is only visible to members that own a business.
     const recommendationsTab = page.getByRole('tab', { name: 'Incoming Recommendations' });
