@@ -22,6 +22,7 @@ export default defineConfig({
         /billing-flow\.spec\.ts/,
         /business-lifecycle\.spec\.ts/,
         /introduction-flow\.spec\.ts/,
+        /recommendations-tab\.spec\.ts/,
       ],
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3000' },
     },
