@@ -46,24 +46,28 @@ export function MarketingBusinessCarousel({
   return (
     <MarketingCarousel header={header} itemCount={businesses.length} labels={carouselLabels}>
       {businesses.map((business) => {
-        const label = getFeaturedLabel(business, t('featured.topLabel'), t('featured.recommendedLabel'));
+        const label = getFeaturedLabel(
+          business,
+          t('featured.topLabel'),
+          t('featured.recommendedLabel'),
+        );
         return (
-        <div
-          key={business.id}
-          className="flex w-[20rem] shrink-0 snap-start sm:w-[22rem]"
-          data-marketing-carousel-item
-        >
-          <div className="w-full">
-            <BusinessCard
-              actionLabel={actionLabel}
-              business={business}
-              externalLabel={t('common.website')}
-              locale={locale}
-              {...(label ? { featuredLabel: label } : {})}
-              href={`/${locale}/directory/${business.slug}`}
-            />
+          <div
+            key={business.id}
+            className="flex w-[20rem] shrink-0 snap-start sm:w-[22rem]"
+            data-marketing-carousel-item
+          >
+            <div className="w-full">
+              <BusinessCard
+                actionLabel={actionLabel}
+                business={business}
+                externalLabel={t('common.website')}
+                locale={locale}
+                {...(label ? { featuredLabel: label } : {})}
+                href={`/${locale}/directory/${business.slug}`}
+              />
+            </div>
           </div>
-        </div>
         );
       })}
     </MarketingCarousel>

@@ -4,7 +4,11 @@ import { ERROR_CODES } from '@kclub/contracts';
 
 import { createSupabaseServerClient, createSupabaseServiceClient } from '@/server/auth';
 import { jsonSuccess, jsonError, jsonErrorFromUnknown } from '@/server/api';
-import { getMemberBySupabaseUserId, toCurrentMemberProfileDto, type UserRecord } from '@/server/services';
+import {
+  getMemberBySupabaseUserId,
+  toCurrentMemberProfileDto,
+  type UserRecord,
+} from '@/server/services';
 import { getDbClient, schema } from '@/server/db';
 import { eq } from 'drizzle-orm';
 import { createRequestContext } from '@/server/context';

@@ -40,6 +40,8 @@
     "jsvectormap": "^1.7.0"
   },
   "pnpm": {
-    "neverBuiltDependencies": ["better-sqlite3"]
+    "neverBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }

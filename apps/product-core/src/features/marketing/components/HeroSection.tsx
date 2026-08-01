@@ -187,9 +187,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
             </span>
           </h1>
 
-          <p className="mt-11 text-3xl font-thin">
-            {t('hero.subline')}
-          </p>
+          <p className="mt-11 text-3xl font-thin">{t('hero.subline')}</p>
 
           <div className="mt-11 flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
             <Link
