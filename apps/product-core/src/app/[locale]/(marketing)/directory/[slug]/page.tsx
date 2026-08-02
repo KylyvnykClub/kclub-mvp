@@ -131,7 +131,10 @@ export default async function BusinessDetailPage({ params }: Params) {
               ) : null}
             </div>
 
-            <h1 className="mt-6 max-w-4xl text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-7xl">
+            <h1
+              data-testid="business-name"
+              className="mt-6 max-w-4xl text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-7xl"
+            >
               {business.name}
             </h1>
 
