@@ -84,6 +84,7 @@ function renderTabTriggers({
       <TabsTrigger
         key={tab}
         value={tab}
+        data-testid={`dashboard-tab-${tab}`}
         className={cn('min-w-0', itemClassName, locked && 'text-muted')}
       >
         {TabIcon ? <TabIcon size={16} aria-hidden /> : null}

@@ -61,11 +61,11 @@ test.describe('Member journey', () => {
     const dashboard = new DashboardPage(page, locale);
     const visibleTabs = await dashboard.getVisibleTabNames();
 
+    // A plain MEMBER (no business, not VIP) sees only details + settings.
     expect(visibleTabs).toContain('details');
-    expect(visibleTabs).toContain('card');
-    expect(visibleTabs).toContain('subscription');
     expect(visibleTabs).toContain('settings');
-    expect(visibleTabs).not.toContain('audit');
-    expect(visibleTabs).not.toContain('permissions');
+    expect(visibleTabs).not.toContain('business');
+    expect(visibleTabs).not.toContain('recommendations');
+    expect(visibleTabs).not.toContain('introductions');
   });
 });

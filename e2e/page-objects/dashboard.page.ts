@@ -22,6 +22,12 @@ export class DashboardPage {
         return this.page.locator(SELECTORS.DASHBOARD_TAB_CARD).first();
       case 'subscription':
         return this.page.locator(SELECTORS.DASHBOARD_TAB_SUBSCRIPTION).first();
+      case 'business':
+        return this.page.locator(SELECTORS.DASHBOARD_TAB_BUSINESS).first();
+      case 'recommendations':
+        return this.page.locator('[data-testid="dashboard-tab-recommendations"]').first();
+      case 'introductions':
+        return this.page.locator(SELECTORS.DASHBOARD_TAB_INTRODUCTIONS).first();
       case 'settings':
         return this.page.locator(SELECTORS.DASHBOARD_TAB_SETTINGS).first();
       // legacy aliases
@@ -38,7 +44,8 @@ export class DashboardPage {
   }
 
   async getVisibleTabNames(): Promise<string[]> {
-    const tabs = ['details', 'card', 'subscription', 'settings'];
+    // The implemented member cabinet tabs (see IMPLEMENTED_MEMBER_DASHBOARD_TABS).
+    const tabs = ['details', 'business', 'recommendations', 'introductions', 'settings'];
     const visibleTabs: string[] = [];
 
     for (const tab of tabs) {
