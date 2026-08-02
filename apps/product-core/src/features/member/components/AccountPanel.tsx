@@ -132,7 +132,7 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
               <span className="break-words text-2xl font-semibold text-foreground">
                 {memberName}
               </span>
-              <Badge variant="outline" size="sm">
+              <Badge variant="outline" size="sm" data-testid="subscription-status">
                 {planLabel}
               </Badge>
             </div>
@@ -163,6 +163,7 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
       <div className="mt-10 flex flex-col items-center space-y-2">
         <button
           type="button"
+          data-testid="vip-upgrade-btn"
           onClick={handleVipCheckout}
           disabled={vipLoading}
           aria-disabled={isVip || vipLoading}
