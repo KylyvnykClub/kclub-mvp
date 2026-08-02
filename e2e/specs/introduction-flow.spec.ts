@@ -5,26 +5,26 @@ import { DEV_OTP_CODE, DEV_TOTP_CODE } from '../helpers/mock-otp';
 import { signInMember } from '../helpers/auth';
 
 test.describe('Introduction flow', () => {
-  test('VIP business member submits introduction', async ({ page, locale, seed }) => {
-    const { phone } = await seed('vip-with-published-business');
+  test('VIP member submits an introduction', async ({ page, locale, seed }) => {
+    // Published businesses give the VIP a target to recommend a client to.
+    await seed('published-businesses');
+    const { phone } = await seed('vip-member');
     if (!phone) {
       test.skip();
       return;
     }
 
-    // Sign in as VIP with published business
     await signInMember(page, locale, phone);
 
-    // Navigate to introduce page
+    // "Recommend a Client" now lives in the cabinet introductions tab.
     const introducePage = new IntroducePage(page, locale);
-    await introducePage.goto();
-
-    // Fill introduction form
+    await introducePage.openFromDashboard();
+    await introducePage.selectFirstTarget();
+    await introducePage.fillClient('E2E Client', '+15550001234');
     await introducePage.fillMessage('E2E test introduction message');
     await introducePage.submit();
 
-    // Should show submitted status
-    await expect(page.locator('[data-testid="intro-status"]')).toContainText(/submitted/i);
+    await expect(introducePage.success).toBeVisible();
   });
 
   // FIXME(e2e-auth-flow-stale): admin sign-in migrated to phone+password+TOTP;
