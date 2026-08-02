@@ -49,21 +49,22 @@ export class DashboardPage {
   }
 
   async getVisibleTabNames(): Promise<string[]> {
-    // The implemented member cabinet tabs (see IMPLEMENTED_MEMBER_DASHBOARD_TABS).
-    const tabs = ['details', 'business', 'recommendations', 'introductions', 'settings'];
-    const visibleTabs: string[] = [];
-
-    // Every member sees the details tab; wait for it so the tab bar has
-    // hydrated before probing the rest with the non-waiting isVisible().
+    // Wait for the tab bar to hydrate, then read every rendered tab at once and
+    // map its label back to the tab key (more robust than probing each key).
     await this.getTab('details').waitFor({ state: 'visible', timeout: 15_000 });
 
-    for (const tab of tabs) {
-      if (await this.getTab(tab).isVisible()) {
-        visibleTabs.push(tab);
-      }
-    }
+    const labelToKey: Record<string, string> = {
+      Account: 'details',
+      Card: 'card',
+      Subscription: 'subscription',
+      Business: 'business',
+      'Incoming Recommendations': 'recommendations',
+      'Recommend a Client': 'introductions',
+      Settings: 'settings',
+    };
 
-    return visibleTabs;
+    const labels = await this.page.getByRole('tab').allInnerTexts();
+    return labels.map((label) => labelToKey[label.trim()]).filter((key): key is string => !!key);
   }
 
   get cardNumber(): Locator {
