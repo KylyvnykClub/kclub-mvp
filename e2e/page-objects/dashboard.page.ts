@@ -14,29 +14,34 @@ export class DashboardPage {
     await this.page.goto(`/${this.locale}/m/dashboard`);
   }
 
-  getTab(tabName: string): Locator {
+  // Cabinet tabs are Radix TabsTrigger (role="tab"); target them by their
+  // accessible label (the reliable selector — data-testid does not surface on
+  // the Radix trigger). Labels are the en messages (e2e default locale).
+  private tabLabel(tabName: string): string {
     switch (tabName) {
       case 'details':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_DETAILS).first();
-      case 'card':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_CARD).first();
-      case 'subscription':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_SUBSCRIPTION).first();
-      case 'business':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_BUSINESS).first();
-      case 'recommendations':
-        return this.page.locator('[data-testid="dashboard-tab-recommendations"]').first();
-      case 'introductions':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_INTRODUCTIONS).first();
-      case 'settings':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_SETTINGS).first();
-      // legacy aliases
       case 'account':
       case 'profile':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_ACCOUNT).first();
+        return 'Account';
+      case 'card':
+        return 'Card';
+      case 'subscription':
+        return 'Subscription';
+      case 'business':
+        return 'Business';
+      case 'recommendations':
+        return 'Incoming Recommendations';
+      case 'introductions':
+        return 'Recommend a Client';
+      case 'settings':
+        return 'Settings';
       default:
-        return this.page.locator('body').first();
+        return tabName;
     }
+  }
+
+  getTab(tabName: string): Locator {
+    return this.page.getByRole('tab', { name: this.tabLabel(tabName) }).first();
   }
 
   async clickTab(tabName: string): Promise<void> {
@@ -47,6 +52,10 @@ export class DashboardPage {
     // The implemented member cabinet tabs (see IMPLEMENTED_MEMBER_DASHBOARD_TABS).
     const tabs = ['details', 'business', 'recommendations', 'introductions', 'settings'];
     const visibleTabs: string[] = [];
+
+    // Every member sees the details tab; wait for it so the tab bar has
+    // hydrated before probing the rest with the non-waiting isVisible().
+    await this.getTab('details').waitFor({ state: 'visible', timeout: 15_000 });
 
     for (const tab of tabs) {
       if (await this.getTab(tab).isVisible()) {
