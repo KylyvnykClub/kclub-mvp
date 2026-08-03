@@ -489,6 +489,7 @@
         "account": "Акаунт",
         "catalog": "Каталог",
         "business": "Бізнес",
+        "recommendations": "Вхідні рекомендації",
         "introductions": "Рекомендувати клієнта",
         "profile": "Мій акаунт"
       },
@@ -577,6 +578,19 @@
         "description": "Управління командою, API-консоль та розширені інтеграції — доступні на плані Business.",
         "cta": "Дивитися плани →"
       },
+      "recommendations": {
+        "title": "Вхідні рекомендації",
+        "empty": "Поки немає вхідних рекомендацій від учасників клубу.",
+        "fromLabel": "від: {name}",
+        "statusSubmitted": "Нова",
+        "statusInReview": "На розгляді",
+        "statusApproved": "Прийнята",
+        "statusRejected": "Відхилена",
+        "statusCompleted": "Завершена",
+        "statusCanceled": "Скасована",
+        "actionComplete": "Завершити",
+        "actionReject": "Відхилити"
+      },
       "business": {
         "title": "Мій бізнес",
         "description": "Керуйте профілем бізнесу. Подача заявки не гарантує публікацію — всі профілі проходять модерацію.",
@@ -619,7 +633,6 @@
         "statusBannerPublishedSub": "Ваш бізнес видно всім учасникам клубу.",
         "statusBannerRejected": "Заявку відхилено",
         "statusBannerHidden": "Приховано адміністратором",
-        "incomingRecommendations": "Вхідні рекомендації",
         "placementCheckoutCta": "Оформити розміщення",
         "placementCheckoutLoading": "Перенаправлення на оплату...",
         "placementCheckoutError": "Не вдалося розпочати оплату. Спробуйте ще раз.",

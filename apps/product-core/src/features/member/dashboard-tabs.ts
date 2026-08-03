@@ -4,6 +4,7 @@ import { getVisibleDashboardTabs } from '@kclub/domain';
 export const IMPLEMENTED_MEMBER_DASHBOARD_TABS = [
   'details',
   'business',
+  'recommendations',
   'introductions',
   'settings',
 ] as const satisfies readonly MemberDashboardTab[];

@@ -15,18 +15,11 @@ import { Locale } from '@/i18n/routing';
 import { AppError } from '@/server/errors';
 import { getCachedPublicBusinessBySlug } from '@/server/cache/business-cache';
 
-export const revalidate = 60;
-
-export async function generateStaticParams() {
-  try {
-    const { getPublicBusinesses } = await import('@/server/services/business-service');
-    const businesses = await getPublicBusinesses();
-    const locales = ['en', 'ru', 'uk'];
-    return locales.flatMap((locale) => businesses.map((b) => ({ locale, slug: b.slug })));
-  } catch {
-    return [];
-  }
-}
+// Rendered dynamically (SSR): business profiles are created at runtime, so a
+// slug not present at build time would otherwise be rendered on-demand as a
+// cached/static page, and next-intl's request-locale access makes that throw
+// DYNAMIC_SERVER_USAGE (a 500 for any business created after the last deploy).
+export const dynamic = 'force-dynamic';
 
 type Params = {
   params: Promise<{ locale: Locale; slug: string }>;
@@ -131,7 +124,10 @@ export default async function BusinessDetailPage({ params }: Params) {
               ) : null}
             </div>
 
-            <h1 className="mt-6 max-w-4xl text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-7xl">
+            <h1
+              data-testid="business-name"
+              className="mt-6 max-w-4xl text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-7xl"
+            >
               {business.name}
             </h1>
 

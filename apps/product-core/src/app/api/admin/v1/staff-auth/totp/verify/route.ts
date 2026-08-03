@@ -8,7 +8,10 @@ export async function POST(request: Request): Promise<Response> {
   const token = getBearerToken(request);
   if (!token) {
     return Response.json(
-      { data: null, error: { code: ERROR_CODES.AUTH_SESSION_REQUIRED, message: 'Session required' } },
+      {
+        data: null,
+        error: { code: ERROR_CODES.AUTH_SESSION_REQUIRED, message: 'Session required' },
+      },
       { status: 401 },
     );
   }
@@ -25,7 +28,13 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = totpCodeSchema.safeParse(body?.code);
   if (!parsed.success) {
     return Response.json(
-      { data: null, error: { code: ERROR_CODES.VALIDATION_INVALID_INPUT, message: 'Valid 6-digit code required' } },
+      {
+        data: null,
+        error: {
+          code: ERROR_CODES.VALIDATION_INVALID_INPUT,
+          message: 'Valid 6-digit code required',
+        },
+      },
       { status: 400 },
     );
   }
@@ -38,7 +47,10 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!isValid) {
     return Response.json(
-      { data: null, error: { code: ERROR_CODES.AUTH_STAFF_2FA_REQUIRED, message: 'Invalid TOTP code' } },
+      {
+        data: null,
+        error: { code: ERROR_CODES.AUTH_STAFF_2FA_REQUIRED, message: 'Invalid TOTP code' },
+      },
       { status: 401 },
     );
   }

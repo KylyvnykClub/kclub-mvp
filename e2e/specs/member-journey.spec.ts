@@ -3,18 +3,17 @@ import { SignUpPage } from '../page-objects/sign-up.page';
 import { OnboardingPage } from '../page-objects/onboarding.page';
 import { DashboardPage } from '../page-objects/dashboard.page';
 import { DEV_OTP_CODE } from '../helpers/mock-otp';
-import { setupMemberAuthMocks } from '../helpers/mock-otp';
+import { DEV_PASSWORD, signInMember } from '../helpers/auth';
 
 test.describe('Member journey', () => {
   test('sign-up with phone OTP and complete onboarding', async ({ page, locale }) => {
-    await setupMemberAuthMocks(page);
-
     const signUpPage = new SignUpPage(page, locale);
     await signUpPage.goto();
 
-    // Enter phone, accept terms (required checkbox blocks native form submission
-    // otherwise), and submit
+    // Enter phone + password, accept terms (required checkbox blocks native form
+    // submission otherwise), and submit the credentials step
     await signUpPage.fillPhone('+10000000099');
+    await signUpPage.fillPassword(DEV_PASSWORD);
     await signUpPage.acceptTerms();
     await signUpPage.submitPhone();
 
@@ -43,17 +42,8 @@ test.describe('Member journey', () => {
       return;
     }
 
-    await setupMemberAuthMocks(page);
-
     // Sign in with seeded member
-    await page.goto(`/${locale}/sign-in`);
-    await page.locator('[data-testid="auth-phone-input"]').fill(phone);
-    await page.locator('[data-testid="auth-submit-phone"]').click();
-    await page.waitForSelector('[data-testid="auth-otp-input"]');
-    await page.locator('[data-testid="auth-otp-input"]').fill(DEV_OTP_CODE);
-    await page.locator('[data-testid="auth-submit-otp"]').click();
-
-    await expect(page).toHaveURL(new RegExp(`.*/${locale}/m/dashboard.*`), { timeout: 30000 });
+    await signInMember(page, locale, phone);
 
     // Account tab is the default and includes the club card
     await expect(page.locator('[data-testid="card-number"]')).toBeVisible();
@@ -66,24 +56,16 @@ test.describe('Member journey', () => {
       return;
     }
 
-    await setupMemberAuthMocks(page);
-
-    await page.goto(`/${locale}/sign-in`);
-    await page.locator('[data-testid="auth-phone-input"]').fill(phone);
-    await page.locator('[data-testid="auth-submit-phone"]').click();
-    await page.waitForSelector('[data-testid="auth-otp-input"]');
-    await page.locator('[data-testid="auth-otp-input"]').fill(DEV_OTP_CODE);
-    await page.locator('[data-testid="auth-submit-otp"]').click();
-    await expect(page).toHaveURL(new RegExp(`.*/${locale}/m/dashboard.*`), { timeout: 30000 });
+    await signInMember(page, locale, phone);
 
     const dashboard = new DashboardPage(page, locale);
     const visibleTabs = await dashboard.getVisibleTabNames();
 
+    // A plain MEMBER (no business, not VIP) sees the account tab but none of the
+    // business-owner / VIP tabs — that exclusion is the policy boundary here.
     expect(visibleTabs).toContain('details');
-    expect(visibleTabs).toContain('card');
-    expect(visibleTabs).toContain('subscription');
-    expect(visibleTabs).toContain('settings');
-    expect(visibleTabs).not.toContain('audit');
-    expect(visibleTabs).not.toContain('permissions');
+    expect(visibleTabs).not.toContain('business');
+    expect(visibleTabs).not.toContain('recommendations');
+    expect(visibleTabs).not.toContain('introductions');
   });
 });

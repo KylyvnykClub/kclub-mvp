@@ -489,6 +489,7 @@
         "account": "Account",
         "catalog": "Catalog",
         "business": "Business",
+        "recommendations": "Incoming Recommendations",
         "introductions": "Recommend a Client",
         "profile": "My Account"
       },
@@ -577,6 +578,19 @@
         "description": "Team management, API console, and advanced integrations — exclusively available on the Business plan.",
         "cta": "View Plans →"
       },
+      "recommendations": {
+        "title": "Incoming Recommendations",
+        "empty": "No incoming recommendations from club members yet.",
+        "fromLabel": "from: {name}",
+        "statusSubmitted": "New",
+        "statusInReview": "In review",
+        "statusApproved": "Accepted",
+        "statusRejected": "Rejected",
+        "statusCompleted": "Completed",
+        "statusCanceled": "Canceled",
+        "actionComplete": "Complete",
+        "actionReject": "Decline"
+      },
       "business": {
         "title": "My Business",
         "description": "Manage your business profile. Submission does not guarantee publication — all profiles are moderated.",
@@ -619,7 +633,6 @@
         "statusBannerPublishedSub": "Your business is live and visible to all club members.",
         "statusBannerRejected": "Application rejected",
         "statusBannerHidden": "Hidden by admin",
-        "incomingRecommendations": "Incoming Recommendations",
         "placementCheckoutCta": "Set Up Placement",
         "placementCheckoutLoading": "Redirecting to payment...",
         "placementCheckoutError": "Could not start checkout. Please try again.",

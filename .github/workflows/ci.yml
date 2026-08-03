@@ -74,6 +74,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
       ADMIN_JWT_SECRET: e2e-admin-jwt-secret-at-least-32-chars
       ADMIN_BOOTSTRAP_OWNER_PHONE: '+15551234567'
+      ADMIN_BOOTSTRAP_OWNER_PASSWORD: 'E2eStaffPass123!'
       ADMIN_STAFF_DEV_OTP: '000000'
       ADMIN_STAFF_DEV_TOTP: '123456'
       ADMIN_STAFF_ALLOWLIST_JSON: '[]'

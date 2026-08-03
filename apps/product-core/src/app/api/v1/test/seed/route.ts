@@ -260,6 +260,74 @@ async function seedScenario(
       };
     }
 
+    case 'business-with-incoming-introduction': {
+      // Business owner (target) who signs in and sees an APPROVED incoming
+      // recommendation in the "Входящие рекомендации" cabinet tab.
+      const [owner] = await db
+        .insert(schema.users)
+        .values({
+          phone: testPhone,
+          display_name: `E2E Intro Owner ${timestamp}`,
+          locale_preference: 'en',
+          terms_accepted_at: new Date(),
+          status: 'ACTIVE',
+          membership_tier: 'VIP',
+          supabase_auth_user_id: crypto.randomUUID(),
+        })
+        .returning();
+
+      await createActiveVipSubscription(owner!.id, `vip-intro-${timestamp}`);
+      await createActiveCard(owner!.id, 'VIP', `VIP-${timestamp.toString().slice(-6)}`);
+
+      const relations = await getBusinessRelations();
+
+      const [business] = await db
+        .insert(schema.businessProfiles)
+        .values({
+          user_id: owner!.id,
+          name: `E2E Intro Business ${timestamp}`,
+          slug: `e2e-intro-${timestamp}`,
+          representative_name: 'E2E Rep',
+          representative_email: `e2e-intro-${timestamp}@test.com`,
+          representative_phone: testPhone,
+          country_id: relations.countryId,
+          city_id: relations.cityId,
+          category_id: relations.categoryId,
+          status: 'PUBLISHED',
+        })
+        .returning();
+
+      // Requester (the introducer) — surfaces as requesterDisplayName on the card.
+      const [requester] = await db
+        .insert(schema.users)
+        .values({
+          phone: `+1${(timestamp + 1).toString().slice(-10)}`,
+          display_name: `E2E Intro Requester ${timestamp}`,
+          locale_preference: 'en',
+          terms_accepted_at: new Date(),
+          status: 'ACTIVE',
+          supabase_auth_user_id: crypto.randomUUID(),
+        })
+        .returning();
+
+      await db.insert(schema.businessIntroductions).values({
+        requester_user_id: requester!.id,
+        target_business_id: business!.id,
+        // APPROVED = admin already moderated; owner now sees Complete/Reject actions.
+        status: 'APPROVED',
+        client_name: 'E2E Client Name',
+        client_contact: '+1 555 010 2030',
+        message: 'E2E incoming recommendation message',
+      });
+
+      return {
+        userId: owner!.id,
+        phone: testPhone,
+        businessId: business!.id,
+        businessSlug: business!.slug,
+      };
+    }
+
     case 'staff-owner': {
       // Staff users come from ADMIN_STAFF_ALLOWLIST_JSON env var
       // Return the bootstrap owner phone for login

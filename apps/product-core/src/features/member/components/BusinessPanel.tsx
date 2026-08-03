@@ -1,18 +1,12 @@
 import { getTranslations } from 'next-intl/server';
 
-import type {
-  BusinessIncomingIntroductionDto,
-  CurrentMemberProfileDto,
-  MemberBusinessProfileDto,
-} from '@kclub/contracts';
+import type { CurrentMemberProfileDto, MemberBusinessProfileDto } from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 import { getOwnBusinesses } from '@/server/services/business-service';
-import { getIncomingIntroductions } from '@/server/services/introduction-service';
 import { getDbClient, schema } from '@/server/db';
 import { and, asc, eq, inArray } from 'drizzle-orm';
-import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 import { Badge } from '@/components/reui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { BusinessForm } from './BusinessForm';
@@ -74,19 +68,16 @@ export async function BusinessPanel({
 
   const activeBusiness = ownBusinesses.find((b) => b.status !== 'REJECTED');
   const businessIds = ownBusinesses.map((b) => b.id);
-  const [incomingIntroductions, paidPlacements] = await Promise.all([
-    activeBusiness ? getIncomingIntroductions(activeBusiness.id) : [],
-    businessIds.length
-      ? db.query.subscriptions.findMany({
-          where: and(
-            inArray(schema.subscriptions.business_profile_id, businessIds),
-            eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'),
-            eq(schema.subscriptions.status, 'ACTIVE'),
-          ),
-          columns: { business_profile_id: true },
-        })
-      : [],
-  ]);
+  const paidPlacements = businessIds.length
+    ? await db.query.subscriptions.findMany({
+        where: and(
+          inArray(schema.subscriptions.business_profile_id, businessIds),
+          eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'),
+          eq(schema.subscriptions.status, 'ACTIVE'),
+        ),
+        columns: { business_profile_id: true },
+      })
+    : [];
   const paidBusinessIds = new Set(paidPlacements.map((s) => s.business_profile_id));
 
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
@@ -134,15 +125,6 @@ export async function BusinessPanel({
           </FrontCard>
         )}
 
-        {incomingIntroductions.length > 0 && (
-          <FrontCard>
-            <FrontCardHeader title={t('incomingRecommendations')} />
-            <div className="p-6 sm:p-8">
-              <IncomingIntroductionsList introductions={incomingIntroductions} locale={locale} />
-            </div>
-          </FrontCard>
-        )}
-
         {editBusiness && (
           <FrontCard>
             <FrontCardHeader title={t('editTitle')} />
@@ -184,79 +166,6 @@ function FrontCardHeader({ title }: { title: string }) {
       <h3 className="text-base font-semibold text-foreground">{title}</h3>
     </div>
   );
-}
-
-const INTRO_STATUS_LABELS: Record<string, string> = {
-  SUBMITTED: 'Новая',
-  IN_REVIEW: 'На рассмотрении',
-  APPROVED: 'Принята',
-  REJECTED: 'Отклонена',
-  COMPLETED: 'Завершена',
-  CANCELED: 'Отменена',
-};
-
-function IncomingIntroductionsList({
-  introductions,
-  locale: _locale,
-}: {
-  introductions: BusinessIncomingIntroductionDto[];
-  locale: Locale;
-}) {
-  return (
-    <div className="divide-y divide-border">
-      {introductions.map((intro) => (
-        <div key={intro.id} className="py-5 first:pt-0 last:pb-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 space-y-1">
-              <p className="text-sm font-semibold text-foreground">{intro.clientName}</p>
-              <p className="text-xs text-muted-foreground">{intro.clientContact}</p>
-              {intro.message && (
-                <p className="text-sm leading-relaxed text-muted-foreground">{intro.message}</p>
-              )}
-              {intro.requesterDisplayName && (
-                <p className="text-xs text-muted">от: {intro.requesterDisplayName}</p>
-              )}
-            </div>
-            <Badge variant="outline" className="shrink-0">
-              {INTRO_STATUS_LABELS[intro.status] ?? intro.status}
-            </Badge>
-          </div>
-          <IncomingIntroductionActions intro={intro} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function IncomingIntroductionActions({ intro }: { intro: BusinessIncomingIntroductionDto }) {
-  if (intro.status === 'APPROVED') {
-    return (
-      <div className="mt-3 flex gap-3">
-        <form action={`/api/v1/me/business/introductions/${intro.id}/complete`} method="POST">
-          <CabinetButton
-            type="submit"
-            tone="link"
-            density="compact"
-            className="h-auto px-0 py-0 text-xs text-success underline hover:bg-transparent"
-          >
-            Завершить
-          </CabinetButton>
-        </form>
-        <form action={`/api/v1/me/business/introductions/${intro.id}/reject`} method="POST">
-          <CabinetButton
-            type="submit"
-            tone="link"
-            density="compact"
-            className="h-auto px-0 py-0 text-xs text-destructive underline hover:bg-transparent"
-          >
-            Отклонить
-          </CabinetButton>
-        </form>
-      </div>
-    );
-  }
-
-  return null;
 }
 
 function BusinessStatusBanner({

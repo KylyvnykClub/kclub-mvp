@@ -14,23 +14,34 @@ export class DashboardPage {
     await this.page.goto(`/${this.locale}/m/dashboard`);
   }
 
-  getTab(tabName: string): Locator {
+  // Cabinet tabs are Radix TabsTrigger (role="tab"); target them by their
+  // accessible label (the reliable selector — data-testid does not surface on
+  // the Radix trigger). Labels are the en messages (e2e default locale).
+  private tabLabel(tabName: string): string {
     switch (tabName) {
       case 'details':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_DETAILS).first();
-      case 'card':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_CARD).first();
-      case 'subscription':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_SUBSCRIPTION).first();
-      case 'settings':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_SETTINGS).first();
-      // legacy aliases
       case 'account':
       case 'profile':
-        return this.page.locator(SELECTORS.DASHBOARD_TAB_ACCOUNT).first();
+        return 'Account';
+      case 'card':
+        return 'Card';
+      case 'subscription':
+        return 'Subscription';
+      case 'business':
+        return 'Business';
+      case 'recommendations':
+        return 'Incoming Recommendations';
+      case 'introductions':
+        return 'Recommend a Client';
+      case 'settings':
+        return 'Settings';
       default:
-        return this.page.locator('body').first();
+        return tabName;
     }
+  }
+
+  getTab(tabName: string): Locator {
+    return this.page.getByRole('tab', { name: this.tabLabel(tabName) }).first();
   }
 
   async clickTab(tabName: string): Promise<void> {
@@ -38,16 +49,22 @@ export class DashboardPage {
   }
 
   async getVisibleTabNames(): Promise<string[]> {
-    const tabs = ['details', 'card', 'subscription', 'settings'];
-    const visibleTabs: string[] = [];
+    // Wait for the tab bar to hydrate, then read every rendered tab at once and
+    // map its label back to the tab key (more robust than probing each key).
+    await this.getTab('details').waitFor({ state: 'visible', timeout: 15_000 });
 
-    for (const tab of tabs) {
-      if (await this.getTab(tab).isVisible()) {
-        visibleTabs.push(tab);
-      }
-    }
+    const labelToKey: Record<string, string> = {
+      Account: 'details',
+      Card: 'card',
+      Subscription: 'subscription',
+      Business: 'business',
+      'Incoming Recommendations': 'recommendations',
+      'Recommend a Client': 'introductions',
+      Settings: 'settings',
+    };
 
-    return visibleTabs;
+    const labels = await this.page.getByRole('tab').allInnerTexts();
+    return labels.map((label) => labelToKey[label.trim()]).filter((key): key is string => !!key);
   }
 
   get cardNumber(): Locator {

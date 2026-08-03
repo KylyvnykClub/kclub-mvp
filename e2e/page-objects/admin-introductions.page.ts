@@ -9,7 +9,7 @@ export class AdminIntroductionsPage {
   }
 
   async goto(): Promise<void> {
-    await this.page.goto('/introductions');
+    await this.page.goto('/dashboard/introductions');
   }
 
   get table(): Locator {

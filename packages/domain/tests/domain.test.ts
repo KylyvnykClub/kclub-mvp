@@ -165,7 +165,7 @@ describe('member capability policies', () => {
     });
 
     const vipTabs = ['details', 'settings', 'introductions'] as const;
-    const businessTabs = ['details', 'business', 'settings'] as const;
+    const businessTabs = ['details', 'business', 'recommendations', 'settings'] as const;
     const vipBusinessTabs = businessTabs;
 
     expect(getVisibleDashboardTabs(member)).toEqual(baseTabs);
@@ -178,6 +178,9 @@ describe('member capability policies', () => {
     expect(canAccessDashboardTab(vip, 'introductions')).toBe(true);
     expect(canAccessDashboardTab(vip, 'business')).toBe(false);
     expect(canAccessDashboardTab(memberWithBusiness, 'business')).toBe(true);
+    expect(canAccessDashboardTab(memberWithBusiness, 'recommendations')).toBe(true);
+    expect(canAccessDashboardTab(member, 'recommendations')).toBe(false);
+    expect(canAccessDashboardTab(vip, 'recommendations')).toBe(false);
     expect(canAccessDashboardTab(memberWithBusiness, 'audit')).toBe(false);
     expect(canAccessDashboardTab(memberWithBusiness, 'introductions')).toBe(false);
     expect(canAccessDashboardTab(vipWithBusiness, 'introductions')).toBe(false);

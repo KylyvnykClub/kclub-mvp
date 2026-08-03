@@ -51,7 +51,9 @@ describe('AccountPanel', () => {
       />,
     );
 
-    const vipButton = screen.getByRole('button', { name: /member\.dashboard\.account\.vipButtonTitle/i });
+    const vipButton = screen.getByRole('button', {
+      name: /member\.dashboard\.account\.vipButtonTitle/i,
+    });
 
     expect(vipButton.getAttribute('aria-disabled')).toBe('true');
     expect(vipButton.getAttribute('aria-pressed')).toBe('true');
@@ -61,7 +63,9 @@ describe('AccountPanel', () => {
   test('keeps the VIP upgrade card actionable for regular members', () => {
     render(<AccountPanel locale="en" profile={baseProfile} cardNumber="MEM-001" />);
 
-    const vipButton = screen.getByRole('button', { name: /member\.dashboard\.account\.vipButtonTitle/i });
+    const vipButton = screen.getByRole('button', {
+      name: /member\.dashboard\.account\.vipButtonTitle/i,
+    });
 
     expect(vipButton.getAttribute('aria-disabled')).toBe('false');
     expect(vipButton.getAttribute('aria-pressed')).toBe('false');

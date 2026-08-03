@@ -47,7 +47,9 @@ export function DashboardTabsClient({
   }, [activeTab, locale]);
 
   const showIntroductionsNotice =
-    pendingIntroductionsCount > 0 && visibleTabs.includes('business') && activeTab !== 'business';
+    pendingIntroductionsCount > 0 &&
+    visibleTabs.includes('recommendations') &&
+    activeTab !== 'recommendations';
 
   return (
     <MemberCabinetShell
@@ -60,7 +62,7 @@ export function DashboardTabsClient({
       contactLine={contactLine}
       tabsAriaLabel={tabsAriaLabel}
       lockLabels={lockLabels}
-      tabBadges={{ business: pendingIntroductionsCount }}
+      tabBadges={{ recommendations: pendingIntroductionsCount }}
       onTabChange={setActiveTab}
     >
       {showIntroductionsNotice && (
@@ -73,7 +75,7 @@ export function DashboardTabsClient({
                 type="button"
                 tone="link"
                 density="compact"
-                onClick={() => setActiveTab('business')}
+                onClick={() => setActiveTab('recommendations')}
                 className="h-auto px-0 py-0 text-xs text-accent underline hover:bg-transparent hover:text-accent-hover"
               >
                 {introductionsNotice.cta}

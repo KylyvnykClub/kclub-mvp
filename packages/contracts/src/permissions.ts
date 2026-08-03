@@ -121,6 +121,7 @@ export const MEMBER_DASHBOARD_TABS = [
   'account',
   'catalog',
   'business',
+  'recommendations',
   'introductions',
   'settings',
   'details',

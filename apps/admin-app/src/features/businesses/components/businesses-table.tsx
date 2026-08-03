@@ -3,9 +3,10 @@
 import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, RefreshCw } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { AdminFilterBar } from '@/components/admin-filter-bar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,13 +17,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Table,
   TableBody,
   TableCell,
@@ -31,7 +25,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { AdminPagination } from '@/components/admin-pagination';
-import { cn } from '@/lib/utils';
 import type { AdminBusinessListItemDto, StaffRole } from '@kclub/contracts';
 
 const BUSINESS_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'PUBLISHED', 'REJECTED', 'HIDDEN'] as const;
@@ -180,38 +173,39 @@ export function BusinessesTable({
 
   return (
     <div className="bg-card rounded-xl border">
-      <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
-        <div className="hidden sm:block" />
-        <div className="flex items-center gap-2 sm:ml-auto">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              startTransition(() => {
-                router.refresh();
-              });
-            }}
-            disabled={isPending}
-            aria-label="Refresh data"
-            title="Refresh data"
-          >
-            <RefreshCw className={cn('h-4 w-4', isPending && 'animate-spin')} />
-          </Button>
-          <Select value={statusFilter} onValueChange={handleStatusChange}>
-            <SelectTrigger className="min-w-0 flex-1 sm:w-[180px] sm:flex-none">
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {BUSINESS_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <AdminFilterBar
+        variant="embedded"
+        fields={[
+          {
+            id: 'businesses-status-filter',
+            kind: 'select',
+            label: 'Status',
+            value: statusFilter,
+            placeholder: 'All statuses',
+            options: [
+              { label: 'All statuses', value: 'all' },
+              ...BUSINESS_STATUSES.map((status) => ({
+                label: status.replaceAll('_', ' '),
+                value: status,
+              })),
+            ],
+            onValueChange: handleStatusChange,
+          },
+        ]}
+        activeFilterCount={statusFilter === 'all' ? 0 : 1}
+        isPending={isPending}
+        onRefresh={() => {
+          startTransition(() => {
+            router.refresh();
+          });
+        }}
+        onReset={() => {
+          setStatusFilter('all');
+          startTransition(() => {
+            router.push(buildUrl({ page: 1, status: 'all' }));
+          });
+        }}
+      />
       <div
         className={
           isPending ? 'pointer-events-none opacity-60 transition-opacity' : 'transition-opacity'

@@ -7,7 +7,10 @@ export async function POST(request: Request): Promise<Response> {
   const token = getBearerToken(request);
   if (!token) {
     return Response.json(
-      { data: null, error: { code: ERROR_CODES.AUTH_SESSION_REQUIRED, message: 'Session required' } },
+      {
+        data: null,
+        error: { code: ERROR_CODES.AUTH_SESSION_REQUIRED, message: 'Session required' },
+      },
       { status: 401 },
     );
   }
@@ -23,7 +26,10 @@ export async function POST(request: Request): Promise<Response> {
   const alreadyVerified = await hasVerifiedTotp(profile.id);
   if (alreadyVerified) {
     return Response.json(
-      { data: null, error: { code: ERROR_CODES.RESOURCE_CONFLICT, message: 'TOTP already configured' } },
+      {
+        data: null,
+        error: { code: ERROR_CODES.RESOURCE_CONFLICT, message: 'TOTP already configured' },
+      },
       { status: 409 },
     );
   }

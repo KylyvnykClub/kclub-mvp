@@ -241,7 +241,7 @@ export function IntroductionsPanel({
           )}
 
           {submitSuccess && (
-            <Alert variant="success">
+            <Alert variant="success" data-testid="intro-submit-success">
               <AlertDescription>{t('submitSuccess')}</AlertDescription>
             </Alert>
           )}
@@ -256,7 +256,10 @@ export function IntroductionsPanel({
                 onValueChange={(value) => setSelectedTargetBusinessId(value ?? '')}
                 required
               >
-                <SelectTrigger className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}>
+                <SelectTrigger
+                  data-testid="intro-target-business"
+                  className={cn('w-full', INTRODUCTION_FORM_CONTROL_CLASSES)}
+                >
                   <SelectValue placeholder={t('selectPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent className={INTRODUCTION_SELECT_CONTENT_CLASSES}>
@@ -281,6 +284,7 @@ export function IntroductionsPanel({
               </label>
               <Input
                 id="introduction-client-name"
+                data-testid="intro-client-name"
                 type="text"
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
@@ -295,6 +299,7 @@ export function IntroductionsPanel({
               </label>
               <Input
                 id="introduction-client-phone"
+                data-testid="intro-client-phone"
                 type="tel"
                 value={clientPhone}
                 onChange={(e) => setClientPhone(e.target.value)}
@@ -366,6 +371,7 @@ export function IntroductionsPanel({
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              data-testid="intro-message"
               maxLength={500}
               rows={3}
               placeholder={t('messagePlaceholder')}
@@ -375,6 +381,7 @@ export function IntroductionsPanel({
 
           <CabinetButton
             type="submit"
+            data-testid="intro-submit"
             disabled={isSubmitting || availableTargets.length === 0}
             className={INTRODUCTION_FORM_CONTROL_CLASSES}
           >

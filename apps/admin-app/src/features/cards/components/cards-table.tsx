@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, RotateCcw, ShieldX } from 'lucide-react';
+import { RotateCcw, ShieldX } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { AdminFilterBar } from '@/components/admin-filter-bar';
 import { MembershipTierBadge } from '@/components/membership-tier-badge';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
@@ -20,13 +21,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Table,
   TableBody,
   TableCell,
@@ -37,7 +31,6 @@ import {
 import { AdminPagination } from '@/components/admin-pagination';
 import {
   AdminList,
-  AdminListFilters,
   AdminTableCard,
   AdminTableDesktop,
   AdminTableMobile,
@@ -228,61 +221,70 @@ export function CardsTable({
     if (toPage > 1) params.set('page', String(toPage));
     if (limit !== 20) params.set('limit', String(limit));
     if (search) params.set('search', search);
-    if (statusFilter) params.set('status', statusFilter);
-    if (tierFilter) params.set('membershipTier', tierFilter);
+    if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+    if (tierFilter && tierFilter !== 'all') params.set('membershipTier', tierFilter);
     router.push(`/dashboard/cards${params.toString() ? '?' + params.toString() : ''}`);
   }
 
   function handleFilterChange() {
     const params = new URLSearchParams();
     if (search) params.set('search', search);
-    if (statusFilter) params.set('status', statusFilter);
-    if (tierFilter) params.set('membershipTier', tierFilter);
+    if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+    if (tierFilter && tierFilter !== 'all') params.set('membershipTier', tierFilter);
     router.push(`/dashboard/cards${params.toString() ? '?' + params.toString() : ''}`);
   }
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    handleFilterChange();
-  }
+  const activeFilterCount =
+    (search.trim() ? 1 : 0) + (statusFilter !== 'all' ? 1 : 0) + (tierFilter !== 'all' ? 1 : 0);
 
   return (
     <AdminList>
-      <AdminListFilters as="form" onSubmit={handleSearch}>
-        <div className="relative w-full sm:min-w-[200px] sm:max-w-sm sm:flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            className="pl-8"
-            placeholder="Search by phone or name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="min-w-0 flex-1 sm:w-[140px] sm:flex-none">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="REVOKED">Revoked</SelectItem>
-            <SelectItem value="EXPIRED">Expired</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={tierFilter} onValueChange={setTierFilter}>
-          <SelectTrigger className="min-w-0 flex-1 sm:w-[140px] sm:flex-none">
-            <SelectValue placeholder="All tiers" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All tiers</SelectItem>
-            <SelectItem value="MEMBER">Member</SelectItem>
-            <SelectItem value="VIP">VIP</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button type="submit" size="sm">
-          Search
-        </Button>
-      </AdminListFilters>
+      <AdminFilterBar
+        search={{
+          label: 'Cards',
+          placeholder: 'Search by phone or name',
+          value: search,
+          onValueChange: setSearch,
+        }}
+        fields={[
+          {
+            id: 'cards-status-filter',
+            kind: 'select',
+            label: 'Status',
+            value: statusFilter,
+            placeholder: 'All statuses',
+            options: [
+              { label: 'All statuses', value: 'all' },
+              { label: 'Active', value: 'ACTIVE' },
+              { label: 'Revoked', value: 'REVOKED' },
+              { label: 'Expired', value: 'EXPIRED' },
+            ],
+            onValueChange: setStatusFilter,
+          },
+          {
+            id: 'cards-tier-filter',
+            kind: 'select',
+            label: 'Membership tier',
+            value: tierFilter,
+            placeholder: 'All tiers',
+            options: [
+              { label: 'All tiers', value: 'all' },
+              { label: 'Member', value: 'MEMBER' },
+              { label: 'VIP', value: 'VIP' },
+            ],
+            onValueChange: setTierFilter,
+          },
+        ]}
+        activeFilterCount={activeFilterCount}
+        onSubmit={handleFilterChange}
+        onReset={() => {
+          setSearch('');
+          setStatusFilter('all');
+          setTierFilter('all');
+          router.push('/dashboard/cards');
+        }}
+        submitLabel="Search"
+      />
 
       <AdminTableCard>
         <AdminTableDesktop>

@@ -18,6 +18,10 @@ export class SignUpPage {
     await this.page.locator(SELECTORS.AUTH_PHONE_INPUT).first().fill(phone);
   }
 
+  async fillPassword(password: string): Promise<void> {
+    await this.page.locator('[data-testid="auth-password-input"]').first().fill(password);
+  }
+
   async acceptTerms(): Promise<void> {
     await this.page.locator(SELECTORS.AUTH_TERMS_CHECKBOX).first().check();
   }

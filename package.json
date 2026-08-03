@@ -37,7 +37,11 @@
     "vitest": "^3.2.0"
   },
   "dependencies": {
-    "admin-app": "^2.37.8",
     "jsvectormap": "^1.7.0"
+  },
+  "pnpm": {
+    "neverBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }

@@ -84,6 +84,7 @@ export function KylyvnykClubCard({
             {name}
           </div>
           <div
+            data-testid="card-number"
             className="mt-0.5 max-w-full truncate text-center text-sm font-medium uppercase tracking-widest sm:mt-1 sm:text-lg lg:text-xl"
             style={CARD_TEXT}
           >

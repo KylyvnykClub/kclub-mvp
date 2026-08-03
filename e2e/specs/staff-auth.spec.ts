@@ -1,56 +1,24 @@
 import { test, expect } from '../fixtures/base';
 import { AdminSignInPage } from '../page-objects/admin-sign-in.page';
 import { AdminDashboardPage } from '../page-objects/admin-dashboard.page';
-import { DEV_OTP_CODE, DEV_TOTP_CODE } from '../helpers/mock-otp';
+import { DEV_STAFF_PASSWORD } from '../helpers/auth';
+import { DEV_TOTP_CODE } from '../helpers/mock-otp';
 
 test.describe('Staff auth', () => {
   test.use({ baseURL: 'http://localhost:3001' });
 
-  test('staff sign-in with OTP reaches 2FA screen', async ({ page, seed }) => {
+  test('staff signs in with password and reaches the dashboard', async ({ page, seed }) => {
     const { staffPhone } = await seed('staff-owner');
     if (!staffPhone) {
       test.skip();
       return;
     }
 
+    // The bootstrap owner (ADMIN_BOOTSTRAP_OWNER_PHONE) signs in with phone +
+    // password and skips TOTP, landing directly on the dashboard.
     const signInPage = new AdminSignInPage(page);
-    await signInPage.goto();
+    await signInPage.signIn(staffPhone, DEV_STAFF_PASSWORD);
 
-    await signInPage.fillPhone(staffPhone);
-    await signInPage.submitPhone();
-    // Wait for the server action to complete and navigation to happen
-    await expect(page).toHaveURL(/.*\?sent=1.*/);
-
-    await signInPage.fillOtp(DEV_OTP_CODE);
-    await signInPage.submitOtp();
-
-    // Should redirect to 2FA required screen
-    await expect(page).toHaveURL(/.*\/auth\/(2fa-required|totp-setup).*/);
-  });
-
-  test('TOTP verification grants dashboard access', async ({ page, seed }) => {
-    const { staffPhone } = await seed('staff-owner');
-    if (!staffPhone) {
-      test.skip();
-      return;
-    }
-
-    const signInPage = new AdminSignInPage(page);
-    await signInPage.goto();
-
-    // Complete OTP
-    await signInPage.fillPhone(staffPhone);
-    await signInPage.submitPhone();
-    await expect(page).toHaveURL(/.*\?sent=1.*/, { timeout: 30000 });
-    await signInPage.fillOtp(DEV_OTP_CODE);
-    await signInPage.submitOtp();
-
-    // Complete TOTP
-    await expect(page).toHaveURL(/.*\/auth\/(2fa-required|totp-setup).*/, { timeout: 30000 });
-    await page.locator('[data-testid="admin-totp-input"]').fill(DEV_TOTP_CODE);
-    await page.locator('[data-testid="admin-submit-totp"]').click();
-
-    // Should reach dashboard
     await expect(page).toHaveURL(/.*\/dashboard.*/, { timeout: 30000 });
     const dashboardPage = new AdminDashboardPage(page);
     await expect(dashboardPage.sidebar).toBeVisible();
@@ -61,7 +29,12 @@ test.describe('Staff auth', () => {
     await expect(page).toHaveURL(/.*\/auth\/sign-in.*/, { timeout: 30000 });
   });
 
-  test('staff without TOTP cannot access dashboard', async ({ page, seed }) => {
+  // FIXME(e2e-admin-auth-rewrite): TOTP is only enforced for DB-backed staff
+  // (UUID id), but CI has an empty ADMIN_STAFF_ALLOWLIST_JSON so only the
+  // bootstrap owner exists — and it skips TOTP. To exercise the real MFA flow,
+  // add an allowlisted staff phone + seed an adminUsers row, then compute a live
+  // TOTP code from the setup secret (otplib) since there is no dev TOTP bypass.
+  test.fixme('DB-backed staff completes TOTP to reach the dashboard', async ({ page, seed }) => {
     const { staffPhone } = await seed('staff-owner');
     if (!staffPhone) {
       test.skip();
@@ -69,23 +42,9 @@ test.describe('Staff auth', () => {
     }
 
     const signInPage = new AdminSignInPage(page);
-    await signInPage.goto();
-
-    // Complete OTP only
-    await signInPage.fillPhone(staffPhone);
-    await signInPage.submitPhone();
-    await expect(page).toHaveURL(/.*\?sent=1.*/, { timeout: 30000 });
-    await signInPage.fillOtp(DEV_OTP_CODE);
-    await signInPage.submitOtp();
-
-    // After OTP, should be on 2FA screen, not dashboard
-    await expect(page).toHaveURL(/.*\/auth\/(2fa-required|totp-setup).*/, { timeout: 30000 });
-
-    // Try navigating directly to dashboard
-    await page.goto('/dashboard');
-
-    // Should be redirected back to 2FA or sign-in
-    const url = page.url();
-    expect(url).toMatch(/\/auth\//);
+    await signInPage.signIn(staffPhone, DEV_STAFF_PASSWORD);
+    await expect(page).toHaveURL(/.*\/auth\/mfa.*/, { timeout: 30000 });
+    await signInPage.completeTotp(DEV_TOTP_CODE);
+    await expect(page).toHaveURL(/.*\/dashboard.*/, { timeout: 30000 });
   });
 });

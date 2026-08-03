@@ -37,9 +37,7 @@ export async function setupTotp(
   const backupCodes = Array.from({ length: BACKUP_CODE_COUNT }, () =>
     randomBytes(4).toString('hex'),
   );
-  const backupHashes = backupCodes.map((code) =>
-    createHash('sha256').update(code).digest('hex'),
-  );
+  const backupHashes = backupCodes.map((code) => createHash('sha256').update(code).digest('hex'));
 
   const ciphertext = encryptSecret(secret);
 
@@ -64,10 +62,7 @@ export async function setupTotp(
   return { uri, backupCodes };
 }
 
-export async function verifyAndActivateTotp(
-  adminUserId: string,
-  code: string,
-): Promise<boolean> {
+export async function verifyAndActivateTotp(adminUserId: string, code: string): Promise<boolean> {
   const db = getDbClient();
   const record = await db.query.admin2fa.findFirst({
     where: eq(schema.admin2fa.admin_user_id, adminUserId),
@@ -93,10 +88,7 @@ export async function verifyAndActivateTotp(
   return true;
 }
 
-export async function verifyTotpCode(
-  adminUserId: string,
-  code: string,
-): Promise<boolean> {
+export async function verifyTotpCode(adminUserId: string, code: string): Promise<boolean> {
   const db = getDbClient();
   const record = await db.query.admin2fa.findFirst({
     where: eq(schema.admin2fa.admin_user_id, adminUserId),

@@ -20,6 +20,7 @@ import { AccountPanel } from './AccountPanel';
 import { BusinessPanel } from './BusinessPanel';
 import { DashboardTabsClient } from './DashboardTabsClient';
 import { IntroductionsPanel } from './IntroductionsPanel';
+import { RecommendationsPanel } from './RecommendationsPanel';
 import { SettingsPanel } from './SettingsPanel';
 
 type DashboardTabsProps = {
@@ -52,6 +53,7 @@ export async function DashboardTabs({
   const tabLabels: Record<ImplementedMemberDashboardTab, string> = {
     details: t('tabs.details'),
     business: t('tabs.business'),
+    recommendations: t('tabs.recommendations'),
     introductions: t('tabs.introductions'),
     settings: t('tabs.settings'),
   };
@@ -100,6 +102,8 @@ export async function DashboardTabs({
       ) : (
         <BusinessPanel locale={locale} profile={profile} />
       );
+    } else if (tab === 'recommendations') {
+      panels.recommendations = <RecommendationsPanel locale={locale} profile={profile} />;
     } else if (tab === 'settings') {
       panels.settings = (
         <SettingsPanel countryOptions={countryOptions} locale={locale} profile={profile} />

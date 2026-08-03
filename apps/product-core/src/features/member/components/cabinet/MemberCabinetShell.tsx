@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, CreditCard, Handshake, Phone, Settings, UserRound } from 'lucide-react';
+import { Building2, CreditCard, Handshake, Inbox, Phone, Settings, UserRound } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import type { CurrentMemberProfileDto, UserContext } from '@kclub/contracts';
@@ -55,6 +55,7 @@ function getPrimaryTabs(
 const DASHBOARD_TAB_ICONS: Partial<Record<ImplementedMemberDashboardTab, LucideIcon>> = {
   details: UserRound,
   business: Building2,
+  recommendations: Inbox,
   introductions: Handshake,
 };
 
@@ -80,9 +81,16 @@ function renderTabTriggers({
     const badgeCount = tabBadges?.[tab] ?? 0;
 
     return (
-      <TabsTrigger key={tab} value={tab} className={cn(itemClassName, locked && 'text-muted')}>
+      <TabsTrigger
+        key={tab}
+        value={tab}
+        data-testid={`dashboard-tab-${tab}`}
+        className={cn('min-w-0', itemClassName, locked && 'text-muted')}
+      >
         {TabIcon ? <TabIcon size={16} aria-hidden /> : null}
-        <span>{tabLabels[tab]}</span>
+        <span className="min-w-0 whitespace-normal break-words text-left leading-snug">
+          {tabLabels[tab]}
+        </span>
         {locked && lockLabel ? (
           <Badge variant="outline" size="xs">
             {lockLabels[lockLabel]}

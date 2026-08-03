@@ -2,19 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
 
+import { AdminFilterBar } from '@/components/admin-filter-bar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -26,7 +16,6 @@ import {
 import { AdminPagination } from '@/components/admin-pagination';
 import {
   AdminList,
-  AdminListFilters,
   AdminTableCard,
   AdminTableDesktop,
   AdminTableMobile,
@@ -50,6 +39,9 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
   const [entityType, setEntityType] = useState(initialFilters.entityType ?? '');
   const [dateFrom, setDateFrom] = useState(initialFilters.dateFrom ?? '');
   const [dateTo, setDateTo] = useState(initialFilters.dateTo ?? '');
+  const activeFilterCount = [action, actorRole, entityType, dateFrom, dateTo].filter(
+    Boolean,
+  ).length;
 
   function applyFilters() {
     const params = new URLSearchParams();
@@ -76,84 +68,71 @@ export function AuditTable({ logs, total, page, limit, filters: initialFilters }
 
   return (
     <AdminList>
-      <AdminListFilters>
-        <div className="space-y-1">
-          <Label htmlFor="action" className="text-xs">
-            Action
-          </Label>
-          <Select value={action} onValueChange={setAction}>
-            <SelectTrigger id="action">
-              <SelectValue placeholder="All actions" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All actions</SelectItem>
-              {AUDIT_ACTIONS.map((a) => (
-                <SelectItem key={a} value={a}>
-                  {a}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="role" className="text-xs">
-            Staff Role
-          </Label>
-          <Select value={actorRole} onValueChange={setActorRole}>
-            <SelectTrigger id="role">
-              <SelectValue placeholder="All roles" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All roles</SelectItem>
-              {STAFF_ROLES.map((r) => (
-                <SelectItem key={r} value={r}>
-                  {r}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="entityType" className="text-xs">
-            Entity Type
-          </Label>
-          <Input
-            id="entityType"
-            placeholder="e.g. User"
-            value={entityType}
-            onChange={(e) => setEntityType(e.target.value)}
-            className="h-9 w-40"
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="dateFrom" className="text-xs">
-            From
-          </Label>
-          <Input
-            id="dateFrom"
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="h-9"
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="dateTo" className="text-xs">
-            To
-          </Label>
-          <Input
-            id="dateTo"
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="h-9"
-          />
-        </div>
-        <Button size="sm" onClick={applyFilters} className="mb-0.5">
-          <Search className="mr-1 h-4 w-4" />
-          Apply
-        </Button>
-      </AdminListFilters>
+      <AdminFilterBar
+        fields={[
+          {
+            id: 'audit-action-filter',
+            kind: 'select',
+            label: 'Action',
+            value: action,
+            placeholder: 'All actions',
+            options: [
+              { label: 'All actions', value: '' },
+              ...AUDIT_ACTIONS.map((auditAction) => ({
+                label: auditAction.replaceAll('_', ' '),
+                value: auditAction,
+              })),
+            ],
+            onValueChange: setAction,
+          },
+          {
+            id: 'audit-role-filter',
+            kind: 'select',
+            label: 'Staff role',
+            value: actorRole,
+            placeholder: 'All roles',
+            options: [
+              { label: 'All roles', value: '' },
+              ...STAFF_ROLES.map((role) => ({ label: role, value: role })),
+            ],
+            onValueChange: setActorRole,
+          },
+          {
+            id: 'audit-entity-filter',
+            kind: 'input',
+            label: 'Entity type',
+            value: entityType,
+            placeholder: 'Entity type',
+            onValueChange: setEntityType,
+          },
+          {
+            id: 'audit-date-from-filter',
+            kind: 'input',
+            label: 'From date',
+            type: 'date',
+            value: dateFrom,
+            onValueChange: setDateFrom,
+          },
+          {
+            id: 'audit-date-to-filter',
+            kind: 'input',
+            label: 'To date',
+            type: 'date',
+            value: dateTo,
+            onValueChange: setDateTo,
+          },
+        ]}
+        activeFilterCount={activeFilterCount}
+        onSubmit={applyFilters}
+        onReset={() => {
+          setAction('');
+          setActorRole('');
+          setEntityType('');
+          setDateFrom('');
+          setDateTo('');
+          router.push('/dashboard/audit');
+        }}
+      />
 
       <AdminTableCard>
         <AdminTableDesktop>

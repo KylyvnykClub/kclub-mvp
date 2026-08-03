@@ -42,19 +42,19 @@ export const SELECTORS = {
   ONBOARDING_TERMS_CHECKBOX: 'input[type="checkbox"], button[role="checkbox"]',
   ONBOARDING_SUBMIT: 'button[type="submit"]',
 
-  // Dashboard
-  DASHBOARD_TAB_DETAILS: 'a[href*="tab=details"]',
-  DASHBOARD_TAB_CARD: 'a[href*="tab=card"]',
-  DASHBOARD_TAB_SUBSCRIPTION: 'a[href*="tab=subscription"]',
-  DASHBOARD_TAB_AUDIT: 'a[href*="tab=audit"]',
-  DASHBOARD_TAB_PERMISSIONS: 'a[href*="tab=permissions"]',
-  DASHBOARD_TAB_SETTINGS: 'a[href*="tab=settings"]',
+  // Dashboard — cabinet tabs are Radix TabsTrigger tagged data-testid="dashboard-tab-<value>"
+  DASHBOARD_TAB_DETAILS: '[data-testid="dashboard-tab-details"]',
+  DASHBOARD_TAB_CARD: '[data-testid="dashboard-tab-card"]',
+  DASHBOARD_TAB_SUBSCRIPTION: '[data-testid="dashboard-tab-subscription"]',
+  DASHBOARD_TAB_AUDIT: '[data-testid="dashboard-tab-audit"]',
+  DASHBOARD_TAB_PERMISSIONS: '[data-testid="dashboard-tab-permissions"]',
+  DASHBOARD_TAB_SETTINGS: '[data-testid="dashboard-tab-settings"]',
   // Legacy aliases
-  DASHBOARD_TAB_ACCOUNT: 'a[href*="tab=details"], a[href*="tab=account"]',
-  DASHBOARD_TAB_CATALOG: 'a[href$="/dashboard/catalog"], a[href*="tab=catalog"]',
-  DASHBOARD_TAB_BUSINESS: 'a[href*="tab=business"]',
-  DASHBOARD_TAB_INTRODUCTIONS: 'a[href*="tab=introductions"]',
-  DASHBOARD_TAB_PROFILE: 'a[href*="tab=details"], a[href*="tab=profile"]',
+  DASHBOARD_TAB_ACCOUNT: '[data-testid="dashboard-tab-details"]',
+  DASHBOARD_TAB_CATALOG: '[data-testid="dashboard-tab-catalog"]',
+  DASHBOARD_TAB_BUSINESS: '[data-testid="dashboard-tab-business"]',
+  DASHBOARD_TAB_INTRODUCTIONS: '[data-testid="dashboard-tab-introductions"]',
+  DASHBOARD_TAB_PROFILE: '[data-testid="dashboard-tab-details"]',
 
   // Card display
   CARD_NUMBER: 'body',
