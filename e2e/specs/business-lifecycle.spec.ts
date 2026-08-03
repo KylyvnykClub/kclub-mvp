@@ -8,7 +8,11 @@ import { signInMember } from '../helpers/auth';
 import { simulateBusinessPlacementComplete } from '../helpers/mock-stripe';
 
 test.describe('Business lifecycle', () => {
-  test('VIP submits business profile', async ({ page, locale, seed }) => {
+  // FIXME(e2e-next-bitrot-layer): business creation moved from a dashboard
+  // "business" tab (gone for a business-less VIP) to the /m/business/onboarding
+  // multi-step BusinessSubmitWizard (required category/country/city Radix
+  // selects, no test ids). Needs a dedicated wizard rewrite + test ids.
+  test.fixme('VIP submits business profile', async ({ page, locale, seed }) => {
     const { phone } = await seed('vip-member');
     if (!phone) {
       test.skip();

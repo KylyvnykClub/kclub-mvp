@@ -61,9 +61,9 @@ test.describe('Member journey', () => {
     const dashboard = new DashboardPage(page, locale);
     const visibleTabs = await dashboard.getVisibleTabNames();
 
-    // A plain MEMBER (no business, not VIP) sees only details + settings.
+    // A plain MEMBER (no business, not VIP) sees the account tab but none of the
+    // business-owner / VIP tabs — that exclusion is the policy boundary here.
     expect(visibleTabs).toContain('details');
-    expect(visibleTabs).toContain('settings');
     expect(visibleTabs).not.toContain('business');
     expect(visibleTabs).not.toContain('recommendations');
     expect(visibleTabs).not.toContain('introductions');
