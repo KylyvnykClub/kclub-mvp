@@ -1,6 +1,10 @@
 import type { Page, Locator } from '@playwright/test';
-import { SELECTORS } from '../helpers/selectors';
 
+/**
+ * Admin staff sign-in — phone + password. The bootstrap owner goes straight to
+ * /dashboard (no TOTP). DB-backed staff would then hit /auth/mfa; completeTotp
+ * is kept for a future TOTP-flow test.
+ */
 export class AdminSignInPage {
   private readonly page: Page;
 
@@ -12,27 +16,15 @@ export class AdminSignInPage {
     await this.page.goto('/auth/sign-in');
   }
 
-  async fillPhone(phone: string): Promise<void> {
-    await this.page.locator(SELECTORS.ADMIN_PHONE_INPUT).first().fill(phone);
+  async signIn(phone: string, password: string): Promise<void> {
+    await this.page.goto('/auth/sign-in');
+    await this.page.locator('[data-testid="admin-phone-input"]').fill(phone);
+    await this.page.locator('[data-testid="admin-password-input"]').fill(password);
+    await this.page.locator('[data-testid="admin-submit-sign-in"]').click();
   }
 
-  async submitPhone(): Promise<void> {
-    await this.page.locator(SELECTORS.ADMIN_SUBMIT_PHONE).first().click();
-  }
-
-  async fillOtp(code: string): Promise<void> {
-    await this.page.locator(SELECTORS.ADMIN_OTP_INPUT).first().fill(code);
-  }
-
-  async submitOtp(): Promise<void> {
-    await this.page.locator(SELECTORS.ADMIN_SUBMIT_OTP).first().click();
-  }
-
-  async fillTotp(code: string): Promise<void> {
-    await this.page.locator(SELECTORS.ADMIN_TOTP_INPUT).first().fill(code);
-  }
-
-  async submitTotp(): Promise<void> {
-    await this.page.locator(SELECTORS.ADMIN_SUBMIT_TOTP).first().click();
+  async completeTotp(code: string): Promise<void> {
+    await this.page.locator('[data-testid="admin-totp-input"]').fill(code);
+    await this.page.locator('[data-testid="admin-submit-totp"]').click();
   }
 }

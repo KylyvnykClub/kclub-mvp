@@ -3,8 +3,8 @@ import { DashboardPage } from '../page-objects/dashboard.page';
 import { MyBusinessPage } from '../page-objects/my-business.page';
 import { DirectoryPage } from '../page-objects/directory.page';
 import { AdminBusinessesPage } from '../page-objects/admin-businesses.page';
-import { DEV_OTP_CODE, DEV_TOTP_CODE } from '../helpers/mock-otp';
-import { signInMember } from '../helpers/auth';
+import { AdminSignInPage } from '../page-objects/admin-sign-in.page';
+import { signInMember, DEV_STAFF_PASSWORD } from '../helpers/auth';
 import { simulateBusinessPlacementComplete } from '../helpers/mock-stripe';
 
 test.describe('Business lifecycle', () => {
@@ -38,9 +38,7 @@ test.describe('Business lifecycle', () => {
     await expect(page.locator('[data-testid="business-status"]')).toContainText(/under.?review/i);
   });
 
-  // FIXME(e2e-auth-flow-stale): admin sign-in migrated to phone+password+TOTP;
-  // this still drives the removed admin OTP flow. Tracked separately.
-  test.fixme('staff approves business in admin', async ({ browser, seed }) => {
+  test('staff approves business in admin', async ({ browser, seed }) => {
     const { businessId } = await seed('vip-with-business');
     const { staffPhone } = await seed('staff-owner');
     if (!businessId || !staffPhone) {
@@ -48,28 +46,17 @@ test.describe('Business lifecycle', () => {
       return;
     }
 
-    // Open admin-app in a separate context
+    // Open admin-app in a separate context and sign in as the bootstrap owner
+    // (phone + password, no TOTP).
     const context = await browser.newContext({ baseURL: 'http://localhost:3001' });
     const adminPage = await context.newPage();
 
-    // Sign in as staff
-    await adminPage.goto('/auth/sign-in');
-    await adminPage.locator('[data-testid="admin-phone-input"]').fill(staffPhone);
-    await adminPage.locator('[data-testid="admin-submit-phone"]').click();
-    await adminPage.locator('[data-testid="admin-otp-input"]').fill(DEV_OTP_CODE);
-    await adminPage.locator('[data-testid="admin-submit-otp"]').click();
-
-    // Handle TOTP
-    await expect(adminPage).toHaveURL(/.*\/auth\/(2fa-required|totp-setup).*/, { timeout: 30000 });
-    await adminPage.locator('[data-testid="admin-totp-input"]').fill(DEV_TOTP_CODE);
-    await adminPage.locator('[data-testid="admin-submit-totp"]').click();
+    const signInPage = new AdminSignInPage(adminPage);
+    await signInPage.signIn(staffPhone, DEV_STAFF_PASSWORD);
     await expect(adminPage).toHaveURL(/.*\/dashboard.*/, { timeout: 30000 });
 
-    // Navigate to businesses
     const adminBusinesses = new AdminBusinessesPage(adminPage);
     await adminBusinesses.goto();
-
-    // Approve the business
     await adminBusinesses.approveBusinessById(businessId);
 
     await context.close();

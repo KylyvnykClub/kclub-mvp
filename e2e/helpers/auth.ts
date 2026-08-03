@@ -8,6 +8,13 @@ import type { Page } from '@playwright/test';
 export const DEV_PASSWORD = 'e2e-Password-123';
 
 /**
+ * Bootstrap staff-owner password — must match ADMIN_BOOTSTRAP_OWNER_PASSWORD in
+ * the CI e2e job env. The bootstrap owner (ADMIN_BOOTSTRAP_OWNER_PHONE) signs in
+ * with phone+password and skips TOTP (TOTP is only enforced for DB-backed staff).
+ */
+export const DEV_STAFF_PASSWORD = 'E2eStaffPass123!';
+
+/**
  * Signs in an existing seeded member via the phone + password flow.
  *
  * Sign-in is entirely server-side: the browser POSTs to /api/v1/auth/sign-in,
