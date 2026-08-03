@@ -44,7 +44,10 @@ test.describe('Introduction flow', () => {
 
     const adminIntros = new AdminIntroductionsPage(adminPage);
     await adminIntros.goto();
-    await expect(adminPage.locator('[data-testid="admin-introductions-table"]')).toBeVisible();
+    // The introductions table renders its column headers even when empty.
+    await expect(
+      adminPage.getByRole('columnheader', { name: 'Target Business' }),
+    ).toBeVisible();
 
     await context.close();
   });
