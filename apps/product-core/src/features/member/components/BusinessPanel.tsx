@@ -6,7 +6,7 @@ import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 import { getOwnBusinesses } from '@/server/services/business-service';
 import { getDbClient, schema } from '@/server/db';
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray, or } from 'drizzle-orm';
 import { Badge } from '@/components/reui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { BusinessForm } from './BusinessForm';
@@ -61,7 +61,11 @@ export async function BusinessPanel({
       orderBy: [asc(schema.countries.name)],
     }),
     db.query.categories.findMany({
-      where: and(eq(schema.categories.is_active, true), eq(schema.categories.is_high_risk, false)),
+      where: and(
+        eq(schema.categories.is_active, true),
+        eq(schema.categories.is_high_risk, false),
+        or(eq(schema.categories.level, 'SUBCATEGORY'), eq(schema.categories.is_custom, true)),
+      ),
       orderBy: [asc(schema.categories.name)],
     }),
   ]);

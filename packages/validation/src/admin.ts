@@ -61,11 +61,14 @@ export const introductionRejectSchema = z.object({
 });
 
 export const categoryCreateSchema = z.object({
+  parentId: z.string().uuid().nullable().optional(),
+  level: z.enum(['BLOCK', 'CATEGORY', 'SUBCATEGORY']).optional().default('CATEGORY'),
   name: z.string().min(1).max(120),
   slug: z.string().min(1).max(120),
   isHighRisk: z.boolean().optional().default(false),
   isActive: z.boolean().optional().default(true),
   isCustom: z.boolean().optional().default(false),
+  sortOrder: z.number().int().min(0).optional().default(0),
 });
 
 export const categoryUpdateSchema = categoryCreateSchema.partial();

@@ -80,9 +80,7 @@ export function BusinessForm({
   );
   const [countryId, setCountryId] = useState(business?.countryId ?? '');
   const [cityId, setCityId] = useState(business?.cityId ?? '');
-  const [categoryId, setCategoryId] = useState(
-    business ? (categoryOptions.find((c) => business.categoryName.includes(c.name))?.id ?? '') : '',
-  );
+  const [categoryId, setCategoryId] = useState(business?.categoryId ?? '');
   const [customCategoryName, setCustomCategoryName] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState(business?.websiteUrl ?? '');
   const [socialUrl, setSocialUrl] = useState(business?.socialUrl ?? '');

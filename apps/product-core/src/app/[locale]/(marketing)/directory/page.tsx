@@ -1,21 +1,9 @@
-import {
-  ArrowRight,
-  Building2,
-  Search,
-  Mic,
-  Home,
-  Car,
-  Utensils,
-  Scale,
-  HeartPulse,
-  Plane,
-  LayoutGrid,
-  ChevronRight,
-} from 'lucide-react';
+import { ArrowRight, Building2, Search, Mic } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
+import type { CategoryDto } from '@kclub/contracts';
 import { EmptyState, getButtonClasses } from '@kclub/ui';
 
 import { BusinessCard } from '@/features/public/components/BusinessCard';
@@ -24,26 +12,17 @@ import { Locale } from '@/i18n/routing';
 import { getCachedPublicBusinesses } from '@/server/cache/business-cache';
 import { getCachedCategories } from '@/server/cache/taxonomy-cache';
 
-function getCategoryIcon(slug: string, size = 28) {
-  switch (slug) {
-    case 'real-estate':
-      return <Home size={size} />;
-    case 'luxury-cars':
-      return <Car size={size} />;
-    case 'restaurants':
-      return <Utensils size={size} />;
-    case 'legal-services':
-      return <Scale size={size} />;
-    case 'health':
-      return <HeartPulse size={size} />;
-    case 'travel':
-      return <Plane size={size} />;
-    default:
-      return <LayoutGrid size={size} />;
-  }
-}
-
 export const revalidate = 60;
+
+type DirectorySearchParams = {
+  block?: string;
+  category?: string;
+  subcategory?: string;
+};
+
+type CategoryBranch = CategoryDto & {
+  categories: Array<CategoryDto & { subcategories: CategoryDto[] }>;
+};
 
 export async function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ru' }, { locale: 'uk' }];
@@ -111,10 +90,14 @@ export default async function DirectoryPage({
   searchParams,
 }: {
   params: Promise<{ locale: Locale }>;
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<DirectorySearchParams>;
 }) {
   const { locale } = await params;
-  const { category: activeCategory } = await searchParams;
+  const {
+    block: activeBlock,
+    category: activeCategory,
+    subcategory: activeSubcategory,
+  } = await searchParams;
 
   const t = await getTranslations({ locale, namespace: 'directory' });
   const [allBusinesses, categories] = await Promise.all([
@@ -122,13 +105,20 @@ export default async function DirectoryPage({
     getCachedCategories(),
   ]);
 
-  const businesses = activeCategory
-    ? allBusinesses.filter(
-        (b) =>
-          b.categoryName.toLowerCase() ===
-          categories.find((c) => c.slug === activeCategory)?.name.toLowerCase(),
-      )
-    : allBusinesses;
+  const categoryTree = buildCategoryTree(categories);
+  const activeBlockNode = categoryTree.find((item) => item.slug === activeBlock) ?? null;
+  const categoryOptions = activeBlockNode
+    ? activeBlockNode.categories
+    : categoryTree.flatMap((item) => item.categories);
+  const activeCategoryNode = categoryOptions.find((item) => item.slug === activeCategory) ?? null;
+  const subcategoryOptions = activeCategoryNode?.subcategories ?? [];
+
+  const businesses = allBusinesses.filter((business) => {
+    if (activeSubcategory) return business.subcategorySlug === activeSubcategory;
+    if (activeCategory) return business.categorySlug === activeCategory;
+    if (activeBlock) return business.blockSlug === activeBlock;
+    return true;
+  });
 
   const jsonLd = buildDirectoryJsonLd(allBusinesses, locale);
 
@@ -162,61 +152,64 @@ export default async function DirectoryPage({
               <Mic className="absolute right-5 top-1/2 -translate-y-1/2 text-[#EBB34F]" size={20} />
             </div>
 
-            {/* Categories (Mobile Only) */}
-            <div className="scrollbar-hide mt-8 flex snap-x gap-6 overflow-x-auto pb-4 md:hidden">
-              <Link
-                href={`/${locale}/directory`}
-                className={`flex shrink-0 cursor-pointer snap-start flex-col items-center gap-2 transition ${!activeCategory ? 'text-[#EBB34F]' : 'text-zinc-400 hover:text-zinc-300'}`}
+            <form
+              action={`/${locale}/directory`}
+              className="mt-8 grid gap-3 border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950 sm:grid-cols-3"
+            >
+              <select
+                name="block"
+                defaultValue={activeBlock ?? ''}
+                className="focus:border-brand h-11 w-full border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
               >
-                <LayoutGrid size={28} />
-                <span className="text-xs font-medium">All</span>
-              </Link>
-              {categories.map((c) => (
+                <option value="">All blocks</option>
+                {categoryTree.map((item) => (
+                  <option key={item.id} value={item.slug}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                name="category"
+                defaultValue={activeCategory ?? ''}
+                className="focus:border-brand h-11 w-full border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+              >
+                <option value="">All categories</option>
+                {categoryOptions.map((item) => (
+                  <option key={item.id} value={item.slug}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                name="subcategory"
+                defaultValue={activeSubcategory ?? ''}
+                className="focus:border-brand h-11 w-full border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+              >
+                <option value="">All subcategories</option>
+                {subcategoryOptions.map((item) => (
+                  <option key={item.id} value={item.slug}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+              <div className="flex gap-3 sm:col-span-3">
+                <button type="submit" className={getButtonClasses({ color: 'brand', size: 'sm' })}>
+                  Apply
+                </button>
                 <Link
-                  key={c.id}
-                  href={`/${locale}/directory?category=${c.slug}`}
-                  className={`flex shrink-0 cursor-pointer snap-start flex-col items-center gap-2 transition ${activeCategory === c.slug ? 'text-[#EBB34F]' : 'text-zinc-400 hover:text-zinc-300'}`}
+                  href={`/${locale}/directory`}
+                  className={getButtonClasses({ color: 'secondary', size: 'sm' })}
                 >
-                  {getCategoryIcon(c.slug, 28)}
-                  <span className="text-xs font-medium">{c.name}</span>
+                  Reset
                 </Link>
-              ))}
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       </section>
 
-      <div className="container flex flex-col gap-8 py-14 sm:py-20 md:flex-row lg:gap-12">
-        {/* Sidebar Filter (Desktop Only) */}
-        <aside className="hidden w-64 shrink-0 md:block">
-          <div className="sticky top-24">
-            <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-950 dark:text-white">
-              Categories
-            </h3>
-            <div className="flex flex-col gap-1.5">
-              <Link
-                href={`/${locale}/directory`}
-                className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${!activeCategory ? 'bg-zinc-100 font-medium text-zinc-900 dark:bg-white/10 dark:text-white' : 'text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-white/5'}`}
-              >
-                All Partners
-                {!activeCategory && <ChevronRight size={16} />}
-              </Link>
-              {categories.map((c) => (
-                <Link
-                  key={c.id}
-                  href={`/${locale}/directory?category=${c.slug}`}
-                  className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${activeCategory === c.slug ? 'bg-zinc-100 font-medium text-zinc-900 dark:bg-white/10 dark:text-white' : 'text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-white/5'}`}
-                >
-                  {c.name}
-                  {activeCategory === c.slug && <ChevronRight size={16} />}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Grid */}
-        <div className="flex-1">
+      <div className="container py-14 sm:py-20">
+        <div>
           {businesses.length === 0 ? (
             <EmptyState
               icon={<Building2 aria-hidden="true" size={44} strokeWidth={1.5} />}
@@ -258,4 +251,29 @@ export default async function DirectoryPage({
       </div>
     </div>
   );
+}
+
+function buildCategoryTree(categories: CategoryDto[]): CategoryBranch[] {
+  const activeCategories = categories.filter((item) => item.isActive);
+  const blocks = activeCategories
+    .filter((item) => item.level === 'BLOCK')
+    .sort(compareCategories)
+    .map((block) => ({
+      ...block,
+      categories: activeCategories
+        .filter((item) => item.level === 'CATEGORY' && item.parentId === block.id)
+        .sort(compareCategories)
+        .map((category) => ({
+          ...category,
+          subcategories: activeCategories
+            .filter((item) => item.level === 'SUBCATEGORY' && item.parentId === category.id)
+            .sort(compareCategories),
+        })),
+    }));
+
+  return blocks;
+}
+
+function compareCategories(left: CategoryDto, right: CategoryDto): number {
+  return left.sortOrder - right.sortOrder || left.name.localeCompare(right.name);
 }

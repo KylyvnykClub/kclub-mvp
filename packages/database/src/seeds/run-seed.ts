@@ -1,7 +1,8 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, not, sql } from 'drizzle-orm';
 import { getDbClient, schema } from '../index.js';
 import {
   ADMIN_BOOTSTRAP_PLAN,
+  BUSINESS_TAXONOMY_SEED_PLAN,
   CATEGORY_SEED_PLAN,
   CITY_SEED_PLAN,
   CONFIG_SEED_PLAN,
@@ -18,7 +19,7 @@ const DEMO_BUSINESSES = [
     representativeName: 'Alex Morgan',
     representativeEmail: 'alex@skyline-hospitality.example',
     representativePhone: '+15551000001',
-    categorySlug: 'hospitality',
+    categorySlug: 'hospitality-education-and-personal-services-hotels-and-apartments-hotels',
     countrySlug: 'united-states',
     citySlug: 'new-york',
     briefDescription: 'Boutique hotels and private dining for members.',
@@ -34,7 +35,7 @@ const DEMO_BUSINESSES = [
     representativeName: 'Jordan Lee',
     representativeEmail: 'hello@wellness-collective.example',
     representativePhone: '+15551000002',
-    categorySlug: 'wellness',
+    categorySlug: 'beauty-fitness-and-recovery-spa-and-wellness-individual-service',
     countrySlug: 'united-states',
     citySlug: 'miami',
     briefDescription: 'Concierge wellness, recovery, and longevity programs.',
@@ -50,7 +51,7 @@ const DEMO_BUSINESSES = [
     representativeName: 'Taylor Brooks',
     representativeEmail: 'team@harbor-legal.example',
     representativePhone: '+15551000003',
-    categorySlug: 'legal-services',
+    categorySlug: 'legal-finance-and-security-law-firms-and-attorneys-consultations',
     countrySlug: 'united-states',
     citySlug: 'los-angeles',
     briefDescription: 'Cross-border legal counsel for founders and families.',
@@ -66,7 +67,7 @@ const DEMO_BUSINESSES = [
     representativeName: 'James Whitmore',
     representativeEmail: 'contact@regent-concierge.example',
     representativePhone: '+44201000001',
-    categorySlug: 'lifestyle-concierge',
+    categorySlug: 'business-and-professional-services-business-consulting-consultation',
     countrySlug: 'united-kingdom',
     citySlug: 'london',
     briefDescription:
@@ -85,7 +86,7 @@ const DEMO_BUSINESSES = [
     representativeName: 'Dominique Fontaine',
     representativeEmail: 'advisory@prestige-capital.example',
     representativePhone: '+41221000001',
-    categorySlug: 'investment-wealth',
+    categorySlug: 'legal-finance-and-security-immigration-law-investment-immigration',
     countrySlug: 'switzerland',
     citySlug: 'geneva',
     briefDescription:
@@ -104,7 +105,8 @@ const DEMO_BUSINESSES = [
     representativeName: 'Pierre Beaumont',
     representativeEmail: 'charter@monaco-sail.example',
     representativePhone: '+37793000001',
-    categorySlug: 'yachting-charter',
+    categorySlug:
+      'hospitality-education-and-personal-services-travel-agencies-and-tour-operators-custom-tours',
     countrySlug: 'monaco',
     citySlug: 'monaco',
     briefDescription:
@@ -193,30 +195,124 @@ async function seedReferenceData(db: ReturnType<typeof getDbClient>): Promise<vo
       });
   }
 
-  for (const category of CATEGORY_SEED_PLAN) {
+  const activeTaxonomySlugs = new Set<string>();
+  const blockSortOrder = new Map<string, number>();
+  const categorySortOrder = new Map<string, number>();
+  const subcategorySortOrder = new Map<string, number>();
+
+  for (const item of BUSINESS_TAXONOMY_SEED_PLAN) {
+    if (!blockSortOrder.has(item.blockSlug))
+      blockSortOrder.set(item.blockSlug, blockSortOrder.size + 1);
+    if (!categorySortOrder.has(item.categorySlug)) {
+      categorySortOrder.set(item.categorySlug, categorySortOrder.size + 1);
+    }
+    subcategorySortOrder.set(item.subcategorySlug, subcategorySortOrder.size + 1);
+    activeTaxonomySlugs.add(item.blockSlug);
+    activeTaxonomySlugs.add(item.categorySlug);
+    activeTaxonomySlugs.add(item.subcategorySlug);
+  }
+
+  const upsertCategoryNode = async ({
+    parentId,
+    level,
+    name,
+    slug,
+    sortOrder,
+  }: {
+    parentId: string | null;
+    level: 'BLOCK' | 'CATEGORY' | 'SUBCATEGORY';
+    name: string;
+    slug: string;
+    sortOrder: number;
+  }): Promise<string> => {
     const existing = await db
       .select()
       .from(schema.categories)
-      .where(eq(schema.categories.slug, category.slug))
+      .where(eq(schema.categories.slug, slug))
       .limit(1);
     if (existing.length > 0) {
-      await db
+      const [updated] = await db
         .update(schema.categories)
         .set({
-          name: category.name,
-          is_high_risk: category.isHighRisk,
+          parent_id: parentId,
+          level,
+          name,
+          is_high_risk: false,
           is_active: true,
+          is_custom: false,
+          sort_order: sortOrder,
         })
-        .where(eq(schema.categories.slug, category.slug));
-    } else {
-      await db.insert(schema.categories).values({
-        name: category.name,
-        slug: category.slug,
-        is_high_risk: category.isHighRisk,
-        is_active: true,
-      });
+        .where(eq(schema.categories.slug, slug))
+        .returning();
+      return updated!.id;
     }
+
+    const [created] = await db
+      .insert(schema.categories)
+      .values({
+        parent_id: parentId,
+        level,
+        name,
+        slug,
+        is_high_risk: false,
+        is_active: true,
+        is_custom: false,
+        sort_order: sortOrder,
+      })
+      .returning();
+    return created!.id;
+  };
+
+  const blockIds = new Map<string, string>();
+  const categoryIds = new Map<string, string>();
+
+  for (const item of BUSINESS_TAXONOMY_SEED_PLAN) {
+    if (!blockIds.has(item.blockSlug)) {
+      const blockId = await upsertCategoryNode({
+        parentId: null,
+        level: 'BLOCK',
+        name: item.blockName,
+        slug: item.blockSlug,
+        sortOrder: blockSortOrder.get(item.blockSlug) ?? 0,
+      });
+      blockIds.set(item.blockSlug, blockId);
+    }
+
+    if (!categoryIds.has(item.categorySlug)) {
+      const blockId = blockIds.get(item.blockSlug);
+      if (!blockId) throw new Error(`Missing block for category seed: ${item.categorySlug}`);
+
+      const categoryId = await upsertCategoryNode({
+        parentId: blockId,
+        level: 'CATEGORY',
+        name: item.categoryName,
+        slug: item.categorySlug,
+        sortOrder: categorySortOrder.get(item.categorySlug) ?? 0,
+      });
+      categoryIds.set(item.categorySlug, categoryId);
+    }
+
+    const categoryId = categoryIds.get(item.categorySlug);
+    if (!categoryId) throw new Error(`Missing parent category for seed: ${item.subcategorySlug}`);
+
+    await upsertCategoryNode({
+      parentId: categoryId,
+      level: 'SUBCATEGORY',
+      name: item.subcategoryName,
+      slug: item.subcategorySlug,
+      sortOrder: subcategorySortOrder.get(item.subcategorySlug) ?? 0,
+    });
   }
+
+  await db
+    .update(schema.categories)
+    .set({ is_active: false })
+    .where(
+      and(
+        eq(schema.categories.is_custom, false),
+        not(inArray(schema.categories.slug, Array.from(activeTaxonomySlugs))),
+      ),
+    );
 
   for (const key of CONFIG_SEED_PLAN.initialAdminConfigKeys) {
     const existing = await db

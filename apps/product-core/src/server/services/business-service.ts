@@ -20,6 +20,10 @@ const auditService = createDbAuditService();
 
 export const PUBLIC_BUSINESS_VISIBILITY_FILTER = eq(schema.businessProfiles.status, 'PUBLISHED');
 
+const CATEGORY_WITH_PARENTS = {
+  with: { parent: { with: { parent: true } } },
+} as const;
+
 function generateSlug(name: string): string {
   const base = name
     .toLowerCase()
@@ -153,7 +157,7 @@ export async function submitBusiness(
   const newBusiness = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, newBusinessData!.id),
     with: {
-      category: true,
+      category: CATEGORY_WITH_PARENTS,
       country: true,
       city: true,
     },
@@ -296,7 +300,7 @@ export async function updateBusiness(
 
   const updatedBusiness = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: { category: true, country: true, city: true },
+    with: { category: CATEGORY_WITH_PARENTS, country: true, city: true },
   });
 
   await auditService.log(
@@ -317,7 +321,7 @@ export async function getOwnBusinesses(userId: string): Promise<MemberBusinessPr
   const db = getDbClient();
   const businesses = await db.query.businessProfiles.findMany({
     where: eq(schema.businessProfiles.user_id, userId),
-    with: { category: true, country: true, city: true },
+    with: { category: CATEGORY_WITH_PARENTS, country: true, city: true },
     orderBy: [desc(schema.businessProfiles.created_at)],
   });
 
@@ -331,7 +335,7 @@ export async function getBusinessDetail(
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: { category: true, country: true, city: true },
+    with: { category: CATEGORY_WITH_PARENTS, country: true, city: true },
   });
 
   if (!business) {
@@ -363,7 +367,7 @@ export async function getPublicBusinesses(): Promise<PublicBusinessListItemDto[]
   const db = getDbClient();
   const businesses = await db.query.businessProfiles.findMany({
     where: PUBLIC_BUSINESS_VISIBILITY_FILTER,
-    with: { category: true, country: true, city: true },
+    with: { category: CATEGORY_WITH_PARENTS, country: true, city: true },
     orderBy: [
       desc(schema.businessProfiles.featured_top),
       desc(schema.businessProfiles.featured_recommended),
@@ -378,7 +382,7 @@ export async function getPublicBusinessBySlug(slug: string): Promise<PublicBusin
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: and(PUBLIC_BUSINESS_VISIBILITY_FILTER, eq(schema.businessProfiles.slug, slug)),
-    with: { category: true, country: true, city: true },
+    with: { category: CATEGORY_WITH_PARENTS, country: true, city: true },
   });
 
   if (!business) {
@@ -393,11 +397,19 @@ export async function getPublicBusinessBySlug(slug: string): Promise<PublicBusin
 }
 
 export function toPublicBusinessListItemDto(business: any): PublicBusinessListItemDto {
+  const categoryPath = getCategoryPath(business.category);
+
   return {
     id: business.id,
     slug: business.slug,
     name: business.name,
-    categoryName: business.category?.name ?? 'Uncategorized',
+    categoryId: business.category_id,
+    blockName: categoryPath.blockName,
+    blockSlug: categoryPath.blockSlug,
+    categoryName: categoryPath.categoryName ?? business.category?.name ?? 'Uncategorized',
+    categorySlug: categoryPath.categorySlug,
+    subcategoryName: categoryPath.subcategoryName,
+    subcategorySlug: categoryPath.subcategorySlug,
     countryName: business.country?.name ?? 'Unknown',
     cityName: business.city?.name ?? 'Unknown',
     briefDescription: business.brief_description,
@@ -432,5 +444,59 @@ export function toMemberBusinessProfileDto(business: any): MemberBusinessProfile
     rejectionReason: business.rejection_reason,
     createdAt: business.created_at.toISOString(),
     updatedAt: business.updated_at.toISOString(),
+  };
+}
+
+function getCategoryPath(category: any): {
+  blockName: string | null;
+  blockSlug: string | null;
+  categoryName: string | null;
+  categorySlug: string | null;
+  subcategoryName: string | null;
+  subcategorySlug: string | null;
+} {
+  if (!category) {
+    return {
+      blockName: null,
+      blockSlug: null,
+      categoryName: null,
+      categorySlug: null,
+      subcategoryName: null,
+      subcategorySlug: null,
+    };
+  }
+
+  if (category.level === 'SUBCATEGORY') {
+    const parent = category.parent;
+    const block = parent?.parent;
+    return {
+      blockName: block?.name ?? null,
+      blockSlug: block?.slug ?? null,
+      categoryName: parent?.name ?? category.name,
+      categorySlug: parent?.slug ?? category.slug,
+      subcategoryName: category.name,
+      subcategorySlug: category.slug,
+    };
+  }
+
+  if (category.level === 'CATEGORY') {
+    const block = category.parent;
+    return {
+      blockName: block?.name ?? null,
+      blockSlug: block?.slug ?? null,
+      categoryName: category.name,
+      categorySlug: category.slug,
+      subcategoryName: null,
+      subcategorySlug: null,
+    };
+  }
+
+  return {
+    blockName: category.name,
+    blockSlug: category.slug,
+    categoryName: null,
+    categorySlug: null,
+    subcategoryName: null,
+    subcategorySlug: null,
   };
 }
