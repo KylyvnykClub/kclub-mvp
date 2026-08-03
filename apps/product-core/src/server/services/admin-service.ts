@@ -766,7 +766,7 @@ export async function adminReissueCard(
 // ── Businesses ──
 
 const BUSINESS_LIST_INCLUDE = {
-  category: true,
+  category: { with: { parent: { with: { parent: true } } } },
   country: true,
   city: true,
   user: {
@@ -806,7 +806,7 @@ export async function listBusinesses(
 }
 
 const BUSINESS_MUTATION_INCLUDE = {
-  category: true,
+  category: { with: { parent: { with: { parent: true } } } },
   country: true,
   city: true,
   user: {
@@ -820,7 +820,7 @@ const BUSINESS_MUTATION_INCLUDE = {
 };
 
 const BUSINESS_DETAIL_INCLUDE = {
-  category: true,
+  category: { with: { parent: { with: { parent: true } } } },
   country: true,
   city: true,
   user: {
@@ -1513,7 +1513,13 @@ export async function completeIntroduction(
 
 export async function listCategories(): Promise<CategoryDto[]> {
   const db = getDbClient();
-  const categories = await db.query.categories.findMany({ orderBy: [asc(schema.categories.name)] });
+  const categories = await db.query.categories.findMany({
+    orderBy: [
+      asc(schema.categories.level),
+      asc(schema.categories.sort_order),
+      asc(schema.categories.name),
+    ],
+  });
   return categories.map(toCategoryDto);
 }
 
@@ -1532,16 +1538,67 @@ export async function getCategory(categoryId: string): Promise<CategoryDto> {
   return toCategoryDto(category);
 }
 
+async function assertCategoryParent(
+  level: CategoryDto['level'],
+  parentId: string | null,
+  categoryId?: string,
+): Promise<void> {
+  const db = getDbClient();
+
+  if (level === 'BLOCK') {
+    if (parentId !== null) {
+      throw new AppError({
+        code: ERROR_CODES.VALIDATION_INVALID_INPUT,
+        message: 'Block categories cannot have a parent',
+        status: 400,
+      });
+    }
+    return;
+  }
+
+  if (!parentId) {
+    throw new AppError({
+      code: ERROR_CODES.VALIDATION_INVALID_INPUT,
+      message: `${level} categories require a parent`,
+      status: 400,
+    });
+  }
+
+  if (parentId === categoryId) {
+    throw new AppError({
+      code: ERROR_CODES.VALIDATION_INVALID_INPUT,
+      message: 'Category cannot be its own parent',
+      status: 400,
+    });
+  }
+
+  const parent = await db.query.categories.findFirst({ where: eq(schema.categories.id, parentId) });
+  const expectedParentLevel = level === 'CATEGORY' ? 'BLOCK' : 'CATEGORY';
+
+  if (!parent || parent.level !== expectedParentLevel) {
+    throw new AppError({
+      code: ERROR_CODES.VALIDATION_INVALID_INPUT,
+      message: `${level} parent must be ${expectedParentLevel}`,
+      status: 400,
+    });
+  }
+}
+
 export async function createCategory(input: CategoryCreateInput): Promise<CategoryDto> {
   const db = getDbClient();
+  await assertCategoryParent(input.level, input.parentId ?? null);
+
   const [category] = await db
     .insert(schema.categories)
     .values({
+      parent_id: input.parentId ?? null,
+      level: input.level,
       name: input.name,
       slug: input.slug,
       is_high_risk: input.isHighRisk ?? false,
       is_active: input.isActive ?? true,
       is_custom: input.isCustom ?? false,
+      sort_order: input.sortOrder ?? 0,
     })
     .returning();
   revalidateTag('categories');
@@ -1563,15 +1620,22 @@ export async function updateCategory(
       status: 404,
     });
   }
+  const nextLevel = input.level ?? (existing.level as CategoryDto['level']);
+  const nextParentId =
+    input.parentId !== undefined ? input.parentId : (existing.parent_id as string | null);
+  await assertCategoryParent(nextLevel, nextParentId, categoryId);
 
   const [category] = await db
     .update(schema.categories)
     .set({
+      ...(input.parentId !== undefined ? { parent_id: input.parentId } : {}),
+      ...(input.level !== undefined ? { level: input.level } : {}),
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.slug !== undefined ? { slug: input.slug } : {}),
       ...(input.isHighRisk !== undefined ? { is_high_risk: input.isHighRisk } : {}),
       ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
       ...(input.isCustom !== undefined ? { is_custom: input.isCustom } : {}),
+      ...(input.sortOrder !== undefined ? { sort_order: input.sortOrder } : {}),
     })
     .where(eq(schema.categories.id, categoryId))
     .returning();
@@ -1591,7 +1655,10 @@ export async function deleteCategory(categoryId: string): Promise<void> {
       status: 404,
     });
   }
-  await db.delete(schema.categories).where(eq(schema.categories.id, categoryId));
+  await db
+    .update(schema.categories)
+    .set({ is_active: false })
+    .where(eq(schema.categories.id, categoryId));
   revalidateTag('categories');
 }
 
@@ -2416,13 +2483,74 @@ function toAdminBusinessSubscriptionIndicator(
   };
 }
 
+function getCategoryPath(category: any): {
+  blockName: string | null;
+  blockSlug: string | null;
+  categoryName: string | null;
+  categorySlug: string | null;
+  subcategoryName: string | null;
+  subcategorySlug: string | null;
+} {
+  if (!category) {
+    return {
+      blockName: null,
+      blockSlug: null,
+      categoryName: null,
+      categorySlug: null,
+      subcategoryName: null,
+      subcategorySlug: null,
+    };
+  }
+
+  if (category.level === 'SUBCATEGORY') {
+    const parent = category.parent;
+    const block = parent?.parent;
+    return {
+      blockName: block?.name ?? null,
+      blockSlug: block?.slug ?? null,
+      categoryName: parent?.name ?? category.name,
+      categorySlug: parent?.slug ?? category.slug,
+      subcategoryName: category.name,
+      subcategorySlug: category.slug,
+    };
+  }
+
+  if (category.level === 'CATEGORY') {
+    const block = category.parent;
+    return {
+      blockName: block?.name ?? null,
+      blockSlug: block?.slug ?? null,
+      categoryName: category.name,
+      categorySlug: category.slug,
+      subcategoryName: null,
+      subcategorySlug: null,
+    };
+  }
+
+  return {
+    blockName: category.name,
+    blockSlug: category.slug,
+    categoryName: null,
+    categorySlug: null,
+    subcategoryName: null,
+    subcategorySlug: null,
+  };
+}
+
 function toAdminBusinessListItem(business: any): AdminBusinessListItemDto {
   const placementSub = business.subscriptions?.[0] ?? null;
+  const categoryPath = getCategoryPath(business.category);
   return {
     id: business.id,
     slug: business.slug,
     name: business.name,
-    categoryName: business.category?.name ?? '',
+    categoryId: business.category_id,
+    blockName: categoryPath.blockName,
+    blockSlug: categoryPath.blockSlug,
+    categoryName: categoryPath.categoryName ?? business.category?.name ?? '',
+    categorySlug: categoryPath.categorySlug,
+    subcategoryName: categoryPath.subcategoryName,
+    subcategorySlug: categoryPath.subcategorySlug,
     countryName: business.country?.name ?? '',
     cityName: business.city?.name ?? '',
     briefDescription: business.brief_description,
@@ -2561,11 +2689,14 @@ function toAdminSubscriptionListItem(sub: any): AdminSubscriptionListItemDto {
 function toCategoryDto(cat: any): CategoryDto {
   return {
     id: cat.id,
+    parentId: cat.parent_id ?? null,
+    level: cat.level as CategoryDto['level'],
     name: cat.name,
     slug: cat.slug,
     isHighRisk: cat.is_high_risk,
     isActive: cat.is_active,
     isCustom: cat.is_custom,
+    sortOrder: cat.sort_order ?? 0,
     createdAt: cat.created_at.toISOString(),
     updatedAt: cat.updated_at.toISOString(),
   };

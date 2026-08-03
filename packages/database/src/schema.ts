@@ -9,8 +9,10 @@ import {
   smallint,
   json,
   char,
+  integer,
   uniqueIndex,
   index,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 
 // Enums
@@ -123,15 +125,27 @@ export const categories = pgTable(
   'categories',
   {
     id: uuid('id').defaultRandom().primaryKey(),
-    name: varchar('name', { length: 120 }).notNull().unique(),
+    parent_id: uuid('parent_id').references((): AnyPgColumn => categories.id, {
+      onDelete: 'restrict',
+    }),
+    level: varchar('level', { length: 20 }).default('CATEGORY').notNull(),
+    name: varchar('name', { length: 120 }).notNull(),
     slug: varchar('slug', { length: 120 }).notNull().unique(),
     is_high_risk: boolean('is_high_risk').default(false).notNull(),
     is_active: boolean('is_active').default(true).notNull(),
     is_custom: boolean('is_custom').default(false).notNull(),
+    sort_order: integer('sort_order').default(0).notNull(),
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => [index('categories_risk_active_idx').on(table.is_high_risk, table.is_active)],
+  (table) => [
+    index('categories_parent_active_sort_idx').on(
+      table.parent_id,
+      table.is_active,
+      table.sort_order,
+    ),
+    index('categories_risk_active_idx').on(table.is_high_risk, table.is_active),
+  ],
 );
 
 export const countries = pgTable(

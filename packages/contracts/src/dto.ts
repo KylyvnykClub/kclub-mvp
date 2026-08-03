@@ -283,7 +283,13 @@ export type PublicBusinessListItemDto = {
   id: EntityId;
   slug: string;
   name: string;
+  categoryId: EntityId;
+  blockName: string | null;
+  blockSlug: string | null;
   categoryName: string;
+  categorySlug: string | null;
+  subcategoryName: string | null;
+  subcategorySlug: string | null;
   countryName: string;
   cityName: string;
   briefDescription: string | null;
@@ -296,6 +302,9 @@ export type PublicBusinessListItemDto = {
   memberDiscountPercent: number | null;
   discountMuted: boolean;
 };
+
+export const CATEGORY_LEVELS = ['BLOCK', 'CATEGORY', 'SUBCATEGORY'] as const;
+export type CategoryLevel = (typeof CATEGORY_LEVELS)[number];
 
 export type PublicBusinessDetailDto = PublicBusinessListItemDto & {
   description: string | null;
@@ -389,7 +398,13 @@ export type AdminBusinessListItemDto = {
   id: EntityId;
   slug: string;
   name: string;
+  categoryId: EntityId;
+  blockName: string | null;
+  blockSlug: string | null;
   categoryName: string;
+  categorySlug: string | null;
+  subcategoryName: string | null;
+  subcategorySlug: string | null;
   countryName: string;
   cityName: string;
   briefDescription: string | null;
@@ -462,13 +477,20 @@ export type AdminIntroductionListItemDto = {
 
 export type CategoryDto = {
   id: EntityId;
+  parentId: EntityId | null;
+  level: CategoryLevel;
   name: string;
   slug: string;
   isHighRisk: boolean;
   isActive: boolean;
   isCustom: boolean;
+  sortOrder: number;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
+};
+
+export type CategoryTreeNodeDto = CategoryDto & {
+  children: CategoryTreeNodeDto[];
 };
 
 export type CountryDto = {

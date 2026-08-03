@@ -363,11 +363,14 @@ describe('admin mutation schemas', () => {
 
   test('validates taxonomy CRUD schemas', () => {
     expect(categoryCreateSchema.parse({ name: 'Tech', slug: 'tech' })).toEqual({
+      parentId: undefined,
+      level: 'CATEGORY',
       name: 'Tech',
       slug: 'tech',
       isHighRisk: false,
       isActive: true,
       isCustom: false,
+      sortOrder: 0,
     });
     expect(categoryUpdateSchema.parse({ name: 'Tech Updated' })).toEqual({ name: 'Tech Updated' });
 

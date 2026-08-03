@@ -1,4 +1,5 @@
 import { IMPORTED_CITY_SEED_PLAN } from './city-seed-plan.js';
+import { BUSINESS_TAXONOMY_SEED_PLAN } from './business-taxonomy-seed-plan.js';
 
 export type CountrySeedPlan = {
   code2: string;
@@ -355,20 +356,14 @@ export const CITY_SEED_PLAN: readonly CitySeedPlan[] = mergeCitySeedPlans(
 );
 
 export const CATEGORY_SEED_PLAN: readonly CategorySeedPlan[] = [
-  { slug: 'hospitality', name: 'Hospitality', isHighRisk: false },
-  { slug: 'wellness', name: 'Wellness', isHighRisk: false },
-  { slug: 'legal-services', name: 'Legal Services', isHighRisk: false },
-  { slug: 'real-estate', name: 'Real Estate', isHighRisk: false },
-  { slug: 'lifestyle-concierge', name: 'Lifestyle & Concierge', isHighRisk: false },
-  { slug: 'investment-wealth', name: 'Investment & Wealth', isHighRisk: false },
-  { slug: 'yachting-charter', name: 'Yachting & Charter', isHighRisk: false },
-  { slug: 'crypto', name: 'Crypto', isHighRisk: true },
-  { slug: 'gambling', name: 'Gambling', isHighRisk: true },
-  { slug: 'adult', name: 'Adult', isHighRisk: true },
-  { slug: 'firearms', name: 'Firearms', isHighRisk: true },
-  { slug: 'unlicensed-financial', name: 'Unlicensed Financial', isHighRisk: true },
-  { slug: 'high-risk-investments', name: 'High Risk Investments', isHighRisk: true },
-] as const;
+  ...BUSINESS_TAXONOMY_SEED_PLAN.map((item) => ({
+    slug: item.subcategorySlug,
+    name: item.subcategoryName,
+    isHighRisk: false,
+  })),
+];
+
+export { BUSINESS_TAXONOMY_SEED_PLAN };
 
 export const ADMIN_BOOTSTRAP_PLAN = {
   ownerAccountRequired: true,

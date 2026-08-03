@@ -44,7 +44,13 @@ export const citiesRelations = relations(cities, ({ one, many }) => ({
   businessProfiles: many(businessProfiles),
 }));
 
-export const categoriesRelations = relations(categories, ({ many }) => ({
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  parent: one(categories, {
+    fields: [categories.parent_id],
+    references: [categories.id],
+    relationName: 'categoryTree',
+  }),
+  children: many(categories, { relationName: 'categoryTree' }),
   businessProfiles: many(businessProfiles),
 }));
 
