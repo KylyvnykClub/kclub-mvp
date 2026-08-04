@@ -23,6 +23,7 @@ type DirectorySearchParams = {
   subcategory?: string;
 };
 
+
 export async function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ru' }, { locale: 'uk' }];
 }
