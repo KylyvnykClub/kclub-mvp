@@ -7,7 +7,10 @@ import { getOwnBusinesses } from '@/server/services/business-service';
 import { getDbClient, schema } from '@/server/db';
 import { and, asc, eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/features/member/components/Breadcrumbs';
-import type { TaxonomyOption } from '@/features/member/components/BusinessPanel';
+import type {
+  CategoryTaxonomyOption,
+  TaxonomyOption,
+} from '@/features/member/components/BusinessPanel';
 import { BusinessSubmitWizard } from '@/features/member/components/BusinessSubmitWizard';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }) {
@@ -55,7 +58,12 @@ export default async function BusinessOnboardingPage({
   const homeHref = `/${locale}`;
 
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
-  const categoryOptions: TaxonomyOption[] = categories.map((c) => ({ id: c.id, name: c.name }));
+  const categoryOptions: CategoryTaxonomyOption[] = categories.map((c) => ({
+    id: c.id,
+    name: c.name,
+    parentId: c.parent_id ?? null,
+    level: c.level as CategoryTaxonomyOption['level'],
+  }));
 
   return (
     <div className="space-y-8">

@@ -17,10 +17,12 @@ import {
   renderCountryFlag,
 } from '@/components/ui/country-flag';
 import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
-import type { CityTaxonomyOption, TaxonomyOption } from './BusinessPanel';
+import type { CategoryTaxonomyOption, CityTaxonomyOption, TaxonomyOption } from './BusinessPanel';
 
 type WizardData = {
   name: string;
+  sphereId: string;
+  categoryGroupId: string;
   categoryId: string;
   customCategoryName: string;
   representativeName: string;
@@ -39,7 +41,7 @@ export type BusinessSubmitWizardProps = {
   locale: Locale;
   countryOptions: TaxonomyOption[];
   cityOptions?: CityTaxonomyOption[];
-  categoryOptions: TaxonomyOption[];
+  categoryOptions: CategoryTaxonomyOption[];
 };
 
 const TOTAL_STEPS = 4;
@@ -56,6 +58,8 @@ export function BusinessSubmitWizard({
   const [step, setStep] = useState(1);
   const [data, setData] = useState<WizardData>({
     name: '',
+    sphereId: '',
+    categoryGroupId: '',
     categoryId: '',
     customCategoryName: '',
     representativeName: '',
@@ -81,6 +85,18 @@ export function BusinessSubmitWizard({
 
   const filteredCities = data.countryId
     ? cityOptions.filter((city) => city.countryId === data.countryId)
+    : [];
+  const sphereOptions = categoryOptions.filter((category) => category.level === 'BLOCK');
+  const categoryGroupOptions = data.sphereId
+    ? categoryOptions.filter(
+        (category) => category.level === 'CATEGORY' && category.parentId === data.sphereId,
+      )
+    : [];
+  const activityOptions = data.categoryGroupId
+    ? categoryOptions.filter(
+        (category) =>
+          category.level === 'SUBCATEGORY' && category.parentId === data.categoryGroupId,
+      )
     : [];
 
   const set = <K extends keyof WizardData>(key: K, value: WizardData[K]) =>
@@ -255,6 +271,7 @@ export function BusinessSubmitWizard({
           <div>
             <label htmlFor="name" className={labelClass}>
               {t('businessName')}
+              <RequiredMark />
             </label>
             <input
               id="name"
@@ -269,32 +286,98 @@ export function BusinessSubmitWizard({
             />
           </div>
           <div>
-            <label htmlFor="categoryId" className={labelClass}>
-              {t('category')}
+            <label htmlFor="sphereId" className={labelClass}>
+              {t('sphere')}
+              <RequiredMark />
             </label>
             <select
-              id="categoryId"
+              id="sphereId"
               required
-              value={data.categoryId}
+              value={data.sphereId}
               onChange={(e) => {
-                set('categoryId', e.target.value);
-                if (e.target.value !== '__other__') set('customCategoryName', '');
+                const nextSphereId = e.target.value;
+                setData((prev) => ({
+                  ...prev,
+                  sphereId: nextSphereId,
+                  categoryGroupId: '',
+                  categoryId: '',
+                  customCategoryName: '',
+                }));
               }}
               className={fieldClass}
             >
               <option value="">{t('selectPlaceholder')}</option>
-              {categoryOptions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
+              {sphereOptions.map((sphere) => (
+                <option key={sphere.id} value={sphere.id}>
+                  {sphere.name}
                 </option>
               ))}
-              <option value="__other__">{t('categoryOther')}</option>
             </select>
           </div>
+
+          {data.sphereId && (
+            <div>
+              <label htmlFor="categoryGroupId" className={labelClass}>
+                {t('category')}
+                <RequiredMark />
+              </label>
+              <select
+                id="categoryGroupId"
+                required
+                value={data.categoryGroupId}
+                onChange={(e) => {
+                  const nextCategoryGroupId = e.target.value;
+                  setData((prev) => ({
+                    ...prev,
+                    categoryGroupId: nextCategoryGroupId,
+                    categoryId: '',
+                    customCategoryName: '',
+                  }));
+                }}
+                className={fieldClass}
+              >
+                <option value="">{t('selectPlaceholder')}</option>
+                {categoryGroupOptions.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {data.sphereId && data.categoryGroupId && (
+            <div>
+              <label htmlFor="categoryId" className={labelClass}>
+                {t('activityType')}
+                <RequiredMark />
+              </label>
+              <select
+                id="categoryId"
+                required
+                value={data.categoryId}
+                onChange={(e) => {
+                  set('categoryId', e.target.value);
+                  if (e.target.value !== '__other__') set('customCategoryName', '');
+                }}
+                className={fieldClass}
+              >
+                <option value="">{t('selectPlaceholder')}</option>
+                {activityOptions.map((activity) => (
+                  <option key={activity.id} value={activity.id}>
+                    {activity.name}
+                  </option>
+                ))}
+                <option value="__other__">{t('activityTypeOther')}</option>
+              </select>
+            </div>
+          )}
+
           {data.categoryId === '__other__' && (
             <div>
               <label htmlFor="customCategoryName" className={labelClass}>
-                {t('customCategoryName')}
+                {t('customActivityTypeName')}
+                <RequiredMark />
               </label>
               <input
                 id="customCategoryName"
@@ -302,7 +385,7 @@ export function BusinessSubmitWizard({
                 required
                 minLength={2}
                 maxLength={120}
-                placeholder={t('customCategoryNamePlaceholder')}
+                placeholder={t('customActivityTypeNamePlaceholder')}
                 value={data.customCategoryName}
                 onChange={(e) => set('customCategoryName', e.target.value)}
                 className={fieldClass}
@@ -317,6 +400,7 @@ export function BusinessSubmitWizard({
           <div>
             <label htmlFor="representativeName" className={labelClass}>
               {t('representativeName')}
+              <RequiredMark />
             </label>
             <input
               id="representativeName"
@@ -333,6 +417,7 @@ export function BusinessSubmitWizard({
           <div>
             <label htmlFor="representativeEmail" className={labelClass}>
               {t('email')}
+              <RequiredMark />
             </label>
             <input
               id="representativeEmail"
@@ -347,6 +432,7 @@ export function BusinessSubmitWizard({
           <div>
             <label htmlFor="representativePhone" className={labelClass}>
               {t('phone')}
+              <RequiredMark />
             </label>
             <PhoneInput
               id="representativePhone"
@@ -369,6 +455,7 @@ export function BusinessSubmitWizard({
           <div>
             <label htmlFor="countryId" className={labelClass}>
               {t('country')}
+              <RequiredMark />
             </label>
             <select
               id="countryId"
@@ -391,6 +478,7 @@ export function BusinessSubmitWizard({
           <div>
             <label htmlFor="cityId" className={labelClass}>
               {t('city')}
+              <RequiredMark />
             </label>
             <select
               id="cityId"
@@ -562,11 +650,17 @@ function SummaryRow({ label, children }: { label: string; children: React.ReactN
   );
 }
 
+function RequiredMark() {
+  return <span className="ml-1 text-accent">*</span>;
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function canAdvance(step: number, data: WizardData): boolean {
   if (step === 1) {
-    if (!data.name.trim() || !data.categoryId) return false;
+    if (!data.name.trim() || !data.sphereId || !data.categoryGroupId || !data.categoryId) {
+      return false;
+    }
     if (data.categoryId === '__other__' && !data.customCategoryName.trim()) return false;
     return true;
   }
@@ -578,7 +672,7 @@ function canAdvance(step: number, data: WizardData): boolean {
     );
   }
   if (step === 3) {
-    return !!data.countryId && !!data.cityId && !!(data.websiteUrl || data.socialUrl);
+    return !!data.countryId && !!data.cityId;
   }
   return true;
 }

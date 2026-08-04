@@ -11,17 +11,16 @@ import { getSiteUrl } from '@/features/public/public-page-helpers';
 import { Locale } from '@/i18n/routing';
 import { getCachedPublicBusinesses } from '@/server/cache/business-cache';
 import { getCachedCategories } from '@/server/cache/taxonomy-cache';
+import { DirectoryTaxonomyFilter, type CategoryBranch } from './directory-taxonomy-filter';
 
 export const revalidate = 60;
 
 type DirectorySearchParams = {
+  sphere?: string;
   block?: string;
   category?: string;
+  activity?: string;
   subcategory?: string;
-};
-
-type CategoryBranch = CategoryDto & {
-  categories: Array<CategoryDto & { subcategories: CategoryDto[] }>;
 };
 
 export async function generateStaticParams() {
@@ -94,8 +93,10 @@ export default async function DirectoryPage({
 }) {
   const { locale } = await params;
   const {
+    sphere,
     block: activeBlock,
     category: activeCategory,
+    activity,
     subcategory: activeSubcategory,
   } = await searchParams;
 
@@ -106,17 +107,16 @@ export default async function DirectoryPage({
   ]);
 
   const categoryTree = buildCategoryTree(categories);
-  const activeBlockNode = categoryTree.find((item) => item.slug === activeBlock) ?? null;
-  const categoryOptions = activeBlockNode
-    ? activeBlockNode.categories
-    : categoryTree.flatMap((item) => item.categories);
-  const activeCategoryNode = categoryOptions.find((item) => item.slug === activeCategory) ?? null;
-  const subcategoryOptions = activeCategoryNode?.subcategories ?? [];
+  const activeSelection = resolveActiveSelection(categoryTree, {
+    sphere: sphere ?? activeBlock,
+    category: activeCategory,
+    activity: activity ?? activeSubcategory,
+  });
 
   const businesses = allBusinesses.filter((business) => {
-    if (activeSubcategory) return business.subcategorySlug === activeSubcategory;
-    if (activeCategory) return business.categorySlug === activeCategory;
-    if (activeBlock) return business.blockSlug === activeBlock;
+    if (activeSelection.activity) return business.subcategorySlug === activeSelection.activity;
+    if (activeSelection.category) return business.categorySlug === activeSelection.category;
+    if (activeSelection.sphere) return business.blockSlug === activeSelection.sphere;
     return true;
   });
 
@@ -152,58 +152,13 @@ export default async function DirectoryPage({
               <Mic className="absolute right-5 top-1/2 -translate-y-1/2 text-[#EBB34F]" size={20} />
             </div>
 
-            <form
-              action={`/${locale}/directory`}
-              className="mt-8 grid gap-3 border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950 sm:grid-cols-3"
-            >
-              <select
-                name="block"
-                defaultValue={activeBlock ?? ''}
-                className="focus:border-brand h-11 w-full border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-              >
-                <option value="">All blocks</option>
-                {categoryTree.map((item) => (
-                  <option key={item.id} value={item.slug}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-              <select
-                name="category"
-                defaultValue={activeCategory ?? ''}
-                className="focus:border-brand h-11 w-full border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-              >
-                <option value="">All categories</option>
-                {categoryOptions.map((item) => (
-                  <option key={item.id} value={item.slug}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-              <select
-                name="subcategory"
-                defaultValue={activeSubcategory ?? ''}
-                className="focus:border-brand h-11 w-full border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-              >
-                <option value="">All subcategories</option>
-                {subcategoryOptions.map((item) => (
-                  <option key={item.id} value={item.slug}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-              <div className="flex gap-3 sm:col-span-3">
-                <button type="submit" className={getButtonClasses({ color: 'brand', size: 'sm' })}>
-                  Apply
-                </button>
-                <Link
-                  href={`/${locale}/directory`}
-                  className={getButtonClasses({ color: 'secondary', size: 'sm' })}
-                >
-                  Reset
-                </Link>
-              </div>
-            </form>
+            <DirectoryTaxonomyFilter
+              locale={locale}
+              categoryTree={categoryTree}
+              activeSphere={activeSelection.sphere}
+              activeCategory={activeSelection.category}
+              activeActivity={activeSelection.activity}
+            />
           </div>
         </div>
       </section>
@@ -276,4 +231,40 @@ function buildCategoryTree(categories: CategoryDto[]): CategoryBranch[] {
 
 function compareCategories(left: CategoryDto, right: CategoryDto): number {
   return left.sortOrder - right.sortOrder || left.name.localeCompare(right.name);
+}
+
+function resolveActiveSelection(
+  categoryTree: CategoryBranch[],
+  requested: {
+    sphere?: string | undefined;
+    category?: string | undefined;
+    activity?: string | undefined;
+  },
+): { sphere?: string; category?: string; activity?: string } {
+  if (requested.activity) {
+    for (const sphere of categoryTree) {
+      for (const category of sphere.categories) {
+        if (category.subcategories.some((activity) => activity.slug === requested.activity)) {
+          return {
+            sphere: sphere.slug,
+            category: category.slug,
+            activity: requested.activity,
+          };
+        }
+      }
+    }
+  }
+
+  if (requested.category) {
+    for (const sphere of categoryTree) {
+      if (sphere.categories.some((category) => category.slug === requested.category)) {
+        return {
+          sphere: requested.sphere ?? sphere.slug,
+          category: requested.category,
+        };
+      }
+    }
+  }
+
+  return requested.sphere ? { sphere: requested.sphere } : {};
 }
