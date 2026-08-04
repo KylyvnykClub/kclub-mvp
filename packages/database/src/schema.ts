@@ -130,7 +130,7 @@ export const categories = pgTable(
     }),
     level: varchar('level', { length: 20 }).default('CATEGORY').notNull(),
     name: varchar('name', { length: 120 }).notNull(),
-    slug: varchar('slug', { length: 120 }).notNull().unique(),
+    slug: varchar('slug', { length: 160 }).notNull().unique(),
     is_high_risk: boolean('is_high_risk').default(false).notNull(),
     is_active: boolean('is_active').default(true).notNull(),
     is_custom: boolean('is_custom').default(false).notNull(),

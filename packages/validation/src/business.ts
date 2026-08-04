@@ -48,13 +48,6 @@ export const businessProfileSubmitSchema = z
         message: 'validation.business.categoryOrCustom',
       });
     }
-    if (!value.websiteUrl && !value.socialUrl) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['websiteUrl'],
-        message: 'validation.business.urlRequired',
-      });
-    }
   });
 
 export const businessProfileEditableFieldsSchema = z
@@ -80,13 +73,6 @@ export const businessProfileEditableFieldsSchema = z
         code: z.ZodIssueCode.custom,
         path: ['customCategoryName'],
         message: 'validation.business.categoryOrCustom',
-      });
-    }
-    if (value.websiteUrl === null && value.socialUrl === null) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['websiteUrl'],
-        message: 'validation.business.urlRequired',
       });
     }
   });
