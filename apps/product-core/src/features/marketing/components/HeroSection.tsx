@@ -49,13 +49,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
           isDark ? 'opacity-60 mix-blend-screen' : 'opacity-55 mix-blend-normal'
         }`}
       >
-        <Image
-          src={mapImage}
-          alt=""
-          fill
-          className="object-cover"
-          priority
-        />
+        <Image src={mapImage} alt="" fill className="object-cover" priority />
 
         {/* Vignette overlays */}
         <div className="pointer-events-none absolute inset-0 z-40 select-none bg-[radial-gradient(ellipse_at_center,transparent_10%,var(--background)_100%)]" />
