@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowUpRight } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -8,107 +9,8 @@ import { getButtonClasses } from '@kclub/ui';
 import { CanvasText } from '@/components/ui/canvas-text';
 import { useTheme } from 'next-themes';
 
-import dynamic from 'next/dynamic';
-
+import mapImage from '@/assets/content/map.png';
 import { Locale } from '@/i18n/routing';
-
-const Globe = dynamic(() => import('@/components/ui/globe').then((m) => m.World), {
-  ssr: false,
-});
-
-const globeConfigDark = {
-  pointSize: 4,
-  globeColor: '#3f3f46', // zinc-700 — видимый тёмно-серый
-  showAtmosphere: true,
-  atmosphereColor: '#71717a', // zinc-500
-  atmosphereAltitude: 0.1,
-  emissive: '#27272a', // zinc-800
-  emissiveIntensity: 0.15,
-  shininess: 0.8,
-  polygonColor: 'rgba(255,255,255,0.6)',
-  ambientLight: '#d4d4d8',
-  directionalLeftLight: '#a1a1aa',
-  directionalTopLight: '#ffffff',
-  pointLight: '#ffffff',
-  arcTime: 1000,
-  arcLength: 0.9,
-  arcDashGap: 2,
-  rings: 1,
-  maxRings: 3,
-  initialPosition: { lat: 22.3193, lng: 114.1694 },
-  autoRotate: true,
-  autoRotateSpeed: 0.5,
-};
-
-const globeConfigLight = {
-  pointSize: 4,
-  globeColor: '#71717a', // zinc-500 — средне-серый
-  showAtmosphere: true,
-  atmosphereColor: '#a1a1aa', // zinc-400
-  atmosphereAltitude: 0.1,
-  emissive: '#52525b', // zinc-600
-  emissiveIntensity: 0.08,
-  shininess: 0.5,
-  polygonColor: 'rgba(255,255,255,0.55)',
-  ambientLight: '#d4d4d8',
-  directionalLeftLight: '#a1a1aa',
-  directionalTopLight: '#e4e4e7',
-  pointLight: '#e4e4e7',
-  arcTime: 1000,
-  arcLength: 0.9,
-  arcDashGap: 2,
-  rings: 1,
-  maxRings: 3,
-  initialPosition: { lat: 22.3193, lng: 114.1694 },
-  autoRotate: true,
-  autoRotateSpeed: 0.5,
-};
-
-const baseGlobeData = [
-  { order: 1, startLat: 40.7128, startLng: -74.006, endLat: 51.5072, endLng: -0.1276, arcAlt: 0.2 },
-  { order: 2, startLat: 51.5072, startLng: -0.1276, endLat: 25.2048, endLng: 55.2708, arcAlt: 0.2 },
-  { order: 3, startLat: 25.2048, startLng: 55.2708, endLat: 1.3521, endLng: 103.8198, arcAlt: 0.2 },
-  {
-    order: 4,
-    startLat: 1.3521,
-    startLng: 103.8198,
-    endLat: -33.8688,
-    endLng: 151.2093,
-    arcAlt: 0.3,
-  },
-  {
-    order: 5,
-    startLat: -33.8688,
-    startLng: 151.2093,
-    endLat: 35.6762,
-    endLng: 139.6503,
-    arcAlt: 0.3,
-  },
-  {
-    order: 6,
-    startLat: 35.6762,
-    startLng: 139.6503,
-    endLat: 37.7749,
-    endLng: -122.4194,
-    arcAlt: 0.3,
-  },
-  {
-    order: 7,
-    startLat: 37.7749,
-    startLng: -122.4194,
-    endLat: 40.7128,
-    endLng: -74.006,
-    arcAlt: 0.2,
-  },
-  {
-    order: 8,
-    startLat: 51.5072,
-    startLng: -0.1276,
-    endLat: -23.5505,
-    endLng: -46.6333,
-    arcAlt: 0.3,
-  },
-];
 
 export function HeroSection({ locale }: { locale: Locale }) {
   const t = useTranslations('home');
@@ -123,11 +25,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
     if (color) setAccentColor(color);
   }, []);
 
-  // Before mount, assume light (SSR default). After mount, use real theme.
   const isDark = mounted && resolvedTheme === 'dark';
-
-  const globeConfig = isDark ? globeConfigDark : globeConfigLight;
-  const dynamicGlobeData = baseGlobeData.map((d) => ({ ...d, color: accentColor }));
 
   return (
     <section className="kclub-premium-hero relative isolate flex min-h-[calc(100vh-112px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">
@@ -145,15 +43,13 @@ export function HeroSection({ locale }: { locale: Locale }) {
         aria-hidden="true"
       />
 
-      {/* Globe Background */}
+      {/* Map Background */}
       <div
         className={`pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden lg:justify-end ${
           isDark ? 'opacity-60 mix-blend-screen' : 'opacity-55 mix-blend-normal'
         }`}
       >
-        <div className="relative h-full w-full max-w-[800px] sm:max-w-[1000px] lg:max-w-[1200px] lg:translate-x-1/4">
-          <Globe globeConfig={globeConfig} data={dynamicGlobeData} />
-        </div>
+        <Image src={mapImage} alt="" fill className="object-cover" priority />
 
         {/* Vignette overlays */}
         <div className="pointer-events-none absolute inset-0 z-40 select-none bg-[radial-gradient(ellipse_at_center,transparent_10%,var(--background)_100%)]" />

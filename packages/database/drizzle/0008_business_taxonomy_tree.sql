@@ -1,5 +1,7 @@
 ALTER TABLE "categories" DROP CONSTRAINT IF EXISTS "categories_name_unique";
 --> statement-breakpoint
+ALTER TABLE "categories" ALTER COLUMN "slug" TYPE varchar(160);
+--> statement-breakpoint
 ALTER TABLE "categories" ADD COLUMN "parent_id" uuid;
 --> statement-breakpoint
 ALTER TABLE "categories" ADD COLUMN "level" varchar(20) DEFAULT 'CATEGORY' NOT NULL;

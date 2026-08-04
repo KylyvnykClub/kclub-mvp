@@ -5,6 +5,7 @@ import { getDbClient, schema } from '@/server/db';
 import { and, asc, eq } from 'drizzle-orm';
 import { BusinessSubmitWizard } from '@/features/member/components/BusinessSubmitWizard';
 import type {
+  CategoryTaxonomyOption,
   CityTaxonomyOption,
   TaxonomyOption,
 } from '@/features/member/components/BusinessPanel';
@@ -40,7 +41,12 @@ export async function IntroductionsTabPanel({ locale }: IntroductionsTabPanelPro
     name: c.name,
     countryId: c.country_id,
   }));
-  const categoryOptions: TaxonomyOption[] = categories.map((c) => ({ id: c.id, name: c.name }));
+  const categoryOptions: CategoryTaxonomyOption[] = categories.map((c) => ({
+    id: c.id,
+    name: c.name,
+    parentId: c.parent_id ?? null,
+    level: c.level as CategoryTaxonomyOption['level'],
+  }));
 
   return (
     <div className={cabinetContentClasses}>

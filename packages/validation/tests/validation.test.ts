@@ -187,6 +187,22 @@ describe('business schemas', () => {
       representativeEmail: 'new@example.com',
       socialUrl: 'https://instagram.com/example',
     });
+    expect(
+      businessProfileSubmitSchema.parse({
+        ...validBusiness,
+        websiteUrl: undefined,
+        socialUrl: undefined,
+      }).name,
+    ).toBe('Kylyvnyk Partner');
+    expect(
+      businessProfileEditableFieldsSchema.parse({
+        websiteUrl: null,
+        socialUrl: null,
+      }),
+    ).toEqual({
+      websiteUrl: null,
+      socialUrl: null,
+    });
     expect(businessListFilterSchema.parse({ page: '2', limit: '50', status: 'PUBLISHED' })).toEqual(
       {
         page: 2,
@@ -206,11 +222,6 @@ describe('business schemas', () => {
       businessProfileSubmitSchema,
       { ...validBusiness, representativeEmail: 'not-email' },
       'representativeEmail',
-    );
-    expectInvalidField(
-      businessProfileSubmitSchema,
-      { ...validBusiness, websiteUrl: undefined, socialUrl: undefined },
-      'websiteUrl',
     );
     expectInvalidField(
       businessProfileSubmitSchema,

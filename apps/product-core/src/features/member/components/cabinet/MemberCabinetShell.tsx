@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, CreditCard, Handshake, Inbox, Phone, Settings, UserRound } from 'lucide-react';
+import { Building2, Gem, Handshake, Inbox, Phone, Settings, UserRound } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import type { CurrentMemberProfileDto, UserContext } from '@kclub/contracts';
@@ -79,6 +79,7 @@ function renderTabTriggers({
     const lockLabel = getDashboardTabLockLabel(tab);
     const TabIcon = DASHBOARD_TAB_ICONS[tab];
     const badgeCount = tabBadges?.[tab] ?? 0;
+    const showVipMarker = tab === 'details' && userContext.isVip;
 
     return (
       <TabsTrigger
@@ -91,6 +92,9 @@ function renderTabTriggers({
         <span className="min-w-0 whitespace-normal break-words text-left leading-snug">
           {tabLabels[tab]}
         </span>
+        {showVipMarker ? (
+          <Gem size={13} strokeWidth={2.3} className="shrink-0 text-accent" aria-label="VIP" />
+        ) : null}
         {locked && lockLabel ? (
           <Badge variant="outline" size="xs">
             {lockLabels[lockLabel]}

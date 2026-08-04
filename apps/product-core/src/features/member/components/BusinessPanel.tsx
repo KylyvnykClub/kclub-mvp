@@ -1,6 +1,10 @@
 import { getTranslations } from 'next-intl/server';
 
-import type { CurrentMemberProfileDto, MemberBusinessProfileDto } from '@kclub/contracts';
+import type {
+  CategoryLevel,
+  CurrentMemberProfileDto,
+  MemberBusinessProfileDto,
+} from '@kclub/contracts';
 
 import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
@@ -19,6 +23,11 @@ export type TaxonomyOption = {
 
 export type CityTaxonomyOption = TaxonomyOption & {
   countryId: string;
+};
+
+export type CategoryTaxonomyOption = TaxonomyOption & {
+  parentId: string | null;
+  level: CategoryLevel;
 };
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
