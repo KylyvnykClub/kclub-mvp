@@ -381,6 +381,12 @@ export type CheckoutSessionDto = {
   checkoutUrl: string;
 };
 
+export type BusinessReviewReserveCheckoutDto = CheckoutSessionDto & {
+  pendingSubmissionId: EntityId;
+  amount: number;
+  currency: string;
+};
+
 export type AdminBusinessOwnerSummaryDto = {
   id: EntityId;
   phone: string;

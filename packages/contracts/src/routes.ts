@@ -15,6 +15,7 @@ export const MEMBER_API_ROUTES = {
   CARD_VERIFY: `${API_BASE_PATH}/cards/verify/:cardNumber`,
   TAXONOMY_CITIES: `${API_BASE_PATH}/taxonomy/cities`,
   BUSINESSES: `${API_BASE_PATH}/businesses`,
+  BUSINESS_RESERVE_REVIEW: `${API_BASE_PATH}/businesses/reserve-review`,
   BUSINESS_DETAIL: `${API_BASE_PATH}/businesses/:id`,
   BUSINESS_CHECKOUT_PLACEMENT: `${API_BASE_PATH}/businesses/:id/checkout-placement`,
   INTRODUCTIONS: `${API_BASE_PATH}/introductions`,

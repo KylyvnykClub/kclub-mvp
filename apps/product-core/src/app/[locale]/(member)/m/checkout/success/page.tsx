@@ -118,14 +118,22 @@ export default async function CheckoutSuccessPage({
       getCurrentMemberProfileForPage(),
     ]);
     profileId = profile?.id ?? null;
-    session = await stripe.checkout.sessions.retrieve(session_id, { expand: ['invoice'] });
+    session = await stripe.checkout.sessions.retrieve(session_id, {
+      expand: ['invoice', 'payment_intent'],
+    });
   } catch {
     redirect(fallbackHref);
   }
 
   const checkoutType = session.metadata?.type;
+  const paymentIntent =
+    session.payment_intent && typeof session.payment_intent === 'object'
+      ? (session.payment_intent as Stripe.PaymentIntent)
+      : null;
+  const isBusinessReviewReserve = checkoutType === 'business_review_reserve';
   const isOwnSession =
-    session.payment_status === 'paid' &&
+    (session.payment_status === 'paid' ||
+      (isBusinessReviewReserve && paymentIntent?.status === 'requires_capture')) &&
     Boolean(session.metadata?.userId) &&
     profileId === session.metadata?.userId;
 
@@ -161,14 +169,18 @@ export default async function CheckoutSuccessPage({
   const paidAt = new Date((invoice?.created ?? session.created) * 1000);
 
   const accountHref =
-    checkoutType === 'business_placement'
+    checkoutType === 'business_placement' || isBusinessReviewReserve
       ? `/${locale}/m/dashboard?tab=business`
       : `/${locale}/m/dashboard?tab=subscription`;
 
   const rows: Array<{ label: string; value: string }> = [
     {
       label: t('planLabel'),
-      value: checkoutType === 'business_placement' ? t('planBusiness') : t('planVip'),
+      value: isBusinessReviewReserve
+        ? t('planBusinessReview')
+        : checkoutType === 'business_placement'
+          ? t('planBusiness')
+          : t('planVip'),
     },
     ...(amount !== null
       ? [
@@ -183,7 +195,10 @@ export default async function CheckoutSuccessPage({
       value: paidAt.toLocaleDateString(locale, { dateStyle: 'long' }),
     },
     ...(invoice?.number ? [{ label: t('invoiceLabel'), value: invoice.number }] : []),
-    { label: t('statusLabel'), value: t('statusPaid') },
+    {
+      label: t('statusLabel'),
+      value: isBusinessReviewReserve ? t('statusReserved') : t('statusPaid'),
+    },
   ];
 
   return (
@@ -193,7 +208,11 @@ export default async function CheckoutSuccessPage({
           <CheckCircle2 size={44} className="mb-4 text-success" aria-hidden />
           <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            {checkoutType === 'business_placement' ? t('subtitleBusiness') : t('subtitle')}
+            {isBusinessReviewReserve
+              ? t('subtitleBusinessReview')
+              : checkoutType === 'business_placement'
+                ? t('subtitleBusiness')
+                : t('subtitle')}
           </p>
         </div>
 

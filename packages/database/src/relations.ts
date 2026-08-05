@@ -4,6 +4,7 @@ import {
   memberCards,
   vipSubscriptions,
   businessProfiles,
+  businessReviewSubmissions,
   subscriptions,
   businessIntroductions,
   categories,
@@ -21,6 +22,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   vipSubscriptions: many(vipSubscriptions),
   businessProfiles: many(businessProfiles),
   subscriptions: many(subscriptions),
+  businessReviewSubmissions: many(businessReviewSubmissions),
   businessIntroductionsAsRequester: many(businessIntroductions, { relationName: 'requester' }),
 }));
 
@@ -72,9 +74,24 @@ export const businessProfilesRelations = relations(businessProfiles, ({ one, man
     references: [categories.id],
   }),
   subscriptions: many(subscriptions),
+  reviewSubmissions: many(businessReviewSubmissions),
   introductionsAsRequester: many(businessIntroductions, { relationName: 'requesterBusiness' }),
   introductionsAsTarget: many(businessIntroductions, { relationName: 'targetBusiness' }),
 }));
+
+export const businessReviewSubmissionsRelations = relations(
+  businessReviewSubmissions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [businessReviewSubmissions.user_id],
+      references: [users.id],
+    }),
+    businessProfile: one(businessProfiles, {
+      fields: [businessReviewSubmissions.business_profile_id],
+      references: [businessProfiles.id],
+    }),
+  }),
+);
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   user: one(users, {

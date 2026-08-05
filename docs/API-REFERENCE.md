@@ -29,7 +29,8 @@ Base path: `/api/v1`
 ### Businesses
 
 - `GET /businesses`
-- `POST /businesses`
+- `POST /businesses` — start business-review reserve checkout
+- `POST /businesses/reserve-review` — start business-review reserve checkout
 - `GET /businesses/{id}`
 - `PATCH /businesses/{id}`
 - `POST /businesses/{id}/checkout-placement`

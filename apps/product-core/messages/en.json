@@ -435,14 +435,17 @@
         "title": "Payment successful",
         "subtitle": "Thank you! Your payment has been confirmed and access is activated.",
         "subtitleBusiness": "Thank you! Your payment has been confirmed. Your business will be published after an admin review.",
+        "subtitleBusinessReview": "Thank you! The review reserve is authorized. Your business application will be submitted for admin review.",
         "planLabel": "Plan",
         "planVip": "VIP membership",
         "planBusiness": "Business placement",
+        "planBusinessReview": "Business review reserve",
         "amountLabel": "Amount",
         "dateLabel": "Date",
         "invoiceLabel": "Invoice number",
         "statusLabel": "Status",
         "statusPaid": "Paid",
+        "statusReserved": "Reserved",
         "receiptLink": "View receipt",
         "goToAccount": "Go to account"
       }

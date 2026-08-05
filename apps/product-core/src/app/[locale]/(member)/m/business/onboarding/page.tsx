@@ -81,6 +81,7 @@ export default async function BusinessOnboardingPage({
           locale={locale}
           countryOptions={countryOptions}
           categoryOptions={categoryOptions}
+          memberPhone={profile.phone}
         />
       </div>
     </div>

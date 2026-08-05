@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
 
@@ -42,6 +41,7 @@ export type BusinessSubmitWizardProps = {
   countryOptions: TaxonomyOption[];
   cityOptions?: CityTaxonomyOption[];
   categoryOptions: CategoryTaxonomyOption[];
+  memberPhone?: string;
 };
 
 const TOTAL_STEPS = 4;
@@ -51,9 +51,9 @@ export function BusinessSubmitWizard({
   countryOptions,
   cityOptions: initialCityOptions = [],
   categoryOptions,
+  memberPhone = '',
 }: BusinessSubmitWizardProps) {
   const t = useTranslations('member.businessOnboarding');
-  const router = useRouter();
 
   const [step, setStep] = useState(1);
   const [data, setData] = useState<WizardData>({
@@ -64,7 +64,7 @@ export function BusinessSubmitWizard({
     customCategoryName: '',
     representativeName: '',
     representativeEmail: '',
-    representativePhone: '',
+    representativePhone: memberPhone,
     countryId: '',
     cityId: '',
     websiteUrl: '',
@@ -199,21 +199,23 @@ export function BusinessSubmitWizard({
       if (socialUrl) body.socialUrl = socialUrl;
       if (data.briefDescription) body.briefDescription = data.briefDescription;
 
-      const response = await fetch(MEMBER_API_ROUTES.BUSINESSES, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      const response = await fetch(
+        `${MEMBER_API_ROUTES.BUSINESS_RESERVE_REVIEW}?locale=${encodeURIComponent(locale)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        },
+      );
 
-      const result = await parseAuthResponse(response);
+      const result = await parseAuthResponse<{ checkoutUrl: string }>(response);
 
-      if (!result.success) {
+      if (!result.success || !result.data?.checkoutUrl) {
         setError(t('submitError'));
         return;
       }
 
-      router.push(`/${locale}/m/dashboard?tab=business`);
-      router.refresh();
+      window.location.href = result.data.checkoutUrl;
     } catch {
       setError(t('submitError'));
     } finally {

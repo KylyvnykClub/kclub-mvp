@@ -4,6 +4,7 @@ import {
   mapStripeStatusToLocal,
   validatePlacementCheckout,
 } from '../../src/server/services/webhook-service';
+import { validateBusinessReviewReservePaymentIntent } from '../../src/server/services/business-service';
 
 describe('mapStripeStatusToLocal', () => {
   const futurePeriodEnd = Math.floor(Date.now() / 1000) + 86400 * 30;
@@ -168,6 +169,30 @@ describe('validatePlacementCheckout', () => {
     const pastDueVipSub = { status: 'PAST_DUE' as const };
     const result = validatePlacementCheckout(validMetadata, approvedBusiness, pastDueVipSub);
     expect(result).toBe('VALID');
+  });
+});
+
+describe('validateBusinessReviewReservePaymentIntent', () => {
+  const metadata = {
+    type: 'business_review_reserve',
+    userId: 'user-1',
+    pendingSubmissionId: 'pending-1',
+  };
+
+  test('returns pending submission id for a valid authorization', () => {
+    expect(validateBusinessReviewReservePaymentIntent(metadata, 1999)).toBe('pending-1');
+  });
+
+  test('throws when metadata does not identify a business review reserve', () => {
+    expect(() =>
+      validateBusinessReviewReservePaymentIntent({ ...metadata, type: 'other' }, 1999),
+    ).toThrow('missing business review metadata');
+  });
+
+  test('throws when authorized amount is lower than required reserve', () => {
+    expect(() => validateBusinessReviewReservePaymentIntent(metadata, 1998)).toThrow(
+      'below the required authorization',
+    );
   });
 });
 
