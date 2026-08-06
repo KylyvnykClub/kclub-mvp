@@ -361,6 +361,12 @@ export const CATEGORY_SEED_PLAN: readonly CategorySeedPlan[] = [
     name: item.subcategoryName,
     isHighRisk: false,
   })),
+  { slug: 'crypto', name: 'Cryptocurrency & Digital Assets', isHighRisk: true },
+  { slug: 'gambling', name: 'Gambling & Betting', isHighRisk: true },
+  { slug: 'adult', name: 'Adult Content & Services', isHighRisk: true },
+  { slug: 'firearms', name: 'Firearms & Weapons', isHighRisk: true },
+  { slug: 'unlicensed-financial', name: 'Unlicensed Financial Services', isHighRisk: true },
+  { slug: 'high-risk-investments', name: 'High-Risk Investment Schemes', isHighRisk: true },
 ];
 
 export { BUSINESS_TAXONOMY_SEED_PLAN };
