@@ -23,6 +23,7 @@
 Working-tree changes are already implemented and pass local gates; this task just commits/pushes them and confirms the first batch of tests flips green.
 
 **Files (already modified, uncommitted):**
+
 - Modify: `apps/product-core/src/features/member/components/cabinet/MemberCabinetShell.tsx` (added `data-testid={`dashboard-tab-${tab}`}` on `TabsTrigger`)
 - Modify: `apps/product-core/src/features/member/components/KylyvnykClubCard.tsx` (added `data-testid="card-number"` on the status node)
 - Modify: `e2e/helpers/selectors.ts` (`DASHBOARD_TAB_*` → `[data-testid="dashboard-tab-<name>"]`)
@@ -56,6 +57,7 @@ Expected NEWLY GREEN: `business-lifecycle "VIP submits business profile"`, `memb
 **Why:** `billing-flow.spec.ts` clicks a removed `subscription` tab and a removed `subscription-upgrade-btn`. VIP upgrade is now a button in `AccountPanel` (details tab) that POSTs to `MEMBER_API_ROUTES.SUBSCRIPTION_CHECKOUT` and redirects to the returned `checkoutUrl`; the current plan renders as a `Badge` (`planLabel`, `AccountPanel.tsx:135`).
 
 **Files:**
+
 - Modify: `apps/product-core/src/features/member/components/AccountPanel.tsx` (add `data-testid="vip-upgrade-btn"` to the upgrade `<button>` ~line 164; add `data-testid="subscription-status"` to the plan `<Badge>` ~line 135)
 - Modify: `e2e/specs/billing-flow.spec.ts` (rewrite both tests)
 - Read for context: `e2e/helpers/mock-stripe.ts` (`interceptStripeCheckout`, `simulateVipCheckoutComplete`), `apps/product-core/src/app/api/v1/subscriptions/checkout/route.ts`
@@ -116,6 +118,7 @@ test.describe('Billing flow', () => {
 - [ ] **Step 4: Local gates + commit**
 
 Run the Global-Constraints local gates on the two changed files.
+
 ```bash
 git add apps/product-core/src/features/member/components/AccountPanel.tsx e2e/specs/billing-flow.spec.ts
 git commit -m "test(e2e): rewrite billing-flow for the account-tab VIP upgrade"
@@ -132,6 +135,7 @@ Expected NEWLY GREEN: both billing-flow tests. If Step-1 spike showed live-Strip
 **Why:** `/m/introduce` is now a redirect stub (`introduce/page.tsx:12`). The flow moved into the cabinet `introductions` tab, rendered by `IntroductionsPanel` (Radix `Select` for target business + `Textarea` for message + submit). That tab is visible only to **VIP without a business**, so the old `vip-with-published-business` seed can't even see it.
 
 **Files:**
+
 - Modify: `apps/product-core/src/features/member/components/IntroductionsPanel.tsx` (add test ids: `intro-target-business` on the `SelectTrigger`, `intro-message` on the `Textarea`, `intro-submit` on the submit `<button>`, `intro-submit-success` on the success `AlertDescription`)
 - Modify: `e2e/page-objects/introduce.page.ts` (drive the in-cabinet flow)
 - Modify: `e2e/specs/introduction-flow.spec.ts` (test 1 rewrite + seed change)
@@ -152,7 +156,10 @@ Add `data-testid="intro-target-business"` to the `SelectTrigger`, `data-testid="
 import type { Page, Locator } from '@playwright/test';
 
 export class IntroducePage {
-  constructor(private readonly page: Page, private readonly locale = 'en') {}
+  constructor(
+    private readonly page: Page,
+    private readonly locale = 'en',
+  ) {}
 
   async openFromDashboard(): Promise<void> {
     await this.page.goto(`/${this.locale}/m/dashboard`);
@@ -209,6 +216,7 @@ test('VIP member submits an introduction', async ({ page, locale, seed }) => {
 git add apps/product-core/src/features/member/components/IntroductionsPanel.tsx e2e/page-objects/introduce.page.ts e2e/specs/introduction-flow.spec.ts
 git commit -m "test(e2e): rewrite introduction-flow for the in-cabinet recommend flow"
 ```
+
 Expected NEWLY GREEN: `introduction-flow "VIP member submits an introduction"`.
 
 ---
@@ -218,6 +226,7 @@ Expected NEWLY GREEN: `introduction-flow "VIP member submits an introduction"`.
 **Why:** `public-visitor.spec.ts "business detail page renders"` throws a production Server Components render error not fixed by the `memberCards` relation. Source: `getPublishedBusinessOrNull` → `getCachedPublicBusinessBySlug` (`server/cache/business-cache.ts`) → `getPublicBusinessBySlug` (`server/services/business-service.ts`), wrapped in `unstable_cache`. This is a debugging task (root cause unknown until reproduced) — use `superpowers:systematic-debugging`; do NOT guess a fix.
 
 **Files:**
+
 - Investigate: `apps/product-core/src/server/services/business-service.ts` (`getPublicBusinessBySlug`), `packages/database/src/relations.ts`
 - Fix target: whichever query/relation/serialization the reproduction implicates (most likely another missing Drizzle relation used by the slug query, or an `unstable_cache` non-serializable return)
 
@@ -229,6 +238,7 @@ cd apps/product-core && npx next start -p 3100 &
 # find a published slug, or use a bogus one (the query builds before hitting rows)
 curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:3100/en/directory/nonexistent-xyz"
 ```
+
 Read the server stderr for the stack (e.g. `at z.buildRelationalQueryWithoutPK` = a missing relation, like the memberCards bug; or a cache serialization error). Kill the server when done (`taskkill //PID <pid> //F`).
 
 - [ ] **Step 2: Identify the exact cause**
@@ -238,11 +248,13 @@ Open `getPublicBusinessBySlug` and list every `with: { … }` relation it reques
 - [ ] **Step 3: Fix at the source**
 
 If a missing relation: add it to `packages/database/src/relations.ts`, mirroring:
+
 ```ts
 export const <table>Relations = relations(<table>, ({ one, many }) => ({
   <name>: one(<target>, { fields: [<table>.<fk>], references: [<target>.id] }),
 }));
 ```
+
 Rebuild the package: `pnpm --filter @kclub/database build`.
 
 - [ ] **Step 4: Verify locally (no e2e needed)**
@@ -255,6 +267,7 @@ Rebuild + restart the prod server, curl the same URL, confirm **0** render error
 git add packages/database/src/relations.ts   # (+ any other fixed source)
 git commit -m "fix(<scope>): <the specific relation/render fix from Step 2>"
 ```
+
 Expected NEWLY GREEN: `public-visitor "business detail page renders"`.
 
 ---
@@ -264,6 +277,7 @@ Expected NEWLY GREEN: `public-visitor "business detail page renders"`.
 **Why:** Admin staff sign-in moved to **phone + password (+ TOTP)** — `admin-phone-input`, `admin-password-input`, `admin-submit-sign-in`, then `admin-totp-input`/`admin-submit-totp`. `AdminSignInPage`, `staff-auth.spec.ts` (3 fixme tests), and the admin steps of `business-lifecycle`/`introduction-flow` still drive the removed OTP flow. CI has no `ADMIN_BOOTSTRAP_OWNER_PASSWORD`. This is a different app and the most uncertain phase — do it last, after Tasks 0/1b/3/4 are green.
 
 **Files:**
+
 - Investigate: `apps/admin-app/src/app/auth/sign-in/*` (`signInStaffAction`), the staff-auth service, whether a dev password/OTP bypass exists (`ADMIN_STAFF_DEV_OTP`/`ADMIN_STAFF_DEV_TOTP` env in `.github/workflows/ci.yml`)
 - Modify: `e2e/page-objects/admin-sign-in.page.ts`, `e2e/specs/staff-auth.spec.ts`
 - Remove `test.fixme` in: `e2e/specs/staff-auth.spec.ts` (3 tests), `e2e/specs/business-lifecycle.spec.ts` ("staff approves business in admin"), `e2e/specs/introduction-flow.spec.ts` ("staff reviews introduction in admin")
@@ -280,6 +294,7 @@ Based on Step 1: either add `ADMIN_BOOTSTRAP_OWNER_PASSWORD: <value>` to the `e2
 - [ ] **Step 3: Rewrite AdminSignInPage**
 
 Replace `submitPhone`/`fillOtp`/`submitOtp` with a phone+password sign-in plus the TOTP step:
+
 ```ts
 async signIn(phone: string, password: string): Promise<void> {
   await this.page.goto('/auth/sign-in');
@@ -303,6 +318,7 @@ In `staff-auth.spec.ts` change the 3 `test.fixme(` back to `test(` and drive `si
 git add e2e/page-objects/admin-sign-in.page.ts e2e/specs/staff-auth.spec.ts e2e/specs/business-lifecycle.spec.ts e2e/specs/introduction-flow.spec.ts .github/workflows/ci.yml apps/product-core/src/app/api/v1/test/seed/route.ts
 git commit -m "test(e2e): restore admin staff phone+password+TOTP sign-in"
 ```
+
 Expected: all admin tests run and pass; whole `e2e` job green. Also update the backlog: resolve `e2e-auth-flow-stale` and `e2e-next-bitrot-layer`.
 
 ---
