@@ -10,6 +10,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import { getStripeClient } from '@/server/stripe/client';
 import { getCurrentMemberProfileForPage } from '@/server/member-page';
 import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
+import { submitBusinessReviewAfterReserve } from '@/server/services/business-service';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
@@ -152,6 +153,14 @@ export default async function CheckoutSuccessPage({
   if (checkoutType === 'business_placement' && profileId) {
     try {
       await syncPlacementSubscription(session, profileId);
+    } catch {
+      // Non-critical — webhook will also handle this
+    }
+  }
+
+  if (isBusinessReviewReserve && paymentIntent) {
+    try {
+      await submitBusinessReviewAfterReserve(paymentIntent);
     } catch {
       // Non-critical — webhook will also handle this
     }
