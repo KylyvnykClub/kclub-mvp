@@ -185,9 +185,7 @@ export function BusinessForm({
 
       if (websiteUrl) body.websiteUrl = websiteUrl;
       if (socialUrl) body.socialUrl = socialUrl;
-      body.memberDiscountPercent = memberDiscountPercent
-        ? Number(memberDiscountPercent)
-        : null;
+      body.memberDiscountPercent = memberDiscountPercent ? Number(memberDiscountPercent) : null;
 
       const response = await fetch(url, {
         method,
