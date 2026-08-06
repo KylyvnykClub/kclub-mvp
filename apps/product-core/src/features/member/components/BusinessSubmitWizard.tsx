@@ -32,6 +32,7 @@ type WizardData = {
   websiteUrl: string;
   socialUrl: string;
   briefDescription: string;
+  memberDiscountPercent: string;
   confirmAuthority: boolean;
   acceptLegal: boolean;
 };
@@ -70,6 +71,7 @@ export function BusinessSubmitWizard({
     websiteUrl: '',
     socialUrl: '',
     briefDescription: '',
+    memberDiscountPercent: '',
     confirmAuthority: false,
     acceptLegal: false,
   });
@@ -198,6 +200,9 @@ export function BusinessSubmitWizard({
       if (websiteUrl) body.websiteUrl = websiteUrl;
       if (socialUrl) body.socialUrl = socialUrl;
       if (data.briefDescription) body.briefDescription = data.briefDescription;
+      if (data.memberDiscountPercent) {
+        body.memberDiscountPercent = Number(data.memberDiscountPercent);
+      }
 
       const response = await fetch(
         `${MEMBER_API_ROUTES.BUSINESS_RESERVE_REVIEW}?locale=${encodeURIComponent(locale)}`,
@@ -541,6 +546,21 @@ export function BusinessSubmitWizard({
               className={fieldClass}
             />
           </div>
+          <div>
+            <label htmlFor="memberDiscountPercent" className={labelClass}>
+              {t('memberDiscount')}
+            </label>
+            <input
+              id="memberDiscountPercent"
+              type="number"
+              min={1}
+              max={100}
+              placeholder={t('memberDiscountPlaceholder')}
+              value={data.memberDiscountPercent}
+              onChange={(e) => set('memberDiscountPercent', e.target.value)}
+              className={fieldClass}
+            />
+          </div>
         </div>
       )}
 
@@ -575,6 +595,13 @@ export function BusinessSubmitWizard({
                 </p>
               )}
             </SummaryRow>
+            {data.memberDiscountPercent && (
+              <SummaryRow label={t('summaryDiscount')}>
+                <p className="text-sm font-medium text-zinc-950 dark:text-white">
+                  {data.memberDiscountPercent}%
+                </p>
+              </SummaryRow>
+            )}
           </div>
 
           <div className="space-y-3">

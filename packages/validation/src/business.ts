@@ -32,6 +32,7 @@ export const businessProfileSubmitSchema = z
     websiteUrl: urlSchema.optional(),
     socialUrl: urlSchema.optional(),
     briefDescription: businessBriefDescriptionSchema,
+    memberDiscountPercent: z.number().int().min(1).max(100).optional().nullable(),
   })
   .superRefine((value, context) => {
     if (!value.categoryId && !value.customCategoryName) {
@@ -63,6 +64,7 @@ export const businessProfileEditableFieldsSchema = z
     websiteUrl: urlSchema.optional().nullable(),
     socialUrl: urlSchema.optional().nullable(),
     briefDescription: businessBriefDescriptionSchema,
+    memberDiscountPercent: z.number().int().min(1).max(100).optional().nullable(),
   })
   .refine((value) => Object.values(value).some((field) => field !== undefined), {
     message: 'validation.business.atLeastOneField',

@@ -85,6 +85,9 @@ export function BusinessForm({
   const [websiteUrl, setWebsiteUrl] = useState(business?.websiteUrl ?? '');
   const [socialUrl, setSocialUrl] = useState(business?.socialUrl ?? '');
   const [briefDescription, setBriefDescription] = useState(business?.briefDescription ?? '');
+  const [memberDiscountPercent, setMemberDiscountPercent] = useState<string>(
+    business?.memberDiscountPercent != null ? String(business.memberDiscountPercent) : '',
+  );
   const [cityOptions, setCityOptions] = useState<CityTaxonomyOption[]>([]);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [cityLoadError, setCityLoadError] = useState<string | null>(null);
@@ -182,6 +185,9 @@ export function BusinessForm({
 
       if (websiteUrl) body.websiteUrl = websiteUrl;
       if (socialUrl) body.socialUrl = socialUrl;
+      body.memberDiscountPercent = memberDiscountPercent
+        ? Number(memberDiscountPercent)
+        : null;
 
       const response = await fetch(url, {
         method,
@@ -378,6 +384,19 @@ export function BusinessForm({
             value={briefDescription ?? ''}
             onChange={(e) => setBriefDescription(e.target.value)}
             maxLength={2000}
+            className="w-full rounded-none"
+          />
+        </FormRow>
+
+        <FormRow label={t('memberDiscountLabel')} htmlFor="biz-discount" optional>
+          <Input
+            id="biz-discount"
+            type="number"
+            min={1}
+            max={100}
+            placeholder={t('memberDiscountPlaceholder')}
+            value={memberDiscountPercent}
+            onChange={(e) => setMemberDiscountPercent(e.target.value)}
             className="w-full rounded-none"
           />
         </FormRow>

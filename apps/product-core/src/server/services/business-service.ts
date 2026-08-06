@@ -300,6 +300,7 @@ export async function submitBusiness(
       website_url: input.websiteUrl ?? null,
       social_url: input.socialUrl ?? null,
       brief_description: input.briefDescription ?? null,
+      member_discount_percent: input.memberDiscountPercent ?? null,
       status: 'UNDER_REVIEW',
     })
     .returning();
@@ -503,11 +504,13 @@ export async function updateBusiness(
     brief_description: input.briefDescription,
     website_url: input.websiteUrl,
     social_url: input.socialUrl,
+    member_discount_percent: input.memberDiscountPercent,
   };
 
   delete dataToUpdate.briefDescription;
   delete dataToUpdate.websiteUrl;
   delete dataToUpdate.socialUrl;
+  delete dataToUpdate.memberDiscountPercent;
   delete dataToUpdate.categoryId;
   delete dataToUpdate.customCategoryName;
   delete dataToUpdate.cityId;
