@@ -37,6 +37,12 @@ export const businessStatusEnum = pgEnum('business_status', [
   'REJECTED',
   'HIDDEN',
 ]);
+export const businessReviewSubmissionStatusEnum = pgEnum('business_review_submission_status', [
+  'PENDING_PAYMENT',
+  'SUBMITTED',
+  'FAILED',
+  'CANCELED',
+]);
 export const introductionStatusEnum = pgEnum('introduction_status', [
   'SUBMITTED',
   'IN_REVIEW',
@@ -274,6 +280,34 @@ export const subscriptions = pgTable(
       table.status,
       table.current_period_end,
     ),
+  ],
+);
+
+export const businessReviewSubmissions = pgTable(
+  'business_review_submissions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    user_id: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    business_profile_id: uuid('business_profile_id').references(() => businessProfiles.id, {
+      onDelete: 'set null',
+    }),
+    status: businessReviewSubmissionStatusEnum('status').default('PENDING_PAYMENT').notNull(),
+    payload: json('payload').$type<Record<string, unknown>>().notNull(),
+    reserve_amount: integer('reserve_amount').notNull(),
+    reserve_currency: varchar('reserve_currency', { length: 3 }).notNull(),
+    stripe_checkout_session_id: varchar('stripe_checkout_session_id', { length: 255 }).unique(),
+    stripe_payment_intent_id: varchar('stripe_payment_intent_id', { length: 255 }).unique(),
+    submitted_at: timestamp('submitted_at'),
+    failed_at: timestamp('failed_at'),
+    failure_reason: text('failure_reason'),
+    created_at: timestamp('created_at').defaultNow().notNull(),
+    updated_at: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('brs_user_status_created_idx').on(table.user_id, table.status, table.created_at),
+    index('brs_status_created_idx').on(table.status, table.created_at),
   ],
 );
 

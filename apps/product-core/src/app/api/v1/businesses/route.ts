@@ -7,11 +7,12 @@ import { createSupabaseServerClient } from '@/server/auth';
 import { jsonSuccess, jsonError, jsonErrorFromUnknown } from '@/server/api';
 import { getMemberBySupabaseUserId, assertMemberOnboardingComplete } from '@/server/services';
 import {
-  submitBusiness,
+  startBusinessReviewReserveCheckout,
   getOwnBusinesses,
   getPublicBusinesses,
 } from '@/server/services/business-service';
 import { createRequestContext } from '@/server/context';
+import { defaultLocale, isLocale } from '@/i18n/routing';
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,9 +59,12 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const input = businessProfileSubmitSchema.parse(body);
+    const { searchParams } = new URL(request.url);
+    const requestedLocale = searchParams.get('locale') ?? defaultLocale;
+    const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
 
-    const business = await submitBusiness(input, context);
-    return jsonSuccess(business, undefined, { status: 201 });
+    const checkout = await startBusinessReviewReserveCheckout(input, context, locale);
+    return jsonSuccess(checkout, undefined, { status: 201 });
   } catch (error) {
     return jsonErrorFromUnknown(error);
   }

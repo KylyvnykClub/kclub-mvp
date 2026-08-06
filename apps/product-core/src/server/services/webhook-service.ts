@@ -14,6 +14,7 @@ import { getDbClient, schema } from '@/server/db';
 import { getStripeClient } from '@/server/stripe/client';
 import { createDbAuditService } from '@/server/audit';
 import { createRequestContext } from '@/server/context';
+import { submitBusinessReviewAfterReserve } from '@/server/services/business-service';
 
 const auditService = createDbAuditService();
 const systemContext = createRequestContext({ actor: { kind: 'system' } });
@@ -85,6 +86,13 @@ async function handleEventByType(event: Stripe.Event): Promise<void> {
   if (event.type === 'checkout.session.completed') {
     if (metadata.type === 'vip') return handleCheckoutCompleted(object);
     if (metadata.type === 'business_placement') return handlePlacementCheckoutCompleted(object);
+    return;
+  }
+
+  if (event.type === 'payment_intent.amount_capturable_updated') {
+    if (metadata.type === 'business_review_reserve') {
+      return submitBusinessReviewAfterReserve(event.data.object as Stripe.PaymentIntent);
+    }
     return;
   }
 

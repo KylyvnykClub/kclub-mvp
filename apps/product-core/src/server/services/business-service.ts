@@ -1,6 +1,8 @@
 import {
   ERROR_CODES,
+  type BusinessReviewReserveCheckoutDto,
   type BusinessStatus,
+  type Locale,
   type MemberBusinessProfileDto,
   type PublicBusinessDetailDto,
   type PublicBusinessListItemDto,
@@ -11,14 +13,22 @@ import type {
 } from '@kclub/validation';
 
 import { eq, desc, and, ne, ilike } from 'drizzle-orm';
+import type Stripe from 'stripe';
+
 import { AppError } from '@/server/errors';
 import { getDbClient, schema } from '@/server/db';
 import { createDbAuditService } from '@/server/audit';
 import type { RequestContext } from '@/server/context';
+import { createRequestContext } from '@/server/context';
+import { getStripeClient } from '@/server/stripe/client';
+import { rethrowStripeCheckoutError } from '@/server/stripe/errors';
 
 const auditService = createDbAuditService();
 
 export const PUBLIC_BUSINESS_VISIBILITY_FILTER = eq(schema.businessProfiles.status, 'PUBLISHED');
+const BUSINESS_REVIEW_RESERVE_AMOUNT = 1999;
+const BUSINESS_REVIEW_RESERVE_CURRENCY = 'usd';
+const BUSINESS_REVIEW_RESERVE_PRODUCT_NAME = 'Business Review Reservation';
 
 const CATEGORY_WITH_PARENTS = {
   with: { parent: { with: { parent: true } } },
@@ -31,6 +41,30 @@ function generateSlug(name: string): string {
     .replace(/(^-|-$)+/g, '');
   const uniqueId = Math.random().toString(36).substring(2, 6);
   return `${base}-${uniqueId}`;
+}
+
+function normalizeAppUrl(url: string): string {
+  const stripped = url.replace(/\/+$/, '');
+  return stripped.replace(/\/(en|ru|uk)$/, '');
+}
+
+function buildBusinessReviewSuccessUrl(appUrl: string, locale: Locale): string {
+  return `${normalizeAppUrl(appUrl)}/${locale}/m/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+}
+
+function buildBusinessReviewCancelUrl(appUrl: string, locale: Locale): string {
+  return `${normalizeAppUrl(appUrl)}/${locale}/m/checkout/cancel`;
+}
+
+function buildBusinessReviewMetadata(
+  userId: string,
+  pendingSubmissionId: string,
+): Record<string, string> {
+  return {
+    type: 'business_review_reserve',
+    userId,
+    pendingSubmissionId,
+  };
 }
 
 async function resolveCustomCategory(customName: string): Promise<string> {
@@ -64,22 +98,12 @@ async function resolveCustomCategory(customName: string): Promise<string> {
   return newCategory!.id;
 }
 
-export async function submitBusiness(
+async function validateBusinessSubmitInputForUser(
   input: BusinessProfileSubmitInput,
-  context: RequestContext,
-): Promise<MemberBusinessProfileDto> {
+  userId: string,
+): Promise<string> {
   const db = getDbClient();
-  const userId = context.actor?.kind === 'member' ? context.actor.userId : null;
 
-  if (!userId) {
-    throw new AppError({
-      code: ERROR_CODES.PERMISSION_DENIED,
-      message: 'Authentication required',
-      status: 401,
-    });
-  }
-
-  // Check duplicate active business
   const existingActiveBusiness = await db.query.businessProfiles.findFirst({
     where: and(
       eq(schema.businessProfiles.user_id, userId),
@@ -95,7 +119,6 @@ export async function submitBusiness(
     });
   }
 
-  // 3. Resolve category (existing or custom)
   const resolvedCategoryId = input.customCategoryName
     ? await resolveCustomCategory(input.customCategoryName)
     : input.categoryId!;
@@ -120,7 +143,6 @@ export async function submitBusiness(
     });
   }
 
-  // 4. City belongs to country
   const city = await db.query.cities.findFirst({
     where: eq(schema.cities.id, input.cityId),
   });
@@ -132,6 +154,134 @@ export async function submitBusiness(
       status: 400,
     });
   }
+
+  return resolvedCategoryId;
+}
+
+export async function startBusinessReviewReserveCheckout(
+  input: BusinessProfileSubmitInput,
+  context: RequestContext,
+  locale: Locale,
+): Promise<BusinessReviewReserveCheckoutDto> {
+  const db = getDbClient();
+  const stripe = getStripeClient();
+  const userId = context.actor?.kind === 'member' ? context.actor.userId : null;
+
+  if (!userId) {
+    throw new AppError({
+      code: ERROR_CODES.PERMISSION_DENIED,
+      message: 'Authentication required',
+      status: 401,
+    });
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrl) {
+    throw new AppError({
+      code: ERROR_CODES.STRIPE_CONFIG_MISSING,
+      message: 'APP_URL is not configured',
+      status: 500,
+    });
+  }
+
+  await validateBusinessSubmitInputForUser(input, userId);
+
+  const [pendingSubmission] = await db
+    .insert(schema.businessReviewSubmissions)
+    .values({
+      user_id: userId,
+      payload: input as unknown as Record<string, unknown>,
+      reserve_amount: BUSINESS_REVIEW_RESERVE_AMOUNT,
+      reserve_currency: BUSINESS_REVIEW_RESERVE_CURRENCY,
+    })
+    .returning();
+
+  const metadata = buildBusinessReviewMetadata(userId, pendingSubmission!.id);
+
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: BUSINESS_REVIEW_RESERVE_CURRENCY,
+            product_data: { name: BUSINESS_REVIEW_RESERVE_PRODUCT_NAME },
+            unit_amount: BUSINESS_REVIEW_RESERVE_AMOUNT,
+          },
+          quantity: 1,
+        },
+      ],
+      payment_intent_data: {
+        capture_method: 'manual',
+        metadata,
+      },
+      metadata,
+      client_reference_id: userId,
+      success_url: buildBusinessReviewSuccessUrl(appUrl, locale),
+      cancel_url: buildBusinessReviewCancelUrl(appUrl, locale),
+    });
+  } catch (error) {
+    await db
+      .update(schema.businessReviewSubmissions)
+      .set({
+        status: 'FAILED',
+        failed_at: new Date(),
+        failure_reason: 'Stripe checkout creation failed',
+      })
+      .where(eq(schema.businessReviewSubmissions.id, pendingSubmission!.id));
+    rethrowStripeCheckoutError(error);
+  }
+
+  if (!session.url) {
+    await db
+      .update(schema.businessReviewSubmissions)
+      .set({
+        status: 'FAILED',
+        failed_at: new Date(),
+        failure_reason: 'Stripe did not return a checkout URL',
+      })
+      .where(eq(schema.businessReviewSubmissions.id, pendingSubmission!.id));
+    throw new AppError({
+      code: ERROR_CODES.CHECKOUT_CREATION_FAILED,
+      message: 'Stripe did not return a checkout URL',
+      status: 500,
+    });
+  }
+
+  await db
+    .update(schema.businessReviewSubmissions)
+    .set({
+      stripe_checkout_session_id: session.id,
+      stripe_payment_intent_id:
+        typeof session.payment_intent === 'string' ? session.payment_intent : null,
+    })
+    .where(eq(schema.businessReviewSubmissions.id, pendingSubmission!.id));
+
+  return {
+    checkoutUrl: session.url,
+    pendingSubmissionId: pendingSubmission!.id,
+    amount: BUSINESS_REVIEW_RESERVE_AMOUNT,
+    currency: BUSINESS_REVIEW_RESERVE_CURRENCY,
+  };
+}
+
+export async function submitBusiness(
+  input: BusinessProfileSubmitInput,
+  context: RequestContext,
+): Promise<MemberBusinessProfileDto> {
+  const db = getDbClient();
+  const userId = context.actor?.kind === 'member' ? context.actor.userId : null;
+
+  if (!userId) {
+    throw new AppError({
+      code: ERROR_CODES.PERMISSION_DENIED,
+      message: 'Authentication required',
+      status: 401,
+    });
+  }
+
+  const resolvedCategoryId = await validateBusinessSubmitInputForUser(input, userId);
 
   const slug = generateSlug(input.name);
 
@@ -174,6 +324,93 @@ export async function submitBusiness(
   );
 
   return toMemberBusinessProfileDto(newBusiness);
+}
+
+export function validateBusinessReviewReservePaymentIntent(
+  metadata: Record<string, string>,
+  amountCapturable: number,
+): string {
+  const pendingSubmissionId = metadata.pendingSubmissionId;
+
+  if (metadata.type !== 'business_review_reserve' || !metadata.userId || !pendingSubmissionId) {
+    throw new AppError({
+      code: ERROR_CODES.STRIPE_CONFIG_MISSING,
+      message: 'payment_intent.amount_capturable_updated missing business review metadata',
+      status: 500,
+    });
+  }
+
+  if (amountCapturable < BUSINESS_REVIEW_RESERVE_AMOUNT) {
+    throw new AppError({
+      code: ERROR_CODES.STRIPE_CONFIG_MISSING,
+      message: 'Business review reserve amount is below the required authorization',
+      status: 500,
+    });
+  }
+
+  return pendingSubmissionId;
+}
+
+export async function submitBusinessReviewAfterReserve(
+  paymentIntent: Stripe.PaymentIntent,
+): Promise<void> {
+  const db = getDbClient();
+  const metadata = paymentIntent.metadata ?? {};
+  const pendingSubmissionId = validateBusinessReviewReservePaymentIntent(
+    metadata,
+    paymentIntent.amount_capturable,
+  );
+
+  const pendingSubmission = await db.query.businessReviewSubmissions.findFirst({
+    where: eq(schema.businessReviewSubmissions.id, pendingSubmissionId),
+  });
+
+  if (!pendingSubmission) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business review pending submission not found',
+      status: 500,
+    });
+  }
+
+  if (pendingSubmission.status === 'SUBMITTED') return;
+
+  if (pendingSubmission.status !== 'PENDING_PAYMENT') {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_CONFLICT,
+      message: `Business review pending submission is ${pendingSubmission.status}`,
+      status: 500,
+    });
+  }
+
+  const context = createRequestContext({
+    actor: { kind: 'member', userId: pendingSubmission.user_id },
+  });
+  const input = pendingSubmission.payload as unknown as BusinessProfileSubmitInput;
+
+  try {
+    const business = await submitBusiness(input, context);
+    await db
+      .update(schema.businessReviewSubmissions)
+      .set({
+        status: 'SUBMITTED',
+        business_profile_id: business.id,
+        stripe_payment_intent_id: paymentIntent.id,
+        submitted_at: new Date(),
+      })
+      .where(eq(schema.businessReviewSubmissions.id, pendingSubmission.id));
+  } catch (error) {
+    await db
+      .update(schema.businessReviewSubmissions)
+      .set({
+        status: 'FAILED',
+        stripe_payment_intent_id: paymentIntent.id,
+        failed_at: new Date(),
+        failure_reason: error instanceof Error ? error.message : 'Unknown submission failure',
+      })
+      .where(eq(schema.businessReviewSubmissions.id, pendingSubmission.id));
+    throw error;
+  }
 }
 
 export async function updateBusiness(

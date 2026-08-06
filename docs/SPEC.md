@@ -314,11 +314,15 @@ MVP billing uses:
 
 Business placement flow:
 
-1. VIP submits business profile.
-2. Moderator approves profile: `UNDER_REVIEW -> APPROVED`.
-3. User starts placement checkout.
-4. Stripe webhook confirms payment.
-5. Product-core publishes business: `APPROVED -> PUBLISHED`.
+1. VIP completes the business application form.
+2. Product-core creates a Stripe Checkout Session in payment mode with manual capture for the review reserve.
+3. Stripe authorizes the reserve amount.
+4. Stripe webhook confirms `payment_intent.amount_capturable_updated`.
+5. Product-core creates the business profile in `UNDER_REVIEW`.
+6. Moderator approves profile: `UNDER_REVIEW -> APPROVED`.
+7. User starts placement checkout.
+8. Stripe webhook confirms placement payment.
+9. Product-core activates placement billing; publication stays controlled by admin workflow.
 
 ## 10. API Surface
 
@@ -340,7 +344,8 @@ Base path: `/api/v1`.
 | `GET /cards`                               | Auth                      | Own active card                         |
 | `GET /cards/verify/{cardNumber}`           | Public                    | PII-safe card verification              |
 | `GET /businesses`                          | Auth/Public by filter     | Own businesses or published public list |
-| `POST /businesses`                         | VIP                       | Submit business for review              |
+| `POST /businesses`                         | VIP                       | Start business-review Stripe reserve    |
+| `POST /businesses/reserve-review`          | VIP                       | Start business-review Stripe reserve    |
 | `GET /businesses/{id}`                     | Auth/Public by visibility | Detail                                  |
 | `PATCH /businesses/{id}`                   | Owner                     | Edit allowed fields while reviewable    |
 | `POST /businesses/{id}/checkout-placement` | VIP + approved business   | Create Stripe checkout                  |
@@ -383,7 +388,7 @@ Business profile submission:
 - Phone: required, valid phone.
 - Country and city: required; city must belong to country.
 - Category: required and not high-risk.
-- Website or social URL: required, valid URL.
+- Website and social URL: optional; when provided, must be valid URLs.
 - Brief description: optional, max 2000 chars.
 - Caller must have active VIP capability.
 
@@ -406,6 +411,7 @@ Featured businesses:
 Stripe webhook events:
 
 - `checkout.session.completed`
+- `payment_intent.amount_capturable_updated`
 - `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
