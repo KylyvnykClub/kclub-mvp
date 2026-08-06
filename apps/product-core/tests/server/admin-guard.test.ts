@@ -204,11 +204,13 @@ describe('validation schemas for admin mutations', () => {
       await import('@kclub/validation');
 
     expect(categoryCreateSchema.parse({ name: 'Test', slug: 'test' })).toEqual({
+      level: 'CATEGORY',
       name: 'Test',
       slug: 'test',
       isHighRisk: false,
       isActive: true,
       isCustom: false,
+      sortOrder: 0,
     });
 
     expect(countryCreateSchema.parse({ code2: 'US', name: 'USA', slug: 'usa' })).toEqual({

@@ -82,9 +82,13 @@ let mockPrisma:
   ReturnType<typeof createPlacementMockPrisma> | ReturnType<typeof createVipMockPrisma>;
 let mockAuditLog: (...args: any[]) => Promise<any>;
 
-vi.mock('@/server/db', () => ({
-  getPrismaClient: () => mockPrisma,
-}));
+vi.mock('@/server/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/server/db')>();
+  return {
+    ...actual,
+    getPrismaClient: () => mockPrisma,
+  };
+});
 
 vi.mock('@/server/stripe/client', () => ({
   getStripeClient: () => mockStripeClient,
