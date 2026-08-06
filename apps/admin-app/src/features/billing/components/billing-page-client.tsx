@@ -8,10 +8,12 @@ import { SubTabs, type SubTabItem } from '@/components/sub-tabs';
 import { SubscriptionsTable } from '@/features/subscriptions/components/subscriptions-table';
 import { MembershipsView } from '@/features/memberships/components/memberships-view';
 import { StripePricesForm } from '@/features/stripe-prices/components/stripe-prices-form';
+import { PaymentsTable } from './payments-table';
 import type {
   AdminSubscriptionListItemDto,
   MembershipPlanDto,
   AdminConfigEntryDto,
+  AdminPaymentDto,
   StaffRole,
 } from '@kclub/contracts';
 
@@ -27,6 +29,7 @@ type BillingPageClientProps = {
   subscriptions: AdminSubscriptionListItemDto[];
   plans: MembershipPlanDto[];
   prices: AdminConfigEntryDto[];
+  payments: AdminPaymentDto[];
   stats?: BillingStats | undefined;
 };
 
@@ -38,6 +41,7 @@ function getBillingTabs(role: StaffRole): SubTabItem[] {
   if (role === 'OWNER') {
     tabs.push({ id: 'stripe-prices', label: 'Stripe Prices' });
   }
+  tabs.push({ id: 'payments', label: 'Payments' });
   return tabs;
 }
 
@@ -52,6 +56,7 @@ export function BillingPageClient({
   subscriptions,
   plans,
   prices,
+  payments,
   stats,
 }: BillingPageClientProps) {
   const tabs = getBillingTabs(staffRole);
@@ -83,6 +88,7 @@ export function BillingPageClient({
             <StripePricesForm prices={prices} />
           </div>
         )}
+        {activeSection === 'payments' && <PaymentsTable payments={payments} />}
       </div>
     </PageShell>
   );

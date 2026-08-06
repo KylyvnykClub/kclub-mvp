@@ -435,7 +435,7 @@
         "title": "Payment successful",
         "subtitle": "Thank you! Your payment has been confirmed and access is activated.",
         "subtitleBusiness": "Thank you! Your payment has been confirmed. Your business will be published after an admin review.",
-        "subtitleBusinessReview": "Thank you! The review reserve is authorized. Your business application will be submitted for admin review.",
+        "subtitleBusinessReview": "Thank you! The funds are held until your application is reviewed. Your business application will be submitted for admin review.",
         "planLabel": "Plan",
         "planVip": "VIP membership",
         "planBusiness": "Business placement",

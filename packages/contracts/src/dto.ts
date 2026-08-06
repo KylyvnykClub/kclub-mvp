@@ -577,3 +577,15 @@ export type CronResultDto = {
 };
 
 import type { StaffRole, StaffPermissionOverrides } from './permissions';
+
+export interface AdminPaymentDto {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  created_at: string;
+  description: string | null;
+  receipt_url: string | null;
+  customer_email: string | null;
+  customer_name: string | null;
+}

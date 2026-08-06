@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -42,6 +42,26 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(0);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (step === 'otp') {
+      setCountdown(60);
+      countdownRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [step]);
   const termsHref = `/legal/${locale}/terms-of-use`;
   const privacyHref = `/legal/${locale}/privacy-policy`;
   const phoneDescriptionIds = [
@@ -158,6 +178,12 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
   return (
     <div className="container grid gap-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center">
       <section className="hidden lg:block">
+        <Image
+          src={crowLogo}
+          alt=""
+          aria-hidden
+          className="mb-8 block h-16 w-16 rounded-full object-cover"
+        />
         <h1 className="mt-5 text-3xl font-semibold tracking-tight text-foreground">{t('title')}</h1>
         <p className="mt-5 max-w-xl text-base leading-8 text-muted-foreground">
           {t('description')}
@@ -165,7 +191,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
       </section>
 
       <div className="relative mx-auto w-full max-w-[440px] overflow-hidden border border-border bg-surface p-6 shadow-xl sm:p-8">
-        <div className="mb-10 text-center">
+        <div className="mb-10 text-center lg:hidden">
           <Image
             src={crowLogo}
             alt=""
@@ -311,7 +337,12 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
         {step === 'otp' && (
           <form className="space-y-6" onSubmit={handleOtpSubmit}>
             <Field>
-              <Label htmlFor="otp">{tCommon('otpLabel')}</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="otp">{tCommon('otpLabel')}</Label>
+                {countdown > 0 && (
+                  <span className="tabular-nums text-xs text-muted-foreground">{countdown}s</span>
+                )}
+              </div>
               <Input
                 id="otp"
                 name="otp"
