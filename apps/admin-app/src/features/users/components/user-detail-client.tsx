@@ -35,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { AdminTableDesktop, AdminTableMobile } from '@/components/admin-list-layout';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { fetchUserInvoicesAction } from '@/features/users/actions';
@@ -432,41 +433,65 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                     {user.cards.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No cards issued.</p>
                     ) : (
-                      <div className="overflow-x-auto rounded-md border">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Card #</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Tier</TableHead>
-                              <TableHead>Issued</TableHead>
-                              <TableHead>Expires</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {user.cards.map((card) => (
-                              <TableRow key={card.id}>
-                                <TableCell className="font-mono text-xs">
-                                  {card.cardNumber}
-                                </TableCell>
-                                <TableCell>
-                                  <StatusBadge status={card.status} />
-                                </TableCell>
-                                <TableCell>
-                                  <MembershipTierBadge tier={card.membershipTier} />
-                                </TableCell>
-                                <TableCell className="text-xs text-muted-foreground">
-                                  {new Date(card.issuedAt).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell className="text-xs text-muted-foreground">
-                                  {card.expiresAt
-                                    ? new Date(card.expiresAt).toLocaleDateString()
-                                    : '—'}
-                                </TableCell>
+                      <div className="rounded-md border">
+                        <AdminTableDesktop>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Card #</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Tier</TableHead>
+                                <TableHead>Issued</TableHead>
+                                <TableHead>Expires</TableHead>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                            </TableHeader>
+                            <TableBody>
+                              {user.cards.map((card) => (
+                                <TableRow key={card.id}>
+                                  <TableCell className="font-mono text-xs">
+                                    {card.cardNumber}
+                                  </TableCell>
+                                  <TableCell>
+                                    <StatusBadge status={card.status} />
+                                  </TableCell>
+                                  <TableCell>
+                                    <MembershipTierBadge tier={card.membershipTier} />
+                                  </TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">
+                                    {new Date(card.issuedAt).toLocaleDateString()}
+                                  </TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">
+                                    {card.expiresAt
+                                      ? new Date(card.expiresAt).toLocaleDateString()
+                                      : '—'}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </AdminTableDesktop>
+
+                        <AdminTableMobile>
+                          {user.cards.map((card) => (
+                            <div key={card.id} className="space-y-3 p-4 border-b last:border-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="font-mono text-sm font-medium">{card.cardNumber}</span>
+                                <StatusBadge status={card.status} />
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <MembershipTierBadge tier={card.membershipTier} />
+                                <span className="text-xs text-muted-foreground">
+                                  Issued: {new Date(card.issuedAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              {card.expiresAt && (
+                                <div className="text-xs text-muted-foreground">
+                                  Expires: {new Date(card.expiresAt).toLocaleDateString()}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </AdminTableMobile>
                       </div>
                     )}
                   </CardContent>
@@ -499,41 +524,73 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                     {user.subscriptions.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No VIP subscription history.</p>
                     ) : (
-                      <div className="overflow-x-auto rounded-md border">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Period start</TableHead>
-                              <TableHead>Period end</TableHead>
-                              <TableHead>Cancel at period end</TableHead>
-                              <TableHead>Created</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {user.subscriptions.map((sub) => (
-                              <TableRow key={sub.id}>
-                                <TableCell>
-                                  <StatusBadge status={sub.status} />
-                                </TableCell>
-                                <TableCell className="text-xs text-muted-foreground">
+                      <div className="rounded-md border">
+                        <AdminTableDesktop>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Period start</TableHead>
+                                <TableHead>Period end</TableHead>
+                                <TableHead>Cancel at period end</TableHead>
+                                <TableHead>Created</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {user.subscriptions.map((sub) => (
+                                <TableRow key={sub.id}>
+                                  <TableCell>
+                                    <StatusBadge status={sub.status} />
+                                  </TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">
+                                    {sub.currentPeriodStart
+                                      ? new Date(sub.currentPeriodStart).toLocaleDateString()
+                                      : '—'}
+                                  </TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">
+                                    {sub.currentPeriodEnd
+                                      ? new Date(sub.currentPeriodEnd).toLocaleDateString()
+                                      : '—'}
+                                  </TableCell>
+                                  <TableCell>{sub.cancelAtPeriodEnd ? 'Yes' : 'No'}</TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">
+                                    {new Date(sub.createdAt).toLocaleDateString()}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </AdminTableDesktop>
+
+                        <AdminTableMobile>
+                          {user.subscriptions.map((sub) => (
+                            <div key={sub.id} className="space-y-3 p-4 border-b last:border-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <StatusBadge status={sub.status} />
+                                {sub.cancelAtPeriodEnd && (
+                                  <Badge variant="secondary" className="text-xs">Cancels at end</Badge>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                                <div>
+                                  <span className="block font-medium text-foreground">Start</span>
                                   {sub.currentPeriodStart
                                     ? new Date(sub.currentPeriodStart).toLocaleDateString()
                                     : '—'}
-                                </TableCell>
-                                <TableCell className="text-xs text-muted-foreground">
+                                </div>
+                                <div>
+                                  <span className="block font-medium text-foreground">End</span>
                                   {sub.currentPeriodEnd
                                     ? new Date(sub.currentPeriodEnd).toLocaleDateString()
                                     : '—'}
-                                </TableCell>
-                                <TableCell>{sub.cancelAtPeriodEnd ? 'Yes' : 'No'}</TableCell>
-                                <TableCell className="text-xs text-muted-foreground">
-                                  {new Date(sub.createdAt).toLocaleDateString()}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                                </div>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Created: {new Date(sub.createdAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                          ))}
+                        </AdminTableMobile>
                       </div>
                     )}
 
@@ -572,39 +629,67 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                     {filteredLogs.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No logs found.</p>
                     ) : (
-                      <div className="overflow-x-auto rounded-md border">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Action</TableHead>
-                              <TableHead>Staff</TableHead>
-                              <TableHead>Details</TableHead>
-                              <TableHead>Date</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {filteredLogs.map((entry) => (
-                              <TableRow key={entry.id}>
-                                <TableCell>
-                                  <StatusBadge status={entry.action} />
-                                </TableCell>
-                                <TableCell className="text-xs text-muted-foreground">
-                                  {entry.actorStaffId ?? 'System'}
-                                </TableCell>
-                                <TableCell className="max-w-[240px] truncate text-xs text-muted-foreground">
-                                  {entry.after
-                                    ? Object.entries(entry.after)
-                                        .map(([k, v]) => `${k}: ${String(v)}`)
-                                        .join(', ')
-                                    : '—'}
-                                </TableCell>
-                                <TableCell className="text-xs text-muted-foreground">
-                                  {new Date(entry.createdAt).toLocaleDateString()}
-                                </TableCell>
+                      <div className="rounded-md border">
+                        <AdminTableDesktop>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Action</TableHead>
+                                <TableHead>Staff</TableHead>
+                                <TableHead>Details</TableHead>
+                                <TableHead>Date</TableHead>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                            </TableHeader>
+                            <TableBody>
+                              {filteredLogs.map((entry) => (
+                                <TableRow key={entry.id}>
+                                  <TableCell>
+                                    <StatusBadge status={entry.action} />
+                                  </TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">
+                                    {entry.actorStaffId ?? 'System'}
+                                  </TableCell>
+                                  <TableCell className="max-w-[240px] truncate text-xs text-muted-foreground">
+                                    {entry.after
+                                      ? Object.entries(entry.after)
+                                          .map(([k, v]) => `${k}: ${String(v)}`)
+                                          .join(', ')
+                                      : '—'}
+                                  </TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">
+                                    {new Date(entry.createdAt).toLocaleDateString()}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </AdminTableDesktop>
+
+                        <AdminTableMobile>
+                          {filteredLogs.map((entry) => (
+                            <div key={entry.id} className="space-y-3 p-4 border-b last:border-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <StatusBadge status={entry.action} />
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(entry.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <div className="text-xs">
+                                <span className="font-medium">Staff: </span>
+                                <span className="text-muted-foreground">
+                                  {entry.actorStaffId ?? 'System'}
+                                </span>
+                              </div>
+                              {entry.after && (
+                                <div className="text-xs text-muted-foreground break-all">
+                                  {Object.entries(entry.after)
+                                    .map(([k, v]) => `${k}: ${String(v)}`)
+                                    .join(', ')}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </AdminTableMobile>
                       </div>
                     )}
                   </CardContent>

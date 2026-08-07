@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning';
 
@@ -23,9 +24,14 @@ const variantMap: Record<string, BadgeVariant> = {
 
 type StatusBadgeProps = {
   status: string;
+  className?: string;
 };
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+export function StatusBadge({ status, className }: StatusBadgeProps) {
   const variant = variantMap[status] ?? 'outline';
-  return <Badge variant={variant}>{status}</Badge>;
+  return (
+    <Badge variant={variant} className={cn('min-w-24 justify-center', className)}>
+      {status}
+    </Badge>
+  );
 }

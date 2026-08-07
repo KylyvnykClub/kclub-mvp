@@ -21,6 +21,7 @@ const FINANCE_FIXTURE: FinanceDashboardDto = {
   newSubscriptions30d: 5,
   newSubscriptionsPrev30d: 0,
   revenueByKind: { vip: 800_000, businessPlacement: 400_000, other: 0 },
+  transactionsByKind: { vip: 40, businessPlacement: 15, other: 0 },
   subscriptionsByStatus: [
     { status: 'ACTIVE', count: 42 },
     { status: 'PAST_DUE', count: 3 },

@@ -52,6 +52,7 @@ export type FinanceInvoiceAggregation = Pick<
   | 'revenue30d'
   | 'revenuePrev30d'
   | 'revenueByKind'
+  | 'transactionsByKind'
   | 'monthlyRevenue'
   | 'recentPayments'
 >;
@@ -89,6 +90,7 @@ export function aggregateFinanceInvoices(
   );
 
   const revenueByKind = { vip: 0, businessPlacement: 0, other: 0 };
+  const transactionsByKind = { vip: 0, businessPlacement: 0, other: 0 };
   let revenue30d = 0;
   let revenuePrev30d = 0;
   const nowMs = now.getTime();
@@ -103,9 +105,16 @@ export function aggregateFinanceInvoices(
     const kind = subscriptionId ? (kindBySubscriptionId.get(subscriptionId) ?? null) : null;
     const amount = invoice.amount_paid;
 
-    if (kind === 'VIP_MEMBERSHIP') revenueByKind.vip += amount;
-    else if (kind === 'BUSINESS_PLACEMENT') revenueByKind.businessPlacement += amount;
-    else revenueByKind.other += amount;
+    if (kind === 'VIP_MEMBERSHIP') {
+      revenueByKind.vip += amount;
+      transactionsByKind.vip += 1;
+    } else if (kind === 'BUSINESS_PLACEMENT') {
+      revenueByKind.businessPlacement += amount;
+      transactionsByKind.businessPlacement += 1;
+    } else {
+      revenueByKind.other += amount;
+      transactionsByKind.other += 1;
+    }
 
     if (createdMs >= cutoff30 && createdMs <= nowMs) revenue30d += amount;
     else if (createdMs >= cutoff60 && createdMs < cutoff30) revenuePrev30d += amount;
@@ -141,6 +150,7 @@ export function aggregateFinanceInvoices(
     revenue30d,
     revenuePrev30d,
     revenueByKind,
+    transactionsByKind,
     monthlyRevenue: monthKeys.map((month) => buckets.get(month)!),
     recentPayments,
   };

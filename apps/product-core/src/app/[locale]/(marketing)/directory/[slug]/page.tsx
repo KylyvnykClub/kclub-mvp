@@ -1,5 +1,5 @@
 import type { PublicBusinessDetailDto } from '@kclub/contracts';
-import { CalendarDays, ExternalLink, MapPin, UserRound } from 'lucide-react';
+import { Building2, CalendarDays, ExternalLink, MapPin, UserRound } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -114,8 +114,22 @@ export default async function BusinessDetailPage({ params }: Params) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="kclub-shell py-16 sm:py-20">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div>
+        <div className="grid gap-10 lg:grid-cols-[400px_minmax(0,1fr)] xl:grid-cols-[480px_minmax(0,1fr)]">
+          {/* Photo area */}
+          <div className="relative aspect-square lg:aspect-auto lg:h-[500px] overflow-hidden rounded-3xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/10 flex items-center justify-center">
+            {business.coverImageUrl || business.logoUrl ? (
+              <img
+                src={(business.coverImageUrl || business.logoUrl)!}
+                alt={business.name}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <Building2 className="text-zinc-300 dark:text-zinc-600" size={80} strokeWidth={1} />
+            )}
+          </div>
+
+          {/* Details area */}
+          <div className="flex flex-col">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">{business.categoryName}</Badge>
               {business.featuredTop ? <Badge variant="success">{t('featuredTop')}</Badge> : null}
@@ -126,80 +140,87 @@ export default async function BusinessDetailPage({ params }: Params) {
 
             <h1
               data-testid="business-name"
-              className="mt-6 max-w-4xl text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-7xl"
+              className="mt-5 max-w-4xl text-4xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-6xl"
             >
               {business.name}
             </h1>
 
             {business.briefDescription ? (
-              <p className="dark:text-white/68 mt-6 max-w-2xl text-lg leading-8 text-zinc-600">
+              <p className="dark:text-white/68 mt-5 max-w-2xl text-lg leading-relaxed text-zinc-600">
                 {business.briefDescription}
               </p>
             ) : null}
 
-            {business.description ? (
-              <div className="dark:text-white/74 mt-12 max-w-3xl border-t border-zinc-200 pt-8 text-base leading-8 text-zinc-700 dark:border-white/10">
+            <div className="mt-10 flex flex-col gap-6 sm:flex-row sm:items-start lg:flex-col xl:flex-row">
+              <aside className="kclub-panel flex-1 p-6 w-full">
+                <dl className="space-y-5 text-sm">
+                  <div className="flex gap-3">
+                    <MapPin aria-hidden="true" size={18} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+                    <div>
+                      <dt className="dark:text-white/52 text-zinc-500">{t('location')}</dt>
+                      <dd className="mt-1 text-zinc-950 dark:text-white">
+                        {getBusinessLocation(business)}
+                      </dd>
+                    </div>
+                  </div>
+                  {business.representativeName ? (
+                    <div className="flex gap-3">
+                      <UserRound aria-hidden="true" size={18} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+                      <div>
+                        <dt className="dark:text-white/52 text-zinc-500">{t('representative')}</dt>
+                        <dd className="mt-1 text-zinc-950 dark:text-white">
+                          {business.representativeName}
+                        </dd>
+                      </div>
+                    </div>
+                  ) : null}
+                  {business.publishedAt ? (
+                    <div className="flex gap-3">
+                      <CalendarDays aria-hidden="true" size={18} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+                      <div>
+                        <dt className="dark:text-white/52 text-zinc-500">{t('published')}</dt>
+                        <dd className="mt-1 text-zinc-950 dark:text-white">
+                          {new Intl.DateTimeFormat(locale).format(new Date(business.publishedAt))}
+                        </dd>
+                      </div>
+                    </div>
+                  ) : null}
+                </dl>
+              </aside>
+
+              {externalUrl ? (
+                <div className="w-full sm:w-auto lg:w-full xl:w-64 shrink-0">
+                  <a
+                    href={externalUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={getButtonClasses({
+                      color: 'brand',
+                      size: 'lg',
+                      fullWidth: true,
+                    })}
+                  >
+                    <ExternalLink aria-hidden="true" size={18} strokeWidth={1.5} />
+                    {t('website')}
+                  </a>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {business.description ? (
+          <div className="mt-16 xl:mt-24">
+            <div className="kclub-panel p-8 sm:p-10">
+              <h2 className="text-2xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white mb-6">
+                {t('profileTitle')}
+              </h2>
+              <div className="dark:text-white/74 max-w-4xl whitespace-pre-wrap text-base leading-8 text-zinc-700">
                 {business.description}
               </div>
-            ) : null}
+            </div>
           </div>
-
-          <aside className="kclub-panel h-fit p-6">
-            <h2 className="text-lg font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white">
-              {t('profileTitle')}
-            </h2>
-            <dl className="mt-6 space-y-5 text-sm">
-              <div className="flex gap-3">
-                <MapPin aria-hidden="true" size={18} strokeWidth={1.5} className="mt-0.5" />
-                <div>
-                  <dt className="dark:text-white/52 text-zinc-500">{t('location')}</dt>
-                  <dd className="mt-1 text-zinc-950 dark:text-white">
-                    {getBusinessLocation(business)}
-                  </dd>
-                </div>
-              </div>
-              {business.representativeName ? (
-                <div className="flex gap-3">
-                  <UserRound aria-hidden="true" size={18} strokeWidth={1.5} className="mt-0.5" />
-                  <div>
-                    <dt className="dark:text-white/52 text-zinc-500">{t('representative')}</dt>
-                    <dd className="mt-1 text-zinc-950 dark:text-white">
-                      {business.representativeName}
-                    </dd>
-                  </div>
-                </div>
-              ) : null}
-              {business.publishedAt ? (
-                <div className="flex gap-3">
-                  <CalendarDays aria-hidden="true" size={18} strokeWidth={1.5} className="mt-0.5" />
-                  <div>
-                    <dt className="dark:text-white/52 text-zinc-500">{t('published')}</dt>
-                    <dd className="mt-1 text-zinc-950 dark:text-white">
-                      {new Intl.DateTimeFormat(locale).format(new Date(business.publishedAt))}
-                    </dd>
-                  </div>
-                </div>
-              ) : null}
-            </dl>
-
-            {externalUrl ? (
-              <a
-                href={externalUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={getButtonClasses({
-                  color: 'brand',
-                  size: 'md',
-                  fullWidth: true,
-                  className: 'mt-8',
-                })}
-              >
-                <ExternalLink aria-hidden="true" size={16} strokeWidth={1.5} />
-                {t('website')}
-              </a>
-            ) : null}
-          </aside>
-        </div>
+        ) : null}
       </div>
     </article>
   );

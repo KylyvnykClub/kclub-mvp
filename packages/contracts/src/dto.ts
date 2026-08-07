@@ -163,6 +163,11 @@ export type FinanceDashboardDto = {
     businessPlacement: number;
     other: number;
   };
+  transactionsByKind: {
+    vip: number;
+    businessPlacement: number;
+    other: number;
+  };
   subscriptionsByStatus: Array<{ status: SubscriptionStatus; count: number }>;
   /** Exactly 12 entries, oldest month first, zero-filled. */
   monthlyRevenue: FinanceRevenuePointDto[];

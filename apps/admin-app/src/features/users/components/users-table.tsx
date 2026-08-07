@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import { MembershipTierBadge } from '@/components/membership-tier-badge';
+import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -35,6 +36,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AdminList,
+  AdminTableCard,
+  AdminTableDesktop,
+  AdminTableMobile,
+} from '@/components/admin-list-layout';
 import { AdminPagination } from '@/components/admin-pagination';
 import { cn } from '@/lib/utils';
 import type { AdminUserListItemDto, EntityId, StaffRole } from '@kclub/contracts';
@@ -83,20 +90,7 @@ function getInitials(displayName: string | null, phone: string): string {
   return parts[0]!.slice(0, 2).toUpperCase();
 }
 
-function StatusDot({ status }: { status: string }) {
-  return (
-    <span className="flex items-center gap-2">
-      <span
-        className={cn(
-          'inline-block h-2 w-2 rounded-full',
-          status === 'ACTIVE' && 'bg-green-500',
-          status === 'BLOCKED' && 'bg-red-500',
-        )}
-      />
-      <span className="text-sm capitalize">{status.toLowerCase()}</span>
-    </span>
-  );
-}
+
 
 type UsersTableProps = {
   users: AdminUserListItemDto[];
@@ -348,8 +342,9 @@ export function UsersTable({
     (search.trim() ? 1 : 0) + (statusFilter !== 'all' ? 1 : 0) + (tierFilter !== 'all' ? 1 : 0);
 
   return (
-    <div className="bg-card rounded-xl border">
-      {/* Card header — search & filters */}
+    <AdminList>
+      <AdminTableCard>
+        {/* Card header — search & filters */}
       <AdminFilterBar
         variant="embedded"
         search={{
@@ -412,7 +407,7 @@ export function UsersTable({
         }
       >
         {/* Desktop table */}
-        <div className="hidden md:block">
+        <AdminTableDesktop>
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -454,7 +449,7 @@ export function UsersTable({
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <StatusDot status={user.status} />
+                        <StatusBadge status={user.status} />
                       </TableCell>
                       <TableCell>
                         <MembershipTierBadge tier={user.membershipTier} />
@@ -479,10 +474,10 @@ export function UsersTable({
               )}
             </TableBody>
           </Table>
-        </div>
+        </AdminTableDesktop>
 
         {/* Mobile cards */}
-        <div className="divide-y md:hidden">
+        <AdminTableMobile>
           {users.length === 0 ? (
             <div className="py-16 text-center text-sm text-muted-foreground">No users found</div>
           ) : (
@@ -503,7 +498,10 @@ export function UsersTable({
                       >
                         {user.displayName ?? '—'}
                       </Link>
-                      <StatusDot status={user.status} />
+                      <div className="flex items-center gap-2">
+                        <MembershipTierBadge tier={user.membershipTier} />
+                        <StatusBadge status={user.status} />
+                      </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <p className="truncate text-xs text-muted-foreground">{user.phone}</p>
@@ -518,13 +516,14 @@ export function UsersTable({
               );
             })
           )}
-        </div>
+        </AdminTableMobile>
 
         {/* Pagination inside the card */}
         <div className="border-t px-4 sm:px-6">
           <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
         </div>
       </div>
-    </div>
+      </AdminTableCard>
+    </AdminList>
   );
 }
