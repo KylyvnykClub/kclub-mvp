@@ -29,7 +29,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
       })),
     );
-  } catch {}
+  } catch {
+    // Keep sitemap generation resilient when business data is temporarily unavailable.
+  }
 
   return [...staticEntries, ...businessEntries];
 }

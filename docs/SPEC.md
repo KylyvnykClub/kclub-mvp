@@ -171,23 +171,23 @@ Phones that are not approved by an OWNER must not register or sign in.
 
 All public localized routes use `/{locale}` where locale is `en`, `ru`, or `uk`.
 
-| Route                                | Access                   | Notes                        |
-| ------------------------------------ | ------------------------ | ---------------------------- |
-| `/{locale}`                          | Public                   | Home page                    |
-| `/{locale}/directory`                | Public                   | Published businesses only    |
-| `/{locale}/directory/{slug}`         | Public                   | Published business detail    |
+| Route                                | Access                   | Notes                                                     |
+| ------------------------------------ | ------------------------ | --------------------------------------------------------- |
+| `/{locale}`                          | Public                   | Home page                                                 |
+| `/{locale}/directory`                | Public                   | Published businesses only                                 |
+| `/{locale}/directory/{slug}`         | Public                   | Published business detail                                 |
 | `/{locale}/verify-card/{cardNumber}` | Public                   | PII-safe card verification without member identity fields |
-| `/{locale}/sign-in`                  | Public                   | Existing member sign-in      |
-| `/{locale}/sign-up`                  | Public                   | New member sign-up           |
-| `/{locale}/m/onboarding`             | Auth                     | Required onboarding          |
-| `/{locale}/m/dashboard`              | Auth + onboarding        | Main tabbed member area      |
-| `/{locale}/m/introduce`              | VIP + published business | Submit Business Introduction |
-| `/{locale}/m/card`                   | Auth                     | Redirect to dashboard tab    |
-| `/{locale}/m/profile`                | Auth                     | Redirect to dashboard tab    |
-| `/{locale}/m/subscription`           | Auth                     | Redirect to dashboard tab    |
-| `/{locale}/m/my-business`            | Auth                     | Redirect to dashboard tab    |
-| `/{locale}/m/checkout/success`       | Auth                     | Stripe return                |
-| `/{locale}/m/checkout/cancel`        | Auth                     | Stripe return                |
+| `/{locale}/sign-in`                  | Public                   | Existing member sign-in                                   |
+| `/{locale}/sign-up`                  | Public                   | New member sign-up                                        |
+| `/{locale}/m/onboarding`             | Auth                     | Required onboarding                                       |
+| `/{locale}/m/dashboard`              | Auth + onboarding        | Main tabbed member area                                   |
+| `/{locale}/m/introduce`              | VIP + published business | Submit Business Introduction                              |
+| `/{locale}/m/card`                   | Auth                     | Redirect to dashboard tab                                 |
+| `/{locale}/m/profile`                | Auth                     | Redirect to dashboard tab                                 |
+| `/{locale}/m/subscription`           | Auth                     | Redirect to dashboard tab                                 |
+| `/{locale}/m/my-business`            | Auth                     | Redirect to dashboard tab                                 |
+| `/{locale}/m/checkout/success`       | Auth                     | Stripe return                                             |
+| `/{locale}/m/checkout/cancel`        | Auth                     | Stripe return                                             |
 
 ### 7.2 Member Dashboard Tabs
 
@@ -330,31 +330,31 @@ Business placement flow:
 
 Base path: `/api/v1`.
 
-| Endpoint                                   | Access                    | Purpose                                 |
-| ------------------------------------------ | ------------------------- | --------------------------------------- |
-| `POST /auth/sign-up`                       | Public                    | Start phone/password registration       |
-| `POST /auth/sign-up/verify`                | Public                    | Verify registration SMS OTP             |
-| `POST /auth/sign-in`                       | Public                    | Sign in with phone and password         |
-| `POST /auth/password-recovery`             | Public                    | Send password recovery SMS OTP          |
-| `POST /auth/password-recovery/verify`      | Public                    | Verify OTP and set a new password       |
-| `POST /auth/logout`                        | Auth                      | Logout                                  |
-| `GET /me`                                  | Auth                      | Current profile                         |
-| `PATCH /me`                                | Auth                      | Update profile                          |
-| `POST /me/complete-onboarding`             | Auth                      | Complete onboarding and issue card      |
-| `GET /cards`                               | Auth                      | Own active card                         |
+| Endpoint                                   | Access                    | Purpose                                                   |
+| ------------------------------------------ | ------------------------- | --------------------------------------------------------- |
+| `POST /auth/sign-up`                       | Public                    | Start phone/password registration                         |
+| `POST /auth/sign-up/verify`                | Public                    | Verify registration SMS OTP                               |
+| `POST /auth/sign-in`                       | Public                    | Sign in with phone and password                           |
+| `POST /auth/password-recovery`             | Public                    | Send password recovery SMS OTP                            |
+| `POST /auth/password-recovery/verify`      | Public                    | Verify OTP and set a new password                         |
+| `POST /auth/logout`                        | Auth                      | Logout                                                    |
+| `GET /me`                                  | Auth                      | Current profile                                           |
+| `PATCH /me`                                | Auth                      | Update profile                                            |
+| `POST /me/complete-onboarding`             | Auth                      | Complete onboarding and issue card                        |
+| `GET /cards`                               | Auth                      | Own active card                                           |
 | `GET /cards/verify/{cardNumber}`           | Public                    | PII-safe card verification without member identity fields |
-| `GET /businesses`                          | Auth/Public by filter     | Own businesses or published public list |
-| `POST /businesses`                         | VIP                       | Start business-review Stripe reserve    |
-| `POST /businesses/reserve-review`          | VIP                       | Start business-review Stripe reserve    |
-| `GET /businesses/{id}`                     | Auth/Public by visibility | Detail                                  |
-| `PATCH /businesses/{id}`                   | Owner                     | Edit allowed fields while reviewable    |
-| `POST /businesses/{id}/checkout-placement` | VIP + approved business   | Create Stripe checkout                  |
-| `GET /introductions`                       | Auth                      | Own introductions                       |
-| `POST /introductions`                      | VIP + published business  | Submit introduction                     |
-| `POST /introductions/{id}/cancel`          | Owner                     | Cancel introduction                     |
-| `GET /subscriptions`                       | Auth                      | Own subscriptions                       |
-| `GET /subscriptions/{id}`                  | Auth                      | Subscription detail                     |
-| `POST /subscriptions/{id}/cancel`          | VIP                       | Cancel at period end                    |
+| `GET /businesses`                          | Auth/Public by filter     | Own businesses or published public list                   |
+| `POST /businesses`                         | VIP                       | Start business-review Stripe reserve                      |
+| `POST /businesses/reserve-review`          | VIP                       | Start business-review Stripe reserve                      |
+| `GET /businesses/{id}`                     | Auth/Public by visibility | Detail                                                    |
+| `PATCH /businesses/{id}`                   | Owner                     | Edit allowed fields while reviewable                      |
+| `POST /businesses/{id}/checkout-placement` | VIP + approved business   | Create Stripe checkout                                    |
+| `GET /introductions`                       | Auth                      | Own introductions                                         |
+| `POST /introductions`                      | VIP + published business  | Submit introduction                                       |
+| `POST /introductions/{id}/cancel`          | Owner                     | Cancel introduction                                       |
+| `GET /subscriptions`                       | Auth                      | Own subscriptions                                         |
+| `GET /subscriptions/{id}`                  | Auth                      | Subscription detail                                       |
+| `POST /subscriptions/{id}/cancel`          | VIP                       | Cancel at period end                                      |
 
 ### 10.2 Admin API
 

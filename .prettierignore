@@ -14,3 +14,4 @@ packages/database/drizzle/meta
 packages/database/src/seeds/all-city-seed-data.json
 # GitNexus local index cache
 .gitnexus
+.state

@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from '@/server/auth';
 import { jsonSuccess, jsonErrorFromUnknown } from '@/server/api';
 import { signOutLocal } from '@/server/services';
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient();
 

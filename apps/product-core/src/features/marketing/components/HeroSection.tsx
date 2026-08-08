@@ -4,7 +4,6 @@ import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
 import { getButtonClasses } from '@kclub/ui';
 import { CanvasText } from '@/components/ui/canvas-text';
 import { useTheme } from 'next-themes';
@@ -15,17 +14,8 @@ import { Locale } from '@/i18n/routing';
 export function HeroSection({ locale }: { locale: Locale }) {
   const t = useTranslations('home');
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [accentColor, setAccentColor] = useState('#d4af37');
-
-  useEffect(() => {
-    setMounted(true);
-    const style = getComputedStyle(document.documentElement);
-    const color = style.getPropertyValue('--accent').trim();
-    if (color) setAccentColor(color);
-  }, []);
-
-  const isDark = mounted && resolvedTheme === 'dark';
+  const accentColor = '#d4af37';
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <section className="kclub-premium-hero relative isolate flex min-h-[calc(100vh-112px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">

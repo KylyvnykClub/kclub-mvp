@@ -10,10 +10,7 @@ type Params = {
 
 export async function POST(request: NextRequest, { params }: Params) {
   try {
-    const { profile, context } = await adminGuard(
-      request,
-      STAFF_PERMISSIONS.SUBSCRIPTIONS_CANCEL_ADMIN,
-    );
+    const { context } = await adminGuard(request, STAFF_PERMISSIONS.SUBSCRIPTIONS_CANCEL_ADMIN);
     const { id } = await params;
     const result = await adminCancelSubscription(id, context);
     return jsonSuccess(result, undefined, { status: 200 });

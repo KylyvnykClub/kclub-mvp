@@ -119,7 +119,7 @@ export function IntroductionsPanel({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [tCommon]);
 
   async function handleSubmitIntroduction(e: React.FormEvent) {
     e.preventDefault();

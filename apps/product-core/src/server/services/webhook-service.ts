@@ -1,7 +1,6 @@
 import type Stripe from 'stripe';
 import {
   ERROR_CODES,
-  SUBSCRIPTION_STATUSES,
   type SubscriptionKind,
   type BusinessStatus,
   type SubscriptionStatus,
@@ -526,7 +525,12 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
   const canceledAt = subscription.canceled_at as number | null;
   const cancelAtPeriodEnd = subscription.cancel_at_period_end as boolean;
 
-  const updateData: any = {
+  const updateData: {
+    status: SubscriptionStatus;
+    current_period_end: Date | null;
+    cancel_at_period_end: boolean;
+    canceled_at?: Date;
+  } = {
     status: newStatus,
     current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : null,
     cancel_at_period_end: cancelAtPeriodEnd,

@@ -7,7 +7,7 @@ import { jsonSuccess, jsonError, jsonErrorFromUnknown } from '@/server/api';
 import { getMemberBySupabaseUserId } from '@/server/services';
 import { getOwnSubscriptions } from '@/server/services/subscription-service';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient();
     const {

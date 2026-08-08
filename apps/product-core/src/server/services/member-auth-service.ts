@@ -47,7 +47,7 @@ export function determineAuthIntent(
   return AUTH_INTENT.SIGN_UP_NEW;
 }
 
-export function assertIntentAllowed(intent: AuthIntent, purpose: 'sign-in' | 'sign-up'): void {
+export function assertIntentAllowed(intent: AuthIntent, _purpose: 'sign-in' | 'sign-up'): void {
   if (intent === AUTH_INTENT.SIGN_IN_BLOCKED) {
     throw new AppError({
       code: ERROR_CODES.PERMISSION_DENIED,

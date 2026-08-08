@@ -174,11 +174,12 @@ export async function BusinessPanel({
         {ownBusinesses.length > 0 && (
           <div className="pt-8">
             <div className="mb-8">
-              <h2 className="font-semibold text-[24px] text-accent tracking-[0.2em] uppercase mb-4">
+              <h2 className="mb-4 text-[24px] font-semibold uppercase tracking-[0.2em] text-accent">
                 Recommend a Client
               </h2>
-              <p className="text-[15px] text-muted-foreground max-w-xl">
-                Discreetly introduce a prospective client to our exclusive network. Submissions are reviewed with the utmost confidentiality.
+              <p className="max-w-xl text-[15px] text-muted-foreground">
+                Discreetly introduce a prospective client to our exclusive network. Submissions are
+                reviewed with the utmost confidentiality.
               </p>
             </div>
             <IntroductionSubmitForm businessOptions={businessOptions} />

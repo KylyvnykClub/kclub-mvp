@@ -46,8 +46,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (step === 'otp') {
-      setCountdown(60);
+    if (step === 'otp' && countdown > 0) {
       countdownRef.current = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -61,7 +60,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
     return () => {
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
-  }, [step]);
+  }, [countdown, step]);
   const termsHref = `/legal/${locale}/terms-of-use`;
   const privacyHref = `/legal/${locale}/privacy-policy`;
   const phoneDescriptionIds = [
@@ -119,8 +118,10 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
         setError(getErrorMessage(parsed.errorCode));
         return;
       }
-      if (isSignUp) setStep('otp');
-      else redirectForProfile(parsed.data as { onboardingComplete?: boolean } | undefined);
+      if (isSignUp) {
+        setCountdown(60);
+        setStep('otp');
+      } else redirectForProfile(parsed.data as { onboardingComplete?: boolean } | undefined);
     } catch {
       setError(tCommon('errors.generic'));
     } finally {
@@ -139,6 +140,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
         setError(getErrorMessage(parsed.errorCode));
         return;
       }
+      setCountdown(60);
       setStep('otp');
     } catch {
       setError(tCommon('errors.otpSendFailed'));
@@ -418,6 +420,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
               fullWidth
               disabled={isLoading}
               onClick={() => {
+                setCountdown(0);
                 setStep(isRecovery ? 'phone' : 'credentials');
                 setError(null);
                 setOtp('');

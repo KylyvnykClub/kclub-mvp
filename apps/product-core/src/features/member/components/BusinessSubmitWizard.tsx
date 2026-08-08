@@ -95,6 +95,10 @@ export function BusinessSubmitWizard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const visibleCityOptions = data.countryId ? cityOptions : [];
+  const visibleCityLoadError = data.countryId ? cityLoadError : null;
+  const visibleIsLoadingCities = data.countryId ? isLoadingCities : false;
+
   const labelClass =
     'mb-2 block text-[13px] font-medium uppercase tracking-[0.2em] text-muted-foreground';
   const fieldClass =
@@ -105,7 +109,7 @@ export function BusinessSubmitWizard({
     'w-full appearance-none border border-border bg-background py-3 pl-12 pr-10 text-[15px] text-foreground transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed';
 
   const filteredCities = data.countryId
-    ? cityOptions.filter((city) => city.countryId === data.countryId)
+    ? visibleCityOptions.filter((city) => city.countryId === data.countryId)
     : [];
   const sphereOptions = categoryOptions.filter((category) => category.level === 'BLOCK');
   const categoryGroupOptions = data.sphereId
@@ -133,9 +137,6 @@ export function BusinessSubmitWizard({
 
   useEffect(() => {
     if (!data.countryId) {
-      setCityOptions([]);
-      setCityLoadError(null);
-      setIsLoadingCities(false);
       return;
     }
 
@@ -582,11 +583,11 @@ export function BusinessSubmitWizard({
                 required
                 value={data.cityId}
                 onChange={(e) => set('cityId', e.target.value)}
-                disabled={!data.countryId || isLoadingCities}
+                disabled={!data.countryId || visibleIsLoadingCities}
                 className={selectClass}
               >
                 <option value="">
-                  {isLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
+                  {visibleIsLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
                 </option>
                 {filteredCities.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -599,7 +600,7 @@ export function BusinessSubmitWizard({
                 size={20}
               />
             </div>
-            {cityLoadError && <FieldError>{cityLoadError}</FieldError>}
+            {visibleCityLoadError && <FieldError>{visibleCityLoadError}</FieldError>}
           </div>
           <div>
             <label htmlFor="websiteUrl" className={labelClass}>

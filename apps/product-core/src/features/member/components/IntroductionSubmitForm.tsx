@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowRight } from 'lucide-react';
 
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
 import { Spinner } from '@kclub/ui';
@@ -17,7 +16,7 @@ export type IntroductionSubmitFormProps = {
 };
 
 export function IntroductionSubmitForm({ businessOptions }: IntroductionSubmitFormProps) {
-  const t = useTranslations('member.dashboard.introductions');
+  useTranslations('member.dashboard.introductions');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);

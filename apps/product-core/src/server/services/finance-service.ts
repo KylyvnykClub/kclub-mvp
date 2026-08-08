@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache';
-import { and, asc, count, desc, eq, gte, inArray, isNotNull, lt } from 'drizzle-orm';
+import { and, asc, count, eq, gte, inArray, isNotNull, lt } from 'drizzle-orm';
 import type Stripe from 'stripe';
 
 import {

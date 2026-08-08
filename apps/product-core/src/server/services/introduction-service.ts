@@ -19,6 +19,15 @@ import type { RequestContext } from '@/server/context';
 
 const auditService = createDbAuditService();
 
+type IntroductionTargetBusiness = { name: string; slug: string };
+type IntroductionRequesterUser = { display_name: string | null };
+type IntroductionRecord = typeof schema.businessIntroductions.$inferSelect & {
+  targetBusiness?: IntroductionTargetBusiness | null;
+  target_business?: IntroductionTargetBusiness | null;
+  requesterUser?: IntroductionRequesterUser | null;
+  requester_user?: IntroductionRequesterUser | null;
+};
+
 async function assertCanRecommend(userId: string): Promise<void> {
   const db = getDbClient();
 
@@ -151,7 +160,7 @@ export async function submitIntroduction(
     .insert(schema.businessIntroductions)
     .values({
       requester_user_id: userId,
-      requester_business_id: null as any,
+      requester_business_id: null,
       target_business_id: input.targetBusinessId,
       status: 'SUBMITTED',
       client_name: input.clientName,
@@ -163,19 +172,19 @@ export async function submitIntroduction(
   const introduction = (await db.query.businessIntroductions.findFirst({
     where: eq(schema.businessIntroductions.id, introductionRaw!.id),
     with: { targetBusiness: { columns: { name: true, slug: true } } },
-  })) as any;
+  })) as IntroductionRecord | null;
 
   await auditService.log(
     {
       action: 'INTRODUCTION_SUBMITTED',
       entityType: 'BusinessIntroduction',
-      entityId: introduction.id,
-      after: { status: introduction.status },
+      entityId: introduction!.id,
+      after: { status: introduction!.status },
     },
     context,
   );
 
-  return toMemberIntroductionDto(introduction);
+  return toMemberIntroductionDto(introduction!);
 }
 
 export async function getOwnIntroductions(userId: string): Promise<MemberIntroductionDto[]> {
@@ -239,7 +248,7 @@ export async function cancelIntroduction(
   const updated = (await db.query.businessIntroductions.findFirst({
     where: eq(schema.businessIntroductions.id, introductionId),
     with: { targetBusiness: { columns: { name: true, slug: true } } },
-  })) as any;
+  })) as IntroductionRecord | null;
 
   await auditService.log(
     {
@@ -247,12 +256,12 @@ export async function cancelIntroduction(
       entityType: 'BusinessIntroduction',
       entityId: introductionId,
       before: { status: introduction.status },
-      after: { status: updated.status },
+      after: { status: updated!.status },
     },
     context,
   );
 
-  return toMemberIntroductionDto(updated);
+  return toMemberIntroductionDto(updated!);
 }
 
 export async function getIncomingIntroductions(
@@ -326,7 +335,7 @@ export async function completeIntroduction(
       requesterUser: { columns: { display_name: true } },
       targetBusiness: { columns: { name: true, slug: true } },
     },
-  })) as any;
+  })) as IntroductionRecord | null;
 
   await auditService.log(
     {
@@ -334,12 +343,12 @@ export async function completeIntroduction(
       entityType: 'BusinessIntroduction',
       entityId: introductionId,
       before: { status: introduction.status },
-      after: { status: updated.status },
+      after: { status: updated!.status },
     },
     context,
   );
 
-  return toBusinessIncomingIntroductionDto(updated);
+  return toBusinessIncomingIntroductionDto(updated!);
 }
 
 export async function rejectIntroduction(
@@ -383,7 +392,7 @@ export async function rejectIntroduction(
       requesterUser: { columns: { display_name: true } },
       targetBusiness: { columns: { name: true, slug: true } },
     },
-  })) as any;
+  })) as IntroductionRecord | null;
 
   await auditService.log(
     {
@@ -391,12 +400,12 @@ export async function rejectIntroduction(
       entityType: 'BusinessIntroduction',
       entityId: introductionId,
       before: { status: introduction.status },
-      after: { status: updated.status },
+      after: { status: updated!.status },
     },
     context,
   );
 
-  return toBusinessIncomingIntroductionDto(updated);
+  return toBusinessIncomingIntroductionDto(updated!);
 }
 
 async function resolveActorBusinessId(context: RequestContext): Promise<string> {
@@ -426,7 +435,7 @@ async function resolveActorBusinessId(context: RequestContext): Promise<string> 
   return business.id;
 }
 
-export function toMemberIntroductionDto(intro: any): MemberIntroductionDto {
+export function toMemberIntroductionDto(intro: IntroductionRecord): MemberIntroductionDto {
   const tb = intro.targetBusiness || intro.target_business;
   return {
     id: intro.id,
@@ -445,7 +454,9 @@ export function toMemberIntroductionDto(intro: any): MemberIntroductionDto {
   };
 }
 
-export function toBusinessIncomingIntroductionDto(intro: any): BusinessIncomingIntroductionDto {
+export function toBusinessIncomingIntroductionDto(
+  intro: IntroductionRecord,
+): BusinessIncomingIntroductionDto {
   const ru = intro.requesterUser || intro.requester_user;
   const tb = intro.targetBusiness || intro.target_business;
   return {

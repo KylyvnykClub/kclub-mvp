@@ -4,6 +4,7 @@ import { ERROR_CODES } from '@kclub/contracts';
 
 import { createSupabaseServerClient } from '@/server/auth';
 import { jsonSuccess, jsonError, jsonErrorFromUnknown } from '@/server/api';
+import { isLocale } from '@/i18n/routing';
 import { getMemberBySupabaseUserId } from '@/server/services';
 import { createRequestContext } from '@/server/context';
 import { startPlacementCheckout } from '@/server/services/subscription-service';
@@ -36,9 +37,10 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const locale = (searchParams.get('locale') as string) ?? 'en';
+    const localeParam = searchParams.get('locale') ?? 'en';
+    const locale = isLocale(localeParam) ? localeParam : 'en';
 
-    const result = await startPlacementCheckout(id, localUser.id, context, locale as any);
+    const result = await startPlacementCheckout(id, localUser.id, context, locale);
     return jsonSuccess(result);
   } catch (error) {
     return jsonErrorFromUnknown(error);

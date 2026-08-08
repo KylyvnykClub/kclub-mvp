@@ -34,6 +34,46 @@ const CATEGORY_WITH_PARENTS = {
   with: { parent: { with: { parent: true } } },
 } as const;
 
+type BusinessCategoryNode = {
+  id?: string;
+  name: string;
+  slug: string;
+  level?: string;
+  parent?: BusinessCategoryNode | null;
+};
+
+type BusinessProfileRecord = {
+  id: string;
+  user_id?: string;
+  slug: string;
+  name: string;
+  category_id?: string | null;
+  category?: BusinessCategoryNode | null;
+  country?: { name: string } | null;
+  city?: { name: string } | null;
+  brief_description?: string | null;
+  website_url?: string | null;
+  social_url?: string | null;
+  cover_image_url?: string | null;
+  logo_url?: string | null;
+  featured_top?: boolean;
+  featured_recommended?: boolean;
+  member_discount_percent?: number | null;
+  discount_muted?: boolean | null;
+  description?: string | null;
+  representative_name?: string | null;
+  published_at?: Date | null;
+  country_id?: string | null;
+  city_id?: string | null;
+  status?: string;
+  representative_email?: string | null;
+  representative_phone?: string | null;
+  rejection_reason?: string | null;
+  internal_notes?: string | null;
+  created_at?: Date;
+  updated_at?: Date;
+};
+
 function generateSlug(name: string): string {
   const base = name
     .toLowerCase()
@@ -324,7 +364,7 @@ export async function submitBusiness(
     context,
   );
 
-  return toMemberBusinessProfileDto(newBusiness);
+  return toMemberBusinessProfileDto(newBusiness!);
 }
 
 export function validateBusinessReviewReservePaymentIntent(
@@ -499,39 +539,31 @@ export async function updateBusiness(
     }
   }
 
-  const dataToUpdate: any = {
-    ...input,
-    brief_description: input.briefDescription,
-    website_url: input.websiteUrl,
-    social_url: input.socialUrl,
-    member_discount_percent: input.memberDiscountPercent,
+  const dataToUpdate: Partial<typeof schema.businessProfiles.$inferInsert> = {
+    ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.briefDescription !== undefined
+      ? { brief_description: input.briefDescription }
+      : {}),
+    ...(input.websiteUrl !== undefined ? { website_url: input.websiteUrl } : {}),
+    ...(input.socialUrl !== undefined ? { social_url: input.socialUrl } : {}),
+    ...(input.memberDiscountPercent !== undefined
+      ? { member_discount_percent: input.memberDiscountPercent }
+      : {}),
+    ...(resolvedCategoryId !== undefined ? { category_id: resolvedCategoryId } : {}),
+    ...(input.cityId !== undefined ? { city_id: input.cityId } : {}),
+    ...(input.countryId !== undefined ? { country_id: input.countryId } : {}),
+    ...(input.representativeName !== undefined
+      ? { representative_name: input.representativeName }
+      : {}),
+    ...(input.representativeEmail !== undefined
+      ? { representative_email: input.representativeEmail }
+      : {}),
+    ...(input.representativePhone !== undefined
+      ? { representative_phone: input.representativePhone }
+      : {}),
+    status: 'UNDER_REVIEW',
+    approved_at: null,
   };
-
-  delete dataToUpdate.briefDescription;
-  delete dataToUpdate.websiteUrl;
-  delete dataToUpdate.socialUrl;
-  delete dataToUpdate.memberDiscountPercent;
-  delete dataToUpdate.categoryId;
-  delete dataToUpdate.customCategoryName;
-  delete dataToUpdate.cityId;
-  delete dataToUpdate.countryId;
-  delete dataToUpdate.representativeName;
-  delete dataToUpdate.representativeEmail;
-  delete dataToUpdate.representativePhone;
-
-  if (resolvedCategoryId !== undefined) dataToUpdate.category_id = resolvedCategoryId;
-  if (input.cityId !== undefined) dataToUpdate.city_id = input.cityId;
-  if (input.countryId !== undefined) dataToUpdate.country_id = input.countryId;
-  if (input.representativeName !== undefined)
-    dataToUpdate.representative_name = input.representativeName;
-  if (input.representativeEmail !== undefined)
-    dataToUpdate.representative_email = input.representativeEmail;
-  if (input.representativePhone !== undefined)
-    dataToUpdate.representative_phone = input.representativePhone;
-
-  // Always reset to UNDER_REVIEW so admin re-approves after any edit
-  dataToUpdate.status = 'UNDER_REVIEW';
-  dataToUpdate.approved_at = null;
 
   await db
     .update(schema.businessProfiles)
@@ -554,7 +586,7 @@ export async function updateBusiness(
     context,
   );
 
-  return toMemberBusinessProfileDto(updatedBusiness);
+  return toMemberBusinessProfileDto(updatedBusiness!);
 }
 
 export async function getOwnBusinesses(userId: string): Promise<MemberBusinessProfileDto[]> {
@@ -636,14 +668,16 @@ export async function getPublicBusinessBySlug(slug: string): Promise<PublicBusin
   return toPublicBusinessDetailDto(business);
 }
 
-export function toPublicBusinessListItemDto(business: any): PublicBusinessListItemDto {
+export function toPublicBusinessListItemDto(
+  business: BusinessProfileRecord,
+): PublicBusinessListItemDto {
   const categoryPath = getCategoryPath(business.category);
 
   return {
     id: business.id,
     slug: business.slug,
     name: business.name,
-    categoryId: business.category_id,
+    categoryId: business.category_id ?? '',
     blockName: categoryPath.blockName,
     blockSlug: categoryPath.blockSlug,
     categoryName: categoryPath.categoryName ?? business.category?.name ?? 'Uncategorized',
@@ -652,42 +686,44 @@ export function toPublicBusinessListItemDto(business: any): PublicBusinessListIt
     subcategorySlug: categoryPath.subcategorySlug,
     countryName: business.country?.name ?? 'Unknown',
     cityName: business.city?.name ?? 'Unknown',
-    briefDescription: business.brief_description,
-    websiteUrl: business.website_url,
-    socialUrl: business.social_url,
+    briefDescription: business.brief_description ?? null,
+    websiteUrl: business.website_url ?? null,
+    socialUrl: business.social_url ?? null,
     coverImageUrl: business.cover_image_url ?? null,
     logoUrl: business.logo_url ?? null,
-    featuredTop: business.featured_top,
-    featuredRecommended: business.featured_recommended,
+    featuredTop: business.featured_top ?? false,
+    featuredRecommended: business.featured_recommended ?? false,
     memberDiscountPercent: business.member_discount_percent ?? null,
-    discountMuted: business.discount_muted,
+    discountMuted: business.discount_muted ?? false,
   };
 }
 
-export function toPublicBusinessDetailDto(business: any): PublicBusinessDetailDto {
+export function toPublicBusinessDetailDto(business: BusinessProfileRecord): PublicBusinessDetailDto {
   return {
     ...toPublicBusinessListItemDto(business),
-    description: business.description,
-    representativeName: business.representative_name,
+    description: business.description ?? null,
+    representativeName: business.representative_name ?? '',
     publishedAt: business.published_at?.toISOString() ?? null,
   };
 }
 
-export function toMemberBusinessProfileDto(business: any): MemberBusinessProfileDto {
+export function toMemberBusinessProfileDto(
+  business: BusinessProfileRecord,
+): MemberBusinessProfileDto {
   return {
     ...toPublicBusinessDetailDto(business),
-    countryId: business.country_id,
-    cityId: business.city_id,
+    countryId: business.country_id ?? '',
+    cityId: business.city_id ?? '',
     status: business.status as BusinessStatus,
-    representativeEmail: business.representative_email,
-    representativePhone: business.representative_phone,
-    rejectionReason: business.rejection_reason,
-    createdAt: business.created_at.toISOString(),
-    updatedAt: business.updated_at.toISOString(),
+    representativeEmail: business.representative_email ?? '',
+    representativePhone: business.representative_phone ?? '',
+    rejectionReason: business.rejection_reason ?? null,
+    createdAt: business.created_at?.toISOString() ?? new Date().toISOString(),
+    updatedAt: business.updated_at?.toISOString() ?? new Date().toISOString(),
   };
 }
 
-function getCategoryPath(category: any): {
+function getCategoryPath(category: BusinessCategoryNode | null | undefined): {
   blockName: string | null;
   blockSlug: string | null;
   categoryName: string | null;

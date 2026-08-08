@@ -43,7 +43,7 @@ export function TopBar({
   const [open, setOpen] = useState(false);
   const [localeOpen, setLocaleOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [authState, setAuthState] = useState(isAuthenticated ?? false);
+  const [fetchedAuthState, setFetchedAuthState] = useState<boolean | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -56,14 +56,11 @@ export function TopBar({
     { key: 'contact', href: `/${locale}/#contact` },
   ];
 
-  useEffect(() => {
-    if (pathname.startsWith(`/${locale}/m`)) {
-      setAuthState(true);
-      return;
-    }
+  const isMemberRoute = pathname.startsWith(`/${locale}/m`);
+  const authState = isMemberRoute ? true : (isAuthenticated ?? fetchedAuthState ?? false);
 
-    if (isAuthenticated !== undefined) {
-      setAuthState(isAuthenticated);
+  useEffect(() => {
+    if (isMemberRoute || isAuthenticated !== undefined) {
       return;
     }
 
@@ -72,19 +69,19 @@ export function TopBar({
     void fetch('/api/v1/me', { cache: 'no-store' })
       .then((response) => {
         if (isCurrent) {
-          setAuthState(response.ok);
+          setFetchedAuthState(response.ok);
         }
       })
       .catch(() => {
         if (isCurrent) {
-          setAuthState(false);
+          setFetchedAuthState(false);
         }
       });
 
     return () => {
       isCurrent = false;
     };
-  }, [isAuthenticated, locale, pathname]);
+  }, [isAuthenticated, isMemberRoute]);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent): void => {
@@ -131,7 +128,7 @@ export function TopBar({
 
       setAccountOpen(false);
       setOpen(false);
-      setAuthState(false);
+      setFetchedAuthState(false);
       router.replace(`/${locale}/sign-in`);
       router.refresh();
     } catch {

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
-    const { profile, context } = await adminGuard(request, STAFF_PERMISSIONS.TAXONOMY_MANAGE);
+    await adminGuard(request, STAFF_PERMISSIONS.TAXONOMY_MANAGE);
     const { id } = await params;
     const body = await request.json();
     const input = countryUpdateSchema.parse(body);
@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const { profile, context } = await adminGuard(request, STAFF_PERMISSIONS.TAXONOMY_MANAGE);
+    await adminGuard(request, STAFF_PERMISSIONS.TAXONOMY_MANAGE);
     const { id } = await params;
     await deleteCountry(id);
     return jsonSuccess({ success: true });

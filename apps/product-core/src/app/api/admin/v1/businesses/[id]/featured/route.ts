@@ -11,10 +11,7 @@ type Params = {
 
 export async function POST(request: NextRequest, { params }: Params) {
   try {
-    const { profile, context } = await adminGuard(
-      request,
-      STAFF_PERMISSIONS.FEATURED_BUSINESSES_MANAGE,
-    );
+    const { context } = await adminGuard(request, STAFF_PERMISSIONS.FEATURED_BUSINESSES_MANAGE);
     const { id } = await params;
     const body = await request.json();
     const input = businessFeaturedSchema.parse(body);

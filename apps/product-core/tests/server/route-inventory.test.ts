@@ -12,7 +12,10 @@ function resolveFromProductCore(relativePath: string): string {
 describe('production route inventory', () => {
   test('does not include debug-only API routes', () => {
     for (const routePath of FORBIDDEN_PRODUCTION_ROUTES) {
-      expect(existsSync(resolveFromProductCore(routePath)), `${routePath} must stay out of production builds`).toBe(false);
+      expect(
+        existsSync(resolveFromProductCore(routePath)),
+        `${routePath} must stay out of production builds`,
+      ).toBe(false);
     }
   });
 });

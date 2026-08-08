@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { profile, context } = await adminGuard(request, STAFF_PERMISSIONS.TAXONOMY_MANAGE);
+    await adminGuard(request, STAFF_PERMISSIONS.TAXONOMY_MANAGE);
     const body = await request.json();
     const input = categoryCreateSchema.parse(body);
     const result = await createCategory(input);

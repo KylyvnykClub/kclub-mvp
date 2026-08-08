@@ -156,7 +156,9 @@ export function BusinessesTable({
         featuredTop:
           field === 'featuredTop'
             ? newValue
-            : (prev[businessId]?.featuredTop ?? businesses.find((b) => b.id === businessId)?.featuredTop ?? false),
+            : (prev[businessId]?.featuredTop ??
+              businesses.find((b) => b.id === businessId)?.featuredTop ??
+              false),
         featuredRecommended:
           field === 'featuredRecommended'
             ? newValue

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import type { CategoryDto } from '@kclub/contracts';
-import { getButtonClasses } from '@kclub/ui';
 
 import { Label } from '@/components/ui/label';
 import type { Locale } from '@/i18n/routing';
@@ -38,7 +37,9 @@ export function DirectoryTaxonomyFilter({
     return categoryTree.find((item) => item.slug === sphereSlug) ?? null;
   }, [categoryTree, sphereSlug]);
 
-  const categoryOptions = activeSphereNode?.categories ?? [];
+  const categoryOptions = useMemo(() => {
+    return activeSphereNode?.categories ?? [];
+  }, [activeSphereNode]);
   const activeCategoryNode = useMemo(() => {
     return categoryOptions.find((item) => item.slug === categorySlug) ?? null;
   }, [categoryOptions, categorySlug]);
@@ -74,9 +75,12 @@ export function DirectoryTaxonomyFilter({
   }
 
   return (
-    <div className="mt-8 flex w-full flex-col gap-4 border-b border-accent/20 pb-6 md:flex-row">
+    <div className="border-accent/20 mt-8 flex w-full flex-col gap-4 border-b pb-6 md:flex-row">
       <div className="flex-1">
-        <Label htmlFor="directory-sphere" className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <Label
+          htmlFor="directory-sphere"
+          className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground"
+        >
           Sphere
         </Label>
         <div className="relative">
@@ -94,13 +98,28 @@ export function DirectoryTaxonomyFilter({
             ))}
           </select>
           <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </span>
         </div>
       </div>
 
       <div className="flex-1">
-        <Label htmlFor="directory-category" className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <Label
+          htmlFor="directory-category"
+          className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground"
+        >
           Category
         </Label>
         <div className="relative">
@@ -119,13 +138,28 @@ export function DirectoryTaxonomyFilter({
             ))}
           </select>
           <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </span>
         </div>
       </div>
 
       <div className="flex-1">
-        <Label htmlFor="directory-activity" className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <Label
+          htmlFor="directory-activity"
+          className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground"
+        >
           Activity Type
         </Label>
         <div className="relative">
@@ -136,7 +170,9 @@ export function DirectoryTaxonomyFilter({
             disabled={!categorySlug}
             className="w-full appearance-none rounded border border-border bg-surface py-3 pl-4 pr-10 text-[15px] text-foreground transition-all focus:border-accent focus:outline-none disabled:opacity-50"
           >
-            <option value="">{categorySlug ? 'Select activity type' : 'Select category first'}</option>
+            <option value="">
+              {categorySlug ? 'Select activity type' : 'Select category first'}
+            </option>
             {activityOptions.map((item) => (
               <option key={item.id} value={item.slug}>
                 {item.name}
@@ -144,14 +180,39 @@ export function DirectoryTaxonomyFilter({
             ))}
           </select>
           <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </span>
         </div>
       </div>
 
       <div className="flex items-end gap-3">
-        <button className="flex items-center gap-2 rounded border border-border bg-surface px-6 py-3 text-base font-medium text-foreground transition-all hover:border-accent/50 hover:bg-surface-muted">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <button className="hover:border-accent/50 flex items-center gap-2 rounded border border-border bg-surface px-6 py-3 text-base font-medium text-foreground transition-all hover:bg-surface-muted">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-accent"
+          >
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
           More Filters
         </button>
         {hasSelection && (

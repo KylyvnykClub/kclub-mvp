@@ -765,6 +765,16 @@ export async function adminReissueCard(
 
 // ── Businesses ──
 
+type PlacementIncludeRow = {
+  kind: never;
+  created_at: never;
+};
+
+type PlacementIncludeOperators = {
+  eq: typeof eq;
+  desc: typeof desc;
+};
+
 const BUSINESS_LIST_INCLUDE = {
   category: { with: { parent: { with: { parent: true } } } },
   country: true,
@@ -773,8 +783,14 @@ const BUSINESS_LIST_INCLUDE = {
     columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
   },
   subscriptions: {
-    where: (subs: any, { eq }: any) => eq(subs.kind, 'BUSINESS_PLACEMENT'),
-    orderBy: (subs: any, { desc }: any) => [desc(subs.created_at)],
+    where: ((
+      subs: PlacementIncludeRow,
+      { eq }: PlacementIncludeOperators,
+    ) => eq(subs.kind, 'BUSINESS_PLACEMENT')) as never,
+    orderBy: ((
+      subs: PlacementIncludeRow,
+      { desc }: PlacementIncludeOperators,
+    ) => [desc(subs.created_at)]) as never,
     limit: 1,
   },
 };
@@ -794,7 +810,7 @@ export async function listBusinesses(
   const [businesses, total] = await Promise.all([
     db.query.businessProfiles.findMany({
       where: whereClause,
-      with: BUSINESS_LIST_INCLUDE as any,
+      with: BUSINESS_LIST_INCLUDE as never,
       orderBy: [desc(schema.businessProfiles.created_at)],
       offset: (params.page - 1) * params.limit,
       limit: params.limit,
@@ -802,7 +818,10 @@ export async function listBusinesses(
     db.$count(schema.businessProfiles, whereClause),
   ]);
 
-  return { data: businesses.map(toAdminBusinessListItem), total };
+  return {
+    data: businesses.map((business) => toAdminBusinessListItem(business as AdminBusinessRecord)),
+    total,
+  };
 }
 
 const BUSINESS_MUTATION_INCLUDE = {
@@ -813,8 +832,14 @@ const BUSINESS_MUTATION_INCLUDE = {
     columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
   },
   subscriptions: {
-    where: (subs: any, { eq }: any) => eq(subs.kind, 'BUSINESS_PLACEMENT'),
-    orderBy: (subs: any, { desc }: any) => [desc(subs.created_at)],
+    where: ((
+      subs: PlacementIncludeRow,
+      { eq }: PlacementIncludeOperators,
+    ) => eq(subs.kind, 'BUSINESS_PLACEMENT')) as never,
+    orderBy: ((
+      subs: PlacementIncludeRow,
+      { desc }: PlacementIncludeOperators,
+    ) => [desc(subs.created_at)]) as never,
     limit: 1,
   },
 };
@@ -827,8 +852,14 @@ const BUSINESS_DETAIL_INCLUDE = {
     columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
   },
   subscriptions: {
-    where: (subs: any, { eq }: any) => eq(subs.kind, 'BUSINESS_PLACEMENT'),
-    orderBy: (subs: any, { desc }: any) => [desc(subs.created_at)],
+    where: ((
+      subs: PlacementIncludeRow,
+      { eq }: PlacementIncludeOperators,
+    ) => eq(subs.kind, 'BUSINESS_PLACEMENT')) as never,
+    orderBy: ((
+      subs: PlacementIncludeRow,
+      { desc }: PlacementIncludeOperators,
+    ) => [desc(subs.created_at)]) as never,
     limit: 1,
   },
 };
@@ -837,7 +868,7 @@ export async function getBusinessDetail(businessId: string): Promise<AdminBusine
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_DETAIL_INCLUDE as any,
+    with: BUSINESS_DETAIL_INCLUDE as never,
   });
   if (!business) {
     throw new AppError({
@@ -856,7 +887,10 @@ export async function getBusinessDetail(businessId: string): Promise<AdminBusine
     limit: 50,
   });
 
-  return toAdminBusinessDetail(business, auditEntries);
+  return toAdminBusinessDetail(
+    business as AdminBusinessRecord,
+    auditEntries as AdminAuditLogRecord[],
+  );
 }
 
 export async function adminUpdateBusiness(
@@ -868,7 +902,7 @@ export async function adminUpdateBusiness(
 
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   if (!business) {
@@ -902,7 +936,7 @@ export async function adminUpdateBusiness(
 
   const updatedWithRelations = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   await auditService.log(
@@ -919,7 +953,7 @@ export async function adminUpdateBusiness(
     context,
   );
 
-  return toAdminBusinessDetail(updatedWithRelations!);
+  return toAdminBusinessDetail(updatedWithRelations! as AdminBusinessRecord);
 }
 
 export async function approveBusiness(
@@ -930,7 +964,7 @@ export async function approveBusiness(
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   if (!business) {
@@ -961,7 +995,7 @@ export async function approveBusiness(
 
   const updatedWithRelations = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   await auditService.log(
@@ -987,7 +1021,10 @@ export async function approveBusiness(
     limit: 50,
   });
 
-  return toAdminBusinessDetail(updatedWithRelations!, auditEntries);
+  return toAdminBusinessDetail(
+    updatedWithRelations! as AdminBusinessRecord,
+    auditEntries as AdminAuditLogRecord[],
+  );
 }
 
 export async function publishBusiness(
@@ -997,7 +1034,7 @@ export async function publishBusiness(
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   if (!business) {
@@ -1027,7 +1064,7 @@ export async function publishBusiness(
 
   const updatedWithRelations = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   await auditService.log(
@@ -1053,7 +1090,10 @@ export async function publishBusiness(
     limit: 50,
   });
 
-  return toAdminBusinessDetail(updatedWithRelations!, auditEntries);
+  return toAdminBusinessDetail(
+    updatedWithRelations! as AdminBusinessRecord,
+    auditEntries as AdminAuditLogRecord[],
+  );
 }
 
 export async function rejectBusiness(
@@ -1064,7 +1104,7 @@ export async function rejectBusiness(
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   if (!business) {
@@ -1095,7 +1135,7 @@ export async function rejectBusiness(
 
   const updatedWithRelations = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   await auditService.log(
@@ -1112,7 +1152,7 @@ export async function rejectBusiness(
   revalidateTag('businesses');
   revalidateTag('public-businesses');
 
-  return toAdminBusinessDetail(updatedWithRelations!);
+  return toAdminBusinessDetail(updatedWithRelations! as AdminBusinessRecord);
 }
 
 export async function hideBusiness(
@@ -1123,7 +1163,7 @@ export async function hideBusiness(
   const db = getDbClient();
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   if (!business) {
@@ -1155,7 +1195,7 @@ export async function hideBusiness(
 
   const updatedWithRelations = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   await auditService.log(
@@ -1176,7 +1216,7 @@ export async function hideBusiness(
   revalidateTag('businesses');
   revalidateTag('public-businesses');
 
-  return toAdminBusinessDetail(updatedWithRelations!);
+  return toAdminBusinessDetail(updatedWithRelations! as AdminBusinessRecord);
 }
 
 export async function updateBusinessFeatured(
@@ -1188,7 +1228,7 @@ export async function updateBusinessFeatured(
 
   const business = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   if (!business) {
@@ -1285,7 +1325,7 @@ export async function updateBusinessFeatured(
 
   const updatedWithRelations = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.id, businessId),
-    with: BUSINESS_MUTATION_INCLUDE as any,
+    with: BUSINESS_MUTATION_INCLUDE as never,
   });
 
   await auditService.log(
@@ -1312,7 +1352,7 @@ export async function updateBusinessFeatured(
   revalidateTag('businesses');
   revalidateTag('public-businesses');
 
-  return toAdminBusinessDetail(updatedWithRelations!);
+  return toAdminBusinessDetail(updatedWithRelations! as AdminBusinessRecord);
 }
 
 // ── Introductions ──
@@ -1340,7 +1380,7 @@ export async function listIntroductions(
 
   const [introductions, total] = await Promise.all([
     db.query.businessIntroductions.findMany({
-      with: INTRODUCTION_LIST_INCLUDE as any,
+      with: INTRODUCTION_LIST_INCLUDE as never,
       where: whereClause,
       orderBy: [desc(schema.businessIntroductions.created_at)],
       offset: (page - 1) * limit,
@@ -1361,7 +1401,7 @@ export async function getIntroductionDetail(
   const db = getDbClient();
   const intro = await db.query.businessIntroductions.findFirst({
     where: eq(schema.businessIntroductions.id, introductionId),
-    with: INTRODUCTION_LIST_INCLUDE as any,
+    with: INTRODUCTION_LIST_INCLUDE as never,
   });
   if (!intro) {
     throw new AppError({
@@ -1416,7 +1456,7 @@ export async function approveIntroduction(
     context,
   );
 
-  return toIntroductionDto(updated);
+  return toIntroductionDto(updated as AdminIntroductionRecord);
 }
 
 export async function rejectIntroduction(
@@ -1462,7 +1502,7 @@ export async function rejectIntroduction(
     context,
   );
 
-  return toIntroductionDto(updated);
+  return toIntroductionDto(updated as AdminIntroductionRecord);
 }
 
 export async function completeIntroduction(
@@ -1506,7 +1546,7 @@ export async function completeIntroduction(
     context,
   );
 
-  return toIntroductionDto(updated);
+  return toIntroductionDto(updated as AdminIntroductionRecord);
 }
 
 // ── Taxonomy ──
@@ -1520,7 +1560,7 @@ export async function listCategories(): Promise<CategoryDto[]> {
       asc(schema.categories.name),
     ],
   });
-  return categories.map(toCategoryDto);
+  return categories.map((category) => toCategoryDto(category));
 }
 
 export async function getCategory(categoryId: string): Promise<CategoryDto> {
@@ -1535,7 +1575,7 @@ export async function getCategory(categoryId: string): Promise<CategoryDto> {
       status: 404,
     });
   }
-  return toCategoryDto(category);
+  return toCategoryDto(category as CategoryRecord);
 }
 
 async function assertCategoryParent(
@@ -1602,7 +1642,7 @@ export async function createCategory(input: CategoryCreateInput): Promise<Catego
     })
     .returning();
   revalidateTag('categories');
-  return toCategoryDto(category);
+  return toCategoryDto(category as CategoryRecord);
 }
 
 export async function updateCategory(
@@ -1640,7 +1680,7 @@ export async function updateCategory(
     .where(eq(schema.categories.id, categoryId))
     .returning();
   revalidateTag('categories');
-  return toCategoryDto(category);
+  return toCategoryDto(category as CategoryRecord);
 }
 
 export async function deleteCategory(categoryId: string): Promise<void> {
@@ -1665,7 +1705,7 @@ export async function deleteCategory(categoryId: string): Promise<void> {
 export async function listCountries(): Promise<CountryDto[]> {
   const db = getDbClient();
   const countries = await db.query.countries.findMany({ orderBy: [asc(schema.countries.name)] });
-  return countries.map(toCountryDto);
+  return countries.map((country) => toCountryDto(country));
 }
 
 export async function getCountry(countryId: string): Promise<CountryDto> {
@@ -1678,7 +1718,7 @@ export async function getCountry(countryId: string): Promise<CountryDto> {
       status: 404,
     });
   }
-  return toCountryDto(country);
+  return toCountryDto(country as CountryRecord);
 }
 
 export async function createCountry(input: CountryCreateInput): Promise<CountryDto> {
@@ -1694,7 +1734,7 @@ export async function createCountry(input: CountryCreateInput): Promise<CountryD
     })
     .returning();
   revalidateTag('countries');
-  return toCountryDto(country);
+  return toCountryDto(country as CountryRecord);
 }
 
 export async function updateCountry(
@@ -1725,7 +1765,7 @@ export async function updateCountry(
     .where(eq(schema.countries.id, countryId))
     .returning();
   revalidateTag('countries');
-  return toCountryDto(country);
+  return toCountryDto(country as CountryRecord);
 }
 
 export async function deleteCountry(countryId: string): Promise<void> {
@@ -1863,7 +1903,7 @@ export async function listSubscriptions(): Promise<SubscriptionDto[]> {
   const subs = await db.query.vipSubscriptions.findMany({
     orderBy: [desc(schema.vipSubscriptions.created_at)],
   });
-  return subs.map(toSubscriptionDto);
+  return subs.map((sub) => toSubscriptionDto(sub as SubscriptionRecord));
 }
 
 const ADMIN_SUBSCRIPTION_INCLUDE = {
@@ -1874,10 +1914,10 @@ const ADMIN_SUBSCRIPTION_INCLUDE = {
 export async function listAdminSubscriptions(): Promise<AdminSubscriptionListItemDto[]> {
   const db = getDbClient();
   const subs = await db.query.subscriptions.findMany({
-    with: ADMIN_SUBSCRIPTION_INCLUDE as any,
+    with: ADMIN_SUBSCRIPTION_INCLUDE,
     orderBy: [desc(schema.subscriptions.created_at)],
   });
-  return subs.map(toAdminSubscriptionListItem);
+  return subs.map((sub) => toAdminSubscriptionListItem(sub as SubscriptionRecord));
 }
 
 export async function getAdminSubscriptionDetail(
@@ -1886,7 +1926,7 @@ export async function getAdminSubscriptionDetail(
   const db = getDbClient();
   const sub = await db.query.subscriptions.findFirst({
     where: eq(schema.subscriptions.id, subscriptionId),
-    with: ADMIN_SUBSCRIPTION_INCLUDE as any,
+    with: ADMIN_SUBSCRIPTION_INCLUDE,
   });
   if (!sub) {
     throw new AppError({
@@ -1895,7 +1935,7 @@ export async function getAdminSubscriptionDetail(
       status: 404,
     });
   }
-  return toAdminSubscriptionListItem(sub);
+  return toAdminSubscriptionListItem(sub as SubscriptionRecord);
 }
 
 export async function getSubscriptionDetail(subscriptionId: string): Promise<SubscriptionDto> {
@@ -1910,7 +1950,7 @@ export async function getSubscriptionDetail(subscriptionId: string): Promise<Sub
       status: 404,
     });
   }
-  return toSubscriptionDto(sub);
+  return toSubscriptionDto(sub as SubscriptionRecord);
 }
 
 export async function adminCancelSubscription(
@@ -1920,7 +1960,7 @@ export async function adminCancelSubscription(
   const db = getDbClient();
   const sub = await db.query.subscriptions.findFirst({
     where: eq(schema.subscriptions.id, subscriptionId),
-    with: ADMIN_SUBSCRIPTION_INCLUDE as any,
+    with: ADMIN_SUBSCRIPTION_INCLUDE,
   });
   if (!sub) {
     throw new AppError({
@@ -1930,7 +1970,7 @@ export async function adminCancelSubscription(
     });
   }
 
-  const [updated] = await db
+  await db
     .update(schema.subscriptions)
     .set({ cancel_at_period_end: true, canceled_at: new Date() })
     .where(eq(schema.subscriptions.id, subscriptionId))
@@ -1938,7 +1978,7 @@ export async function adminCancelSubscription(
 
   const updatedWithRelations = await db.query.subscriptions.findFirst({
     where: eq(schema.subscriptions.id, subscriptionId),
-    with: ADMIN_SUBSCRIPTION_INCLUDE as any,
+    with: ADMIN_SUBSCRIPTION_INCLUDE,
   });
 
   await auditService.log(
@@ -1952,7 +1992,7 @@ export async function adminCancelSubscription(
     context,
   );
 
-  return toAdminSubscriptionListItem(updatedWithRelations!);
+  return toAdminSubscriptionListItem(updatedWithRelations! as SubscriptionRecord);
 }
 
 // ── Audit Log ──
@@ -1964,7 +2004,7 @@ export async function listAuditLogs(
   const conditions = [];
 
   if (filters.action) conditions.push(eq(schema.auditLogs.action, filters.action));
-  if (filters.actorRole) conditions.push(eq(schema.auditLogs.actor_role, filters.actorRole as any));
+  if (filters.actorRole) conditions.push(eq(schema.auditLogs.actor_role, filters.actorRole));
   if (filters.actorStaffId)
     conditions.push(eq(schema.auditLogs.actor_staff_id, filters.actorStaffId));
   if (filters.entityType)
@@ -1988,11 +2028,11 @@ export async function listAuditLogs(
   ]);
 
   return {
-    data: logs.map((log: any) => ({
+    data: logs.map((log: AdminAuditLogRecord) => ({
       id: log.id,
       actorStaffId: log.actor_staff_id ?? null,
-      actorRole: log.actor_role as any,
-      action: log.action as any,
+      actorRole: log.actor_role as AuditLogDto['actorRole'],
+      action: log.action as AuditLogDto['action'],
       entityType: log.entity_type,
       entityId: log.entity_id,
       before: log.before_data as Record<string, unknown> | null,
@@ -2051,7 +2091,7 @@ export async function getStripePrices(): Promise<StripePricesMap> {
 
 export async function updateStripePrices(
   input: Partial<StripePricesMap>,
-  context: RequestContext,
+  _context: RequestContext,
 ): Promise<StripePricesMap> {
   const db = getDbClient();
 
@@ -2123,7 +2163,7 @@ export async function updateAdminConfig(
       .returning();
     result = created;
   }
-  return toAdminConfigEntry(result);
+  return toAdminConfigEntry(result! as AdminConfigRecord);
 }
 
 export async function getMembershipPlans(): Promise<MembershipPlanDto[]> {
@@ -2134,19 +2174,19 @@ export async function getMembershipPlans(): Promise<MembershipPlanDto[]> {
       'business_placement_monthly',
     ]),
   });
-  return configs.map((c: any) => ({
+  return configs.map((c) => ({
     key: c.key,
     value: c.value,
     description: c.description,
   }));
 }
 
-export async function listStaff(context: RequestContext): Promise<AdminStaffListItemDto[]> {
+export async function listStaff(_context: RequestContext): Promise<AdminStaffListItemDto[]> {
   const db = getDbClient();
   const staff = await db.query.adminUsers.findMany({
     orderBy: [asc(schema.adminUsers.created_at)],
   });
-  return staff.map(toAdminStaffListItem);
+  return staff.map((member) => toAdminStaffListItem(member as StaffRecord));
 }
 
 export async function createStaff(
@@ -2191,7 +2231,7 @@ export async function createStaff(
     context,
   );
 
-  return toAdminStaffListItem(created!);
+  return toAdminStaffListItem(created! as StaffRecord);
 }
 
 export async function getStaffDetail(staffId: string): Promise<AdminStaffListItemDto> {
@@ -2205,7 +2245,7 @@ export async function getStaffDetail(staffId: string): Promise<AdminStaffListIte
       status: 404,
     });
   }
-  return toAdminStaffListItem(staff);
+  return toAdminStaffListItem(staff as StaffRecord);
 }
 
 export async function updateStaffRole(
@@ -2245,7 +2285,7 @@ export async function updateStaffRole(
     context,
   );
 
-  return toAdminStaffListItem(updated!);
+  return toAdminStaffListItem(updated! as StaffRecord);
 }
 
 export async function deactivateStaff(
@@ -2300,7 +2340,7 @@ export async function deactivateStaff(
       and(eq(schema.adminSessions.admin_user_id, staffId), isNull(schema.adminSessions.revoked_at)),
     );
 
-  return toAdminStaffListItem(updated);
+  return toAdminStaffListItem(updated as StaffRecord);
 }
 
 export async function resetStaffPassword(
@@ -2354,7 +2394,7 @@ export async function resetStaffPassword(
     context,
   );
 
-  return toAdminStaffListItem(updated);
+  return toAdminStaffListItem(updated as StaffRecord);
 }
 
 export async function updateStaffPermissions(
@@ -2395,12 +2435,205 @@ export async function updateStaffPermissions(
     context,
   );
 
-  return toAdminStaffListItem(updated);
+  return toAdminStaffListItem(updated as StaffRecord);
 }
 
 // ── DTO Helpers ──
 
-function toAdminUserListItem(user: any): AdminUserListItemDto {
+type AdminAuditLogRecord = {
+  id: string;
+  actor_staff_id: string | null;
+  actor_role: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  before_data: unknown;
+  after_data: unknown;
+  ip_address: string | null;
+  created_at: Date | null;
+};
+
+type AdminUserRecord = {
+  id: string;
+  phone: string;
+  display_name: string | null;
+  status: UserStatus;
+  membership_tier: MemberTier;
+  created_at: Date;
+  updated_at: Date;
+  locale_preference: string | null;
+  terms_accepted_at: Date | null;
+  country: string | null;
+  city: string | null;
+  about: string | null;
+  avatar_url: string | null;
+};
+
+type AdminCardRecord = {
+  id: string;
+  user_id: string;
+  card_number: string;
+  status: ClubCardStatus;
+  membership_tier: MemberTier;
+  qr_payload_url: string | null;
+  issued_at: Date;
+  expires_at: Date | null;
+  revoked_at: Date | null;
+  revoked_reason: string | null;
+  user?: { phone: string; display_name: string | null } | null;
+};
+
+type AdminBusinessUserRecord = {
+  id: string;
+  phone: string;
+  display_name: string | null;
+  status: UserStatus;
+  membership_tier: MemberTier;
+};
+
+type AdminBusinessSubscriptionRecord = {
+  status: SubscriptionStatus;
+  current_period_end: Date | null;
+};
+
+type AdminCategoryRecord = {
+  name: string;
+  slug: string;
+  level: string;
+  parent?: AdminCategoryRecord | null;
+};
+
+type AdminBusinessRecord = {
+  id: string;
+  slug: string;
+  name: string;
+  category_id: string | null;
+  category?: AdminCategoryRecord | null;
+  country?: { name: string } | null;
+  city?: { name: string } | null;
+  brief_description: string | null;
+  website_url: string | null;
+  social_url: string | null;
+  featured_top: boolean;
+  featured_recommended: boolean;
+  cover_image_url: string | null;
+  logo_url: string | null;
+  member_discount_percent: number | null;
+  discount_muted: boolean | null;
+  description: string | null;
+  representative_name: string;
+  published_at: Date | null;
+  user_id: string;
+  status: BusinessStatus;
+  representative_email: string;
+  representative_phone: string;
+  rejection_reason: string | null;
+  internal_notes: string | null;
+  approved_at: Date | null;
+  hidden_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+  user?: AdminBusinessUserRecord;
+  subscriptions?: AdminBusinessSubscriptionRecord[] | null;
+};
+
+type AdminIntroductionRecord = {
+  id: string;
+  requester_user_id: string;
+  requester_business_id: string | null;
+  target_business_id: string;
+  status: IntroductionStatus;
+  client_name: string | null;
+  client_contact: string | null;
+  message: string | null;
+  rejection_reason: string | null;
+  created_at: Date;
+  updated_at: Date;
+  requesterUser?: { id: string; phone: string; display_name: string | null } | null;
+  requesterBusiness?: { id: string; name: string; slug: string } | null;
+  targetBusiness?: { id: string; name: string; slug: string } | null;
+};
+
+type SubscriptionRecord = {
+  id: string;
+  user_id: string | null;
+  kind?: string;
+  status: SubscriptionStatus;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  stripe_price_id: string | null;
+  current_period_start: Date | null;
+  current_period_end: Date | null;
+  cancel_at_period_end: boolean;
+  created_at: Date;
+  updated_at: Date;
+  user?: {
+    id: string;
+    phone: string;
+    display_name: string | null;
+    membership_tier: string;
+  } | null;
+  business_profile?: { name: string } | null;
+  businessProfile?: { name: string } | null;
+};
+
+type CategoryRecord = {
+  id: string;
+  parent_id: string | null;
+  level: string;
+  name: string;
+  slug: string;
+  is_high_risk: boolean;
+  is_active: boolean;
+  is_custom: boolean;
+  sort_order: number | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
+type CountryRecord = {
+  id: string;
+  code2: string;
+  code3: string | null;
+  name: string;
+  slug: string;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+};
+
+type CityRecord = {
+  id: string;
+  country_id: string;
+  country?: { name: string } | null;
+  name: string;
+  slug: string;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+};
+
+type StaffRecord = {
+  id: string;
+  phone: string;
+  display_name: string | null;
+  role: AdminStaffListItemDto['role'];
+  is_active: boolean;
+  password_hash: string | null;
+  permission_overrides: { granted: string[]; denied: string[] } | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
+type AdminConfigRecord = {
+  id: string;
+  key: string;
+  value: unknown;
+  description: string | null;
+  updated_at: Date;
+};
+
+function toAdminUserListItem(user: AdminUserRecord): AdminUserListItemDto {
   return {
     id: user.id,
     phone: user.phone,
@@ -2412,10 +2645,10 @@ function toAdminUserListItem(user: any): AdminUserListItemDto {
 }
 
 function toAdminUserDetail(
-  user: any,
-  cards?: any[],
-  subscriptions?: any[],
-  auditEntries?: any[],
+  user: AdminUserRecord,
+  cards?: AdminCardRecord[],
+  subscriptions?: SubscriptionRecord[],
+  auditEntries?: AdminAuditLogRecord[],
 ): AdminUserDetailDto {
   return {
     id: user.id,
@@ -2434,11 +2667,11 @@ function toAdminUserDetail(
     avatarUrl: user.avatar_url ?? null,
     cards: (cards ?? []).map(toMemberCardDto),
     subscriptions: (subscriptions ?? []).map(toSubscriptionDto),
-    auditEntries: (auditEntries ?? []).map((log: any) => ({
+    auditEntries: (auditEntries ?? []).map((log: AdminAuditLogRecord) => ({
       id: log.id,
       actorStaffId: log.actor_staff_id ?? null,
-      actorRole: log.actor_role as any,
-      action: log.action as any,
+      actorRole: log.actor_role as AuditLogDto['actorRole'],
+      action: log.action as AuditLogDto['action'],
       entityType: log.entity_type,
       entityId: log.entity_id,
       before: log.before_data as Record<string, unknown> | null,
@@ -2449,7 +2682,7 @@ function toAdminUserDetail(
   };
 }
 
-function toAdminCardListItem(card: any): AdminCardListItemDto {
+function toAdminCardListItem(card: AdminCardRecord): AdminCardListItemDto {
   return {
     id: card.id,
     userId: card.user_id,
@@ -2463,7 +2696,7 @@ function toAdminCardListItem(card: any): AdminCardListItemDto {
   };
 }
 
-function toAdminBusinessOwnerSummary(user: any): AdminBusinessOwnerSummaryDto {
+function toAdminBusinessOwnerSummary(user: AdminBusinessUserRecord): AdminBusinessOwnerSummaryDto {
   return {
     id: user.id,
     phone: user.phone,
@@ -2474,7 +2707,7 @@ function toAdminBusinessOwnerSummary(user: any): AdminBusinessOwnerSummaryDto {
 }
 
 function toAdminBusinessSubscriptionIndicator(
-  sub: any,
+  sub: AdminBusinessSubscriptionRecord | null | undefined,
 ): AdminBusinessSubscriptionIndicatorDto | null {
   if (!sub) return null;
   return {
@@ -2483,7 +2716,7 @@ function toAdminBusinessSubscriptionIndicator(
   };
 }
 
-function getCategoryPath(category: any): {
+function getCategoryPath(category: AdminCategoryRecord | null | undefined): {
   blockName: string | null;
   blockSlug: string | null;
   categoryName: string | null;
@@ -2537,14 +2770,14 @@ function getCategoryPath(category: any): {
   };
 }
 
-function toAdminBusinessListItem(business: any): AdminBusinessListItemDto {
+function toAdminBusinessListItem(business: AdminBusinessRecord): AdminBusinessListItemDto {
   const placementSub = business.subscriptions?.[0] ?? null;
   const categoryPath = getCategoryPath(business.category);
   return {
     id: business.id,
     slug: business.slug,
     name: business.name,
-    categoryId: business.category_id,
+    categoryId: business.category_id ?? '',
     blockName: categoryPath.blockName,
     blockSlug: categoryPath.blockSlug,
     categoryName: categoryPath.categoryName ?? business.category?.name ?? '',
@@ -2575,19 +2808,22 @@ function toAdminBusinessListItem(business: any): AdminBusinessListItemDto {
     hiddenAt: business.hidden_at?.toISOString() ?? null,
     createdAt: business.created_at.toISOString(),
     updatedAt: business.updated_at.toISOString(),
-    owner: toAdminBusinessOwnerSummary(business.user),
+    owner: toAdminBusinessOwnerSummary(business.user as AdminBusinessUserRecord),
     placementSubscription: toAdminBusinessSubscriptionIndicator(placementSub),
   };
 }
 
-function toAdminBusinessDetail(business: any, auditEntries?: any[]): AdminBusinessDetailDto {
+function toAdminBusinessDetail(
+  business: AdminBusinessRecord,
+  auditEntries?: AdminAuditLogRecord[],
+): AdminBusinessDetailDto {
   return {
     ...toAdminBusinessListItem(business),
-    auditEntries: (auditEntries ?? []).map((log: any) => ({
+    auditEntries: (auditEntries ?? []).map((log: AdminAuditLogRecord) => ({
       id: log.id,
       actorStaffId: log.actor_staff_id ?? null,
-      actorRole: log.actor_role as any,
-      action: log.action as any,
+      actorRole: log.actor_role as AuditLogDto['actorRole'],
+      action: log.action as AuditLogDto['action'],
       entityType: log.entity_type,
       entityId: log.entity_id,
       before: log.before_data as Record<string, unknown> | null,
@@ -2598,7 +2834,7 @@ function toAdminBusinessDetail(business: any, auditEntries?: any[]): AdminBusine
   };
 }
 
-function toIntroductionDto(intro: any): IntroductionDto {
+function toIntroductionDto(intro: AdminIntroductionRecord): IntroductionDto {
   return {
     id: intro.id,
     requesterUserId: intro.requester_user_id,
@@ -2614,11 +2850,11 @@ function toIntroductionDto(intro: any): IntroductionDto {
   };
 }
 
-function toAdminIntroductionListItem(intro: any): AdminIntroductionListItemDto {
+function toAdminIntroductionListItem(intro: AdminIntroductionRecord): AdminIntroductionListItemDto {
   return {
     id: intro.id,
     requesterUserId: intro.requester_user_id,
-    requesterBusinessId: intro.requester_business_id,
+    requesterBusinessId: intro.requester_business_id ?? '',
     targetBusinessId: intro.target_business_id,
     status: intro.status as IntroductionStatus,
     clientName: intro.client_name ?? '',
@@ -2645,10 +2881,10 @@ function toAdminIntroductionListItem(intro: any): AdminIntroductionListItemDto {
   };
 }
 
-function toSubscriptionDto(sub: any): SubscriptionDto {
+function toSubscriptionDto(sub: SubscriptionRecord): SubscriptionDto {
   return {
     id: sub.id,
-    userId: sub.user_id,
+    userId: sub.user_id ?? '',
     status: sub.status as SubscriptionStatus,
     stripeCustomerId: sub.stripe_customer_id,
     stripeSubscriptionId: sub.stripe_subscription_id,
@@ -2660,7 +2896,7 @@ function toSubscriptionDto(sub: any): SubscriptionDto {
   };
 }
 
-function toAdminSubscriptionListItem(sub: any): AdminSubscriptionListItemDto {
+function toAdminSubscriptionListItem(sub: SubscriptionRecord): AdminSubscriptionListItemDto {
   return {
     id: sub.id,
     userId: sub.user_id ?? null,
@@ -2682,11 +2918,11 @@ function toAdminSubscriptionListItem(sub: any): AdminSubscriptionListItemDto {
           membershipTier: sub.user.membership_tier as MemberTier,
         }
       : null,
-    businessName: sub.business_profile?.name ?? null,
+    businessName: sub.business_profile?.name ?? sub.businessProfile?.name ?? null,
   };
 }
 
-function toCategoryDto(cat: any): CategoryDto {
+function toCategoryDto(cat: CategoryRecord): CategoryDto {
   return {
     id: cat.id,
     parentId: cat.parent_id ?? null,
@@ -2702,7 +2938,7 @@ function toCategoryDto(cat: any): CategoryDto {
   };
 }
 
-function toCountryDto(country: any): CountryDto {
+function toCountryDto(country: CountryRecord): CountryDto {
   return {
     id: country.id,
     code2: country.code2,
@@ -2715,7 +2951,7 @@ function toCountryDto(country: any): CountryDto {
   };
 }
 
-function toCityDto(city: any): CityDto {
+function toCityDto(city: CityRecord): CityDto {
   return {
     id: city.id,
     countryId: city.country_id,
@@ -2728,7 +2964,7 @@ function toCityDto(city: any): CityDto {
   };
 }
 
-function toAdminStaffListItem(staff: any): AdminStaffListItemDto {
+function toAdminStaffListItem(staff: StaffRecord): AdminStaffListItemDto {
   return {
     id: staff.id,
     phone: staff.phone,
@@ -2736,13 +2972,13 @@ function toAdminStaffListItem(staff: any): AdminStaffListItemDto {
     role: staff.role,
     isActive: staff.is_active,
     passwordStatus: staff.password_hash ? 'SET' : 'NOT_SET',
-    permissionOverrides: staff.permission_overrides ?? null,
+    permissionOverrides: (staff.permission_overrides as AdminStaffListItemDto['permissionOverrides']) ?? null,
     createdAt: staff.created_at.toISOString(),
     updatedAt: staff.updated_at.toISOString(),
   };
 }
 
-function toAdminConfigEntry(config: any): AdminConfigEntryDto {
+function toAdminConfigEntry(config: AdminConfigRecord): AdminConfigEntryDto {
   return {
     id: config.id,
     key: config.key,

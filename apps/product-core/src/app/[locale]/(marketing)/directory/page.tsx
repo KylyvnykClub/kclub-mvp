@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, Search, Mic } from 'lucide-react';
+import { ArrowRight, Building2, Search } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
@@ -131,15 +131,14 @@ export default async function DirectoryPage({
       <main className="mx-auto flex w-full max-w-7xl flex-grow flex-col gap-10 px-4 py-10 md:px-20 md:py-20">
         {/* Page Header & Search */}
         <div className="flex w-full flex-col gap-6">
-          <h1 className="text-4xl font-semibold text-foreground md:text-5xl">
-            {t('title')}
-          </h1>
-          <p className="max-w-2xl text-[15px] text-muted-foreground">
-            {t('description')}
-          </p>
+          <h1 className="text-4xl font-semibold text-foreground md:text-5xl">{t('title')}</h1>
+          <p className="max-w-2xl text-[15px] text-muted-foreground">{t('description')}</p>
 
           <div className="relative mt-4 w-full max-w-3xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={24} />
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+              size={24}
+            />
             <input
               type="text"
               placeholder="Search partners, services, or locations..."
@@ -196,7 +195,7 @@ export default async function DirectoryPage({
         {/* Load More */}
         {businesses.length > 0 && (
           <div className="mt-8 flex w-full justify-center">
-            <button className="rounded border border-accent bg-transparent px-8 py-3 text-[13px] font-medium uppercase tracking-widest text-accent transition-all hover:bg-accent/10 active:scale-95">
+            <button className="hover:bg-accent/10 rounded border border-accent bg-transparent px-8 py-3 text-[13px] font-medium uppercase tracking-widest text-accent transition-all active:scale-95">
               Show All Partners
             </button>
           </div>

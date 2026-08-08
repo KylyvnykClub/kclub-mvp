@@ -11,10 +11,7 @@ type Params = {
 
 export async function POST(request: NextRequest, { params }: Params) {
   try {
-    const { profile, context } = await adminGuard(
-      request,
-      STAFF_PERMISSIONS.INTRODUCTIONS_MODERATE,
-    );
+    const { context } = await adminGuard(request, STAFF_PERMISSIONS.INTRODUCTIONS_MODERATE);
     const { id } = await params;
     const body = await request.json();
     const input = introductionApproveSchema.parse(body);

@@ -11,7 +11,7 @@ type Params = {
 
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
-    const { profile, context } = await adminGuard(request, STAFF_PERMISSIONS.STAFF_MANAGE);
+    const { context } = await adminGuard(request, STAFF_PERMISSIONS.STAFF_MANAGE);
     const { id } = await params;
     const body = await request.json();
     const input = staffRoleUpdateSchema.parse(body);

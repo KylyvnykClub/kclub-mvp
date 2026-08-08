@@ -63,8 +63,6 @@ export async function DashboardTabs({
     BIZ: t('locks.biz'),
   } as const;
 
-  const memberName = profile.displayName ?? profile.phone;
-
   const panels: Partial<Record<ImplementedMemberDashboardTab, ReactNode>> = {};
 
   for (const tab of visibleTabs) {

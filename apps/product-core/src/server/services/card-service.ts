@@ -25,6 +25,10 @@ export type CardRecord = {
   revoked_reason: string | null;
 };
 
+function isUniqueViolation(error: unknown): error is { code: string } {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === '23505';
+}
+
 export function toMemberCardDto(card: CardRecord): MemberCardDto {
   return {
     id: card.id,
@@ -120,8 +124,8 @@ export async function issueCardForUser(
         .returning();
 
       return card as CardRecord;
-    } catch (error: any) {
-      if (error?.code === '23505') {
+    } catch (error: unknown) {
+      if (isUniqueViolation(error)) {
         attempt++;
         if (attempt >= MAX_RETRIES) {
           throw new AppError({
@@ -245,8 +249,8 @@ export async function reissueCard(
       });
 
       return newCard as CardRecord;
-    } catch (error: any) {
-      if (error?.code === '23505') {
+    } catch (error: unknown) {
+      if (isUniqueViolation(error)) {
         attempt++;
         if (attempt >= MAX_RETRIES) {
           throw new AppError({

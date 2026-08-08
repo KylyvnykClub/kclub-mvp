@@ -48,7 +48,7 @@ vi.mock('@/server/db', async (importOriginal) => {
         slug: 'city',
       })),
     },
-    $transaction: vi.fn(async (fn: Function) => fn({})),
+    $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn({})),
   };
   return {
     ...realDb,

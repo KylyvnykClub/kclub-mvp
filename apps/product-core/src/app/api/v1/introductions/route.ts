@@ -9,7 +9,7 @@ import { getMemberBySupabaseUserId, assertMemberOnboardingComplete } from '@/ser
 import { submitIntroduction, getOwnIntroductions } from '@/server/services/introduction-service';
 import { createRequestContext } from '@/server/context';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient();
     const {

@@ -95,14 +95,14 @@ export function BusinessForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const visibleCityOptions = countryId ? cityOptions : [];
+  const visibleCityLoadError = countryId ? cityLoadError : null;
+  const visibleIsLoadingCities = countryId ? isLoadingCities : false;
+
   const isEdit = business !== null;
 
   useEffect(() => {
     if (!countryId) {
-      setCityId('');
-      setCityOptions([]);
-      setCityLoadError(null);
-      setIsLoadingCities(false);
       return;
     }
 
@@ -337,23 +337,25 @@ export function BusinessForm({
           <Select
             value={cityId}
             onValueChange={(value) => setCityId(value ?? '')}
-            disabled={!countryId || isLoadingCities}
+            disabled={!countryId || visibleIsLoadingCities}
             required
           >
             <SelectTrigger id="biz-city" className="w-full rounded-none">
               <SelectValue
-                placeholder={isLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
+                placeholder={visibleIsLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
               />
             </SelectTrigger>
             <SelectContent>
-              {cityOptions.map((c) => (
+              {visibleCityOptions.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {cityLoadError && <p className="mt-2 text-xs text-destructive">{cityLoadError}</p>}
+          {visibleCityLoadError && (
+            <p className="mt-2 text-xs text-destructive">{visibleCityLoadError}</p>
+          )}
         </FormRow>
 
         <FormRow label={t('websiteUrlLabel')} htmlFor="biz-website" optional>

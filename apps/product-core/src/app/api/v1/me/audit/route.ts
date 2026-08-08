@@ -40,7 +40,7 @@ export async function GET(_request: NextRequest) {
       limit: 50,
     });
 
-    const data = entries.map((log: any) => ({
+    const data = entries.map((log) => ({
       id: log.id,
       actorStaffId: log.actor_staff_id ?? null,
       actorRole: log.actor_role ?? null,

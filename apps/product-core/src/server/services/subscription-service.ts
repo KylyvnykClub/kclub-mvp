@@ -17,6 +17,7 @@ import type { RequestContext } from '@/server/context';
 import { createDbAuditService } from '@/server/audit';
 
 const auditService = createDbAuditService();
+type VipSubscriptionRecord = typeof schema.vipSubscriptions.$inferSelect;
 
 function buildVipMetadata(userId: string): Record<string, string> {
   return {
@@ -198,7 +199,7 @@ export async function startPlacementCheckout(
   return { checkoutUrl: session.url };
 }
 
-export function toSubscriptionDto(sub: any): SubscriptionDto {
+export function toSubscriptionDto(sub: VipSubscriptionRecord): SubscriptionDto {
   return {
     id: sub.id,
     userId: sub.user_id,
@@ -295,7 +296,7 @@ export async function cancelOwnSubscription(
     context,
   );
 
-  return toSubscriptionDto(updated);
+  return toSubscriptionDto(updated!);
 }
 
 export type InvoiceDto = {

@@ -128,7 +128,7 @@ export function SettingsPanel({ countryOptions, locale, profile }: SettingsPanel
       [
         profile.city,
         city,
-        ...availableCities
+        ...(selectedCountryId ? availableCities : [])
           .filter((option) => option.countryId === selectedCountryId)
           .map((option) => option.name),
       ].filter((value): value is string => !!value),
@@ -137,8 +137,6 @@ export function SettingsPanel({ countryOptions, locale, profile }: SettingsPanel
 
   useEffect(() => {
     if (!selectedCountryId) {
-      setAvailableCities([]);
-      setIsLoadingCities(false);
       return;
     }
 

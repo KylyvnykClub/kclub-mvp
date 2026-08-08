@@ -60,7 +60,7 @@ export default async function BusinessOnboardingPage({
 
   return (
     <div className="flex flex-grow flex-col items-center justify-center py-10 md:py-20">
-      <div className="w-full max-w-2xl mb-6">
+      <div className="mb-6 w-full max-w-2xl">
         <Breadcrumbs
           homeHref={`/${locale}/m/dashboard`}
           items={[

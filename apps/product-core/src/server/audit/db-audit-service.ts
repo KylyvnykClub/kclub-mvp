@@ -1,7 +1,6 @@
 import {
   type AuditAction,
   type AuditLogDto,
-  type EntityId,
   type StaffRole,
 } from '@kclub/contracts';
 
@@ -10,6 +9,7 @@ import type { RequestContext } from '@/server/context';
 import type { AuditLogCommand, AuditService } from './audit-service';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+type AuditLogRecord = typeof schema.auditLogs.$inferSelect;
 
 export function createDbAuditService(): AuditService {
   return {
@@ -27,18 +27,18 @@ export function createDbAuditService(): AuditService {
           action: command.action,
           entity_type: command.entityType,
           entity_id: command.entityId,
-          before_data: command.before as any,
-          after_data: command.after as any,
+          before_data: command.before as Record<string, unknown> | null,
+          after_data: command.after as Record<string, unknown> | null,
           ip_address: context.ipAddress ?? null,
         })
         .returning();
 
-      return toAuditLogDto(record);
+      return toAuditLogDto(record!);
     },
   };
 }
 
-function toAuditLogDto(record: any): AuditLogDto {
+function toAuditLogDto(record: AuditLogRecord): AuditLogDto {
   return {
     id: record.id,
     actorStaffId: record.actor_staff_id ?? null,
