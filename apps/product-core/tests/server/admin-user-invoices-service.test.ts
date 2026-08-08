@@ -77,6 +77,6 @@ describe('listUserInvoices', () => {
   test('throws when the user does not exist', async () => {
     userResult = null;
 
-    expect(listUserInvoices(USER_ID)).rejects.toThrow('User not found');
+    await expect(listUserInvoices(USER_ID)).rejects.toThrow('User not found');
   });
 });
