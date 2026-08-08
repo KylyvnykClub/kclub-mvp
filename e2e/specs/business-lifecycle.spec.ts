@@ -1,41 +1,52 @@
 import { test, expect } from '../fixtures/base';
-import { DashboardPage } from '../page-objects/dashboard.page';
 import { MyBusinessPage } from '../page-objects/my-business.page';
 import { DirectoryPage } from '../page-objects/directory.page';
 import { AdminBusinessesPage } from '../page-objects/admin-businesses.page';
 import { AdminSignInPage } from '../page-objects/admin-sign-in.page';
 import { signInMember, DEV_STAFF_PASSWORD } from '../helpers/auth';
-import { simulateBusinessPlacementComplete } from '../helpers/mock-stripe';
 
 test.describe('Business lifecycle', () => {
-  // FIXME(e2e-next-bitrot-layer): business creation moved from a dashboard
-  // "business" tab (gone for a business-less VIP) to the /m/business/onboarding
-  // multi-step BusinessSubmitWizard (required category/country/city Radix
-  // selects, no test ids). Needs a dedicated wizard rewrite + test ids.
-  test.fixme('VIP submits business profile', async ({ page, locale, seed }) => {
+  test('VIP submits business profile', async ({ page, locale, seed }) => {
     const { phone } = await seed('vip-member');
     if (!phone) {
       test.skip();
       return;
     }
 
-    // Sign in as VIP
+    const successUrl = `http://localhost:3000/${locale}/m/checkout/success`;
+    await page.route('**/api/v1/businesses/reserve-review*', (route) =>
+      route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: { checkoutUrl: successUrl }, error: null }),
+      }),
+    );
+
     await signInMember(page, locale, phone);
 
-    // Navigate to business tab
-    const dashboard = new DashboardPage(page, locale);
-    await dashboard.clickTab('business');
-
-    // Fill business form
     const businessPage = new MyBusinessPage(page, locale);
+    await businessPage.goto();
+
     await businessPage.fillBusinessName('E2E Lifecycle Business');
+    await businessPage.selectSphere();
+    await businessPage.selectCategoryGroup();
+    await businessPage.selectCategory();
+    await businessPage.continueStep();
+
+    await businessPage.fillRepresentativeName('E2E Representative');
     await businessPage.fillEmail('e2e-lifecycle@test.com');
     await businessPage.fillPhone('+10000000077');
+    await businessPage.continueStep();
+
+    await businessPage.selectCountry();
+    await businessPage.selectCity();
     await businessPage.fillWebsite('https://e2e-test.com');
+    await businessPage.continueStep();
+
+    await businessPage.acceptReviewTerms();
     await businessPage.submit();
 
-    // Should show UNDER_REVIEW status
-    await expect(page.locator('[data-testid="business-status"]')).toContainText(/under.?review/i);
+    await expect(page).toHaveURL(new RegExp(`/${locale}/m/checkout/success`), { timeout: 30000 });
   });
 
   test('staff approves business in admin', async ({ browser, seed }) => {

@@ -62,8 +62,9 @@ export function IntroductionSubmitForm({ businessOptions }: IntroductionSubmitFo
       }
 
       setDone(true);
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Something went wrong';
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -71,7 +72,10 @@ export function IntroductionSubmitForm({ businessOptions }: IntroductionSubmitFo
 
   if (done) {
     return (
-      <div className="flex flex-col items-center justify-center border border-border bg-background p-12 text-center shadow-lg">
+      <div
+        className="flex flex-col items-center justify-center border border-border bg-background p-12 text-center shadow-lg"
+        data-testid="intro-submit-success"
+      >
         <h2 className="mb-4 text-2xl font-semibold text-accent">Recommendation Submitted</h2>
         <p className="text-muted-foreground">
           Thank you. The partner will review your client recommendation shortly.
@@ -88,19 +92,23 @@ export function IntroductionSubmitForm({ businessOptions }: IntroductionSubmitFo
     'w-full appearance-none border border-border bg-background py-3 px-4 text-[15px] text-foreground transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-12 max-w-3xl">
-      {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-      
-      <div className="bg-background border border-border p-10 shadow-lg">
-        <h2 className="text-lg font-semibold text-accent mb-8 pb-4 border-b border-border uppercase tracking-widest">
+    <form onSubmit={handleSubmit} className="max-w-3xl space-y-12">
+      {error && <div className="mb-4 text-sm text-red-500">{error}</div>}
+
+      <div className="border border-border bg-background p-10 shadow-lg">
+        <h2 className="mb-8 border-b border-border pb-4 text-lg font-semibold uppercase tracking-widest text-accent">
           Client Information
         </h2>
         <div className="space-y-6">
           <div>
-            <label className="block text-[13px] font-medium text-muted-foreground uppercase mb-2" htmlFor="fullName">
+            <label
+              className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
+              htmlFor="fullName"
+            >
               Full Name
             </label>
             <input
+              data-testid="intro-client-name"
               id="fullName"
               type="text"
               placeholder="e.g. Alexander Sterling"
@@ -110,12 +118,16 @@ export function IntroductionSubmitForm({ businessOptions }: IntroductionSubmitFo
               required
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-[13px] font-medium text-muted-foreground uppercase mb-2" htmlFor="phoneNumber">
+              <label
+                className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
+                htmlFor="phoneNumber"
+              >
                 Phone Number
               </label>
               <input
+                data-testid="intro-client-phone"
                 id="phoneNumber"
                 type="tel"
                 placeholder="+1 (555) 000-0000"
@@ -125,7 +137,10 @@ export function IntroductionSubmitForm({ businessOptions }: IntroductionSubmitFo
               />
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-muted-foreground uppercase mb-2" htmlFor="emailAddress">
+              <label
+                className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
+                htmlFor="emailAddress"
+              >
                 Email Address
               </label>
               <input
@@ -141,40 +156,61 @@ export function IntroductionSubmitForm({ businessOptions }: IntroductionSubmitFo
         </div>
       </div>
 
-      <div className="bg-background border border-border p-10 shadow-lg">
-        <h2 className="text-lg font-semibold text-accent mb-8 pb-4 border-b border-border uppercase tracking-widest">
+      <div className="border border-border bg-background p-10 shadow-lg">
+        <h2 className="mb-8 border-b border-border pb-4 text-lg font-semibold uppercase tracking-widest text-accent">
           Service Requisition
         </h2>
         <div className="space-y-6">
           <div>
-            <label className="block text-[13px] font-medium text-muted-foreground uppercase mb-2" htmlFor="targetCategory">
+            <label
+              className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
+              htmlFor="targetCategory"
+            >
               Target Partner
             </label>
             <div className="relative">
               <select
+                data-testid="intro-target-business"
                 id="targetCategory"
                 className={selectClasses}
                 value={data.businessId}
                 onChange={(e) => set('businessId', e.target.value)}
                 required
               >
-                <option value="" disabled className="text-muted">Select a partner...</option>
+                <option value="" disabled className="text-muted">
+                  Select a partner...
+                </option>
                 {businessOptions.map((opt) => (
                   <option key={opt.id} value={opt.id}>
                     {opt.name}
                   </option>
                 ))}
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-accent">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-accent">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </div>
             </div>
           </div>
           <div>
-            <label className="block text-[13px] font-medium text-muted-foreground uppercase mb-2" htmlFor="context">
+            <label
+              className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
+              htmlFor="context"
+            >
               Recommendation Context
             </label>
             <textarea
+              data-testid="intro-message"
               id="context"
               rows={5}
               placeholder="Provide brief context regarding the client's needs and your relationship..."
@@ -186,11 +222,14 @@ export function IntroductionSubmitForm({ businessOptions }: IntroductionSubmitFo
         </div>
       </div>
 
-      <div className="pt-2 flex justify-end">
+      <div className="flex justify-end pt-2">
         <button
+          data-testid="intro-submit"
           type="submit"
-          disabled={isSubmitting || !data.fullName || (!data.phone && !data.email) || !data.businessId}
-          className="flex items-center gap-2 bg-accent px-10 py-4 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-950 transition-all hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={
+            isSubmitting || !data.fullName || (!data.phone && !data.email) || !data.businessId
+          }
+          className="hover:bg-accent/90 flex items-center gap-2 bg-accent px-10 py-4 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-950 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting ? <Spinner size={18} /> : null}
           Submit Recommendation

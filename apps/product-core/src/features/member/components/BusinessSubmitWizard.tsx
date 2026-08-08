@@ -2,7 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, User, Mail, Globe, Building2, Briefcase, Tag, AlignLeft, Percent, ArrowRight, ChevronDown, MapPin, Building } from 'lucide-react';
+import {
+  Check,
+  User,
+  Mail,
+  Globe,
+  Building2,
+  Briefcase,
+  Tag,
+  AlignLeft,
+  Percent,
+  ArrowRight,
+  ChevronDown,
+  MapPin,
+  Building,
+} from 'lucide-react';
 
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
 import { FieldError, PhoneInput, Spinner } from '@kclub/ui';
@@ -234,7 +248,7 @@ export function BusinessSubmitWizard({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="business-onboarding-wizard">
       <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => {
@@ -245,7 +259,7 @@ export function BusinessSubmitWizard({
               <div key={n} className="flex items-center gap-4">
                 {i > 0 && (
                   <div
-                    className={`h-px w-6 sm:w-8 transition-colors ${
+                    className={`h-px w-6 transition-colors sm:w-8 ${
                       done ? 'bg-accent/50' : 'bg-border'
                     }`}
                   />
@@ -286,9 +300,13 @@ export function BusinessSubmitWizard({
               <RequiredMark />
             </label>
             <div className="relative">
-              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Building2
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <input
                 id="name"
+                data-testid="business-wizard-name"
                 type="text"
                 required
                 minLength={2}
@@ -306,9 +324,13 @@ export function BusinessSubmitWizard({
               <RequiredMark />
             </label>
             <div className="relative">
-              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Globe
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <select
                 id="sphereId"
+                data-testid="business-wizard-sphere"
                 required
                 value={data.sphereId}
                 onChange={(e) => {
@@ -330,7 +352,10 @@ export function BusinessSubmitWizard({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <ChevronDown
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
             </div>
           </div>
 
@@ -341,9 +366,13 @@ export function BusinessSubmitWizard({
                 <RequiredMark />
               </label>
               <div className="relative">
-                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <Tag
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  size={20}
+                />
                 <select
                   id="categoryGroupId"
+                  data-testid="business-wizard-category-group"
                   required
                   value={data.categoryGroupId}
                   onChange={(e) => {
@@ -364,7 +393,10 @@ export function BusinessSubmitWizard({
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <ChevronDown
+                  className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  size={20}
+                />
               </div>
             </div>
           )}
@@ -376,9 +408,13 @@ export function BusinessSubmitWizard({
                 <RequiredMark />
               </label>
               <div className="relative">
-                <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <Briefcase
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  size={20}
+                />
                 <select
                   id="categoryId"
+                  data-testid="business-wizard-category"
                   required
                   value={data.categoryId}
                   onChange={(e) => {
@@ -395,7 +431,10 @@ export function BusinessSubmitWizard({
                   ))}
                   <option value="__other__">{t('activityTypeOther')}</option>
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <ChevronDown
+                  className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  size={20}
+                />
               </div>
             </div>
           )}
@@ -430,9 +469,13 @@ export function BusinessSubmitWizard({
               <RequiredMark />
             </label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <User
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <input
                 id="representativeName"
+                data-testid="business-wizard-representative-name"
                 type="text"
                 required
                 minLength={2}
@@ -450,9 +493,13 @@ export function BusinessSubmitWizard({
               <RequiredMark />
             </label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Mail
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <input
                 id="representativeEmail"
+                data-testid="business-wizard-representative-email"
                 type="email"
                 required
                 placeholder={t('emailPlaceholder')}
@@ -491,9 +538,13 @@ export function BusinessSubmitWizard({
               <RequiredMark />
             </label>
             <div className="relative">
-              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Globe
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <select
                 id="countryId"
+                data-testid="business-wizard-country"
                 required
                 value={data.countryId}
                 onChange={(e) => {
@@ -509,7 +560,10 @@ export function BusinessSubmitWizard({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <ChevronDown
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
             </div>
           </div>
           <div>
@@ -518,9 +572,13 @@ export function BusinessSubmitWizard({
               <RequiredMark />
             </label>
             <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <MapPin
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <select
                 id="cityId"
+                data-testid="business-wizard-city"
                 required
                 value={data.cityId}
                 onChange={(e) => set('cityId', e.target.value)}
@@ -536,7 +594,10 @@ export function BusinessSubmitWizard({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <ChevronDown
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
             </div>
             {cityLoadError && <FieldError>{cityLoadError}</FieldError>}
           </div>
@@ -545,9 +606,13 @@ export function BusinessSubmitWizard({
               {t('websiteUrl')}
             </label>
             <div className="relative">
-              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Globe
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <input
                 id="websiteUrl"
+                data-testid="business-wizard-website"
                 type="url"
                 placeholder={t('websiteUrlPlaceholder')}
                 value={data.websiteUrl}
@@ -561,7 +626,10 @@ export function BusinessSubmitWizard({
               {t('socialUrl')}
             </label>
             <div className="relative">
-              <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Building
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <input
                 id="socialUrl"
                 type="url"
@@ -594,7 +662,10 @@ export function BusinessSubmitWizard({
               {t('memberDiscount')}
             </label>
             <div className="relative">
-              <Percent className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Percent
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <input
                 id="memberDiscountPercent"
                 type="number"
@@ -623,9 +694,7 @@ export function BusinessSubmitWizard({
               </p>
             </SummaryRow>
             <SummaryRow label={t('summaryContact')}>
-              <p className="text-sm font-medium text-foreground">
-                {data.representativeName}
-              </p>
+              <p className="text-sm font-medium text-foreground">{data.representativeName}</p>
               <p className="text-xs text-muted-foreground">
                 {data.representativeEmail} · {data.representativePhone}
               </p>
@@ -636,16 +705,12 @@ export function BusinessSubmitWizard({
                 {countryOptions.find((c) => c.id === data.countryId)?.name ?? '—'}
               </p>
               {(data.websiteUrl || data.socialUrl) && (
-                <p className="text-xs text-muted-foreground">
-                  {data.websiteUrl || data.socialUrl}
-                </p>
+                <p className="text-xs text-muted-foreground">{data.websiteUrl || data.socialUrl}</p>
               )}
             </SummaryRow>
             {data.memberDiscountPercent && (
               <SummaryRow label={t('summaryDiscount')}>
-                <p className="text-sm font-medium text-foreground">
-                  {data.memberDiscountPercent}%
-                </p>
+                <p className="text-sm font-medium text-foreground">{data.memberDiscountPercent}%</p>
               </SummaryRow>
             )}
           </div>
@@ -654,13 +719,19 @@ export function BusinessSubmitWizard({
             <label className="group flex cursor-pointer items-start gap-4">
               <div className="relative mt-0.5 flex items-center justify-center">
                 <input
+                  data-testid="business-wizard-confirm-authority"
                   type="checkbox"
                   checked={data.confirmAuthority}
                   onChange={(e) => set('confirmAuthority', e.target.checked)}
                   className="peer sr-only"
                 />
-                <div className="flex h-5 w-5 items-center justify-center border border-border bg-background transition-colors peer-checked:border-accent peer-checked:bg-accent group-hover:border-accent/50">
-                  <Check className="opacity-0 transition-opacity peer-checked:opacity-100" size={14} strokeWidth={3} color="#0A0908" />
+                <div className="group-hover:border-accent/50 flex h-5 w-5 items-center justify-center border border-border bg-background transition-colors peer-checked:border-accent peer-checked:bg-accent">
+                  <Check
+                    className="opacity-0 transition-opacity peer-checked:opacity-100"
+                    size={14}
+                    strokeWidth={3}
+                    color="#0A0908"
+                  />
                 </div>
               </div>
               <span className="text-[15px] text-muted-foreground transition-colors group-hover:text-foreground">
@@ -670,13 +741,19 @@ export function BusinessSubmitWizard({
             <label className="group flex cursor-pointer items-start gap-4">
               <div className="relative mt-0.5 flex items-center justify-center">
                 <input
+                  data-testid="business-wizard-accept-legal"
                   type="checkbox"
                   checked={data.acceptLegal}
                   onChange={(e) => set('acceptLegal', e.target.checked)}
                   className="peer sr-only"
                 />
-                <div className="flex h-5 w-5 items-center justify-center border border-border bg-background transition-colors peer-checked:border-accent peer-checked:bg-accent group-hover:border-accent/50">
-                  <Check className="opacity-0 transition-opacity peer-checked:opacity-100" size={14} strokeWidth={3} color="#0A0908" />
+                <div className="group-hover:border-accent/50 flex h-5 w-5 items-center justify-center border border-border bg-background transition-colors peer-checked:border-accent peer-checked:bg-accent">
+                  <Check
+                    className="opacity-0 transition-opacity peer-checked:opacity-100"
+                    size={14}
+                    strokeWidth={3}
+                    color="#0A0908"
+                  />
                 </div>
               </div>
               <span className="text-[15px] text-muted-foreground transition-colors group-hover:text-foreground">
@@ -691,6 +768,7 @@ export function BusinessSubmitWizard({
 
       <div className="mt-4 flex items-center justify-between border-t border-border pt-8">
         <button
+          data-testid="business-wizard-back"
           type="button"
           onClick={handleBack}
           disabled={step === 1 || isSubmitting}
@@ -701,20 +779,22 @@ export function BusinessSubmitWizard({
 
         {step < TOTAL_STEPS ? (
           <button
+            data-testid="business-wizard-continue"
             type="button"
             onClick={handleNext}
             disabled={!canAdvance(step, data)}
-            className="flex items-center gap-2 bg-accent px-8 py-4 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-950 transition-all hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            className="hover:bg-accent/90 flex items-center gap-2 bg-accent px-8 py-4 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-950 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t('continue')}
             <ArrowRight size={18} />
           </button>
         ) : (
           <button
+            data-testid="business-wizard-submit"
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || !data.confirmAuthority || !data.acceptLegal}
-            className="flex items-center gap-2 bg-accent px-8 py-4 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-950 transition-all hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            className="hover:bg-accent/90 flex items-center gap-2 bg-accent px-8 py-4 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-950 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? <Spinner size={18} /> : null}
             {isSubmitting ? t('submitting') : t('submit')}

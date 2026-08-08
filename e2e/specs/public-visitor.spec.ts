@@ -28,13 +28,19 @@ test.describe('Public visitor paths', () => {
 
   test('business detail page renders', async ({ page, locale, seed }) => {
     const { businessSlug } = await seed('published-businesses');
+    if (!businessSlug) {
+      test.skip();
+      return;
+    }
 
     const directoryPage = new DirectoryPage(page, locale);
     await directoryPage.goto();
-    await directoryPage.clickFirstBusiness();
+    await page.locator(`a[href$="/${locale}/directory/${businessSlug}"]`).first().click();
 
-    // Should navigate to business detail
-    await expect(page.locator('[data-testid="business-name"]')).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/directory/${businessSlug}$`), {
+      timeout: 30000,
+    });
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 
   test('card verification shows valid card status', async ({ page, locale, seed }) => {
