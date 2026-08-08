@@ -268,7 +268,6 @@ export type PublicCardVerificationDto = {
   cardNumber: string;
   status: ClubCardStatus;
   membershipTier: MemberTier;
-  displayName: string | null;
   issuedAt: IsoDateTime;
   expiresAt: IsoDateTime | null;
 };

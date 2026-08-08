@@ -2,13 +2,8 @@ import { getTranslations } from 'next-intl/server';
 
 import type { Locale } from '@/i18n/routing';
 import { getDbClient, schema } from '@/server/db';
-import { and, asc, eq } from 'drizzle-orm';
-import { BusinessSubmitWizard } from '@/features/member/components/BusinessSubmitWizard';
-import type {
-  CategoryTaxonomyOption,
-  CityTaxonomyOption,
-  TaxonomyOption,
-} from '@/features/member/components/BusinessPanel';
+import { eq, asc } from 'drizzle-orm';
+import { IntroductionSubmitForm } from '@/features/member/components/IntroductionSubmitForm';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 
 type IntroductionsTabPanelProps = {
@@ -17,49 +12,27 @@ type IntroductionsTabPanelProps = {
 
 export async function IntroductionsTabPanel({ locale }: IntroductionsTabPanelProps) {
   const t = await getTranslations({ locale, namespace: 'member.dashboard.introductions' });
-  const tWizard = await getTranslations({ locale, namespace: 'member.businessOnboarding' });
 
   const db = getDbClient();
-  const [countries, categories, cities] = await Promise.all([
-    db.query.countries.findMany({
-      where: eq(schema.countries.is_active, true),
-      orderBy: [asc(schema.countries.name)],
-    }),
-    db.query.categories.findMany({
-      where: and(eq(schema.categories.is_active, true), eq(schema.categories.is_high_risk, false)),
-      orderBy: [asc(schema.categories.name)],
-    }),
-    db.query.cities.findMany({
-      where: eq(schema.cities.is_active, true),
-      orderBy: [asc(schema.cities.name)],
-    }),
-  ]);
+  const businesses = await db.query.businessProfiles.findMany({
+    where: eq(schema.businessProfiles.status, 'PUBLISHED'),
+    columns: { id: true, name: true },
+    orderBy: [asc(schema.businessProfiles.name)],
+  });
 
-  const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
-  const cityOptions: CityTaxonomyOption[] = cities.map((c) => ({
-    id: c.id,
-    name: c.name,
-    countryId: c.country_id,
-  }));
-  const categoryOptions: CategoryTaxonomyOption[] = categories.map((c) => ({
-    id: c.id,
-    name: c.name,
-    parentId: c.parent_id ?? null,
-    level: c.level as CategoryTaxonomyOption['level'],
-  }));
+  const businessOptions = businesses.map((b) => ({ id: b.id, name: b.name }));
 
   return (
     <div className={cabinetContentClasses}>
-      <p className="mb-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-        {t('wizardDescription')}
-      </p>
-      <h2 className="mb-9 text-lg font-semibold text-foreground">{tWizard('title')}</h2>
-      <BusinessSubmitWizard
-        locale={locale}
-        countryOptions={countryOptions}
-        cityOptions={cityOptions}
-        categoryOptions={categoryOptions}
-      />
+      <div className="mb-12">
+        <h1 className="font-semibold text-[28px] text-accent tracking-[0.2em] uppercase mb-4">
+          Recommend a Client
+        </h1>
+        <p className="text-[16px] text-muted-foreground max-w-xl">
+          Discreetly introduce a prospective client to our exclusive network. Submissions are reviewed with the utmost confidentiality.
+        </p>
+      </div>
+      <IntroductionSubmitForm businessOptions={businessOptions} />
     </div>
   );
 }

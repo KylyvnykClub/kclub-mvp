@@ -73,7 +73,6 @@ export default async function VerifyCardPage({ params }: Params) {
             label={t('status')}
             value={<Badge variant={statusIsActive ? 'success' : 'outline'}>{result.status}</Badge>}
           />
-          <CardField label={t('memberName')} value={result.displayName ?? t('privateMemberName')} />
           <CardField
             label={t('issuedAt')}
             value={new Intl.DateTimeFormat(locale).format(new Date(result.issuedAt))}

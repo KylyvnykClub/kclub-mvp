@@ -1,10 +1,11 @@
-export const STAFF_ROLES = ['OWNER', 'ADMIN', 'MODERATOR'] as const;
+export const STAFF_ROLES = ['OWNER', 'ADMIN', 'MODERATOR', 'SUPPORT'] as const;
 export type StaffRole = (typeof STAFF_ROLES)[number];
 
 export const STAFF_ROLE_RANK = {
   OWNER: 3,
   ADMIN: 2,
   MODERATOR: 1,
+  SUPPORT: 0,
 } as const satisfies Record<StaffRole, number>;
 
 export const STAFF_PERMISSIONS = {
@@ -82,6 +83,11 @@ export const STAFF_ROLE_PERMISSIONS = {
     STAFF_PERMISSIONS.FEATURED_BUSINESSES_MANAGE,
     STAFF_PERMISSIONS.INTERNAL_NOTES_CREATE,
   ],
+  SUPPORT: [
+    STAFF_PERMISSIONS.DASHBOARD_METRICS_READ,
+    STAFF_PERMISSIONS.SUBSCRIPTIONS_READ,
+    STAFF_PERMISSIONS.AUDIT_READ,
+  ],
 } as const satisfies Record<StaffRole, readonly StaffPermission[]>;
 
 export function hasStaffPermission(
@@ -102,6 +108,10 @@ export function getEffectivePermissions(
 }
 
 export function isStaffRoleAtLeast(role: StaffRole, minimumRole: StaffRole): boolean {
+  if (role === 'SUPPORT' || minimumRole === 'SUPPORT') {
+    return role === minimumRole;
+  }
+
   return STAFF_ROLE_RANK[role] >= STAFF_ROLE_RANK[minimumRole];
 }
 

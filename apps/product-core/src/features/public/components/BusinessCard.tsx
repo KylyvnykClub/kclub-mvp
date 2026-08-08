@@ -1,16 +1,19 @@
-import { ArrowUpRight, ExternalLink, MapPin } from 'lucide-react';
+import { MapPin, Building2, Utensils, Hotel, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 
 import type { PublicBusinessListItemDto } from '@kclub/contracts';
-import { Badge, cn } from '@kclub/ui';
+import { cn } from '@kclub/ui';
 
 import { getBusinessLocation, getPrimaryBusinessUrl } from '../public-page-helpers';
 
-const MUTED_LABEL: Record<string, [string, string]> = {
-  en: ['tap to', 'reveal'],
-  ru: ['жми,', 'узнай!'],
-  uk: ['тисни,', 'дізнайся!'],
-};
+// Helper to determine a basic icon based on category name roughly
+function getCategoryIcon(categoryName: string, className?: string) {
+  const lower = categoryName.toLowerCase();
+  if (lower.includes('hospitality') || lower.includes('hotel')) return <Hotel className={className} />;
+  if (lower.includes('dining') || lower.includes('restaurant')) return <Utensils className={className} />;
+  if (lower.includes('retail') || lower.includes('shop')) return <ShoppingBag className={className} />;
+  return <Building2 className={className} />;
+}
 
 export function BusinessCard({
   business,
@@ -29,94 +32,63 @@ export function BusinessCard({
   compact?: boolean;
   locale?: string;
 }) {
-  const externalUrl = getPrimaryBusinessUrl(business);
-
   return (
-    <article
+    <Link
+      href={href}
       className={cn(
-        'group relative flex w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-md transition-all hover:shadow-lg dark:border-white/10 dark:bg-[#1c1c1e] dark:text-white',
-        'flex-row sm:flex-col',
-        compact ? 'min-h-[160px]' : 'min-h-[180px]',
+        'group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-none border border-accent/10 bg-surface transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(212,175,55,0.15)]',
+        compact && 'sm:min-h-[250px]'
       )}
     >
-      {/* Discount Ribbon */}
-      {business.memberDiscountPercent ? (
-        <div className="absolute right-0 top-0 z-10 w-12 sm:w-16">
-          <svg
-            viewBox="0 0 100 120"
-            className="h-auto w-full fill-[#EBB34F] drop-shadow-md"
-            preserveAspectRatio="none"
-          >
-            <path d="M0,0 L100,0 L100,90 L50,120 L0,90 Z" />
-            {business.discountMuted ? null /* TODO: muted label — MUTED_LABEL[locale] */ : (
-              <text
-                x="50%"
-                y="45%"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                className="fill-black text-[28px] font-black"
-              >
-                -{business.memberDiscountPercent}%
-              </text>
-            )}
-          </svg>
-        </div>
-      ) : null}
-
       {/* Cover Image */}
-      <div className="relative w-2/5 shrink-0 bg-zinc-200 dark:bg-zinc-800 sm:h-[220px] sm:w-full">
+      <div className="relative h-48 w-full overflow-hidden bg-surface-muted">
         {business.coverImageUrl ? (
           <img
             src={business.coverImageUrl}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            alt={business.name}
+            className="h-full w-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0"
           />
         ) : (
-          <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-800 dark:to-zinc-900" />
+          <div className="flex h-full w-full items-center justify-center bg-surface-muted">
+            {getCategoryIcon(business.categoryName, 'size-16 text-muted-foreground opacity-30')}
+          </div>
         )}
+        
+        {/* Discount Ribbon (if any) */}
+        {business.memberDiscountPercent ? (
+          <div className="absolute right-4 top-4 bg-accent px-4 py-1 text-lg font-semibold text-accent-foreground shadow-sm">
+            {business.memberDiscountPercent}%
+          </div>
+        ) : null}
+
+        {/* Featured Label (if any) */}
+        {featuredLabel ? (
+          <div className="absolute left-4 top-4 bg-background/80 px-3 py-1 text-xs font-medium tracking-wide text-accent backdrop-blur-sm border border-accent/30">
+            {featuredLabel}
+          </div>
+        ) : null}
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col p-4 sm:p-5 lg:p-6">
-        <div className="flex items-start gap-3 sm:gap-4">
-          <div className="flex-1 pr-10 sm:pr-14">
-            <h3 className="line-clamp-2 text-base font-bold leading-tight tracking-tight text-zinc-950 dark:text-white sm:text-2xl sm:font-black sm:uppercase">
-              {business.name}
-            </h3>
-            <p className="mt-2 flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400 sm:text-sm">
-              <MapPin aria-hidden="true" size={14} strokeWidth={1.5} />
-              {getBusinessLocation(business)}
-            </p>
-            <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400 sm:text-sm">
-              {business.categoryName}
-            </p>
+      <div className="flex flex-grow flex-col p-5">
+        <div className="mb-2 flex items-start justify-between">
+          <h3 className="text-[22px] font-semibold leading-tight text-foreground">
+            {business.name}
+          </h3>
+          <div className="ml-4 shrink-0 text-accent">
+             {getCategoryIcon(business.categoryName, 'size-6')}
           </div>
         </div>
+        
+        <p className="mb-4 text-xs font-medium uppercase tracking-widest text-accent">
+          {business.categoryName}
+        </p>
 
-        <div className="mt-auto flex flex-col gap-3 pt-5">
-          <Link
-            className="group inline-flex w-fit items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-accent transition hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus"
-            href={href}
-          >
-            <span className="truncate">{actionLabel}</span>
-            <ArrowUpRight
-              aria-hidden="true"
-              className="size-3.5 shrink-0 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-            />
-          </Link>
-          {externalUrl ? (
-            <a
-              href={externalUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="dark:text-white/58 mx-auto inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 transition hover:text-zinc-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-focus dark:hover:text-white/85 sm:text-sm"
-            >
-              <ExternalLink aria-hidden="true" size={14} strokeWidth={1.5} />
-              {externalLabel}
-            </a>
-          ) : null}
+        <div className="mt-auto flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <MapPin aria-hidden="true" className="size-4" />
+          {getBusinessLocation(business)}
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

@@ -8,6 +8,7 @@ const realDb = await import('../src/server/db');
 const STAFF_ID = '11111111-1111-7111-8111-111111111111';
 const STAFF_PHONE = '+15557654321';
 const PASSWORD = 'StrongPassword123';
+const SUPPORT_STAFF_ID = '22222222-2222-7222-8222-222222222222';
 
 const baseStaff = {
   id: STAFF_ID,
@@ -26,6 +27,7 @@ const baseStaff = {
 let staff = { ...baseStaff };
 let revokedSessions = 0;
 let activeOwnerCount = 0;
+let shouldFailSessionInsert = false;
 
 function updateChain(table: unknown) {
   return {
@@ -52,17 +54,28 @@ const db = {
       findFirst: vi.fn(async () => staff),
     },
     adminSessions: {
-      findFirst: vi.fn(async () => ({
-        token_hash: 'session',
-        revoked_at: null,
-        expires_at: new Date(Date.now() + 60_000),
-      })),
+      findFirst: vi.fn(
+        async (): Promise<{
+          token_hash: string;
+          revoked_at: Date | null;
+          expires_at: Date;
+        } | null> => ({
+          token_hash: 'session',
+          revoked_at: null,
+          expires_at: new Date(Date.now() + 60_000),
+        }),
+      ),
     },
   },
   $count: vi.fn(async () => activeOwnerCount),
   update: vi.fn(updateChain),
   insert: vi.fn(() => ({
-    values: vi.fn(async () => undefined),
+    values: vi.fn(async () => {
+      if (shouldFailSessionInsert) {
+        throw new Error('session insert failed');
+      }
+      return undefined;
+    }),
   })),
   transaction: vi.fn(async (callback: (tx: { update: typeof updateChain }) => Promise<unknown>) =>
     callback({ update: updateChain }),
@@ -118,7 +131,9 @@ describe('staff password auth with approved DB staff', () => {
     staff = { ...baseStaff };
     revokedSessions = 0;
     activeOwnerCount = 0;
+    shouldFailSessionInsert = false;
     db.query.adminUsers.findFirst.mockClear();
+    db.query.adminSessions.findFirst.mockClear();
     db.$count.mockClear();
   });
 
@@ -185,6 +200,48 @@ describe('staff password auth with approved DB staff', () => {
 
     expect(sessionResponse.status).toBe(200);
     expect(sessionPayload.data.id).toBe(STAFF_ID);
+  });
+
+  test('fails closed when DB-backed session row cannot be persisted', async () => {
+    staff = {
+      ...staff,
+      password_hash: await hashStaffPassword(PASSWORD),
+      password_set_at: new Date(),
+    };
+    shouldFailSessionInsert = true;
+
+    const signInResponse = await handleStaffPasswordSignIn(
+      passwordRequest({ phone: STAFF_PHONE, password: PASSWORD }),
+    );
+    const payload = await readJson<{ error: { code: string } }>(signInResponse);
+
+    expect(signInResponse.status).toBe(503);
+    expect(payload.error.code).toBe('SERVER_DEPENDENCY_UNAVAILABLE');
+  });
+
+  test('fails closed when DB-backed session row is missing during validation', async () => {
+    staff = {
+      ...staff,
+      password_hash: await hashStaffPassword(PASSWORD),
+      password_set_at: new Date(),
+    };
+
+    const signInResponse = await handleStaffPasswordSignIn(
+      passwordRequest({ phone: STAFF_PHONE, password: PASSWORD }),
+    );
+    const signInPayload = await readJson<{ data: { token: string } }>(signInResponse);
+
+    db.query.adminSessions.findFirst.mockResolvedValueOnce(null);
+
+    const sessionResponse = await handleStaffSession(
+      new Request('http://localhost/api/admin/v1/staff-auth/session', {
+        headers: { authorization: `Bearer ${signInPayload.data.token}` },
+      }),
+    );
+    const sessionPayload = await readJson<{ error: { code: string } }>(sessionResponse);
+
+    expect(sessionResponse.status).toBe(401);
+    expect(sessionPayload.error.code).toBe('AUTH_SESSION_INVALID');
   });
 
   test('inactive staff cannot register or sign in, and reset revokes sessions', async () => {
@@ -265,5 +322,27 @@ describe('staff password auth with approved DB staff', () => {
 
     expect(updated.role).toBe('ADMIN');
     expect(staff.role).toBe('ADMIN');
+  });
+
+  test('accepts SUPPORT as a valid read-only staff role during sign-in', async () => {
+    staff = {
+      ...staff,
+      id: SUPPORT_STAFF_ID,
+      role: 'SUPPORT',
+      password_hash: await hashStaffPassword(PASSWORD),
+      password_set_at: new Date(),
+    };
+
+    const signInResponse = await handleStaffPasswordSignIn(
+      passwordRequest({ phone: STAFF_PHONE, password: PASSWORD }),
+    );
+    const signInPayload = await readJson<{
+      data: { state: string; profile: { role: string }; token: string };
+    }>(signInResponse);
+
+    expect(signInResponse.status).toBe(200);
+    expect(signInPayload.data.state).toBe('TOTP_SETUP_REQUIRED');
+    expect(signInPayload.data.profile.role).toBe('SUPPORT');
+    expect(signInPayload.data.token).toBeTruthy();
   });
 });

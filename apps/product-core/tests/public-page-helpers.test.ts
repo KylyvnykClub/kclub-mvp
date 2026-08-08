@@ -225,7 +225,6 @@ describe('public card verification presentation helpers', () => {
       cardNumber: 'MEM-000001',
       status: 'ACTIVE',
       membershipTier: 'MEMBER',
-      displayName: 'John',
       issuedAt: '2026-06-16T10:00:00.000Z',
       expiresAt: null,
     };
@@ -238,11 +237,23 @@ describe('public card verification presentation helpers', () => {
       cardNumber: 'MEM-000001',
       status: 'ACTIVE',
       membershipTier: 'MEMBER',
-      displayName: 'John',
       issuedAt: '2026-06-16T10:00:00.000Z',
       expiresAt: null,
       userId: 'user-1',
       phone: '+15551234567',
+    } as unknown as PublicCardVerificationDto;
+
+    expect(isPublicCardVerificationPiiSafe(leakedCard)).toBe(false);
+  });
+
+  test('rejects display name in the public verification payload', () => {
+    const leakedCard = {
+      cardNumber: 'MEM-000001',
+      status: 'ACTIVE',
+      membershipTier: 'MEMBER',
+      displayName: 'John',
+      issuedAt: '2026-06-16T10:00:00.000Z',
+      expiresAt: null,
     } as unknown as PublicCardVerificationDto;
 
     expect(isPublicCardVerificationPiiSafe(leakedCard)).toBe(false);

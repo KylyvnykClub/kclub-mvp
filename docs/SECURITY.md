@@ -25,7 +25,7 @@ This document captures the security baseline for KCLUB MVP v4.
 
 ## Data Protection
 
-- Public card verification DTOs must be PII-safe.
+- Public card verification DTOs must be PII-safe and must not expose member display names.
 - Public business DTOs must not leak admin-only or internal-note fields.
 - Logs must not include OTPs, passwords, password hashes, full tokens, Stripe secrets, or service-role keys.
 - Staff password hashes must remain server-only.

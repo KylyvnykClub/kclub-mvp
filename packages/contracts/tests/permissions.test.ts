@@ -61,6 +61,16 @@ describe('hasStaffPermission', () => {
     expect(hasStaffPermission('ADMIN', 'STAFF_MANAGE')).toBe(false);
     expect(hasStaffPermission('ADMIN', 'STRIPE_PRICES_MANAGE')).toBe(false);
   });
+
+  it('SUPPORT stays strictly read-only by default', () => {
+    expect(hasStaffPermission('SUPPORT', 'DASHBOARD_METRICS_READ')).toBe(true);
+    expect(hasStaffPermission('SUPPORT', 'SUBSCRIPTIONS_READ')).toBe(true);
+    expect(hasStaffPermission('SUPPORT', 'AUDIT_READ')).toBe(true);
+    expect(hasStaffPermission('SUPPORT', 'USERS_READ')).toBe(false);
+    expect(hasStaffPermission('SUPPORT', 'USERS_BLOCK')).toBe(false);
+    expect(hasStaffPermission('SUPPORT', 'BUSINESSES_MODERATE')).toBe(false);
+    expect(hasStaffPermission('SUPPORT', 'STAFF_MANAGE')).toBe(false);
+  });
 });
 
 describe('getEffectivePermissions', () => {
@@ -104,5 +114,11 @@ describe('isStaffRoleAtLeast', () => {
 
   it('ADMIN >= ADMIN', () => {
     expect(isStaffRoleAtLeast('ADMIN', 'ADMIN')).toBe(true);
+  });
+
+  it('keeps SUPPORT outside the hierarchical rank helper', () => {
+    expect(isStaffRoleAtLeast('SUPPORT', 'SUPPORT')).toBe(true);
+    expect(isStaffRoleAtLeast('OWNER', 'SUPPORT')).toBe(false);
+    expect(isStaffRoleAtLeast('SUPPORT', 'MODERATOR')).toBe(false);
   });
 });

@@ -25,10 +25,6 @@ export type CardRecord = {
   revoked_reason: string | null;
 };
 
-export type CardWithUserDisplayName = CardRecord & {
-  user: { display_name: string | null };
-};
-
 export function toMemberCardDto(card: CardRecord): MemberCardDto {
   return {
     id: card.id,
@@ -42,14 +38,11 @@ export function toMemberCardDto(card: CardRecord): MemberCardDto {
   };
 }
 
-export function toPublicCardVerificationDto(
-  card: CardWithUserDisplayName,
-): PublicCardVerificationDto {
+export function toPublicCardVerificationDto(card: CardRecord): PublicCardVerificationDto {
   return {
     cardNumber: card.card_number,
     status: card.status as ClubCardStatus,
     membershipTier: card.membership_tier as MemberTier,
-    displayName: card.user.display_name,
     issuedAt: card.issued_at.toISOString(),
     expiresAt: card.expires_at?.toISOString() ?? null,
   };
@@ -276,7 +269,6 @@ export async function publicVerifyCard(cardNumber: string): Promise<PublicCardVe
 
   const card = await db.query.memberCards.findFirst({
     where: (fields, { eq }) => eq(fields.card_number, cardNumber),
-    with: { user: { columns: { display_name: true } } },
   });
 
   if (!card) {
@@ -287,5 +279,5 @@ export async function publicVerifyCard(cardNumber: string): Promise<PublicCardVe
     });
   }
 
-  return toPublicCardVerificationDto(card as unknown as CardWithUserDisplayName);
+  return toPublicCardVerificationDto(card as CardRecord);
 }

@@ -2,7 +2,6 @@ import { type NextRequest } from 'next/server';
 
 import { parseWithValidation } from '@kclub/validation';
 import { cardNumberSchema } from '@/server/services/card-helpers';
-import { ERROR_CODES } from '@kclub/contracts';
 
 import { jsonSuccess, jsonError, jsonErrorFromUnknown } from '@/server/api';
 import { publicVerifyCard } from '@/server/services';

@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import {
+  __resetStaffAuthRateLimitersForTests,
+  __setStaffAuthRateLimiterForTests,
+} from '../src/server/staff-auth-rate-limit';
+import {
   handleStaffPasswordSignIn,
   handleStaffSession,
   handleStaffLogout,
@@ -30,6 +34,7 @@ describe('staff auth boundary', () => {
     process.env.ADMIN_BOOTSTRAP_OWNER_PASSWORD = OWNER_PASSWORD;
     process.env.ADMIN_JWT_SECRET = 'staff-auth-test-secret-at-least-32-chars';
     delete process.env.ADMIN_STAFF_ALLOWLIST_JSON;
+    __resetStaffAuthRateLimitersForTests();
   });
 
   test('rejects unknown staff phone during password sign-in', async () => {
@@ -71,6 +76,25 @@ describe('staff auth boundary', () => {
 
     expect(response.status).toBe(401);
     expect(payload.error.code).toBe('AUTH_PASSWORD_INVALID');
+  });
+
+  test('returns 429 when password sign-in is rate limited', async () => {
+    __setStaffAuthRateLimiterForTests('password-sign-in', {
+      limit: async () => ({
+        success: false,
+        limit: 5,
+        remaining: 0,
+        reset: Date.now() + 10_000,
+      }),
+    });
+
+    const response = await handleStaffPasswordSignIn(
+      jsonRequest({ phone: OWNER_PHONE, password: OWNER_PASSWORD }),
+    );
+    const payload = await readJson<{ error: { code: string } }>(response);
+
+    expect(response.status).toBe(429);
+    expect(payload.error.code).toBe('RATE_LIMITED');
   });
 
   test('rejects forged staff session tokens', async () => {

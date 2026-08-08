@@ -10,6 +10,7 @@ export type SeedScenario =
   | 'vip-with-published-business'
   | 'business-with-incoming-introduction'
   | 'staff-owner'
+  | 'staff-db-owner'
   | 'staff-moderator'
   | 'published-businesses';
 

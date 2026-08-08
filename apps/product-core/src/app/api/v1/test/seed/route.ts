@@ -336,6 +336,26 @@ async function seedScenario(
       };
     }
 
+    case 'staff-db-owner': {
+      const { hashStaffPassword } = await import('@/server/staff-password');
+
+      const [staff] = await db
+        .insert(schema.adminUsers)
+        .values({
+          phone: testPhone,
+          role: 'OWNER',
+          display_name: `E2E Staff Owner ${timestamp}`,
+          is_active: true,
+          password_hash: await hashStaffPassword('E2eStaffPass123!'),
+          password_set_at: new Date(),
+        })
+        .returning();
+
+      return {
+        staffPhone: staff!.phone,
+      };
+    }
+
     case 'staff-moderator': {
       return {
         staffPhone: process.env.ADMIN_BOOTSTRAP_OWNER_PHONE ?? '+10000000000',

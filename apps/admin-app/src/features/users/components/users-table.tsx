@@ -43,7 +43,6 @@ import {
   AdminTableMobile,
 } from '@/components/admin-list-layout';
 import { AdminPagination } from '@/components/admin-pagination';
-import { cn } from '@/lib/utils';
 import type { AdminUserListItemDto, EntityId, StaffRole } from '@kclub/contracts';
 
 function canMutateUsers(role: StaffRole): boolean {

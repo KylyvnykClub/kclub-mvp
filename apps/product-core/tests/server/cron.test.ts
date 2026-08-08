@@ -1,24 +1,17 @@
-// TODO(drizzle-migration): suites below mock '@/server/db' with the removed Prisma client API
-// (getPrismaClient). Rewrite the mocks against getDbClient/schema (Drizzle) and re-enable.
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-const mockUpdateMany = vi.fn(async () => ({ count: 0 }));
-const mockFindMany = vi.fn(async () => []);
-const mockDeleteMany = vi.fn(async () => ({ count: 0 }));
+const runDailyMaintenance = vi.fn();
 
-vi.mock('@/server/db', () => {
-  const mockPrisma = {
-    memberCard: { updateMany: mockUpdateMany },
-    vipSubscription: { updateMany: mockUpdateMany, findMany: mockFindMany },
-    businessProfile: { updateMany: mockUpdateMany },
-    stripeWebhookEvent: { deleteMany: mockDeleteMany },
-  };
-  return {
-    getPrismaClient: () => mockPrisma,
-  };
-});
+vi.mock('@/server/services/maintenance-service', () => ({
+  runDailyMaintenance,
+}));
 
-describe.skip('cron route guard logic', () => {
+describe('cron route guard logic', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    runDailyMaintenance.mockReset();
+  });
+
   test('returns 500 when CRON_SECRET is not set', async () => {
     const original = process.env.CRON_SECRET;
     delete process.env.CRON_SECRET;
@@ -26,53 +19,56 @@ describe.skip('cron route guard logic', () => {
     const { POST } = await import('../../src/app/api/cron/daily-maintenance/route');
     const request = new Request('http://localhost/api/cron/daily-maintenance', { method: 'POST' });
     const response = await POST(request);
+
     expect(response.status).toBe(500);
     const body = await response.json();
-    expect(body.error.code).toBe('SERVER_ERROR');
+    expect(body.error.code).toBe('SERVER_DEPENDENCY_UNAVAILABLE');
 
     process.env.CRON_SECRET = original;
   });
 
-  test('returns 401 when Authorization header is missing', async () => {
+  test('returns 401 when authorization is missing or invalid', async () => {
     process.env.CRON_SECRET = 'test-secret';
 
     const { POST } = await import('../../src/app/api/cron/daily-maintenance/route');
-    const request = new Request('http://localhost/api/cron/daily-maintenance', { method: 'POST' });
-    const response = await POST(request);
-    expect(response.status).toBe(401);
-    const body = await response.json();
-    expect(body.error.code).toBe('PERMISSION_DENIED');
+    const missingResponse = await POST(
+      new Request('http://localhost/api/cron/daily-maintenance', { method: 'POST' }),
+    );
+    const invalidResponse = await POST(
+      new Request('http://localhost/api/cron/daily-maintenance', {
+        method: 'POST',
+        headers: { authorization: 'Bearer wrong-secret' },
+      }),
+    );
+
+    expect(missingResponse.status).toBe(401);
+    expect(invalidResponse.status).toBe(401);
   });
 
-  test('returns 401 when Authorization header has wrong secret', async () => {
+  test('returns the maintenance payload when authorized', async () => {
     process.env.CRON_SECRET = 'test-secret';
+    runDailyMaintenance.mockResolvedValue({
+      expiredCards: 1,
+      expiredSubscriptions: 2,
+      hiddenBusinesses: 3,
+      cleanedEvents: 4,
+    });
 
     const { POST } = await import('../../src/app/api/cron/daily-maintenance/route');
-    const request = new Request('http://localhost/api/cron/daily-maintenance', {
-      method: 'POST',
-      headers: { authorization: 'Bearer wrong-secret' },
-    });
-    const response = await POST(request);
-    expect(response.status).toBe(401);
-    const body = await response.json();
-    expect(body.error.code).toBe('PERMISSION_DENIED');
-  });
+    const response = await POST(
+      new Request('http://localhost/api/cron/daily-maintenance', {
+        method: 'POST',
+        headers: { authorization: 'Bearer test-secret' },
+      }),
+    );
 
-  test('returns 200 with result counts when authorized with correct secret', async () => {
-    process.env.CRON_SECRET = 'test-secret';
-
-    const { POST } = await import('../../src/app/api/cron/daily-maintenance/route');
-    const request = new Request('http://localhost/api/cron/daily-maintenance', {
-      method: 'POST',
-      headers: { authorization: 'Bearer test-secret' },
-    });
-    const response = await POST(request);
     expect(response.status).toBe(200);
     const body = await response.json();
-    expect(body.data).toBeDefined();
-    expect(typeof body.data.cardsExpired).toBe('number');
-    expect(typeof body.data.subscriptionsExpired).toBe('number');
-    expect(typeof body.data.businessesHidden).toBe('number');
-    expect(typeof body.data.webhookEventsCleaned).toBe('number');
+    expect(body.data).toEqual({
+      expiredCards: 1,
+      expiredSubscriptions: 2,
+      hiddenBusinesses: 3,
+      cleanedEvents: 4,
+    });
   });
 });

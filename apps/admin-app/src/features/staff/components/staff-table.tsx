@@ -47,6 +47,7 @@ const STAFF_ROLE_DESCRIPTIONS = {
   OWNER: 'Full platform access, including staff management and billing configuration.',
   ADMIN: 'User, card, subscription, audit, and extended operational access.',
   MODERATOR: 'Manager-level access for business, catalog, taxonomy, and introduction moderation.',
+  SUPPORT: 'Strictly read-only access for dashboard metrics, subscriptions, and audit review.',
 } as const satisfies Record<StaffRole, string>;
 
 type StaffTableProps = {
@@ -114,6 +115,7 @@ function RoleUpdateDialog({
                 <SelectItem value="OWNER">OWNER</SelectItem>
                 <SelectItem value="ADMIN">ADMIN</SelectItem>
                 <SelectItem value="MODERATOR">MODERATOR</SelectItem>
+                <SelectItem value="SUPPORT">SUPPORT</SelectItem>
               </SelectContent>
             </Select>
             <RoleDescription role={role} />
@@ -244,6 +246,7 @@ function AddStaffDialog({ onAction }: { onAction: () => void }) {
                 <SelectItem value="OWNER">OWNER</SelectItem>
                 <SelectItem value="ADMIN">ADMIN</SelectItem>
                 <SelectItem value="MODERATOR">MODERATOR</SelectItem>
+                <SelectItem value="SUPPORT">SUPPORT</SelectItem>
               </SelectContent>
             </Select>
             <RoleDescription role={role} />

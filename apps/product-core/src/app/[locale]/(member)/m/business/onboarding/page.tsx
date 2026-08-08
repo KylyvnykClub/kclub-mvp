@@ -6,12 +6,12 @@ import { requireCurrentMember } from '@/server/member-page';
 import { getOwnBusinesses } from '@/server/services/business-service';
 import { getDbClient, schema } from '@/server/db';
 import { and, asc, eq } from 'drizzle-orm';
-import { Breadcrumbs } from '@/features/member/components/Breadcrumbs';
 import type {
   CategoryTaxonomyOption,
   TaxonomyOption,
 } from '@/features/member/components/BusinessPanel';
 import { BusinessSubmitWizard } from '@/features/member/components/BusinessSubmitWizard';
+import { Breadcrumbs } from '@/features/member/components/Breadcrumbs';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
@@ -48,14 +48,7 @@ export default async function BusinessOnboardingPage({
   ]);
 
   const t = await getTranslations({ locale, namespace: 'member.businessOnboarding' });
-  const tDash = await getTranslations({ locale, namespace: 'member.dashboard' });
-
-  const breadcrumbItems = [
-    { label: tDash('breadcrumbs.dashboard'), href: `/${locale}/m/dashboard` },
-    { label: tDash('breadcrumbs.business'), href: `/${locale}/m/dashboard?tab=business` },
-    { label: t('breadcrumb') },
-  ];
-  const homeHref = `/${locale}`;
+  const tHub = await getTranslations({ locale, namespace: 'member.dashboard' });
 
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
   const categoryOptions: CategoryTaxonomyOption[] = categories.map((c) => ({
@@ -66,17 +59,17 @@ export default async function BusinessOnboardingPage({
   }));
 
   return (
-    <div className="space-y-8">
-      <Breadcrumbs homeHref={homeHref} items={breadcrumbItems} />
-
-      <div>
-        <p className="kclub-section-label">{tDash('eyebrow')}</p>
-        <h1 className="mt-3 text-3xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-4xl">
-          {t('title')}
-        </h1>
+    <div className="flex flex-grow flex-col items-center justify-center py-10 md:py-20">
+      <div className="w-full max-w-2xl mb-6">
+        <Breadcrumbs
+          homeHref={`/${locale}/m/dashboard`}
+          items={[
+            { label: tHub('breadcrumbs.business'), href: `/${locale}/m/dashboard?tab=business` },
+            { label: t('breadcrumb') },
+          ]}
+        />
       </div>
-
-      <div className="kclub-panel max-w-none rounded-none px-6 py-6 shadow-none ring-0 dark:bg-zinc-900/50">
+      <div className="w-full max-w-2xl border border-border bg-surface p-8 shadow-2xl md:p-16">
         <BusinessSubmitWizard
           locale={locale}
           countryOptions={countryOptions}

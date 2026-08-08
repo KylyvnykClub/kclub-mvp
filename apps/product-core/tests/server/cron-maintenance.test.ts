@@ -1,51 +1,70 @@
-// TODO(drizzle-migration): suites below mock '@/server/db' with the removed Prisma client API
-// (getPrismaClient). Rewrite the mocks against getDbClient/schema (Drizzle) and re-enable.
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-function createMockPrisma() {
+type MockDb = ReturnType<typeof createMockDb>;
+
+const auditLog = vi.fn(() => Promise.resolve({ id: 'audit-1' }));
+
+let mockDb: MockDb;
+
+function createMockDb() {
+  const selectDistinctQueue: unknown[][] = [];
+  const updateReturningQueue: unknown[][] = [];
+  const deleteReturningQueue: unknown[][] = [];
+  const businessFindMany = vi.fn<() => Promise<Array<{ id: string; status: string }>>>(
+    async () => [],
+  );
+
+  const createWhereChain = (queue: unknown[][]) => {
+    const resultPromise = Promise.resolve(undefined) as Promise<void> & {
+      returning: () => Promise<unknown[]>;
+    };
+    resultPromise.returning = async () => queue.shift() ?? [];
+    return resultPromise;
+  };
+
   return {
-    memberCard: {
-      updateMany: vi.fn(() => Promise.resolve({ count: 2 })),
+    selectDistinctQueue,
+    updateReturningQueue,
+    deleteReturningQueue,
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
+        where: vi.fn(() => createWhereChain(updateReturningQueue)),
+      })),
+    })),
+    selectDistinct: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: async () => selectDistinctQueue.shift() ?? [],
+      })),
+    })),
+    delete: vi.fn(() => ({
+      where: vi.fn(() => {
+        const resultPromise = Promise.resolve(undefined) as Promise<void> & {
+          returning: () => Promise<unknown[]>;
+        };
+        resultPromise.returning = async () => deleteReturningQueue.shift() ?? [];
+        return resultPromise;
+      }),
+    })),
+    transaction: vi.fn(async (callback: (tx: MockDb) => Promise<unknown>) => callback(mockDb)),
+    query: {
+      businessProfiles: {
+        findMany: businessFindMany,
+      },
     },
-    vipSubscription: {
-      updateMany: vi.fn(() => Promise.resolve({ count: 1 })),
-      findMany: vi.fn(() =>
-        Promise.resolve([{ user_id: 'user-expired-1' }, { user_id: 'user-expired-2' }]),
-      ),
-    },
-    businessProfile: {
-      findMany: vi.fn(() =>
-        Promise.resolve([
-          { id: 'bus-1', status: 'PUBLISHED', user_id: 'user-expired-1' },
-          { id: 'bus-2', status: 'PUBLISHED', user_id: 'user-expired-2' },
-        ]),
-      ),
-      updateMany: vi.fn(() => Promise.resolve({ count: 2 })),
-    },
-    stripeWebhookEvent: {
-      deleteMany: vi.fn(() => Promise.resolve({ count: 5 })),
-    },
-    $transaction: vi.fn((fn: any) => fn(createMockTx())),
   };
 }
 
-function createMockTx() {
+vi.mock('@/server/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/server/db')>();
   return {
-    businessProfile: {
-      updateMany: vi.fn(() => Promise.resolve({ count: 2 })),
-    },
+    ...actual,
+    getDbClient: () => mockDb,
   };
-}
-
-let mockPrisma: ReturnType<typeof createMockPrisma>;
-
-vi.mock('@/server/db', () => ({
-  getPrismaClient: () => mockPrisma,
-}));
+});
 
 vi.mock('@/server/audit', () => ({
   createDbAuditService: () => ({
-    log: vi.fn(() => Promise.resolve({ id: 'audit-1' })),
+    log: auditLog,
   }),
 }));
 
@@ -57,41 +76,48 @@ vi.mock('@/server/context', () => ({
   }),
 }));
 
-const { runDailyMaintenance } = await import('../../src/server/services/maintenance-service');
+beforeEach(() => {
+  vi.resetModules();
+  mockDb = createMockDb();
+  auditLog.mockClear();
+});
 
-describe.skip('runDailyMaintenance', () => {
-  test('returns result counts for all actions', async () => {
-    mockPrisma = createMockPrisma();
+describe('runDailyMaintenance', () => {
+  test('aggregates vip and placement expirations and hides published businesses', async () => {
+    mockDb.updateReturningQueue.push(
+      [{ id: 'card-1' }, { id: 'card-2' }],
+      [{ id: 'vip-1' }],
+      [{ id: 'placement-1' }, { id: 'placement-2' }],
+      [{ id: 'bus-1' }, { id: 'bus-2' }],
+    );
+    mockDb.selectDistinctQueue.push([{ user_id: 'user-1' }], [{ business_id: 'bus-2' }]);
+    mockDb.query.businessProfiles.findMany.mockImplementation(async () => [
+      { id: 'bus-1', status: 'PUBLISHED' },
+      { id: 'bus-2', status: 'PUBLISHED' },
+    ]);
+    mockDb.deleteReturningQueue.push([{ id: 'evt-1' }, { id: 'evt-2' }, { id: 'evt-3' }]);
 
+    const { runDailyMaintenance } = await import('../../src/server/services/maintenance-service');
     const result = await runDailyMaintenance();
 
     expect(result).toEqual({
       expiredCards: 2,
-      expiredSubscriptions: 1,
+      expiredSubscriptions: 3,
       hiddenBusinesses: 2,
-      cleanedEvents: 5,
+      cleanedEvents: 3,
     });
+    expect(auditLog).toHaveBeenCalledTimes(2);
   });
 
-  test('handles zero expired subscriptions gracefully', async () => {
-    mockPrisma = createMockPrisma();
-    mockPrisma.vipSubscription.findMany.mockImplementation(() => Promise.resolve([]));
+  test('skips hide step when no expired vip users or placement businesses exist', async () => {
+    mockDb.updateReturningQueue.push([{ id: 'card-1' }], [], []);
+    mockDb.selectDistinctQueue.push([], []);
+    mockDb.deleteReturningQueue.push([]);
 
+    const { runDailyMaintenance } = await import('../../src/server/services/maintenance-service');
     const result = await runDailyMaintenance();
 
-    expect(result.expiredCards).toBe(2);
-    expect(result.expiredSubscriptions).toBe(1);
     expect(result.hiddenBusinesses).toBe(0);
-    expect(result.cleanedEvents).toBe(5);
-    expect(mockPrisma.businessProfile.findMany).not.toHaveBeenCalled();
-  });
-
-  test('is idempotent on repeated calls', async () => {
-    mockPrisma = createMockPrisma();
-
-    const result1 = await runDailyMaintenance();
-    const result2 = await runDailyMaintenance();
-
-    expect(result1).toEqual(result2);
+    expect(mockDb.query.businessProfiles.findMany).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 import { AdminPaymentDto } from '@kclub/contracts';
-import { Badge, EmptyState } from '@kclub/ui';
-import { CreditCard, ExternalLink } from 'lucide-react';
+import { Badge } from '@kclub/ui';
+import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 import {

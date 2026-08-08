@@ -1,10 +1,18 @@
 import type { PublicBusinessDetailDto } from '@kclub/contracts';
-import { Building2, CalendarDays, ExternalLink, MapPin, UserRound } from 'lucide-react';
+import {
+  MapPin,
+  Globe,
+  Star,
+  Share,
+  BadgeCheck,
+  Building2,
+  ExternalLink,
+} from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 
-import { Badge, getButtonClasses } from '@kclub/ui';
+import { getButtonClasses } from '@kclub/ui';
 
 import {
   getBusinessLocation,
@@ -15,10 +23,6 @@ import { Locale } from '@/i18n/routing';
 import { AppError } from '@/server/errors';
 import { getCachedPublicBusinessBySlug } from '@/server/cache/business-cache';
 
-// Rendered dynamically (SSR): business profiles are created at runtime, so a
-// slug not present at build time would otherwise be rendered on-demand as a
-// cached/static page, and next-intl's request-locale access makes that throw
-// DYNAMIC_SERVER_USAGE (a 500 for any business created after the last deploy).
 export const dynamic = 'force-dynamic';
 
 type Params = {
@@ -108,120 +112,185 @@ export default async function BusinessDetailPage({ params }: Params) {
   const jsonLd = buildBusinessJsonLd(business, locale);
 
   return (
-    <article className="kclub-page-band">
+    <article className="min-h-screen flex flex-col bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="kclub-shell py-16 sm:py-20">
-        <div className="grid gap-10 lg:grid-cols-[400px_minmax(0,1fr)] xl:grid-cols-[480px_minmax(0,1fr)]">
-          {/* Photo area */}
-          <div className="relative aspect-square lg:aspect-auto lg:h-[500px] overflow-hidden rounded-3xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/10 flex items-center justify-center">
-            {business.coverImageUrl || business.logoUrl ? (
-              <img
-                src={(business.coverImageUrl || business.logoUrl)!}
-                alt={business.name}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            ) : (
-              <Building2 className="text-zinc-300 dark:text-zinc-600" size={80} strokeWidth={1} />
-            )}
+      
+      {/* Hero Section */}
+      <section className="relative w-full h-[442px] md:h-[530px] flex items-end">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-surface-muted"
+          style={business.coverImageUrl ? { backgroundImage: `url('${business.coverImageUrl}')` } : undefined}
+        >
+          {!business.coverImageUrl && (
+            <div className="flex h-full w-full items-center justify-center">
+              <Building2 className="size-32 text-muted-foreground opacity-20" />
+            </div>
+          )}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent"></div>
+        
+        <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 md:px-8 pb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-accent text-[13px] font-medium uppercase tracking-widest border border-accent/30 px-3 py-1">
+              {business.categoryName}
+            </span>
+            <span className="text-muted-foreground">•</span>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MapPin className="size-4" />
+              <span className="text-[13px] font-medium uppercase tracking-widest">
+                {getBusinessLocation(business)}
+              </span>
+            </div>
           </div>
-
-          {/* Details area */}
-          <div className="flex flex-col">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">{business.categoryName}</Badge>
-              {business.featuredTop ? <Badge variant="success">{t('featuredTop')}</Badge> : null}
-              {business.featuredRecommended ? (
-                <Badge variant="success">{t('recommended')}</Badge>
-              ) : null}
-            </div>
-
-            <h1
-              data-testid="business-name"
-              className="mt-5 max-w-4xl text-4xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-6xl"
-            >
-              {business.name}
-            </h1>
-
-            {business.briefDescription ? (
-              <p className="dark:text-white/68 mt-5 max-w-2xl text-lg leading-relaxed text-zinc-600">
-                {business.briefDescription}
-              </p>
+          
+          <h1 className="text-4xl md:text-6xl font-semibold text-accent mb-8 tracking-wide">
+            {business.name}
+          </h1>
+          
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-4">
+            {externalUrl ? (
+              <a 
+                href={externalUrl} 
+                target="_blank" 
+                rel="noreferrer"
+                className={getButtonClasses({ color: 'brand', size: 'lg' }) + ' uppercase tracking-widest font-bold !rounded-none'}
+              >
+                {t('website', { fallback: 'Contact Partner' })}
+              </a>
             ) : null}
-
-            <div className="mt-10 flex flex-col gap-6 sm:flex-row sm:items-start lg:flex-col xl:flex-row">
-              <aside className="kclub-panel flex-1 p-6 w-full">
-                <dl className="space-y-5 text-sm">
-                  <div className="flex gap-3">
-                    <MapPin aria-hidden="true" size={18} strokeWidth={1.5} className="mt-0.5 shrink-0" />
-                    <div>
-                      <dt className="dark:text-white/52 text-zinc-500">{t('location')}</dt>
-                      <dd className="mt-1 text-zinc-950 dark:text-white">
-                        {getBusinessLocation(business)}
-                      </dd>
-                    </div>
-                  </div>
-                  {business.representativeName ? (
-                    <div className="flex gap-3">
-                      <UserRound aria-hidden="true" size={18} strokeWidth={1.5} className="mt-0.5 shrink-0" />
-                      <div>
-                        <dt className="dark:text-white/52 text-zinc-500">{t('representative')}</dt>
-                        <dd className="mt-1 text-zinc-950 dark:text-white">
-                          {business.representativeName}
-                        </dd>
-                      </div>
-                    </div>
-                  ) : null}
-                  {business.publishedAt ? (
-                    <div className="flex gap-3">
-                      <CalendarDays aria-hidden="true" size={18} strokeWidth={1.5} className="mt-0.5 shrink-0" />
-                      <div>
-                        <dt className="dark:text-white/52 text-zinc-500">{t('published')}</dt>
-                        <dd className="mt-1 text-zinc-950 dark:text-white">
-                          {new Intl.DateTimeFormat(locale).format(new Date(business.publishedAt))}
-                        </dd>
-                      </div>
-                    </div>
-                  ) : null}
-                </dl>
-              </aside>
-
-              {externalUrl ? (
-                <div className="w-full sm:w-auto lg:w-full xl:w-64 shrink-0">
-                  <a
-                    href={externalUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={getButtonClasses({
-                      color: 'brand',
-                      size: 'lg',
-                      fullWidth: true,
-                    })}
-                  >
-                    <ExternalLink aria-hidden="true" size={18} strokeWidth={1.5} />
-                    {t('website')}
-                  </a>
-                </div>
-              ) : null}
-            </div>
+            
+            <button className="bg-surface border border-accent/30 text-accent px-6 py-3.5 flex items-center gap-2 hover:bg-surface-muted hover:border-accent/60 transition-all active:scale-[0.98]">
+              <Star className="size-5" />
+              <span className="text-[13px] font-medium uppercase tracking-widest">{t('favorite', { fallback: 'Favorite' })}</span>
+            </button>
+            <button className="bg-surface border border-border text-muted-foreground px-4 py-3.5 flex items-center gap-2 hover:border-accent/30 hover:text-accent transition-all active:scale-[0.98]">
+              <Share className="size-5" />
+            </button>
           </div>
         </div>
+      </section>
 
-        {business.description ? (
-          <div className="mt-16 xl:mt-24">
-            <div className="kclub-panel p-8 sm:p-10">
-              <h2 className="text-2xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white mb-6">
-                {t('profileTitle')}
-              </h2>
-              <div className="dark:text-white/74 max-w-4xl whitespace-pre-wrap text-base leading-8 text-zinc-700">
-                {business.description}
+      {/* Content Layout */}
+      <section className="w-full max-w-[1280px] mx-auto px-6 md:px-8 py-16 md:py-24">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-24">
+          
+          {/* Left Column: Details */}
+          <div className="md:col-span-8 flex flex-col gap-16">
+            
+            {/* Special Condition Card (Club Privilege) */}
+            {business.memberDiscountPercent ? (
+              <div className="bg-surface border border-success/20 p-8 md:p-10 relative overflow-hidden shadow-[0_0_20px_rgba(34,197,94,0.05)] hover:shadow-[0_0_30px_rgba(34,197,94,0.1)] transition-all">
+                <div className="absolute top-0 left-0 w-1 h-full bg-success"></div>
+                <div className="absolute -right-12 -top-12 w-48 h-48 bg-success/5 blur-3xl"></div>
+                
+                <div className="relative z-10 flex flex-col md:flex-row items-start gap-6">
+                  <div className="p-4 bg-success/10 border border-success/20 shrink-0">
+                    <BadgeCheck className="text-success size-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-[13px] font-medium text-success mb-3 uppercase tracking-widest">
+                      {t('clubPrivilege', { fallback: 'Club Privilege' })}
+                    </h3>
+                    <p className="text-2xl font-semibold text-foreground mb-4">
+                      {business.memberDiscountPercent}% {t('discount', { fallback: 'DISCOUNT ON PREMIUM SERVICES' })}
+                    </p>
+                    <p className="text-[15px] text-muted-foreground max-w-2xl leading-relaxed">
+                      {t('discountDescription', { fallback: 'Present your digital membership card upon consultation to activate this exclusive benefit. Terms and conditions apply.' })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {/* About Section */}
+            {business.description || business.briefDescription ? (
+              <div className="space-y-8">
+                <h3 className="text-3xl font-semibold text-accent border-b border-border pb-6">
+                  {t('profileTitle', { fallback: 'About the Partner' })}
+                </h3>
+                <div className="text-[16px] text-muted-foreground space-y-6 leading-relaxed whitespace-pre-wrap">
+                  {business.description || business.briefDescription}
+                </div>
+              </div>
+            ) : null}
+          </div>
+          
+          {/* Right Column: Meta & Location */}
+          <div className="md:col-span-4 flex flex-col gap-8">
+            
+            {/* Contact Info Card */}
+            <div className="bg-surface border border-border p-8">
+              <h4 className="text-lg font-semibold text-accent mb-6">
+                {t('contactInfo', { fallback: 'Contact Information' })}
+              </h4>
+              <ul className="space-y-5">
+                {business.websiteUrl ? (
+                  <li className="flex items-center gap-4 group cursor-pointer">
+                    <a href={business.websiteUrl} target="_blank" rel="noreferrer" className="flex items-center gap-4 w-full">
+                      <div className="w-10 h-10 border border-border bg-background flex items-center justify-center group-hover:border-accent/50 transition-colors shrink-0">
+                        <Globe className="size-5 text-muted-foreground group-hover:text-accent" />
+                      </div>
+                      <span className="text-[15px] text-foreground group-hover:text-accent/80 transition-colors truncate">
+                        {business.websiteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                      </span>
+                    </a>
+                  </li>
+                ) : null}
+
+                {business.socialUrl ? (
+                  <li className="flex items-center gap-4 group cursor-pointer">
+                    <a href={business.socialUrl} target="_blank" rel="noreferrer" className="flex items-center gap-4 w-full">
+                      <div className="w-10 h-10 border border-border bg-background flex items-center justify-center group-hover:border-accent/50 transition-colors shrink-0">
+                        <ExternalLink className="size-5 text-muted-foreground group-hover:text-accent" />
+                      </div>
+                      <span className="text-[15px] text-foreground group-hover:text-accent/80 transition-colors truncate">
+                        {business.socialUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                      </span>
+                    </a>
+                  </li>
+                ) : null}
+
+                {!business.websiteUrl && !business.socialUrl && (
+                  <li className="flex items-center gap-4">
+                    <span className="text-[15px] text-muted-foreground">
+                      {t('contactViaConcierge', { fallback: 'Contact concierge for details.' })}
+                    </span>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            {/* Location Map Card */}
+            <div className="bg-surface border border-border overflow-hidden flex flex-col">
+              <div className="p-6 border-b border-border">
+                <h4 className="text-lg font-semibold text-accent">
+                  {t('headquarters', { fallback: 'Headquarters' })}
+                </h4>
+                <p className="text-[15px] text-muted-foreground mt-2">
+                  {getBusinessLocation(business)}
+                </p>
+              </div>
+              <div className="relative w-full h-56 bg-background flex items-center justify-center overflow-hidden">
+                {/* Styled Map Background Placeholder */}
+                <div className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity grayscale" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDzpvDrDI0Nuw_Yr3UcIL5I8291uiBFmG0T1AmYMPVlnMEnkL_XxPzeRzhFlS-PYrgS4B1N4paSQ4PWup-PNSzK3eZHFJ7xoLy9rbGHn_8yw8Kfzg9eP7Q5DDiurrzO6dHxSgbP-TdMJTh1nHWi9vpv01XD2amN3NG5PQPToaklDafp6rcqgLnnYqE_d_wcevPHPiKQ5or_sAcdMnKPqI-gBEGYYE75WnBulpc-JmjHhqVkFHkZYcTNAQ')" }}></div>
+                
+                {/* Map Marker */}
+                <div className="relative z-10 p-2.5 bg-background border border-accent shadow-[0_0_20px_rgba(212,175,55,0.6)] flex items-center justify-center">
+                  <MapPin className="size-7 text-accent" fill="currentColor" />
+                </div>
+                
+                {/* Pulse Effect */}
+                <div className="absolute z-0 w-16 h-16 bg-accent/20 animate-ping"></div>
               </div>
             </div>
+
           </div>
-        ) : null}
-      </div>
+        </div>
+      </section>
     </article>
   );
 }
@@ -233,7 +302,6 @@ async function getPublishedBusinessOrNull(slug: string) {
     if (error instanceof AppError && error.status === 404) {
       return null;
     }
-
     throw error;
   }
 }

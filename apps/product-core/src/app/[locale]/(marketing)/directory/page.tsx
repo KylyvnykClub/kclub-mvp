@@ -123,87 +123,85 @@ export default async function DirectoryPage({
   const jsonLd = buildDirectoryJsonLd(allBusinesses, locale);
 
   return (
-    <div className="kclub-page-band">
+    <div className="flex w-full flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <section className="kclub-page-band bg-white dark:bg-[#09090b]">
-        <div className="container py-16 sm:py-20">
-          <div>
-            <p className="kclub-section-label">{t('eyebrow')}</p>
-            <h1 className="mt-5 max-w-5xl text-5xl font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white sm:text-7xl">
-              {t('title')}
-            </h1>
-          </div>
+      <main className="mx-auto flex w-full max-w-7xl flex-grow flex-col gap-10 px-4 py-10 md:px-20 md:py-20">
+        {/* Page Header & Search */}
+        <div className="flex w-full flex-col gap-6">
+          <h1 className="text-4xl font-semibold text-foreground md:text-5xl">
+            {t('title')}
+          </h1>
+          <p className="max-w-2xl text-[15px] text-muted-foreground">
+            {t('description')}
+          </p>
 
-          <div className="mx-auto mt-12 w-full max-w-3xl">
-            {/* Search Bar */}
-            <div className="relative w-full">
-              <Search
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400"
-                size={20}
-              />
-              <input
-                type="text"
-                placeholder="Search partners..."
-                className="focus:ring-brand w-full rounded-full border border-zinc-200 bg-zinc-100 py-4 pl-14 pr-14 text-zinc-900 outline-none transition-all focus:border-transparent focus:ring-2 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-              />
-              <Mic className="absolute right-5 top-1/2 -translate-y-1/2 text-[#EBB34F]" size={20} />
-            </div>
-
-            <DirectoryTaxonomyFilter
-              locale={locale}
-              categoryTree={categoryTree}
-              activeSphere={activeSelection.sphere}
-              activeCategory={activeSelection.category}
-              activeActivity={activeSelection.activity}
+          <div className="relative mt-4 w-full max-w-3xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={24} />
+            <input
+              type="text"
+              placeholder="Search partners, services, or locations..."
+              className="w-full rounded-lg border border-border bg-surface py-4 pl-12 pr-4 text-[15px] text-foreground transition-all placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
         </div>
-      </section>
 
-      <div className="container py-14 sm:py-20">
-        <div>
-          {businesses.length === 0 ? (
-            <EmptyState
-              icon={<Building2 aria-hidden="true" size={44} strokeWidth={1.5} />}
-              title={t('emptyTitle')}
-              description={t('emptyDescription')}
-              action={
-                <Link
-                  href={`/${locale}/sign-up`}
-                  className={getButtonClasses({ color: 'brand', size: 'md' })}
-                >
-                  {t('emptyAction')}
-                  <ArrowRight aria-hidden="true" size={16} strokeWidth={1.7} />
-                </Link>
-              }
-            />
-          ) : (
-            <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
-              {businesses.map((business) => {
-                // Add a featured label to display just to keep parity
-                let featuredLabel: string | undefined;
-                if (business.featuredTop) featuredLabel = t('featuredTopLabel');
-                else if (business.featuredRecommended) featuredLabel = t('recommendedLabel');
+        <DirectoryTaxonomyFilter
+          locale={locale}
+          categoryTree={categoryTree}
+          activeSphere={activeSelection.sphere}
+          activeCategory={activeSelection.category}
+          activeActivity={activeSelection.activity}
+        />
 
-                return (
-                  <BusinessCard
-                    key={business.id}
-                    business={business}
-                    href={`/${locale}/directory/${business.slug}`}
-                    actionLabel={t('viewDetails')}
-                    externalLabel={t('website')}
-                    {...(featuredLabel ? { featuredLabel } : {})}
-                    locale={locale}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
+        {businesses.length === 0 ? (
+          <EmptyState
+            icon={<Building2 aria-hidden="true" size={44} strokeWidth={1.5} />}
+            title={t('emptyTitle')}
+            description={t('emptyDescription')}
+            action={
+              <Link
+                href={`/${locale}/sign-up`}
+                className={getButtonClasses({ color: 'brand', size: 'md' })}
+              >
+                {t('emptyAction')}
+                <ArrowRight aria-hidden="true" size={16} strokeWidth={1.7} />
+              </Link>
+            }
+          />
+        ) : (
+          <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {businesses.map((business) => {
+              let featuredLabel: string | undefined;
+              if (business.featuredTop) featuredLabel = t('featuredTopLabel');
+              else if (business.featuredRecommended) featuredLabel = t('recommendedLabel');
+
+              return (
+                <BusinessCard
+                  key={business.id}
+                  business={business}
+                  href={`/${locale}/directory/${business.slug}`}
+                  actionLabel={t('viewDetails')}
+                  externalLabel={t('website')}
+                  {...(featuredLabel ? { featuredLabel } : {})}
+                  locale={locale}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Load More */}
+        {businesses.length > 0 && (
+          <div className="mt-8 flex w-full justify-center">
+            <button className="rounded border border-accent bg-transparent px-8 py-3 text-[13px] font-medium uppercase tracking-widest text-accent transition-all hover:bg-accent/10 active:scale-95">
+              Show All Partners
+            </button>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

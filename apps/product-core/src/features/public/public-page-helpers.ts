@@ -37,7 +37,15 @@ export function getPrimaryBusinessUrl(business: PublicBusinessListItemDto): stri
 export function isPublicCardVerificationPiiSafe(card: PublicCardVerificationDto): boolean {
   const keys = Object.keys(card);
   return !keys.some((key) =>
-    ['id', 'userId', 'phone', 'email', 'qrPayloadUrl', 'supabaseAuthUserId'].includes(key),
+    [
+      'id',
+      'userId',
+      'phone',
+      'email',
+      'displayName',
+      'qrPayloadUrl',
+      'supabaseAuthUserId',
+    ].includes(key),
   );
 }
 

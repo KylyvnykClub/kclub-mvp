@@ -2,6 +2,11 @@ import { ERROR_CODES } from '@kclub/contracts';
 import { totpCodeSchema } from '@kclub/validation';
 
 import { getBearerToken, getStaffSession } from '@/server/staff-auth';
+import {
+  buildActorRateLimitIdentifier,
+  checkStaffAuthRateLimit,
+  getRequestIpAddress,
+} from '@/server/staff-auth-rate-limit';
 import { hasVerifiedTotp, verifyAndActivateTotp, verifyTotpCode } from '@/server/staff-totp';
 
 export async function POST(request: Request): Promise<Response> {
@@ -22,6 +27,14 @@ export async function POST(request: Request): Promise<Response> {
       { data: null, error: { code: ERROR_CODES.AUTH_SESSION_INVALID, message: 'Invalid session' } },
       { status: 401 },
     );
+  }
+
+  const rateLimitResponse = await checkStaffAuthRateLimit(
+    'totp-verify',
+    buildActorRateLimitIdentifier(profile.id, getRequestIpAddress(request)),
+  );
+  if (rateLimitResponse) {
+    return rateLimitResponse;
   }
 
   const body = await request.json().catch(() => null);

@@ -1,6 +1,11 @@
 import { ERROR_CODES } from '@kclub/contracts';
 
 import { getBearerToken, getStaffSession } from '@/server/staff-auth';
+import {
+  buildActorRateLimitIdentifier,
+  checkStaffAuthRateLimit,
+  getRequestIpAddress,
+} from '@/server/staff-auth-rate-limit';
 import { hasVerifiedTotp, setupTotp } from '@/server/staff-totp';
 
 export async function POST(request: Request): Promise<Response> {
@@ -21,6 +26,14 @@ export async function POST(request: Request): Promise<Response> {
       { data: null, error: { code: ERROR_CODES.AUTH_SESSION_INVALID, message: 'Invalid session' } },
       { status: 401 },
     );
+  }
+
+  const rateLimitResponse = await checkStaffAuthRateLimit(
+    'totp-setup',
+    buildActorRateLimitIdentifier(profile.id, getRequestIpAddress(request)),
+  );
+  if (rateLimitResponse) {
+    return rateLimitResponse;
   }
 
   const alreadyVerified = await hasVerifiedTotp(profile.id);

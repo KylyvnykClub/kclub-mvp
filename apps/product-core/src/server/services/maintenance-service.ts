@@ -1,4 +1,4 @@
-import { eq, and, isNotNull, lte, not, inArray } from 'drizzle-orm';
+import { eq, and, or, isNotNull, lte, not, inArray } from 'drizzle-orm';
 import { getDbClient, schema } from '@/server/db';
 import { createDbAuditService } from '@/server/audit';
 import { createRequestContext } from '@/server/context';
@@ -20,11 +20,17 @@ export async function runDailyMaintenance(): Promise<DailyMaintenanceResult> {
   const now = new Date();
 
   const expiredCards = await expireCards(db, now);
-  const expiredSubscriptions = await expireSubscriptions(db, now);
+  const expiredVipSubscriptions = await expireVipSubscriptions(db, now);
+  const expiredPlacementSubscriptions = await expirePlacementSubscriptions(db, now);
   const hiddenBusinesses = await hideExpiredBusinesses(db, now);
   const cleanedEvents = await cleanOldWebhookEvents(db, now);
 
-  return { expiredCards, expiredSubscriptions, hiddenBusinesses, cleanedEvents };
+  return {
+    expiredCards,
+    expiredSubscriptions: expiredVipSubscriptions + expiredPlacementSubscriptions,
+    hiddenBusinesses,
+    cleanedEvents,
+  };
 }
 
 async function expireCards(db: ReturnType<typeof getDbClient>, now: Date): Promise<number> {
@@ -42,7 +48,10 @@ async function expireCards(db: ReturnType<typeof getDbClient>, now: Date): Promi
   return result.length;
 }
 
-async function expireSubscriptions(db: ReturnType<typeof getDbClient>, now: Date): Promise<number> {
+async function expireVipSubscriptions(
+  db: ReturnType<typeof getDbClient>,
+  now: Date,
+): Promise<number> {
   const result = await db
     .update(schema.vipSubscriptions)
     .set({ status: 'EXPIRED', expires_at: now })
@@ -54,6 +63,26 @@ async function expireSubscriptions(db: ReturnType<typeof getDbClient>, now: Date
       ),
     )
     .returning({ id: schema.vipSubscriptions.id });
+  return result.length;
+}
+
+async function expirePlacementSubscriptions(
+  db: ReturnType<typeof getDbClient>,
+  now: Date,
+): Promise<number> {
+  const result = await db
+    .update(schema.subscriptions)
+    .set({ status: 'EXPIRED', canceled_at: now })
+    .where(
+      and(
+        eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'),
+        not(eq(schema.subscriptions.status, 'EXPIRED')),
+        isNotNull(schema.subscriptions.current_period_end),
+        lte(schema.subscriptions.current_period_end, now),
+      ),
+    )
+    .returning({ id: schema.subscriptions.id });
+
   return result.length;
 }
 
@@ -71,15 +100,38 @@ async function hideExpiredBusinesses(
       ),
     );
 
-  if (expiredVipUserIds.length === 0) return 0;
+  const expiredPlacementBusinessIds = await db
+    .selectDistinct({ business_id: schema.subscriptions.business_profile_id })
+    .from(schema.subscriptions)
+    .where(
+      and(
+        eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'),
+        eq(schema.subscriptions.status, 'EXPIRED'),
+        isNotNull(schema.subscriptions.business_profile_id),
+      ),
+    );
 
   const userIds = expiredVipUserIds.map((s) => s.user_id).filter((id): id is string => id !== null);
+  const businessIdsFromPlacement = expiredPlacementBusinessIds
+    .map((entry) => entry.business_id)
+    .filter((id): id is string => id !== null);
+
+  if (userIds.length === 0 && businessIdsFromPlacement.length === 0) {
+    return 0;
+  }
+
+  const expiredBusinessPredicate =
+    userIds.length > 0 && businessIdsFromPlacement.length > 0
+      ? or(
+          inArray(schema.businessProfiles.user_id, userIds),
+          inArray(schema.businessProfiles.id, businessIdsFromPlacement),
+        )
+      : userIds.length > 0
+        ? inArray(schema.businessProfiles.user_id, userIds)
+        : inArray(schema.businessProfiles.id, businessIdsFromPlacement);
 
   const businessesToHide = await db.query.businessProfiles.findMany({
-    where: and(
-      inArray(schema.businessProfiles.user_id, userIds),
-      eq(schema.businessProfiles.status, 'PUBLISHED'),
-    ),
+    where: and(eq(schema.businessProfiles.status, 'PUBLISHED'), expiredBusinessPredicate),
   });
 
   if (businessesToHide.length === 0) return 0;
@@ -105,7 +157,7 @@ async function hideExpiredBusinesses(
         entityType: 'BusinessProfile',
         entityId: business.id,
         before: { status: 'PUBLISHED' },
-        after: { status: 'HIDDEN', reason: 'VIP subscription expired' },
+        after: { status: 'HIDDEN', reason: 'VIP or placement subscription expired' },
       },
       systemContext,
     );

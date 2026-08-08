@@ -58,7 +58,6 @@ describe('toPublicCardVerificationDto', () => {
     expires_at: null,
     revoked_at: null,
     revoked_reason: null,
-    user: { display_name: 'John Doe' },
   };
 
   test('maps to public DTO correctly', () => {
@@ -68,7 +67,6 @@ describe('toPublicCardVerificationDto', () => {
       cardNumber: 'MEM-000001',
       status: 'ACTIVE',
       membershipTier: 'MEMBER',
-      displayName: 'John Doe',
       issuedAt: '2026-06-15T10:00:00.000Z',
       expiresAt: null,
     });
@@ -80,15 +78,6 @@ describe('toPublicCardVerificationDto', () => {
     expect((dto as Record<string, unknown>).userId).toBeUndefined();
     expect((dto as Record<string, unknown>).id).toBeUndefined();
     expect((dto as Record<string, unknown>).qrPayloadUrl).toBeUndefined();
-  });
-
-  test('handles null display name', () => {
-    const dto = toPublicCardVerificationDto({
-      ...baseCard,
-      user: { display_name: null },
-    });
-
-    expect(dto.displayName).toBeNull();
   });
 
   test('includes expiresAt when present', () => {

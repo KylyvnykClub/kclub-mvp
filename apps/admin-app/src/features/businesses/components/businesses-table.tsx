@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MoreHorizontal } from 'lucide-react';
@@ -106,12 +106,20 @@ export function BusinessesTable({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [statusFilter, setStatusFilter] = useState(initialStatus);
-  const [businesses, setBusinesses] = useState(initialBusinesses);
+  const [businessOverrides, setBusinessOverrides] = useState<
+    Record<string, Pick<AdminBusinessListItemDto, 'featuredTop' | 'featuredRecommended'>>
+  >({});
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setBusinesses(initialBusinesses);
-  }, [initialBusinesses]);
+  const businesses = useMemo(
+    () =>
+      initialBusinesses.map((business) => {
+        const override = businessOverrides[business.id];
+
+        return override ? { ...business, ...override } : business;
+      }),
+    [businessOverrides, initialBusinesses],
+  );
 
   const canToggle = staffRole === 'OWNER' || staffRole === 'ADMIN' || staffRole === 'MODERATOR';
 
@@ -142,9 +150,21 @@ export function BusinessesTable({
       return;
     }
 
-    setBusinesses((prev) =>
-      prev.map((b) => (b.id === businessId ? { ...b, [field]: newValue } : b)),
-    );
+    setBusinessOverrides((prev) => ({
+      ...prev,
+      [businessId]: {
+        featuredTop:
+          field === 'featuredTop'
+            ? newValue
+            : (prev[businessId]?.featuredTop ?? businesses.find((b) => b.id === businessId)?.featuredTop ?? false),
+        featuredRecommended:
+          field === 'featuredRecommended'
+            ? newValue
+            : (prev[businessId]?.featuredRecommended ??
+              businesses.find((b) => b.id === businessId)?.featuredRecommended ??
+              false),
+      },
+    }));
     toast.success(
       field === 'featuredTop'
         ? `Top ${newValue ? 'enabled' : 'disabled'}`

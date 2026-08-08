@@ -51,6 +51,9 @@ type PublicCardVerifyDoesNotExposeUserId = Assert<
 type PublicCardVerifyDoesNotExposeCardId = Assert<
   HasKey<PublicCardVerificationDto, 'id'> extends false ? true : false
 >;
+type PublicCardVerifyDoesNotExposeDisplayName = Assert<
+  HasKey<PublicCardVerificationDto, 'displayName'> extends false ? true : false
+>;
 
 type AdminCardListItemExposesUserPhone = Assert<
   HasKey<AdminCardListItemDto, 'userPhone'> extends true ? true : false
@@ -109,6 +112,7 @@ export type {
   PublicBusinessDoesNotExposeOwner,
   PublicCardVerifyDoesNotExposeUserId,
   PublicCardVerifyDoesNotExposeCardId,
+  PublicCardVerifyDoesNotExposeDisplayName,
   PublicBusinessListItemDoesNotExposeStatus,
   PublicBusinessListItemDoesNotExposeOwnerId,
   PublicBusinessDetailDoesNotExposeStripeId,

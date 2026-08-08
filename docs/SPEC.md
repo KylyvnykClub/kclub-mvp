@@ -176,7 +176,7 @@ All public localized routes use `/{locale}` where locale is `en`, `ru`, or `uk`.
 | `/{locale}`                          | Public                   | Home page                    |
 | `/{locale}/directory`                | Public                   | Published businesses only    |
 | `/{locale}/directory/{slug}`         | Public                   | Published business detail    |
-| `/{locale}/verify-card/{cardNumber}` | Public                   | PII-safe card verification   |
+| `/{locale}/verify-card/{cardNumber}` | Public                   | PII-safe card verification without member identity fields |
 | `/{locale}/sign-in`                  | Public                   | Existing member sign-in      |
 | `/{locale}/sign-up`                  | Public                   | New member sign-up           |
 | `/{locale}/m/onboarding`             | Auth                     | Required onboarding          |
@@ -342,7 +342,7 @@ Base path: `/api/v1`.
 | `PATCH /me`                                | Auth                      | Update profile                          |
 | `POST /me/complete-onboarding`             | Auth                      | Complete onboarding and issue card      |
 | `GET /cards`                               | Auth                      | Own active card                         |
-| `GET /cards/verify/{cardNumber}`           | Public                    | PII-safe card verification              |
+| `GET /cards/verify/{cardNumber}`           | Public                    | PII-safe card verification without member identity fields |
 | `GET /businesses`                          | Auth/Public by filter     | Own businesses or published public list |
 | `POST /businesses`                         | VIP                       | Start business-review Stripe reserve    |
 | `POST /businesses/reserve-review`          | VIP                       | Start business-review Stripe reserve    |

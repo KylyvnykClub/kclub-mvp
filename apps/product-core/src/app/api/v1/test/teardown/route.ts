@@ -86,6 +86,29 @@ export async function POST(request: Request): Promise<Response> {
             .where(like(schema.users.display_name, 'E2E %')),
         ),
       );
+    await db
+      .delete(schema.adminSessions)
+      .where(
+        inArray(
+          schema.adminSessions.admin_user_id,
+          db
+            .select({ id: schema.adminUsers.id })
+            .from(schema.adminUsers)
+            .where(like(schema.adminUsers.display_name, 'E2E %')),
+        ),
+      );
+    await db
+      .delete(schema.admin2fa)
+      .where(
+        inArray(
+          schema.admin2fa.admin_user_id,
+          db
+            .select({ id: schema.adminUsers.id })
+            .from(schema.adminUsers)
+            .where(like(schema.adminUsers.display_name, 'E2E %')),
+        ),
+      );
+    await db.delete(schema.adminUsers).where(like(schema.adminUsers.display_name, 'E2E %'));
     await db.delete(schema.users).where(like(schema.users.display_name, 'E2E %'));
 
     return NextResponse.json({ data: { cleaned: true }, error: null });

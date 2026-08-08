@@ -45,6 +45,25 @@ describe('accessControlProvider', () => {
       const result = await provider.can!({ resource: 'staff', action: 'create' });
       expect(result).toEqual({ can: true });
     });
+
+    it('allows SUPPORT to read audit and subscriptions, but not mutate', async () => {
+      const provider = createAccessControlProvider(makeIdentity('SUPPORT'));
+
+      await expect(provider.can!({ resource: 'audit', action: 'list' })).resolves.toEqual({
+        can: true,
+      });
+      await expect(provider.can!({ resource: 'subscriptions', action: 'list' })).resolves.toEqual({
+        can: true,
+      });
+      await expect(provider.can!({ resource: 'users', action: 'list' })).resolves.toEqual({
+        can: false,
+        reason: 'Missing permission: USERS_READ',
+      });
+      await expect(provider.can!({ resource: 'subscriptions', action: 'edit' })).resolves.toEqual({
+        can: false,
+        reason: 'Missing permission: SUBSCRIPTIONS_CANCEL_ADMIN',
+      });
+    });
   });
 
   describe('permission overrides', () => {

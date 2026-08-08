@@ -101,6 +101,35 @@ describe('requireStaffPermission', () => {
       requireStaffPermission(ownerProfile, STAFF_PERMISSIONS.STAFF_MANAGE),
     ).not.toThrow();
   });
+
+  test('keeps SUPPORT read-only on the server boundary', async () => {
+    const { requireStaffPermission } = await import('../../src/server/admin-guard');
+
+    const supportProfile: StaffProfileDto = {
+      id: 'staff-6',
+      phone: '+15554444444',
+      displayName: 'Support',
+      role: 'SUPPORT',
+      permissionOverrides: null,
+    };
+
+    expect(() =>
+      requireStaffPermission(supportProfile, STAFF_PERMISSIONS.DASHBOARD_METRICS_READ),
+    ).not.toThrow();
+    expect(() =>
+      requireStaffPermission(supportProfile, STAFF_PERMISSIONS.SUBSCRIPTIONS_READ),
+    ).not.toThrow();
+    expect(() =>
+      requireStaffPermission(supportProfile, STAFF_PERMISSIONS.AUDIT_READ),
+    ).not.toThrow();
+    expect(() => requireStaffPermission(supportProfile, STAFF_PERMISSIONS.USERS_READ)).toThrow();
+    expect(() =>
+      requireStaffPermission(supportProfile, STAFF_PERMISSIONS.SUBSCRIPTIONS_CANCEL_ADMIN),
+    ).toThrow();
+    expect(() =>
+      requireStaffPermission(supportProfile, STAFF_PERMISSIONS.BUSINESSES_MODERATE),
+    ).toThrow();
+  });
 });
 
 describe('enrichStaffContext', () => {

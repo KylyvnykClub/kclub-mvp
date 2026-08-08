@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check } from 'lucide-react';
+import { Check, User, Mail, Globe, Building2, Briefcase, Tag, AlignLeft, Percent, ArrowRight, ChevronDown, MapPin, Building } from 'lucide-react';
 
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
 import { FieldError, PhoneInput, Spinner } from '@kclub/ui';
@@ -15,7 +15,7 @@ import {
   kclubPhoneTriggerClassName,
   renderCountryFlag,
 } from '@/components/ui/country-flag';
-import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
+
 import type { CategoryTaxonomyOption, CityTaxonomyOption, TaxonomyOption } from './BusinessPanel';
 
 type WizardData = {
@@ -82,8 +82,13 @@ export function BusinessSubmitWizard({
   const [error, setError] = useState<string | null>(null);
 
   const labelClass =
-    'block text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-white/48 mb-2';
-  const fieldClass = 'kclub-field w-full';
+    'mb-2 block text-[13px] font-medium uppercase tracking-[0.2em] text-muted-foreground';
+  const fieldClass =
+    'w-full border border-border bg-background py-3 pl-12 pr-4 text-[15px] text-foreground transition-colors placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent';
+  const fieldClassNoIcon =
+    'w-full border border-border bg-background py-3 px-4 text-[15px] text-foreground transition-colors placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent';
+  const selectClass =
+    'w-full appearance-none border border-border bg-background py-3 pl-12 pr-10 text-[15px] text-foreground transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed';
 
   const filteredCities = data.countryId
     ? cityOptions.filter((city) => city.countryId === data.countryId)
@@ -229,49 +234,49 @@ export function BusinessSubmitWizard({
   };
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
-        <p className="text-xs text-zinc-500 dark:text-white/40">
-          {t('step', { current: step, total: TOTAL_STEPS })}
-        </p>
-        <div className="flex items-center gap-2">
+    <div className="space-y-6">
+      <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-4">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => {
             const n = i + 1;
             const done = n < step;
             const active = n === step;
             return (
-              <div key={n} className="flex items-center gap-2">
+              <div key={n} className="flex items-center gap-4">
                 {i > 0 && (
                   <div
-                    className={`h-px w-8 transition-colors ${
-                      done ? 'bg-zinc-950 dark:bg-white' : 'bg-zinc-200 dark:bg-white/15'
+                    className={`h-px w-6 sm:w-8 transition-colors ${
+                      done ? 'bg-accent/50' : 'bg-border'
                     }`}
                   />
                 )}
                 <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
+                  className={`flex h-8 w-8 items-center justify-center border text-[13px] font-medium transition-colors ${
                     done
-                      ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950'
+                      ? 'border-border bg-surface-muted text-muted-foreground'
                       : active
-                        ? 'text-zinc-950 ring-2 ring-zinc-950 dark:text-white dark:ring-white'
-                        : 'bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-white/30'
+                        ? 'border-accent bg-background text-accent shadow-[0_0_10px_rgba(var(--color-accent),0.2)]'
+                        : 'border-border bg-background text-muted-foreground opacity-50'
                   }`}
                 >
-                  {done ? <Check size={13} strokeWidth={2.5} /> : n}
+                  {done ? <Check size={14} strokeWidth={2.5} /> : n}
                 </div>
               </div>
             );
           })}
         </div>
-        <div>
-          <h2 className="text-lg font-black uppercase tracking-[0.01em] text-zinc-950 dark:text-white">
+        <div className="md:text-right">
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-[0.2em] text-accent">
+            {t('step', { current: step, total: TOTAL_STEPS })}
+          </span>
+          <h2 className="text-2xl font-semibold tracking-wide text-foreground md:text-[28px]">
             {stepTitles[step - 1]}
           </h2>
-          <p className="dark:text-white/56 mt-1 text-sm text-zinc-500">
-            {stepDescriptions[step - 1]}
-          </p>
         </div>
       </div>
+      <p className="mb-10 max-w-lg text-[15px] text-muted-foreground">
+        {stepDescriptions[step - 1]}
+      </p>
 
       {step === 1 && (
         <div className="space-y-5">
@@ -280,46 +285,53 @@ export function BusinessSubmitWizard({
               {t('businessName')}
               <RequiredMark />
             </label>
-            <input
-              id="name"
-              type="text"
-              required
-              minLength={2}
-              maxLength={100}
-              placeholder={t('businessNamePlaceholder')}
-              value={data.name}
-              onChange={(e) => set('name', e.target.value)}
-              className={fieldClass}
-            />
+            <div className="relative">
+              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <input
+                id="name"
+                type="text"
+                required
+                minLength={2}
+                maxLength={100}
+                placeholder={t('businessNamePlaceholder')}
+                value={data.name}
+                onChange={(e) => set('name', e.target.value)}
+                className={fieldClass}
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="sphereId" className={labelClass}>
               {t('sphere')}
               <RequiredMark />
             </label>
-            <select
-              id="sphereId"
-              required
-              value={data.sphereId}
-              onChange={(e) => {
-                const nextSphereId = e.target.value;
-                setData((prev) => ({
-                  ...prev,
-                  sphereId: nextSphereId,
-                  categoryGroupId: '',
-                  categoryId: '',
-                  customCategoryName: '',
-                }));
-              }}
-              className={fieldClass}
-            >
-              <option value="">{t('selectPlaceholder')}</option>
-              {sphereOptions.map((sphere) => (
-                <option key={sphere.id} value={sphere.id}>
-                  {sphere.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <select
+                id="sphereId"
+                required
+                value={data.sphereId}
+                onChange={(e) => {
+                  const nextSphereId = e.target.value;
+                  setData((prev) => ({
+                    ...prev,
+                    sphereId: nextSphereId,
+                    categoryGroupId: '',
+                    categoryId: '',
+                    customCategoryName: '',
+                  }));
+                }}
+                className={selectClass}
+              >
+                <option value="">{t('selectPlaceholder')}</option>
+                {sphereOptions.map((sphere) => (
+                  <option key={sphere.id} value={sphere.id}>
+                    {sphere.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+            </div>
           </div>
 
           {data.sphereId && (
@@ -328,28 +340,32 @@ export function BusinessSubmitWizard({
                 {t('category')}
                 <RequiredMark />
               </label>
-              <select
-                id="categoryGroupId"
-                required
-                value={data.categoryGroupId}
-                onChange={(e) => {
-                  const nextCategoryGroupId = e.target.value;
-                  setData((prev) => ({
-                    ...prev,
-                    categoryGroupId: nextCategoryGroupId,
-                    categoryId: '',
-                    customCategoryName: '',
-                  }));
-                }}
-                className={fieldClass}
-              >
-                <option value="">{t('selectPlaceholder')}</option>
-                {categoryGroupOptions.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <select
+                  id="categoryGroupId"
+                  required
+                  value={data.categoryGroupId}
+                  onChange={(e) => {
+                    const nextCategoryGroupId = e.target.value;
+                    setData((prev) => ({
+                      ...prev,
+                      categoryGroupId: nextCategoryGroupId,
+                      categoryId: '',
+                      customCategoryName: '',
+                    }));
+                  }}
+                  className={selectClass}
+                >
+                  <option value="">{t('selectPlaceholder')}</option>
+                  {categoryGroupOptions.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              </div>
             </div>
           )}
 
@@ -359,24 +375,28 @@ export function BusinessSubmitWizard({
                 {t('activityType')}
                 <RequiredMark />
               </label>
-              <select
-                id="categoryId"
-                required
-                value={data.categoryId}
-                onChange={(e) => {
-                  set('categoryId', e.target.value);
-                  if (e.target.value !== '__other__') set('customCategoryName', '');
-                }}
-                className={fieldClass}
-              >
-                <option value="">{t('selectPlaceholder')}</option>
-                {activityOptions.map((activity) => (
-                  <option key={activity.id} value={activity.id}>
-                    {activity.name}
-                  </option>
-                ))}
-                <option value="__other__">{t('activityTypeOther')}</option>
-              </select>
+              <div className="relative">
+                <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <select
+                  id="categoryId"
+                  required
+                  value={data.categoryId}
+                  onChange={(e) => {
+                    set('categoryId', e.target.value);
+                    if (e.target.value !== '__other__') set('customCategoryName', '');
+                  }}
+                  className={selectClass}
+                >
+                  <option value="">{t('selectPlaceholder')}</option>
+                  {activityOptions.map((activity) => (
+                    <option key={activity.id} value={activity.id}>
+                      {activity.name}
+                    </option>
+                  ))}
+                  <option value="__other__">{t('activityTypeOther')}</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              </div>
             </div>
           )}
 
@@ -395,7 +415,7 @@ export function BusinessSubmitWizard({
                 placeholder={t('customActivityTypeNamePlaceholder')}
                 value={data.customCategoryName}
                 onChange={(e) => set('customCategoryName', e.target.value)}
-                className={fieldClass}
+                className={fieldClassNoIcon}
               />
             </div>
           )}
@@ -409,32 +429,38 @@ export function BusinessSubmitWizard({
               {t('representativeName')}
               <RequiredMark />
             </label>
-            <input
-              id="representativeName"
-              type="text"
-              required
-              minLength={2}
-              maxLength={100}
-              placeholder={t('representativeNamePlaceholder')}
-              value={data.representativeName}
-              onChange={(e) => set('representativeName', e.target.value)}
-              className={fieldClass}
-            />
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <input
+                id="representativeName"
+                type="text"
+                required
+                minLength={2}
+                maxLength={100}
+                placeholder={t('representativeNamePlaceholder')}
+                value={data.representativeName}
+                onChange={(e) => set('representativeName', e.target.value)}
+                className={fieldClass}
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="representativeEmail" className={labelClass}>
               {t('email')}
               <RequiredMark />
             </label>
-            <input
-              id="representativeEmail"
-              type="email"
-              required
-              placeholder={t('emailPlaceholder')}
-              value={data.representativeEmail}
-              onChange={(e) => set('representativeEmail', e.target.value)}
-              className={fieldClass}
-            />
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <input
+                id="representativeEmail"
+                type="email"
+                required
+                placeholder={t('emailPlaceholder')}
+                value={data.representativeEmail}
+                onChange={(e) => set('representativeEmail', e.target.value)}
+                className={fieldClass}
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="representativePhone" className={labelClass}>
@@ -449,7 +475,7 @@ export function BusinessSubmitWizard({
               placeholder={t('phonePlaceholder')}
               value={data.representativePhone}
               onChange={(value) => set('representativePhone', value)}
-              inputClassName={fieldClass}
+              inputClassName={fieldClassNoIcon}
               triggerClassName={kclubPhoneTriggerClassName}
               panelClassName={kclubPhonePanelClassName}
             />
@@ -464,112 +490,132 @@ export function BusinessSubmitWizard({
               {t('country')}
               <RequiredMark />
             </label>
-            <select
-              id="countryId"
-              required
-              value={data.countryId}
-              onChange={(e) => {
-                set('countryId', e.target.value);
-                set('cityId', '');
-              }}
-              className={fieldClass}
-            >
-              <option value="">{t('selectPlaceholder')}</option>
-              {countryOptions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <select
+                id="countryId"
+                required
+                value={data.countryId}
+                onChange={(e) => {
+                  set('countryId', e.target.value);
+                  set('cityId', '');
+                }}
+                className={selectClass}
+              >
+                <option value="">{t('selectPlaceholder')}</option>
+                {countryOptions.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+            </div>
           </div>
           <div>
             <label htmlFor="cityId" className={labelClass}>
               {t('city')}
               <RequiredMark />
             </label>
-            <select
-              id="cityId"
-              required
-              value={data.cityId}
-              onChange={(e) => set('cityId', e.target.value)}
-              disabled={!data.countryId || isLoadingCities}
-              className={`${fieldClass} disabled:cursor-not-allowed disabled:opacity-50`}
-            >
-              <option value="">
-                {isLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
-              </option>
-              {filteredCities.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
+            <div className="relative">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <select
+                id="cityId"
+                required
+                value={data.cityId}
+                onChange={(e) => set('cityId', e.target.value)}
+                disabled={!data.countryId || isLoadingCities}
+                className={selectClass}
+              >
+                <option value="">
+                  {isLoadingCities ? t('citiesLoading') : t('selectPlaceholder')}
                 </option>
-              ))}
-            </select>
+                {filteredCities.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+            </div>
             {cityLoadError && <FieldError>{cityLoadError}</FieldError>}
           </div>
           <div>
             <label htmlFor="websiteUrl" className={labelClass}>
               {t('websiteUrl')}
             </label>
-            <input
-              id="websiteUrl"
-              type="url"
-              placeholder={t('websiteUrlPlaceholder')}
-              value={data.websiteUrl}
-              onChange={(e) => set('websiteUrl', e.target.value)}
-              className={fieldClass}
-            />
+            <div className="relative">
+              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <input
+                id="websiteUrl"
+                type="url"
+                placeholder={t('websiteUrlPlaceholder')}
+                value={data.websiteUrl}
+                onChange={(e) => set('websiteUrl', e.target.value)}
+                className={fieldClass}
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="socialUrl" className={labelClass}>
               {t('socialUrl')}
             </label>
-            <input
-              id="socialUrl"
-              type="url"
-              placeholder={t('socialUrlPlaceholder')}
-              value={data.socialUrl}
-              onChange={(e) => set('socialUrl', e.target.value)}
-              className={fieldClass}
-            />
+            <div className="relative">
+              <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <input
+                id="socialUrl"
+                type="url"
+                placeholder={t('socialUrlPlaceholder')}
+                value={data.socialUrl}
+                onChange={(e) => set('socialUrl', e.target.value)}
+                className={fieldClass}
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="briefDescription" className={labelClass}>
               {t('briefDescription')}
             </label>
-            <textarea
-              id="briefDescription"
-              rows={3}
-              maxLength={2000}
-              placeholder={t('briefDescriptionPlaceholder')}
-              value={data.briefDescription}
-              onChange={(e) => set('briefDescription', e.target.value)}
-              className={fieldClass}
-            />
+            <div className="relative">
+              <AlignLeft className="absolute left-4 top-4 text-muted-foreground" size={20} />
+              <textarea
+                id="briefDescription"
+                rows={3}
+                maxLength={2000}
+                placeholder={t('briefDescriptionPlaceholder')}
+                value={data.briefDescription}
+                onChange={(e) => set('briefDescription', e.target.value)}
+                className={fieldClass}
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="memberDiscountPercent" className={labelClass}>
               {t('memberDiscount')}
             </label>
-            <input
-              id="memberDiscountPercent"
-              type="number"
-              min={1}
-              max={100}
-              placeholder={t('memberDiscountPlaceholder')}
-              value={data.memberDiscountPercent}
-              onChange={(e) => set('memberDiscountPercent', e.target.value)}
-              className={fieldClass}
-            />
+            <div className="relative">
+              <Percent className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <input
+                id="memberDiscountPercent"
+                type="number"
+                min={1}
+                max={100}
+                placeholder={t('memberDiscountPlaceholder')}
+                value={data.memberDiscountPercent}
+                onChange={(e) => set('memberDiscountPercent', e.target.value)}
+                className={fieldClass}
+              />
+            </div>
           </div>
         </div>
       )}
 
       {step === 4 && (
         <div className="space-y-6">
-          <div className="kclub-panel-soft space-y-4 p-5">
+          <div className="space-y-4 border border-border bg-background p-6">
             <SummaryRow label={t('summaryBusiness')}>
-              <p className="text-sm font-medium text-zinc-950 dark:text-white">{data.name}</p>
-              <p className="dark:text-white/48 text-xs text-zinc-500">
+              <p className="text-sm font-medium text-foreground">{data.name}</p>
+              <p className="text-xs text-muted-foreground">
                 {data.categoryId === '__other__'
                   ? data.customCategoryName
                   : (categoryOptions.find((c) => c.id === data.categoryId)?.name ??
@@ -577,53 +623,65 @@ export function BusinessSubmitWizard({
               </p>
             </SummaryRow>
             <SummaryRow label={t('summaryContact')}>
-              <p className="text-sm font-medium text-zinc-950 dark:text-white">
+              <p className="text-sm font-medium text-foreground">
                 {data.representativeName}
               </p>
-              <p className="dark:text-white/48 text-xs text-zinc-500">
+              <p className="text-xs text-muted-foreground">
                 {data.representativeEmail} · {data.representativePhone}
               </p>
             </SummaryRow>
             <SummaryRow label={t('summaryLocation')}>
-              <p className="text-sm font-medium text-zinc-950 dark:text-white">
+              <p className="text-sm font-medium text-foreground">
                 {cityOptions.find((c) => c.id === data.cityId)?.name ?? '—'},{' '}
                 {countryOptions.find((c) => c.id === data.countryId)?.name ?? '—'}
               </p>
               {(data.websiteUrl || data.socialUrl) && (
-                <p className="dark:text-white/48 text-xs text-zinc-500">
+                <p className="text-xs text-muted-foreground">
                   {data.websiteUrl || data.socialUrl}
                 </p>
               )}
             </SummaryRow>
             {data.memberDiscountPercent && (
               <SummaryRow label={t('summaryDiscount')}>
-                <p className="text-sm font-medium text-zinc-950 dark:text-white">
+                <p className="text-sm font-medium text-foreground">
                   {data.memberDiscountPercent}%
                 </p>
               </SummaryRow>
             )}
           </div>
 
-          <div className="space-y-3">
-            <label className="flex cursor-pointer items-start gap-3">
-              <input
-                type="checkbox"
-                checked={data.confirmAuthority}
-                onChange={(e) => set('confirmAuthority', e.target.checked)}
-                className="kclub-checkbox mt-0.5 shrink-0"
-              />
-              <span className="dark:text-white/72 text-sm text-zinc-700">
+          <div className="space-y-4 pt-2">
+            <label className="group flex cursor-pointer items-start gap-4">
+              <div className="relative mt-0.5 flex items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={data.confirmAuthority}
+                  onChange={(e) => set('confirmAuthority', e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="flex h-5 w-5 items-center justify-center border border-border bg-background transition-colors peer-checked:border-accent peer-checked:bg-accent group-hover:border-accent/50">
+                  <Check className="opacity-0 transition-opacity peer-checked:opacity-100" size={14} strokeWidth={3} color="#0A0908" />
+                </div>
+              </div>
+              <span className="text-[15px] text-muted-foreground transition-colors group-hover:text-foreground">
                 {t('confirmAuthority')}
               </span>
             </label>
-            <label className="flex cursor-pointer items-start gap-3">
-              <input
-                type="checkbox"
-                checked={data.acceptLegal}
-                onChange={(e) => set('acceptLegal', e.target.checked)}
-                className="kclub-checkbox mt-0.5 shrink-0"
-              />
-              <span className="dark:text-white/72 text-sm text-zinc-700">{t('acceptLegal')}</span>
+            <label className="group flex cursor-pointer items-start gap-4">
+              <div className="relative mt-0.5 flex items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={data.acceptLegal}
+                  onChange={(e) => set('acceptLegal', e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="flex h-5 w-5 items-center justify-center border border-border bg-background transition-colors peer-checked:border-accent peer-checked:bg-accent group-hover:border-accent/50">
+                  <Check className="opacity-0 transition-opacity peer-checked:opacity-100" size={14} strokeWidth={3} color="#0A0908" />
+                </div>
+              </div>
+              <span className="text-[15px] text-muted-foreground transition-colors group-hover:text-foreground">
+                {t('acceptLegal')}
+              </span>
             </label>
           </div>
 
@@ -631,37 +689,37 @@ export function BusinessSubmitWizard({
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-4 border-t border-zinc-200 pt-6 dark:border-white/10">
-        <CabinetButton
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-8">
+        <button
           type="button"
-          tone="link"
-          density="compact"
           onClick={handleBack}
           disabled={step === 1 || isSubmitting}
-          className="dark:text-white/48 uppercase tracking-[0.14em] text-zinc-500 hover:text-zinc-950 disabled:invisible dark:hover:text-white"
+          className="text-[13px] font-medium uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-accent disabled:invisible"
         >
           {t('back')}
-        </CabinetButton>
+        </button>
 
         {step < TOTAL_STEPS ? (
-          <CabinetButton
+          <button
             type="button"
             onClick={handleNext}
             disabled={!canAdvance(step, data)}
-            className="uppercase tracking-[0.14em]"
+            className="flex items-center gap-2 bg-accent px-8 py-4 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-950 transition-all hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t('continue')}
-          </CabinetButton>
+            <ArrowRight size={18} />
+          </button>
         ) : (
-          <CabinetButton
+          <button
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || !data.confirmAuthority || !data.acceptLegal}
-            iconStart={isSubmitting ? <Spinner size={13} /> : null}
-            className="uppercase tracking-[0.14em]"
+            className="flex items-center gap-2 bg-accent px-8 py-4 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-950 transition-all hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
+            {isSubmitting ? <Spinner size={18} /> : null}
             {isSubmitting ? t('submitting') : t('submit')}
-          </CabinetButton>
+            {!isSubmitting && <ArrowRight size={18} />}
+          </button>
         )}
       </div>
     </div>
@@ -671,7 +729,7 @@ export function BusinessSubmitWizard({
 function SummaryRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-1 text-xs uppercase tracking-[0.14em] text-zinc-400 dark:text-white/30">
+      <p className="mb-1 text-[13px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
         {label}
       </p>
       {children}

@@ -15,6 +15,7 @@ import { Badge } from '@/components/reui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { BusinessForm } from './BusinessForm';
 import { PlacementCheckoutButton } from './PlacementCheckoutButton';
+import { IntroductionSubmitForm } from './IntroductionSubmitForm';
 
 export type TaxonomyOption = {
   id: string;
@@ -96,6 +97,13 @@ export async function BusinessPanel({
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
   const categoryOptions: TaxonomyOption[] = categories.map((c) => ({ id: c.id, name: c.name }));
 
+  const allPublishedBusinesses = await db.query.businessProfiles.findMany({
+    where: eq(schema.businessProfiles.status, 'PUBLISHED'),
+    columns: { id: true, name: true },
+    orderBy: [asc(schema.businessProfiles.name)],
+  });
+  const businessOptions = allPublishedBusinesses.map((b) => ({ id: b.id, name: b.name }));
+
   const rejectedBusiness = ownBusinesses.find((b) => b.status === 'REJECTED');
   const canSubmit = !activeBusiness;
   const canEditBusiness = activeBusiness && activeBusiness.status !== 'HIDDEN';
@@ -161,6 +169,20 @@ export async function BusinessPanel({
           <FrontCard>
             <div className="p-6 text-sm text-muted-foreground sm:p-8">{t('noEditAvailable')}</div>
           </FrontCard>
+        )}
+
+        {ownBusinesses.length > 0 && (
+          <div className="pt-8">
+            <div className="mb-8">
+              <h2 className="font-semibold text-[24px] text-accent tracking-[0.2em] uppercase mb-4">
+                Recommend a Client
+              </h2>
+              <p className="text-[15px] text-muted-foreground max-w-xl">
+                Discreetly introduce a prospective client to our exclusive network. Submissions are reviewed with the utmost confidentiality.
+              </p>
+            </div>
+            <IntroductionSubmitForm businessOptions={businessOptions} />
+          </div>
         )}
       </div>
     </div>

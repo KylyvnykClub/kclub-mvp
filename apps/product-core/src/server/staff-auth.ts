@@ -17,7 +17,13 @@ import {
 import { and, eq, isNull } from 'drizzle-orm';
 
 import { getDbClient, schema } from '@/server/db';
+import { AppError } from '@/server/errors';
 import { hashStaffPassword, needsRehash, verifyStaffPassword } from '@/server/staff-password';
+import {
+  buildPhoneRateLimitIdentifier,
+  checkStaffAuthRateLimit,
+  getRequestIpAddress,
+} from '@/server/staff-auth-rate-limit';
 import { hasVerifiedTotp, setupTotp } from '@/server/staff-totp';
 
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
@@ -114,18 +120,14 @@ async function createDbSession(
 ): Promise<void> {
   if (!isUuid(adminUserId)) return;
 
-  try {
-    const db = getDbClient();
-    await db.insert(schema.adminSessions).values({
-      admin_user_id: adminUserId,
-      session_token_hash: hashSessionToken(token),
-      ip_address: ipAddress ?? null,
-      user_agent: userAgent ?? null,
-      expires_at: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
-    });
-  } catch {
-    // DB unavailable - JWT validation still protects the local bootstrap path.
-  }
+  const db = getDbClient();
+  await db.insert(schema.adminSessions).values({
+    admin_user_id: adminUserId,
+    session_token_hash: hashSessionToken(token),
+    ip_address: ipAddress ?? null,
+    user_agent: userAgent ?? null,
+    expires_at: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
+  });
 }
 
 async function validateDbSession(token: string): Promise<boolean> {
@@ -135,18 +137,22 @@ async function validateDbSession(token: string): Promise<boolean> {
       where: eq(schema.adminSessions.session_token_hash, hashSessionToken(token)),
     });
 
-    if (!session) return true;
+    if (!session) return false;
     if (session.revoked_at) return false;
     if (session.expires_at <= new Date()) return false;
 
-    db.update(schema.adminSessions)
-      .set({ last_seen_at: new Date() })
-      .where(eq(schema.adminSessions.id, session.id))
-      .catch(() => {});
+    try {
+      await db
+        .update(schema.adminSessions)
+        .set({ last_seen_at: new Date() })
+        .where(eq(schema.adminSessions.id, session.id));
+    } catch {
+      throw new Error('Failed to refresh admin session heartbeat');
+    }
 
     return true;
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -248,7 +254,7 @@ function staffToProfile(staff: StaffRecord | EnvBootstrapStaff): StaffProfileDto
 }
 
 function getSupportedStaffRole(role: string): StaffRole | null {
-  if (role === 'OWNER' || role === 'ADMIN' || role === 'MODERATOR') {
+  if (role === 'OWNER' || role === 'ADMIN' || role === 'MODERATOR' || role === 'SUPPORT') {
     return role;
   }
 
@@ -294,17 +300,20 @@ function createAuthenticatedSession(
     exp: expiresAt,
   });
 
-  return createDbSession(
-    token,
-    staff.id,
-    getClientIp(request),
-    request.headers.get('user-agent'),
-  ).then(() => ({
-    state: 'AUTHENTICATED',
-    profile: staffToProfile(staff),
-    token,
-    expiresAt: new Date(expiresAt * 1000).toISOString(),
-  }));
+  return createDbSession(token, staff.id, getClientIp(request), request.headers.get('user-agent'))
+    .catch(() => {
+      throw new AppError({
+        code: ERROR_CODES.SERVER_DEPENDENCY_UNAVAILABLE,
+        message: 'Failed to persist staff session',
+        status: 503,
+      });
+    })
+    .then(() => ({
+      state: 'AUTHENTICATED',
+      profile: staffToProfile(staff),
+      token,
+      expiresAt: new Date(expiresAt * 1000).toISOString(),
+    }));
 }
 
 export function getBearerToken(request: Request): string | null {
@@ -338,6 +347,14 @@ export async function handleStaffPasswordRegister(request: Request): Promise<Res
   const parsed = parseWithValidation(staffPasswordRegisterSchema, rawBody);
   if (!parsed.success) {
     return error(ERROR_CODES.VALIDATION_INVALID_INPUT, 'Phone and password are required');
+  }
+
+  const rateLimitResponse = await checkStaffAuthRateLimit(
+    'password-register',
+    buildPhoneRateLimitIdentifier(parsed.data.phone, getRequestIpAddress(request)),
+  );
+  if (rateLimitResponse) {
+    return rateLimitResponse;
   }
 
   const staff = await findDbStaffByPhone(parsed.data.phone);
@@ -386,6 +403,14 @@ export async function handleStaffPasswordSignIn(request: Request): Promise<Respo
     return error(ERROR_CODES.VALIDATION_INVALID_INPUT, 'Phone and password are required');
   }
 
+  const rateLimitResponse = await checkStaffAuthRateLimit(
+    'password-sign-in',
+    buildPhoneRateLimitIdentifier(parsed.data.phone, getRequestIpAddress(request)),
+  );
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const staff = await findStaffByPhone(parsed.data.phone);
   if (!staff) {
     return error(
@@ -432,7 +457,16 @@ export async function handleStaffPasswordSignIn(request: Request): Promise<Respo
     if (!totpVerified) {
       // Staff hasn't set up TOTP yet — generate and return setup URI
       const { uri } = await setupTotp(staff.id, staff.phone);
-      const session = await createAuthenticatedSession(staff, request);
+      const session = await createAuthenticatedSession(staff, request).catch((sessionError) => {
+        if (sessionError instanceof AppError) {
+          return sessionError;
+        }
+
+        throw sessionError;
+      });
+      if (session instanceof AppError) {
+        return error(session.code, session.message, session.status);
+      }
       return Response.json(
         success<StaffAuthSessionDto>({
           ...session,
@@ -443,7 +477,16 @@ export async function handleStaffPasswordSignIn(request: Request): Promise<Respo
     }
 
     // Staff has TOTP configured — require code before granting full session
-    const session = await createAuthenticatedSession(staff, request);
+    const session = await createAuthenticatedSession(staff, request).catch((sessionError) => {
+      if (sessionError instanceof AppError) {
+        return sessionError;
+      }
+
+      throw sessionError;
+    });
+    if (session instanceof AppError) {
+      return error(session.code, session.message, session.status);
+    }
     return Response.json(
       success<StaffAuthSessionDto>({
         ...session,
@@ -452,9 +495,18 @@ export async function handleStaffPasswordSignIn(request: Request): Promise<Respo
     );
   }
 
-  return Response.json(
-    success<StaffAuthSessionDto>(await createAuthenticatedSession(staff, request)),
-  );
+  const session = await createAuthenticatedSession(staff, request).catch((sessionError) => {
+    if (sessionError instanceof AppError) {
+      return sessionError;
+    }
+
+    throw sessionError;
+  });
+  if (session instanceof AppError) {
+    return error(session.code, session.message, session.status);
+  }
+
+  return Response.json(success<StaffAuthSessionDto>(session));
 }
 
 export async function handleStaffSession(request: Request): Promise<Response> {

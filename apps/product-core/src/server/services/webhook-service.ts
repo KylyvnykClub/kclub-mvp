@@ -2,6 +2,7 @@ import type Stripe from 'stripe';
 import {
   ERROR_CODES,
   SUBSCRIPTION_STATUSES,
+  type SubscriptionKind,
   type BusinessStatus,
   type SubscriptionStatus,
 } from '@kclub/contracts';
@@ -18,6 +19,14 @@ import { submitBusinessReviewAfterReserve } from '@/server/services/business-ser
 
 const auditService = createDbAuditService();
 const systemContext = createRequestContext({ actor: { kind: 'system' } });
+const WEBHOOK_STATUS_PROCESSING = 'PROCESSING';
+const WEBHOOK_STATUS_PROCESSED = 'PROCESSED';
+const WEBHOOK_STATUS_FAILED = 'FAILED';
+
+type StripeWebhookEventRecord = typeof schema.stripeWebhookEvents.$inferSelect;
+type PlacementSubscriptionRecord = typeof schema.subscriptions.$inferSelect;
+type VipSubscriptionRecord = typeof schema.vipSubscriptions.$inferSelect;
+type BusinessProfileRecord = typeof schema.businessProfiles.$inferSelect;
 
 export function mapStripeStatusToLocal(
   stripeStatus: string,
@@ -46,37 +55,118 @@ export function mapStripeStatusToLocal(
 export async function processStripeEvent(event: Stripe.Event): Promise<void> {
   const db = getDbClient();
   const eventId = event.id;
+  const claimResult = await claimStripeEvent(event);
 
-  try {
-    await db.insert(schema.stripeWebhookEvents).values({
-      event_id: eventId,
-      event_type: event.type,
-      payload: event as unknown as any,
-      handler_status: 'RECEIVED',
-      livemode: event.livemode ?? false,
-    });
-  } catch (err: unknown) {
-    // Unique constraint violation in Postgres (Postgres error code 23505)
-    if (typeof err === 'object' && err !== null && 'code' in err && (err as any).code === '23505') {
-      return;
-    }
-    throw err;
+  if (claimResult !== 'CLAIMED') {
+    return;
   }
 
   try {
     await handleEventByType(event);
     await db
       .update(schema.stripeWebhookEvents)
-      .set({ handler_status: 'PROCESSED', processed_at: new Date() })
+      .set({
+        handler_status: WEBHOOK_STATUS_PROCESSED,
+        processed_at: new Date(),
+        error_message: null,
+      })
       .where(eq(schema.stripeWebhookEvents.event_id, eventId));
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = toWebhookErrorMessage(error);
     await db
       .update(schema.stripeWebhookEvents)
-      .set({ handler_status: 'FAILED', error_message: errorMessage })
+      .set({ handler_status: WEBHOOK_STATUS_FAILED, error_message: errorMessage })
       .where(eq(schema.stripeWebhookEvents.event_id, eventId));
     throw error;
   }
+}
+
+type WebhookClaimResult = 'CLAIMED' | 'ALREADY_PROCESSED' | 'ALREADY_PROCESSING';
+
+async function claimStripeEvent(event: Stripe.Event): Promise<WebhookClaimResult> {
+  const db = getDbClient();
+
+  try {
+    await db.insert(schema.stripeWebhookEvents).values({
+      event_id: event.id,
+      event_type: event.type,
+      payload: event as unknown as Record<string, unknown>,
+      handler_status: WEBHOOK_STATUS_PROCESSING,
+      livemode: event.livemode ?? false,
+      processed_at: null,
+      error_message: null,
+    });
+    return 'CLAIMED';
+  } catch (error: unknown) {
+    if (!isUniqueViolation(error)) {
+      throw error;
+    }
+  }
+
+  const existingEvent = await getWebhookEventRecord(event.id);
+  if (!existingEvent) {
+    throw new AppError({
+      code: ERROR_CODES.SERVER_DEPENDENCY_UNAVAILABLE,
+      message: `Webhook event ${event.id} exists but could not be loaded`,
+      status: 500,
+    });
+  }
+
+  if (existingEvent.handler_status === WEBHOOK_STATUS_PROCESSED) {
+    return 'ALREADY_PROCESSED';
+  }
+
+  if (existingEvent.handler_status !== WEBHOOK_STATUS_FAILED) {
+    return 'ALREADY_PROCESSING';
+  }
+
+  const claimed = await db
+    .update(schema.stripeWebhookEvents)
+    .set({
+      event_type: event.type,
+      payload: event as unknown as Record<string, unknown>,
+      livemode: event.livemode ?? false,
+      handler_status: WEBHOOK_STATUS_PROCESSING,
+      processed_at: null,
+      error_message: null,
+    })
+    .where(
+      and(
+        eq(schema.stripeWebhookEvents.event_id, event.id),
+        eq(schema.stripeWebhookEvents.handler_status, WEBHOOK_STATUS_FAILED),
+      ),
+    )
+    .returning({ event_id: schema.stripeWebhookEvents.event_id });
+
+  if (claimed.length > 0) {
+    return 'CLAIMED';
+  }
+
+  const retriedEvent = await getWebhookEventRecord(event.id);
+  if (retriedEvent?.handler_status === WEBHOOK_STATUS_PROCESSED) {
+    return 'ALREADY_PROCESSED';
+  }
+
+  return 'ALREADY_PROCESSING';
+}
+
+async function getWebhookEventRecord(eventId: string): Promise<StripeWebhookEventRecord | null> {
+  const db = getDbClient();
+  const rows = await db
+    .select()
+    .from(schema.stripeWebhookEvents)
+    .where(eq(schema.stripeWebhookEvents.event_id, eventId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === '23505';
+}
+
+function toWebhookErrorMessage(error: unknown): string {
+  const rawMessage = error instanceof Error ? error.message : 'Unknown error';
+  return rawMessage.slice(0, 1000);
 }
 
 async function handleEventByType(event: Stripe.Event): Promise<void> {
@@ -100,7 +190,6 @@ async function handleEventByType(event: Stripe.Event): Promise<void> {
     event.type === 'customer.subscription.created' ||
     event.type === 'customer.subscription.updated'
   ) {
-    if (metadata.type !== 'vip' && metadata.type !== undefined) return;
     return handleSubscriptionChange(object);
   }
 
@@ -412,17 +501,19 @@ export async function handlePlacementCheckoutCompleted(
 async function handleSubscriptionChange(subscription: Record<string, unknown>): Promise<void> {
   const db = getDbClient();
   const subscriptionId = subscription.id as string;
+  const metadata = (subscription.metadata ?? {}) as Record<string, string>;
+  const subscriptionKind = await resolveSubscriptionKind(subscriptionId, metadata.type);
 
-  const localSubRes = await db
-    .select()
-    .from(schema.vipSubscriptions)
-    .where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId))
-    .limit(1);
-  const localSub = localSubRes[0];
+  if (subscriptionKind === 'BUSINESS_PLACEMENT') {
+    return handlePlacementSubscriptionChange(subscription, subscriptionId);
+  }
 
-  if (!localSub) {
+  if (subscriptionKind !== 'VIP_MEMBERSHIP') {
     return;
   }
+
+  const localSub = await getVipSubscriptionByStripeId(subscriptionId);
+  if (!localSub) return;
 
   const stripeStatus = subscription.status as string;
   const currentPeriodEnd = subscription.current_period_end as number | null;
@@ -467,19 +558,21 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
 }
 
 async function handleSubscriptionDeleted(subscription: Record<string, unknown>): Promise<void> {
-  const db = getDbClient();
   const subscriptionId = subscription.id as string;
+  const metadata = (subscription.metadata ?? {}) as Record<string, string>;
+  const subscriptionKind = await resolveSubscriptionKind(subscriptionId, metadata.type);
 
-  const localSubRes = await db
-    .select()
-    .from(schema.vipSubscriptions)
-    .where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId))
-    .limit(1);
-  const localSub = localSubRes[0];
+  if (subscriptionKind === 'BUSINESS_PLACEMENT') {
+    return handlePlacementSubscriptionDeleted(subscription, subscriptionId);
+  }
 
-  if (!localSub) {
+  if (subscriptionKind !== 'VIP_MEMBERSHIP') {
     return;
   }
+
+  const db = getDbClient();
+  const localSub = await getVipSubscriptionByStripeId(subscriptionId);
+  if (!localSub) return;
 
   const previousStatus = localSub.status;
 
@@ -512,19 +605,23 @@ async function handleSubscriptionDeleted(subscription: Record<string, unknown>):
 }
 
 async function handlePaymentFailed(invoice: Record<string, unknown>): Promise<void> {
-  const db = getDbClient();
   const subscriptionId = invoice.subscription as string;
+  const metadata = (
+    invoice.lines as { data?: Array<{ metadata?: Record<string, string> }> } | undefined
+  )?.data?.[0]?.metadata;
+  const subscriptionKind = await resolveSubscriptionKind(subscriptionId, metadata?.type);
 
-  const localSubRes = await db
-    .select()
-    .from(schema.vipSubscriptions)
-    .where(eq(schema.vipSubscriptions.stripe_subscription_id, subscriptionId))
-    .limit(1);
-  const localSub = localSubRes[0];
+  if (subscriptionKind === 'BUSINESS_PLACEMENT') {
+    return handlePlacementPaymentFailed(subscriptionId);
+  }
 
-  if (!localSub) {
+  if (subscriptionKind !== 'VIP_MEMBERSHIP') {
     return;
   }
+
+  const db = getDbClient();
+  const localSub = await getVipSubscriptionByStripeId(subscriptionId);
+  if (!localSub) return;
 
   const previousStatus = localSub.status;
 
@@ -545,4 +642,223 @@ async function handlePaymentFailed(invoice: Record<string, unknown>): Promise<vo
       systemContext,
     );
   }
+}
+
+async function resolveSubscriptionKind(
+  stripeSubscriptionId: string,
+  rawType?: string,
+): Promise<SubscriptionKind | null> {
+  if (rawType === 'vip') return 'VIP_MEMBERSHIP';
+  if (rawType === 'business_placement') return 'BUSINESS_PLACEMENT';
+
+  const [vipSubscription, placementSubscription] = await Promise.all([
+    getVipSubscriptionByStripeId(stripeSubscriptionId),
+    getPlacementSubscriptionByStripeId(stripeSubscriptionId),
+  ]);
+
+  if (placementSubscription) return 'BUSINESS_PLACEMENT';
+  if (vipSubscription) return 'VIP_MEMBERSHIP';
+  return null;
+}
+
+async function getVipSubscriptionByStripeId(
+  stripeSubscriptionId: string,
+): Promise<VipSubscriptionRecord | null> {
+  const db = getDbClient();
+  const rows = await db
+    .select()
+    .from(schema.vipSubscriptions)
+    .where(eq(schema.vipSubscriptions.stripe_subscription_id, stripeSubscriptionId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+async function getPlacementSubscriptionByStripeId(
+  stripeSubscriptionId: string,
+): Promise<PlacementSubscriptionRecord | null> {
+  const db = getDbClient();
+  const rows = await db
+    .select()
+    .from(schema.subscriptions)
+    .where(eq(schema.subscriptions.stripe_subscription_id, stripeSubscriptionId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+async function handlePlacementSubscriptionChange(
+  subscription: Record<string, unknown>,
+  subscriptionId: string,
+): Promise<void> {
+  const db = getDbClient();
+  const localSub = await getPlacementSubscriptionByStripeId(subscriptionId);
+  if (!localSub || localSub.kind !== 'BUSINESS_PLACEMENT') return;
+
+  const stripeStatus = subscription.status as string;
+  const currentPeriodEnd = subscription.current_period_end as number | null;
+  const currentPeriodStart = subscription.current_period_start as number | null;
+  const newStatus = mapStripeStatusToLocal(stripeStatus, currentPeriodEnd);
+  if (!newStatus) return;
+
+  const canceledAt = subscription.canceled_at as number | null;
+  const cancelAtPeriodEnd = (subscription.cancel_at_period_end as boolean | null) ?? false;
+  const previousStatus = localSub.status;
+
+  const updateData: Partial<PlacementSubscriptionRecord> = {
+    status: newStatus,
+    current_period_start: currentPeriodStart ? new Date(currentPeriodStart * 1000) : null,
+    current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : null,
+    cancel_at_period_end: cancelAtPeriodEnd,
+    stripe_customer_id:
+      typeof subscription.customer === 'string'
+        ? subscription.customer
+        : localSub.stripe_customer_id,
+  };
+
+  if (canceledAt) {
+    updateData.canceled_at = new Date(canceledAt * 1000);
+  }
+
+  await db
+    .update(schema.subscriptions)
+    .set(updateData)
+    .where(eq(schema.subscriptions.id, localSub.id));
+
+  await logPlacementSubscriptionSync(localSub, previousStatus, newStatus);
+
+  if (newStatus === 'EXPIRED') {
+    await hideBusinessForPlacementLoss(
+      localSub.business_profile_id,
+      'Placement subscription expired',
+    );
+  } else {
+    revalidateTag('businesses');
+    revalidateTag('public-businesses');
+  }
+}
+
+async function handlePlacementSubscriptionDeleted(
+  subscription: Record<string, unknown>,
+  subscriptionId: string,
+): Promise<void> {
+  const db = getDbClient();
+  const localSub = await getPlacementSubscriptionByStripeId(subscriptionId);
+  if (!localSub || localSub.kind !== 'BUSINESS_PLACEMENT') return;
+
+  const currentPeriodEnd = subscription.current_period_end as number | null;
+  const nextStatus = mapStripeStatusToLocal('canceled', currentPeriodEnd) ?? 'EXPIRED';
+  const previousStatus = localSub.status;
+
+  await db
+    .update(schema.subscriptions)
+    .set({
+      status: nextStatus,
+      current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : null,
+      cancel_at_period_end: false,
+      canceled_at: new Date(),
+    })
+    .where(eq(schema.subscriptions.id, localSub.id));
+
+  await logPlacementSubscriptionSync(localSub, previousStatus, nextStatus);
+
+  if (nextStatus === 'EXPIRED') {
+    await hideBusinessForPlacementLoss(
+      localSub.business_profile_id,
+      'Placement subscription deleted',
+    );
+  } else {
+    revalidateTag('businesses');
+    revalidateTag('public-businesses');
+  }
+}
+
+async function handlePlacementPaymentFailed(subscriptionId: string): Promise<void> {
+  const db = getDbClient();
+  const localSub = await getPlacementSubscriptionByStripeId(subscriptionId);
+  if (!localSub || localSub.kind !== 'BUSINESS_PLACEMENT') return;
+
+  const previousStatus = localSub.status;
+
+  await db
+    .update(schema.subscriptions)
+    .set({ status: 'PAST_DUE' })
+    .where(eq(schema.subscriptions.id, localSub.id));
+
+  await logPlacementSubscriptionSync(localSub, previousStatus, 'PAST_DUE');
+  revalidateTag('businesses');
+  revalidateTag('public-businesses');
+}
+
+async function logPlacementSubscriptionSync(
+  subscription: PlacementSubscriptionRecord,
+  previousStatus: SubscriptionStatus,
+  newStatus: SubscriptionStatus,
+): Promise<void> {
+  if (previousStatus === newStatus) {
+    return;
+  }
+
+  await auditService.log(
+    {
+      action: 'SUBSCRIPTION_SYNCED',
+      entityType: 'Subscription',
+      entityId: subscription.id,
+      before: { status: previousStatus, kind: subscription.kind },
+      after: { status: newStatus, kind: subscription.kind },
+    },
+    systemContext,
+  );
+}
+
+async function hideBusinessForPlacementLoss(
+  businessId: string | null,
+  reason: string,
+): Promise<void> {
+  if (!businessId) return;
+
+  const db = getDbClient();
+  const businessRows = await db
+    .select()
+    .from(schema.businessProfiles)
+    .where(eq(schema.businessProfiles.id, businessId))
+    .limit(1);
+  const business = businessRows[0] as BusinessProfileRecord | undefined;
+
+  if (!business || business.status !== 'PUBLISHED') {
+    revalidateTag('businesses');
+    revalidateTag('public-businesses');
+    return;
+  }
+
+  await db
+    .update(schema.businessProfiles)
+    .set({
+      status: 'HIDDEN',
+      hidden_at: new Date(),
+      featured_top: false,
+      featured_recommended: false,
+    })
+    .where(eq(schema.businessProfiles.id, businessId));
+
+  await auditService.log(
+    {
+      action: 'BUSINESS_HIDDEN',
+      entityType: 'BusinessProfile',
+      entityId: businessId,
+      before: {
+        status: business.status,
+        featuredTop: business.featured_top,
+        featuredRecommended: business.featured_recommended,
+      },
+      after: {
+        status: 'HIDDEN',
+        featuredTop: false,
+        featuredRecommended: false,
+        reason,
+      },
+    },
+    systemContext,
+  );
+
+  revalidateTag('businesses');
+  revalidateTag('public-businesses');
 }

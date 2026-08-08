@@ -101,6 +101,9 @@ export async function startVipCheckout(
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: buildVipMetadata(userId),
+      subscription_data: {
+        metadata: buildVipMetadata(userId),
+      },
       client_reference_id: userId,
       success_url: buildSuccessUrl(appUrl, locale),
       cancel_url: buildCancelUrl(appUrl, locale),
@@ -173,6 +176,9 @@ export async function startPlacementCheckout(
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: buildPlacementMetadata(userId, businessId),
+      subscription_data: {
+        metadata: buildPlacementMetadata(userId, businessId),
+      },
       client_reference_id: userId,
       success_url: buildSuccessUrl(appUrl, locale),
       cancel_url: buildCancelUrl(appUrl, locale),
