@@ -893,8 +893,16 @@
       "published": "Published",
       "website": "Open website",
       "featuredTop": "Top partner",
-      "recommended": "Recommended"
-    }
+      "recommended": "Recommended",
+      "favorite": "Favorite",
+      "clubPrivilege": "Club Privilege",
+      "discount": "DISCOUNT ON PREMIUM SERVICES",
+      "discountDescription": "Present your digital membership card upon consultation to activate this exclusive benefit. Terms and conditions apply.",
+      "contactInfo": "Contact Information",
+      "contactViaConcierge": "Contact concierge for details.",
+      "headquarters": "Headquarters"
+    },
+    "description": "Browse verified partners and the exclusive privileges they offer to members."
   },
   "verifyCard": {
     "eyebrow": "Card verification",
