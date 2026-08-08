@@ -92,3 +92,25 @@ export async function simulateBusinessPlacementComplete(
     metadata: { userId, businessProfileId, type: 'placement' },
   });
 }
+
+/**
+ * Simulates the manual-capture payment intent event that finalizes
+ * a business review reserve and creates the UNDER_REVIEW business profile.
+ */
+export async function simulateBusinessReviewReserveComplete(
+  userId: string,
+  pendingSubmissionId: string,
+): Promise<void> {
+  const safePendingSubmissionId = pendingSubmissionId.replace(/[^a-zA-Z0-9]/g, '');
+
+  await simulateStripeWebhook('payment_intent.amount_capturable_updated', {
+    id: `pi_e2e_business_review_${safePendingSubmissionId}`,
+    object: 'payment_intent',
+    amount_capturable: 2500,
+    metadata: {
+      type: 'business_review_reserve',
+      userId,
+      pendingSubmissionId,
+    },
+  });
+}

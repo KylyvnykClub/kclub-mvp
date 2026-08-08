@@ -442,13 +442,33 @@ async function seedScenario(
     type: string;
     data: Record<string, unknown>;
   }): Promise<void> {
-    if (webhookEvent.type !== 'checkout.session.completed') {
-      throw new Error(`Unsupported test webhook event: ${webhookEvent.type}`);
-    }
-
     const rawObject = webhookEvent.data.object;
     if (!rawObject || typeof rawObject !== 'object') {
       throw new Error('Stripe webhook object is required');
+    }
+
+    if (webhookEvent.type === 'payment_intent.amount_capturable_updated') {
+      const paymentIntent = rawObject as {
+        id?: string;
+        amount_capturable?: number;
+        metadata?: {
+          pendingSubmissionId?: string;
+          type?: string;
+          userId?: string;
+        };
+      };
+
+      if (!paymentIntent.id || typeof paymentIntent.amount_capturable !== 'number') {
+        throw new Error('payment_intent.amount_capturable_updated requires id and amount_capturable');
+      }
+
+      const { submitBusinessReviewAfterReserve } = await import('@/server/services/business-service');
+      await submitBusinessReviewAfterReserve(paymentIntent as never);
+      return;
+    }
+
+    if (webhookEvent.type !== 'checkout.session.completed') {
+      throw new Error(`Unsupported test webhook event: ${webhookEvent.type}`);
     }
 
     const checkoutSession = rawObject as {
