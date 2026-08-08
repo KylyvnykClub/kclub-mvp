@@ -459,10 +459,13 @@ async function seedScenario(
       };
 
       if (!paymentIntent.id || typeof paymentIntent.amount_capturable !== 'number') {
-        throw new Error('payment_intent.amount_capturable_updated requires id and amount_capturable');
+        throw new Error(
+          'payment_intent.amount_capturable_updated requires id and amount_capturable',
+        );
       }
 
-      const { submitBusinessReviewAfterReserve } = await import('@/server/services/business-service');
+      const { submitBusinessReviewAfterReserve } =
+        await import('@/server/services/business-service');
       await submitBusinessReviewAfterReserve(paymentIntent as never);
       return;
     }
