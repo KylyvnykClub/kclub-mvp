@@ -541,9 +541,7 @@ export async function updateBusiness(
 
   const dataToUpdate: Partial<typeof schema.businessProfiles.$inferInsert> = {
     ...(input.name !== undefined ? { name: input.name } : {}),
-    ...(input.briefDescription !== undefined
-      ? { brief_description: input.briefDescription }
-      : {}),
+    ...(input.briefDescription !== undefined ? { brief_description: input.briefDescription } : {}),
     ...(input.websiteUrl !== undefined ? { website_url: input.websiteUrl } : {}),
     ...(input.socialUrl !== undefined ? { social_url: input.socialUrl } : {}),
     ...(input.memberDiscountPercent !== undefined
@@ -698,7 +696,9 @@ export function toPublicBusinessListItemDto(
   };
 }
 
-export function toPublicBusinessDetailDto(business: BusinessProfileRecord): PublicBusinessDetailDto {
+export function toPublicBusinessDetailDto(
+  business: BusinessProfileRecord,
+): PublicBusinessDetailDto {
   return {
     ...toPublicBusinessListItemDto(business),
     description: business.description ?? null,

@@ -783,14 +783,11 @@ const BUSINESS_LIST_INCLUDE = {
     columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
   },
   subscriptions: {
-    where: ((
-      subs: PlacementIncludeRow,
-      { eq }: PlacementIncludeOperators,
-    ) => eq(subs.kind, 'BUSINESS_PLACEMENT')) as never,
-    orderBy: ((
-      subs: PlacementIncludeRow,
-      { desc }: PlacementIncludeOperators,
-    ) => [desc(subs.created_at)]) as never,
+    where: ((subs: PlacementIncludeRow, { eq }: PlacementIncludeOperators) =>
+      eq(subs.kind, 'BUSINESS_PLACEMENT')) as never,
+    orderBy: ((subs: PlacementIncludeRow, { desc }: PlacementIncludeOperators) => [
+      desc(subs.created_at),
+    ]) as never,
     limit: 1,
   },
 };
@@ -832,14 +829,11 @@ const BUSINESS_MUTATION_INCLUDE = {
     columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
   },
   subscriptions: {
-    where: ((
-      subs: PlacementIncludeRow,
-      { eq }: PlacementIncludeOperators,
-    ) => eq(subs.kind, 'BUSINESS_PLACEMENT')) as never,
-    orderBy: ((
-      subs: PlacementIncludeRow,
-      { desc }: PlacementIncludeOperators,
-    ) => [desc(subs.created_at)]) as never,
+    where: ((subs: PlacementIncludeRow, { eq }: PlacementIncludeOperators) =>
+      eq(subs.kind, 'BUSINESS_PLACEMENT')) as never,
+    orderBy: ((subs: PlacementIncludeRow, { desc }: PlacementIncludeOperators) => [
+      desc(subs.created_at),
+    ]) as never,
     limit: 1,
   },
 };
@@ -852,14 +846,11 @@ const BUSINESS_DETAIL_INCLUDE = {
     columns: { id: true, phone: true, display_name: true, status: true, membership_tier: true },
   },
   subscriptions: {
-    where: ((
-      subs: PlacementIncludeRow,
-      { eq }: PlacementIncludeOperators,
-    ) => eq(subs.kind, 'BUSINESS_PLACEMENT')) as never,
-    orderBy: ((
-      subs: PlacementIncludeRow,
-      { desc }: PlacementIncludeOperators,
-    ) => [desc(subs.created_at)]) as never,
+    where: ((subs: PlacementIncludeRow, { eq }: PlacementIncludeOperators) =>
+      eq(subs.kind, 'BUSINESS_PLACEMENT')) as never,
+    orderBy: ((subs: PlacementIncludeRow, { desc }: PlacementIncludeOperators) => [
+      desc(subs.created_at),
+    ]) as never,
     limit: 1,
   },
 };
@@ -2972,7 +2963,8 @@ function toAdminStaffListItem(staff: StaffRecord): AdminStaffListItemDto {
     role: staff.role,
     isActive: staff.is_active,
     passwordStatus: staff.password_hash ? 'SET' : 'NOT_SET',
-    permissionOverrides: (staff.permission_overrides as AdminStaffListItemDto['permissionOverrides']) ?? null,
+    permissionOverrides:
+      (staff.permission_overrides as AdminStaffListItemDto['permissionOverrides']) ?? null,
     createdAt: staff.created_at.toISOString(),
     updatedAt: staff.updated_at.toISOString(),
   };

@@ -1,8 +1,4 @@
-import {
-  type AuditAction,
-  type AuditLogDto,
-  type StaffRole,
-} from '@kclub/contracts';
+import { type AuditAction, type AuditLogDto, type StaffRole } from '@kclub/contracts';
 
 import { getDbClient, schema } from '@/server/db';
 import type { RequestContext } from '@/server/context';

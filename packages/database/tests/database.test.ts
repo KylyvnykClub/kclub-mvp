@@ -119,9 +119,9 @@ describe('database package contracts', () => {
       .map((file) => file.replace(/\.sql$/, ''))
       .sort();
 
-    const journal = JSON.parse(
-      readFileSync(resolve(drizzleDir, 'meta/_journal.json'), 'utf8'),
-    ) as { entries: { idx: number; tag: string }[] };
+    const journal = JSON.parse(readFileSync(resolve(drizzleDir, 'meta/_journal.json'), 'utf8')) as {
+      entries: { idx: number; tag: string }[];
+    };
 
     const journalTags = journal.entries.map((entry) => entry.tag).sort();
 
