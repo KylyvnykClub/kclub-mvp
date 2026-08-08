@@ -1,6 +1,6 @@
 {
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "(cd ../../packages/contracts && pnpm run build) && (cd ../../packages/database && pnpm run db:generate) && pnpm run build",
+  "buildCommand": "(cd ../../packages/contracts && pnpm run build) && (cd ../../packages/validation && pnpm run build) && (cd ../../packages/domain && pnpm run build) && (cd ../../packages/database && pnpm run build) && pnpm run build",
   "framework": "nextjs",
   "headers": [
     {
