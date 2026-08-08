@@ -1,5 +1,11 @@
 {
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "(cd ../../packages/contracts && pnpm run build) && (cd ../../packages/validation && pnpm run build) && (cd ../../packages/domain && pnpm run build) && (cd ../../packages/database && pnpm run build && pnpm run db:generate) && pnpm run build",
-  "framework": "nextjs"
+  "buildCommand": "(cd ../../packages/contracts && pnpm run build) && (cd ../../packages/validation && pnpm run build) && (cd ../../packages/domain && pnpm run build) && (cd ../../packages/database && pnpm run build) && pnpm run build",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/daily-maintenance",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }
