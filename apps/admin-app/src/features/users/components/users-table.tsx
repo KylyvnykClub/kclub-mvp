@@ -89,8 +89,6 @@ function getInitials(displayName: string | null, phone: string): string {
   return parts[0]!.slice(0, 2).toUpperCase();
 }
 
-
-
 type UsersTableProps = {
   users: AdminUserListItemDto[];
   total: number;
@@ -344,184 +342,184 @@ export function UsersTable({
     <AdminList>
       <AdminTableCard>
         {/* Card header — search & filters */}
-      <AdminFilterBar
-        variant="embedded"
-        search={{
-          label: 'Users',
-          placeholder: 'Search users',
-          value: search,
-          onValueChange: setSearch,
-        }}
-        fields={[
-          {
-            id: 'users-status-filter',
-            kind: 'select',
-            label: 'Status',
-            value: statusFilter,
-            placeholder: 'All statuses',
-            options: [
-              { label: 'All statuses', value: 'all' },
-              { label: 'Active', value: 'ACTIVE' },
-              { label: 'Blocked', value: 'BLOCKED' },
-            ],
-            onValueChange: handleStatusChange,
-          },
-          {
-            id: 'users-tier-filter',
-            kind: 'select',
-            label: 'Membership tier',
-            value: tierFilter,
-            placeholder: 'All tiers',
-            options: [
-              { label: 'All tiers', value: 'all' },
-              { label: 'Member', value: 'MEMBER' },
-              { label: 'VIP', value: 'VIP' },
-            ],
-            onValueChange: handleTierChange,
-          },
-        ]}
-        activeFilterCount={activeFilterCount}
-        isPending={isPending}
-        onSubmit={handleSearch}
-        onRefresh={() => {
-          startTransition(() => {
-            router.refresh();
-          });
-        }}
-        onReset={() => {
-          setSearch('');
-          setStatusFilter('all');
-          setTierFilter('all');
-          startTransition(() => {
-            router.push(buildUrl({ page: 1, search: '', status: 'all', tier: 'all' }));
-          });
-        }}
-        submitLabel="Search"
-      />
+        <AdminFilterBar
+          variant="embedded"
+          search={{
+            label: 'Users',
+            placeholder: 'Search users',
+            value: search,
+            onValueChange: setSearch,
+          }}
+          fields={[
+            {
+              id: 'users-status-filter',
+              kind: 'select',
+              label: 'Status',
+              value: statusFilter,
+              placeholder: 'All statuses',
+              options: [
+                { label: 'All statuses', value: 'all' },
+                { label: 'Active', value: 'ACTIVE' },
+                { label: 'Blocked', value: 'BLOCKED' },
+              ],
+              onValueChange: handleStatusChange,
+            },
+            {
+              id: 'users-tier-filter',
+              kind: 'select',
+              label: 'Membership tier',
+              value: tierFilter,
+              placeholder: 'All tiers',
+              options: [
+                { label: 'All tiers', value: 'all' },
+                { label: 'Member', value: 'MEMBER' },
+                { label: 'VIP', value: 'VIP' },
+              ],
+              onValueChange: handleTierChange,
+            },
+          ]}
+          activeFilterCount={activeFilterCount}
+          isPending={isPending}
+          onSubmit={handleSearch}
+          onRefresh={() => {
+            startTransition(() => {
+              router.refresh();
+            });
+          }}
+          onReset={() => {
+            setSearch('');
+            setStatusFilter('all');
+            setTierFilter('all');
+            startTransition(() => {
+              router.push(buildUrl({ page: 1, search: '', status: 'all', tier: 'all' }));
+            });
+          }}
+          submitLabel="Search"
+        />
 
-      {/* Table content */}
-      <div
-        className={
-          isPending ? 'pointer-events-none opacity-60 transition-opacity' : 'transition-opacity'
-        }
-      >
-        {/* Desktop table */}
-        <AdminTableDesktop>
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="pl-6">Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Registered</TableHead>
-                <TableHead className="pr-6 text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-16 text-center text-muted-foreground">
-                    No users found
-                  </TableCell>
+        {/* Table content */}
+        <div
+          className={
+            isPending ? 'pointer-events-none opacity-60 transition-opacity' : 'transition-opacity'
+          }
+        >
+          {/* Desktop table */}
+          <AdminTableDesktop>
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-6">Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tier</TableHead>
+                  <TableHead>Registered</TableHead>
+                  <TableHead className="pr-6 text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                users.map((user) => {
-                  const label = user.displayName ?? user.phone;
-                  const initials = getInitials(user.displayName, user.phone);
-                  const colorClass = getAvatarColor(label);
-                  return (
-                    <TableRow key={user.id} className="group">
-                      <TableCell className="pl-6">
+              </TableHeader>
+              <TableBody>
+                {users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-16 text-center text-muted-foreground">
+                      No users found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  users.map((user) => {
+                    const label = user.displayName ?? user.phone;
+                    const initials = getInitials(user.displayName, user.phone);
+                    const colorClass = getAvatarColor(label);
+                    return (
+                      <TableRow key={user.id} className="group">
+                        <TableCell className="pl-6">
+                          <Link
+                            href={`/dashboard/users/${user.id}`}
+                            className="flex items-center gap-3"
+                          >
+                            <Avatar>
+                              <AvatarFallback className={colorClass}>{initials}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium transition-colors group-hover:text-primary">
+                                {user.displayName ?? '—'}
+                              </p>
+                              <p className="truncate text-xs text-muted-foreground">{user.phone}</p>
+                            </div>
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={user.status} />
+                        </TableCell>
+                        <TableCell>
+                          <MembershipTierBadge tier={user.membershipTier} />
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(user.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </TableCell>
+                        <TableCell className="pr-6 text-right">
+                          <UserRowActions
+                            user={user}
+                            canMutate={canMutate}
+                            onAction={() => router.refresh()}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </AdminTableDesktop>
+
+          {/* Mobile cards */}
+          <AdminTableMobile>
+            {users.length === 0 ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">No users found</div>
+            ) : (
+              users.map((user) => {
+                const label = user.displayName ?? user.phone;
+                const initials = getInitials(user.displayName, user.phone);
+                const colorClass = getAvatarColor(label);
+                return (
+                  <div key={user.id} className="flex items-center gap-3 px-4 py-3">
+                    <Avatar>
+                      <AvatarFallback className={colorClass}>{initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
                         <Link
                           href={`/dashboard/users/${user.id}`}
-                          className="flex items-center gap-3"
+                          className="truncate text-sm font-medium hover:text-primary"
                         >
-                          <Avatar>
-                            <AvatarFallback className={colorClass}>{initials}</AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium transition-colors group-hover:text-primary">
-                              {user.displayName ?? '—'}
-                            </p>
-                            <p className="truncate text-xs text-muted-foreground">{user.phone}</p>
-                          </div>
+                          {user.displayName ?? '—'}
                         </Link>
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={user.status} />
-                      </TableCell>
-                      <TableCell>
-                        <MembershipTierBadge tier={user.membershipTier} />
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(user.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </TableCell>
-                      <TableCell className="pr-6 text-right">
+                        <div className="flex items-center gap-2">
+                          <MembershipTierBadge tier={user.membershipTier} />
+                          <StatusBadge status={user.status} />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="truncate text-xs text-muted-foreground">{user.phone}</p>
                         <UserRowActions
                           user={user}
                           canMutate={canMutate}
                           onAction={() => router.refresh()}
                         />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </AdminTableDesktop>
-
-        {/* Mobile cards */}
-        <AdminTableMobile>
-          {users.length === 0 ? (
-            <div className="py-16 text-center text-sm text-muted-foreground">No users found</div>
-          ) : (
-            users.map((user) => {
-              const label = user.displayName ?? user.phone;
-              const initials = getInitials(user.displayName, user.phone);
-              const colorClass = getAvatarColor(label);
-              return (
-                <div key={user.id} className="flex items-center gap-3 px-4 py-3">
-                  <Avatar>
-                    <AvatarFallback className={colorClass}>{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <Link
-                        href={`/dashboard/users/${user.id}`}
-                        className="truncate text-sm font-medium hover:text-primary"
-                      >
-                        {user.displayName ?? '—'}
-                      </Link>
-                      <div className="flex items-center gap-2">
-                        <MembershipTierBadge tier={user.membershipTier} />
-                        <StatusBadge status={user.status} />
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <p className="truncate text-xs text-muted-foreground">{user.phone}</p>
-                      <UserRowActions
-                        user={user}
-                        canMutate={canMutate}
-                        onAction={() => router.refresh()}
-                      />
-                    </div>
                   </div>
-                </div>
-              );
-            })
-          )}
-        </AdminTableMobile>
+                );
+              })
+            )}
+          </AdminTableMobile>
 
-        {/* Pagination inside the card */}
-        <div className="border-t px-4 sm:px-6">
-          <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
+          {/* Pagination inside the card */}
+          <div className="border-t px-4 sm:px-6">
+            <AdminPagination page={page} total={total} limit={limit} onNavigate={navigate} />
+          </div>
         </div>
-      </div>
       </AdminTableCard>
     </AdminList>
   );

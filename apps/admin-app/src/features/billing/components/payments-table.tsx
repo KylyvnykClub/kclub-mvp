@@ -51,10 +51,7 @@ export function PaymentsTable({ payments }: { payments: AdminPaymentDto[] }) {
             <TableBody>
               {!payments || payments.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="py-8 text-center text-muted-foreground"
-                  >
+                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                     No incoming payments found
                   </TableCell>
                 </TableRow>
@@ -66,18 +63,20 @@ export function PaymentsTable({ payments }: { payments: AdminPaymentDto[] }) {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm font-medium">{payment.customer_name || 'N/A'}</div>
-                      <div className="text-xs text-muted-foreground">{payment.customer_email || '—'}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {payment.customer_email || '—'}
+                      </div>
                     </TableCell>
-                    <TableCell className="text-sm">
-                      {payment.description || '—'}
-                    </TableCell>
+                    <TableCell className="text-sm">{payment.description || '—'}</TableCell>
                     <TableCell className="text-sm font-medium">
                       {formatCurrency(payment.amount, payment.currency)}
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant={payment.status === 'succeeded' ? 'success' : 'outline'}
-                        className={payment.status === 'failed' ? 'text-destructive border-destructive' : ''}
+                        className={
+                          payment.status === 'failed' ? 'border-destructive text-destructive' : ''
+                        }
                       >
                         {payment.status}
                       </Badge>
@@ -110,7 +109,7 @@ export function PaymentsTable({ payments }: { payments: AdminPaymentDto[] }) {
             </div>
           ) : (
             payments.map((payment) => (
-              <div key={payment.id} className="space-y-3 p-4 border-b last:border-0">
+              <div key={payment.id} className="space-y-3 border-b p-4 last:border-0">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{payment.customer_name || 'N/A'}</p>
@@ -122,23 +121,21 @@ export function PaymentsTable({ payments }: { payments: AdminPaymentDto[] }) {
                   </div>
                   <Badge
                     variant={payment.status === 'succeeded' ? 'success' : 'outline'}
-                    className={payment.status === 'failed' ? 'text-destructive border-destructive' : ''}
+                    className={
+                      payment.status === 'failed' ? 'border-destructive text-destructive' : ''
+                    }
                   >
                     {payment.status}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <div className="text-muted-foreground">
-                    {formatDate(payment.created_at)}
-                  </div>
+                  <div className="text-muted-foreground">{formatDate(payment.created_at)}</div>
                   <div className="font-medium">
                     {formatCurrency(payment.amount, payment.currency)}
                   </div>
                 </div>
                 {payment.description && (
-                  <div className="text-xs text-muted-foreground">
-                    {payment.description}
-                  </div>
+                  <div className="text-xs text-muted-foreground">{payment.description}</div>
                 )}
                 {payment.receipt_url && (
                   <div className="mt-2 flex justify-end border-t pt-3">

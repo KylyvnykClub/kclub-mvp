@@ -473,9 +473,11 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
 
                         <AdminTableMobile>
                           {user.cards.map((card) => (
-                            <div key={card.id} className="space-y-3 p-4 border-b last:border-0">
+                            <div key={card.id} className="space-y-3 border-b p-4 last:border-0">
                               <div className="flex items-start justify-between gap-2">
-                                <span className="font-mono text-sm font-medium">{card.cardNumber}</span>
+                                <span className="font-mono text-sm font-medium">
+                                  {card.cardNumber}
+                                </span>
                                 <StatusBadge status={card.status} />
                               </div>
                               <div className="flex flex-wrap items-center gap-2">
@@ -564,11 +566,13 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
 
                         <AdminTableMobile>
                           {user.subscriptions.map((sub) => (
-                            <div key={sub.id} className="space-y-3 p-4 border-b last:border-0">
+                            <div key={sub.id} className="space-y-3 border-b p-4 last:border-0">
                               <div className="flex items-start justify-between gap-2">
                                 <StatusBadge status={sub.status} />
                                 {sub.cancelAtPeriodEnd && (
-                                  <Badge variant="secondary" className="text-xs">Cancels at end</Badge>
+                                  <Badge variant="secondary" className="text-xs">
+                                    Cancels at end
+                                  </Badge>
                                 )}
                               </div>
                               <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
@@ -667,7 +671,7 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
 
                         <AdminTableMobile>
                           {filteredLogs.map((entry) => (
-                            <div key={entry.id} className="space-y-3 p-4 border-b last:border-0">
+                            <div key={entry.id} className="space-y-3 border-b p-4 last:border-0">
                               <div className="flex items-start justify-between gap-2">
                                 <StatusBadge status={entry.action} />
                                 <span className="text-xs text-muted-foreground">
@@ -681,7 +685,7 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                                 </span>
                               </div>
                               {entry.after && (
-                                <div className="text-xs text-muted-foreground break-all">
+                                <div className="break-all text-xs text-muted-foreground">
                                   {Object.entries(entry.after)
                                     .map(([k, v]) => `${k}: ${String(v)}`)
                                     .join(', ')}

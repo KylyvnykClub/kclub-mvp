@@ -10,10 +10,7 @@ import { FinanceTransactionsCard } from '@/features/dashboard/components/finance
 
 export default async function DashboardPage() {
   const profile = await requireStaffProfile();
-  const [metrics, finance] = await Promise.all([
-    fetchDashboardMetrics(),
-    fetchFinanceDashboard(),
-  ]);
+  const [metrics, finance] = await Promise.all([fetchDashboardMetrics(), fetchFinanceDashboard()]);
 
   if (metrics.status !== 'success') {
     return (

@@ -55,14 +55,14 @@ export function FinanceTransactionsCard({
   const blur = staffRole !== 'OWNER';
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="flex h-full flex-col">
       <CardHeader className="pb-4">
-        <CardTitle className="text-sm font-medium text-muted-foreground flex justify-between items-center">
+        <CardTitle className="flex items-center justify-between text-sm font-medium text-muted-foreground">
           <span>Transactions & Revenue (All-time)</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-4">
-        <div className="rounded-lg bg-muted/50 p-4 flex flex-col gap-1">
+      <CardContent className="flex flex-1 flex-col gap-4">
+        <div className="bg-muted/50 flex flex-col gap-1 rounded-lg p-4">
           <div className="text-sm font-medium text-muted-foreground">Total</div>
           <div
             className={cn(

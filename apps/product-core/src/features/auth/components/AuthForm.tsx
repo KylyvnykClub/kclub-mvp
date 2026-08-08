@@ -340,7 +340,7 @@ export function AuthForm({ locale, mode }: { locale: Locale; mode: AuthMode }) {
               <div className="flex items-center justify-between">
                 <Label htmlFor="otp">{tCommon('otpLabel')}</Label>
                 {countdown > 0 && (
-                  <span className="tabular-nums text-xs text-muted-foreground">{countdown}s</span>
+                  <span className="text-xs tabular-nums text-muted-foreground">{countdown}s</span>
                 )}
               </div>
               <Input

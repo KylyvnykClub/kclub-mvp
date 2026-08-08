@@ -8,13 +8,13 @@ import Stripe from 'stripe';
 export async function GET(request: NextRequest) {
   try {
     await adminGuard(request, STAFF_PERMISSIONS.FINANCE_METRICS_READ);
-    
+
     const stripe = getStripeClient();
     const charges = await stripe.charges.list({
       limit: 100,
       expand: ['data.customer'],
     });
-    
+
     const payments: AdminPaymentDto[] = charges.data.map((charge) => {
       let customerEmail: string | null = null;
       let customerName: string | null = null;
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         customerEmail = customer.email || null;
         customerName = customer.name || null;
       }
-      
+
       // Fallback to billing details if customer object doesn't have it
       if (!customerEmail && charge.billing_details?.email) {
         customerEmail = charge.billing_details.email || null;
