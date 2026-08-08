@@ -15,6 +15,8 @@ const VALID_PRODUCTION_ENV: Record<string, string | undefined> = {
   CRON_SECRET: 'cron-secret',
   TOTP_ENCRYPTION_KEY: 'totp-key',
   ADMIN_JWT_SECRET: 'admin-jwt-secret',
+  UPSTASH_REDIS_REST_URL: 'https://redis.example.upstash.io',
+  UPSTASH_REDIS_REST_TOKEN: 'upstash-token',
 };
 
 describe('validateProductionEnv', () => {
@@ -52,6 +54,8 @@ describe('validateProductionEnv', () => {
       expect(message).toContain('DATABASE_URL');
       expect(message).toContain('CRON_SECRET');
       expect(message).toContain('TOTP_ENCRYPTION_KEY');
+      expect(message).toContain('UPSTASH_REDIS_REST_URL');
+      expect(message).toContain('UPSTASH_REDIS_REST_TOKEN');
     }
   });
 

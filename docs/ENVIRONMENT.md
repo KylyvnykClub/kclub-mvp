@@ -13,7 +13,8 @@ This document defines the environment contract for KCLUB MVP v4. Never commit re
 
 Enforced only on real production deploys (`VERCEL_ENV=production`, or `APP_ENV=production` to force it). Preview builds and the e2e server (which runs with `NODE_ENV=production` but no `VERCEL_ENV`) are intentionally exempt:
 
-- **Required (must be present, URLs must be valid):** `DATABASE_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `CRON_SECRET`, `TOTP_ENCRYPTION_KEY`, `ADMIN_JWT_SECRET`.
+- **Required (must be present, URLs must be valid):** `DATABASE_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `CRON_SECRET`, `TOTP_ENCRYPTION_KEY`, `ADMIN_JWT_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
+  - `UPSTASH_REDIS_*` are required because staff auth rate limiting fails closed in production: without the Redis backend, every staff sign-in returns 503 and the admin console is unreachable.
 - **Forbidden in production (boot fails if set/enabled):** `AUTH_DEV_PHONE_BYPASS_ENABLED`, `AUTH_DEV_2FA_BYPASS_ENABLED`, `E2E_TEST_SECRET`, `ALLOW_SEED`, `CONFIRM_SEED`.
 
 ## Product-Core
@@ -50,8 +51,8 @@ Enforced only on real production deploys (`VERCEL_ENV=production`, or `APP_ENV=p
 | `ALLOW_SEED` / `CONFIRM_SEED`             | Seed only        | server only | Gate destructive seed operations. Forbidden in production                                  |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`            | Optional         | all         | Plausible analytics domain (analytics disabled when unset)                                 |
 | `LOG_LEVEL`                               | Optional         | all         | Logging verbosity                                                                          |
-| `UPSTASH_REDIS_REST_URL`                  | Optional         | server only | URL for the shared rate-limit storage backend                                              |
-| `UPSTASH_REDIS_REST_TOKEN`                | Optional         | server only | Token for the shared rate-limit storage backend                                            |
+| `UPSTASH_REDIS_REST_URL`                  | Yes (production) | server only | Rate-limit backend URL. Staff auth fails closed (503) in production without it             |
+| `UPSTASH_REDIS_REST_TOKEN`                | Yes (production) | server only | Rate-limit backend token. Required in production for staff auth to function                |
 
 > Not currently read by application code (documented previously but unused): `SUPABASE_JWT_SECRET`, `EMAIL_PROVIDER_API_KEY`, `EMAIL_FROM_ADDRESS`. Add them back here only when a code path consumes them.
 

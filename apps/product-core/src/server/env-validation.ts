@@ -21,6 +21,10 @@ const requiredProductionEnvSchema = z.object({
   CRON_SECRET: z.string().min(1, 'CRON_SECRET is required'),
   TOTP_ENCRYPTION_KEY: z.string().min(1, 'TOTP_ENCRYPTION_KEY is required'),
   ADMIN_JWT_SECRET: z.string().min(1, 'ADMIN_JWT_SECRET is required'),
+  // Staff auth rate limiting fails closed in production (see staff-auth-rate-limit.ts): without a
+  // Redis backend, every staff sign-in returns 503 and the admin is locked out. Require it at deploy.
+  UPSTASH_REDIS_REST_URL: z.string().url('UPSTASH_REDIS_REST_URL must be a valid URL'),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1, 'UPSTASH_REDIS_REST_TOKEN is required'),
 });
 
 /** Dev/test escape hatches that must never be active in production. */
