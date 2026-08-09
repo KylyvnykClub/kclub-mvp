@@ -71,4 +71,30 @@ describe('cron route guard logic', () => {
       cleanedEvents: 4,
     });
   });
+
+  test('GET (Vercel Cron) is authorized with the same bearer secret', async () => {
+    process.env.CRON_SECRET = 'test-secret';
+    runDailyMaintenance.mockResolvedValue({
+      expiredCards: 0,
+      expiredSubscriptions: 0,
+      hiddenBusinesses: 0,
+      cleanedEvents: 0,
+    });
+
+    const { GET } = await import('../../src/app/api/cron/daily-maintenance/route');
+
+    const unauthorized = await GET(
+      new Request('http://localhost/api/cron/daily-maintenance', { method: 'GET' }),
+    );
+    expect(unauthorized.status).toBe(401);
+
+    const authorized = await GET(
+      new Request('http://localhost/api/cron/daily-maintenance', {
+        method: 'GET',
+        headers: { authorization: 'Bearer test-secret' },
+      }),
+    );
+    expect(authorized.status).toBe(200);
+    expect(runDailyMaintenance).toHaveBeenCalledTimes(1);
+  });
 });

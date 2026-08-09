@@ -4,50 +4,68 @@ This document defines the environment contract for KCLUB MVP v4. Never commit re
 
 ## Rules
 
-- Validate env at startup.
+- Validate env at startup. Product-core enforces the required production set in `apps/product-core/src/instrumentation.ts` (via `src/server/env-validation.ts`); a missing or malformed required variable fails the deployment/boot instead of the first request.
 - Fail fast for missing required secrets.
 - Keep server-only secrets out of public bundles.
 - Prefix client-exposed variables with `NEXT_PUBLIC_` only when they are safe.
 
+## Startup Validation (Product-Core)
+
+Enforced only on real production deploys (`VERCEL_ENV=production`, or `APP_ENV=production` to force it). Preview builds and the e2e server (which runs with `NODE_ENV=production` but no `VERCEL_ENV`) are intentionally exempt:
+
+- **Required (must be present, URLs must be valid):** `DATABASE_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `CRON_SECRET`, `TOTP_ENCRYPTION_KEY`, `ADMIN_JWT_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
+  - `UPSTASH_REDIS_*` are required because staff auth rate limiting fails closed in production: without the Redis backend, every staff sign-in returns 503 and the admin console is unreachable.
+- **Forbidden in production (boot fails if set/enabled):** `AUTH_DEV_PHONE_BYPASS_ENABLED`, `AUTH_DEV_2FA_BYPASS_ENABLED`, `E2E_TEST_SECRET`, `ALLOW_SEED`, `CONFIRM_SEED`.
+
 ## Product-Core
 
-| Variable                             | Required            | Environment | Purpose                                                                                 |
-| ------------------------------------ | ------------------- | ----------- | --------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_APP_URL`                | Yes                 | all         | Public product-core base URL                                                            |
-| `NEXT_PUBLIC_SUPABASE_URL`           | Yes                 | all         | Supabase project URL                                                                    |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Yes                 | all         | Public Supabase client key                                                              |
-| `SUPABASE_SERVICE_ROLE_KEY`          | Yes                 | server only | Service-role access for product-core server logic                                       |
-| `SUPABASE_JWT_SECRET`                | Optional            | server only | Needed only if server verifies tokens directly                                          |
-| `STRIPE_SECRET_KEY`                  | Yes                 | server only | Stripe server SDK                                                                       |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes                 | all         | Stripe client usage if checkout helpers require it                                      |
-| `STRIPE_WEBHOOK_SECRET`              | Yes                 | server only | Stripe webhook signature verification                                                   |
-| `CRON_SECRET`                        | Yes                 | server only | Protects cron route                                                                     |
-| `DATABASE_URL`                       | Yes                 | server only | Primary PostgreSQL connection string for Drizzle runtime                                |
-| `DATABASE_URL_DIRECT`                | Optional            | server only | Direct connection string for migrations, seeding, and maintenance tasks                 |
-| `ADMIN_APP_URL`                      | Yes                 | all         | Admin app base URL for links and redirects                                              |
-| `EMAIL_PROVIDER_API_KEY`             | Optional/likely yes | server only | Transactional email provider key                                                        |
-| `EMAIL_FROM_ADDRESS`                 | Optional/likely yes | server only | Sender for product emails                                                               |
-| `ADMIN_BOOTSTRAP_OWNER_PHONE`        | Yes at bootstrap    | server only | First OWNER staff phone until OWNER can manage staff accounts                           |
-| `ADMIN_BOOTSTRAP_OWNER_PASSWORD`     | Yes at bootstrap    | server only | Initial OWNER password used by seed when the bootstrap OWNER has no password yet        |
-| `AUTH_DEV_PHONE_BYPASS_ENABLED`      | Dev only            | server only | Enables member phone OTP bypass without SMS/Twilio                                      |
-| `AUTH_DEV_PHONE_BYPASS_SECRET`       | Dev only            | server only | Required acknowledgment when bypass is enabled locally; may also provide the dev OTP    |
-| `E2E_TEST_SECRET`                    | E2E only            | server only | Guards `/api/v1/test/*` routes used by Playwright seeding, teardown, and provider mocks |
-| `LOG_LEVEL`                          | Optional            | all         | Logging verbosity                                                                       |
-| `TOTP_ENCRYPTION_KEY`                | Yes                 | server only | Encrypts stored staff TOTP secrets                                                      |
-| `UPSTASH_REDIS_REST_TOKEN`           | Optional            | server only | Token for shared rate-limit storage backend                                             |
-| `UPSTASH_REDIS_REST_URL`             | Optional            | server only | URL for shared rate-limit storage backend                                               |
+| Variable                                  | Required         | Environment | Purpose                                                                                    |
+| ----------------------------------------- | ---------------- | ----------- | ------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_APP_URL`                     | Yes              | all         | Public product-core base URL                                                               |
+| `NEXT_PUBLIC_SITE_URL`                    | Optional         | all         | Canonical public site URL for SEO/sitemap (defaults to `https://kylyvnyk.club`)            |
+| `NEXT_PUBLIC_SUPABASE_URL`                | Yes              | all         | Supabase project URL                                                                       |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`           | Yes              | all         | Public (anon) Supabase client key                                                          |
+| `SUPABASE_SERVICE_ROLE_KEY`               | Yes              | server only | Service-role access for product-core server logic                                          |
+| `STRIPE_SECRET_KEY`                       | Yes              | server only | Stripe server SDK                                                                          |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`      | Yes              | all         | Stripe client key for checkout helpers                                                     |
+| `STRIPE_WEBHOOK_SECRET`                   | Yes              | server only | Stripe webhook signature verification                                                      |
+| `STRIPE_PRICE_VIP_MEMBERSHIP_MONTHLY`     | Optional         | server only | Local fallback price ID; checkout reads `admin_config` first                               |
+| `STRIPE_PRICE_BUSINESS_PLACEMENT_MONTHLY` | Optional         | server only | Local fallback price ID; checkout reads `admin_config` first                               |
+| `STRIPE_PRICE_VIP_ANNUAL`                 | Optional         | server only | Legacy alias honored by the checkout price fallback                                        |
+| `STRIPE_PRICE_BUSINESS_ANNUAL`            | Optional         | server only | Legacy alias honored by the checkout price fallback                                        |
+| `STRIPE_PORTAL_CONFIGURATION_ID`          | Optional         | server only | Stripe Customer Portal configuration ID                                                    |
+| `CRON_SECRET`                             | Yes              | server only | Bearer token protecting `/api/cron/daily-maintenance` (Vercel Cron attaches it)            |
+| `DATABASE_URL`                            | Yes              | server only | Primary (pooled) PostgreSQL connection string for the Drizzle runtime                      |
+| `DATABASE_URL_DIRECT`                     | Optional         | server only | Direct (non-pooled) connection string for migrations, seeding, and maintenance tasks       |
+| `TEST_DATABASE_URL`                       | Test only        | server only | Disposable DB for `pnpm test:db` (name must contain test, ci, or scratch)                  |
+| `ADMIN_APP_URL`                           | Yes              | all         | Admin app base URL for links and redirects                                                 |
+| `ADMIN_JWT_SECRET`                        | Yes              | server only | Signing secret for staff session JWTs issued/validated by product-core                     |
+| `TOTP_ENCRYPTION_KEY`                     | Yes              | server only | AES-256-GCM key encrypting stored staff TOTP secrets                                       |
+| `ADMIN_BOOTSTRAP_OWNER_PHONE`             | Yes at bootstrap | server only | First OWNER staff phone until OWNER can manage staff accounts                              |
+| `ADMIN_BOOTSTRAP_OWNER_PASSWORD`          | Yes at bootstrap | server only | Initial OWNER password used by seed when the bootstrap OWNER has no password yet           |
+| `STAFF_AUTH_RATE_LIMIT_REQUIRED`          | Optional         | server only | Forces the rate-limit backend to be required (auto-on in production)                       |
+| `AUTH_DEV_PHONE_BYPASS_ENABLED`           | Dev only         | server only | Enables member phone OTP bypass without SMS. Ignored in production                         |
+| `AUTH_DEV_PHONE_BYPASS_SECRET`            | Dev only         | server only | Required acknowledgment when phone bypass is enabled locally; may also provide the dev OTP |
+| `AUTH_DEV_2FA_BYPASS_ENABLED`             | Dev only         | server only | Enables staff 2FA bypass locally. Forbidden in production                                  |
+| `E2E_TEST_SECRET`                         | E2E only         | server only | Guards `/api/v1/test/*` routes used by Playwright. Forbidden in production                 |
+| `ALLOW_SEED` / `CONFIRM_SEED`             | Seed only        | server only | Gate destructive seed operations. Forbidden in production                                  |
+| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`            | Optional         | all         | Plausible analytics domain (analytics disabled when unset)                                 |
+| `LOG_LEVEL`                               | Optional         | all         | Logging verbosity                                                                          |
+| `UPSTASH_REDIS_REST_URL`                  | Yes (production) | server only | Rate-limit backend URL. Staff auth fails closed (503) in production without it             |
+| `UPSTASH_REDIS_REST_TOKEN`                | Yes (production) | server only | Rate-limit backend token. Required in production for staff auth to function                |
+
+> Not currently read by application code (documented previously but unused): `SUPABASE_JWT_SECRET`, `EMAIL_PROVIDER_API_KEY`, `EMAIL_FROM_ADDRESS`. Add them back here only when a code path consumes them.
 
 ## Admin-App
 
-| Variable                        | Required | Environment | Purpose                                                            |
-| ------------------------------- | -------- | ----------- | ------------------------------------------------------------------ |
-| `NEXT_PUBLIC_ADMIN_APP_URL`     | Yes      | all         | Admin app base URL                                                 |
-| `PRODUCT_CORE_API_BASE_URL`     | Yes      | server only | Product-core base URL for staff auth validation and admin proxy    |
-| `ADMIN_JWT_SECRET`              | Yes      | server only | Staff session signing secret shared with product-core token issuer |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Optional | all         | Needed only if admin-app uses Supabase client directly             |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | all         | Same note as above                                                 |
-| `LOG_LEVEL`                     | Optional | all         | Logging verbosity                                                  |
-| `TOTP_ENCRYPTION_KEY`           | Yes      | server only | Encrypts and decrypts staff TOTP secrets during MFA flows          |
+The admin console is a thin shell that proxies to product-core; staff auth, TOTP, and JWT signing all live in product-core. Admin-app itself reads only:
+
+| Variable                     | Required | Environment | Purpose                                                         |
+| ---------------------------- | -------- | ----------- | --------------------------------------------------------------- |
+| `PRODUCT_CORE_API_BASE_URL`  | Yes      | server only | Product-core base URL for staff auth validation and admin proxy |
+| `PRODUCT_CORE_ADMIN_API_URL` | Yes      | server only | Admin-scoped product-core API base for server-to-server calls   |
+| `NODE_ENV`                   | Yes      | all         | Runtime mode                                                    |
+| `LOG_LEVEL`                  | Optional | all         | Logging verbosity                                               |
 
 ## Shared Operational Variables
 
