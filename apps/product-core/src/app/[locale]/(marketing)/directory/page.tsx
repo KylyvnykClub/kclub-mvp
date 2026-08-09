@@ -181,7 +181,7 @@ export default async function DirectoryPage({
                 <BusinessCard
                   key={business.id}
                   business={business}
-                  href={`/${locale}/directory/${business.slug}`}
+                  href={`/${locale}/directory/${encodeURIComponent(business.slug)}`}
                   actionLabel={t('viewDetails')}
                   externalLabel={t('website')}
                   {...(featuredLabel ? { featuredLabel } : {})}
