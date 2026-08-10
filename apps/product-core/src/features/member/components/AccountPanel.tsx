@@ -127,7 +127,7 @@ export function AccountPanel({
           type="button"
           data-testid="vip-upgrade-btn"
           onClick={handleVipCheckout}
-          disabled={vipLoading}
+          disabled={isVip || vipLoading}
           aria-disabled={isVip || vipLoading}
           aria-pressed={isVip}
           className={cn(
