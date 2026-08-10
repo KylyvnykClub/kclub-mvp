@@ -57,7 +57,9 @@ export function mapStripeStatusToLocal(
  * (or vice versa), which would otherwise mutate real subscriptions from test
  * events that happen to carry a valid signature for the configured secret.
  */
-export function isLiveModeConfigured(env: Record<string, string | undefined> = process.env): boolean {
+export function isLiveModeConfigured(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
   return env.STRIPE_SECRET_KEY?.startsWith('sk_live_') ?? false;
 }
 

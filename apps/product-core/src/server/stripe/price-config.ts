@@ -1,8 +1,5 @@
 const STRIPE_PRICE_ENV_BY_CONFIG_KEY: Record<string, readonly string[]> = {
-  stripe_price_vip_membership_monthly: [
-    'STRIPE_PRICE_VIP_MEMBERSHIP_MONTHLY',
-    'STRIPE_PRICE_VIP',
-  ],
+  stripe_price_vip_membership_monthly: ['STRIPE_PRICE_VIP_MEMBERSHIP_MONTHLY', 'STRIPE_PRICE_VIP'],
   stripe_price_business_placement_monthly: [
     'STRIPE_PRICE_BUSINESS_PLACEMENT_MONTHLY',
     'STRIPE_PRICE_BUSINESS',

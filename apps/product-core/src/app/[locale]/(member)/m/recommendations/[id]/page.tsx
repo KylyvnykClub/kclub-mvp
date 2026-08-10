@@ -73,11 +73,13 @@ export default async function RecommendationDetailPage(props: {
               </Badge>
             </div>
           </div>
-          <div className="p-6 sm:p-8 space-y-6">
+          <div className="space-y-6 p-6 sm:p-8">
             <div className="flex flex-col gap-1 border-b border-border pb-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm">
-                  <span className="font-semibold text-foreground">{t('fromLabel', { name: '' })} </span>
+                  <span className="font-semibold text-foreground">
+                    {t('fromLabel', { name: '' })}{' '}
+                  </span>
                   {intro.requesterBusinessSlug ? (
                     <Link
                       href={`/${locale}/directory/${intro.requesterBusinessSlug}`}
@@ -95,15 +97,19 @@ export default async function RecommendationDetailPage(props: {
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-semibold text-foreground">{t('clientInfoLabel', { fallback: 'Client Information' })}</h4>
+                <h4 className="text-sm font-semibold text-foreground">
+                  {t('clientInfoLabel', { fallback: 'Client Information' })}
+                </h4>
                 <p className="mt-1 text-sm text-foreground">{intro.clientName}</p>
                 <p className="text-sm text-muted-foreground">{intro.clientContact}</p>
               </div>
 
               {intro.message && (
                 <div>
-                  <h4 className="text-sm font-semibold text-foreground">{t('messageLabel', { fallback: 'Message' })}</h4>
-                  <p className="mt-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                  <h4 className="text-sm font-semibold text-foreground">
+                    {t('messageLabel', { fallback: 'Message' })}
+                  </h4>
+                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
                     {intro.message}
                   </p>
                 </div>

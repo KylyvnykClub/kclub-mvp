@@ -34,7 +34,7 @@ export function IntroductionActionButtons({
   };
 
   return (
-    <div className="mt-8 flex items-center gap-4 pt-4 border-t border-border">
+    <div className="mt-8 flex items-center gap-4 border-t border-border pt-4">
       <CabinetButton
         type="button"
         tone="primary"

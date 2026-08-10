@@ -62,7 +62,7 @@ export function BusinessCard({
         {business.memberDiscountPercent ? (
           <div className="absolute right-4 top-4 bg-accent px-4 py-1 text-lg font-semibold text-accent-foreground shadow-sm">
             {business.discountMuted ? (
-              <span className="blur-[4px] select-none opacity-80" aria-hidden="true">
+              <span className="select-none opacity-80 blur-[4px]" aria-hidden="true">
                 %%
               </span>
             ) : (
