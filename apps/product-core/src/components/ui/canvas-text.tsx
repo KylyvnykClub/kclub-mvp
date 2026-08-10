@@ -43,6 +43,17 @@ export function CanvasText({
   const [resolvedColors, setResolvedColors] = useState<string[]>([]);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [font, setFont] = useState('');
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = (): void => setPrefersReducedMotion(mediaQuery.matches);
+
+    updatePreference();
+    mediaQuery.addEventListener('change', updatePreference);
+
+    return () => mediaQuery.removeEventListener('change', updatePreference);
+  }, []);
 
   const updateColors = useCallback(() => {
     if (bgRef.current) {
@@ -109,7 +120,7 @@ export function CanvasText({
     const numLines = Math.floor(height / lineGap) + 10;
     startTimeRef.current = performance.now();
 
-    const animate = (currentTime: number) => {
+    const drawFrame = (currentTime: number): void => {
       const elapsed = (currentTime - startTimeRef.current) / 1000;
       const phase = (elapsed / animationDuration) * Math.PI * 2;
 
@@ -143,11 +154,18 @@ export function CanvasText({
         ctx.bezierCurveTo(width * 0.33, y + curve1, width * 0.66, y + curve2, width, y);
         ctx.stroke();
       }
+    };
 
+    drawFrame(performance.now());
+
+    const animate = (currentTime: number): void => {
+      drawFrame(currentTime);
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    animationRef.current = requestAnimationFrame(animate);
+    if (!prefersReducedMotion) {
+      animationRef.current = requestAnimationFrame(animate);
+    }
 
     return () => {
       cancelAnimationFrame(animationRef.current);
@@ -162,6 +180,7 @@ export function CanvasText({
     lineGap,
     curveIntensity,
     dimensions,
+    prefersReducedMotion,
   ]);
 
   return (

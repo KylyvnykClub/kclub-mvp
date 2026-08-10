@@ -8,7 +8,7 @@ import { cn } from '@kclub/ui';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { Locale, locales, stripLocalePrefix } from '@/i18n/routing';
 
-export type LocaleSwitcherVariant = 'topbar-menu' | 'topbar-mobile' | 'footer';
+export type LocaleSwitcherVariant = 'topbar-menu' | 'topbar-mobile' | 'footer' | 'account-menu';
 
 type LocaleSwitcherLinksProps = {
   locale: Locale;
@@ -18,6 +18,11 @@ type LocaleSwitcherLinksProps = {
 
 function getItemClassName(variant: LocaleSwitcherVariant, isActive: boolean): string {
   switch (variant) {
+    case 'account-menu':
+      return cn(
+        'dark:text-white/72 flex w-full items-center gap-3 rounded px-3 py-2.5 text-left text-sm transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent dark:hover:bg-white/[0.08] dark:hover:text-white dark:focus-visible:ring-white',
+        isActive ? 'font-semibold text-zinc-950 dark:text-white' : 'text-zinc-700',
+      );
     case 'topbar-menu':
       return cn(
         'block px-4 py-3 text-sm normal-case transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset dark:focus-visible:ring-accent',

@@ -32,6 +32,10 @@ vi.mock('next-themes', () => ({
   }),
 }));
 
+vi.mock('@/features/marketing/components/LocaleSwitcherLinks', () => ({
+  LocaleSwitcherLinks: () => <div data-testid="locale-switcher-links" />,
+}));
+
 import { TopBar } from '@/features/marketing/components/TopBar';
 
 const mockFetch = vi.fn();
@@ -84,6 +88,16 @@ describe('TopBar', () => {
 
     expect(screen.getByText('home.nav.dashboard')).toBeTruthy();
     expect(screen.getByText('home.nav.signOut')).toBeTruthy();
+  });
+
+  test('exposes the mobile navigation as an accessible modal menu', () => {
+    render(<TopBar locale="en" isAuthenticated={false} />);
+
+    fireEvent.click(screen.getByLabelText('home.common.menu'));
+
+    const mobileNavigation = screen.getByRole('dialog', { name: 'home.common.menu' });
+    expect(mobileNavigation.getAttribute('aria-modal')).toBe('true');
+    expect(mobileNavigation.className).toContain('max-h-[calc(100dvh-72px)]');
   });
 
   test('loads authenticated account actions client-side when the layout omits auth state', async () => {
