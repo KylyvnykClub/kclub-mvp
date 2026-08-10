@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import type { DashboardMetricsDto } from '@kclub/contracts';
 
 import { StatCard } from './stat-card';
@@ -33,9 +35,12 @@ export function StatsGrid({ data }: { data: DashboardMetricsDto }) {
               <>
                 {' '}
                 ·{' '}
-                <span className="font-medium text-yellow-700 dark:text-yellow-300">
+                <Link
+                  href="/dashboard/businesses?status=UNDER_REVIEW"
+                  className="font-medium text-yellow-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-yellow-300"
+                >
                   {data.businessesUnderReview} under review
-                </span>
+                </Link>
               </>
             ) : (
               ` · 0 under review`
