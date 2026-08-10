@@ -51,8 +51,8 @@ One-time configuration required before first production deploy. Use Stripe test 
 
 ### Products and Prices
 
-- [ ] Create product **"VIP Membership"** → add annual price → copy price ID to `STRIPE_PRICE_VIP_ANNUAL`
-- [ ] Create product **"Business Directory Placement"** → add annual price → copy price ID to `STRIPE_PRICE_BUSINESS_ANNUAL`
+- [ ] Create product **"VIP Membership"** → add price → copy price ID to `STRIPE_PRICE_VIP`
+- [ ] Create product **"Business Directory Placement"** → add price → copy price ID to `STRIPE_PRICE_BUSINESS`
 - [ ] Configure **Customer Portal** (allowed products, cancellation policy) → copy portal configuration ID to `STRIPE_PORTAL_CONFIGURATION_ID`
 
 ### Webhook Endpoint

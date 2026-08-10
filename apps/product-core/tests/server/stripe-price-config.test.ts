@@ -3,12 +3,12 @@ import { describe, expect, test } from 'vitest';
 import { parseAdminConfigPriceId, resolveStripePriceIdFromEnv } from '@/server/stripe/price-config';
 
 describe('stripe price config', () => {
-  test('resolveStripePriceIdFromEnv reads legacy annual env names', () => {
-    const previousVip = process.env.STRIPE_PRICE_VIP_ANNUAL;
-    const previousBusiness = process.env.STRIPE_PRICE_BUSINESS_ANNUAL;
+  test('resolveStripePriceIdFromEnv reads fallback env names', () => {
+    const previousVip = process.env.STRIPE_PRICE_VIP;
+    const previousBusiness = process.env.STRIPE_PRICE_BUSINESS;
 
-    process.env.STRIPE_PRICE_VIP_ANNUAL = 'price_vip_test';
-    process.env.STRIPE_PRICE_BUSINESS_ANNUAL = 'price_business_test';
+    process.env.STRIPE_PRICE_VIP = 'price_vip_test';
+    process.env.STRIPE_PRICE_BUSINESS = 'price_business_test';
 
     expect(resolveStripePriceIdFromEnv('stripe_price_vip_membership_monthly')).toBe(
       'price_vip_test',
@@ -18,15 +18,15 @@ describe('stripe price config', () => {
     );
 
     if (previousVip === undefined) {
-      delete process.env.STRIPE_PRICE_VIP_ANNUAL;
+      delete process.env.STRIPE_PRICE_VIP;
     } else {
-      process.env.STRIPE_PRICE_VIP_ANNUAL = previousVip;
+      process.env.STRIPE_PRICE_VIP = previousVip;
     }
 
     if (previousBusiness === undefined) {
-      delete process.env.STRIPE_PRICE_BUSINESS_ANNUAL;
+      delete process.env.STRIPE_PRICE_BUSINESS;
     } else {
-      process.env.STRIPE_PRICE_BUSINESS_ANNUAL = previousBusiness;
+      process.env.STRIPE_PRICE_BUSINESS = previousBusiness;
     }
   });
 

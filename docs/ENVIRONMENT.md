@@ -31,8 +31,8 @@ Enforced only on real production deploys (`VERCEL_ENV=production`, or `APP_ENV=p
 | `STRIPE_WEBHOOK_SECRET`                   | Yes              | server only | Stripe webhook signature verification                                                      |
 | `STRIPE_PRICE_VIP_MEMBERSHIP_MONTHLY`     | Optional         | server only | Local fallback price ID; checkout reads `admin_config` first                               |
 | `STRIPE_PRICE_BUSINESS_PLACEMENT_MONTHLY` | Optional         | server only | Local fallback price ID; checkout reads `admin_config` first                               |
-| `STRIPE_PRICE_VIP_ANNUAL`                 | Optional         | server only | Legacy alias honored by the checkout price fallback                                        |
-| `STRIPE_PRICE_BUSINESS_ANNUAL`            | Optional         | server only | Legacy alias honored by the checkout price fallback                                        |
+| `STRIPE_PRICE_VIP`                        | Optional         | server only | Short alias honored by the checkout price fallback                                         |
+| `STRIPE_PRICE_BUSINESS`                   | Optional         | server only | Short alias honored by the checkout price fallback                                         |
 | `STRIPE_PORTAL_CONFIGURATION_ID`          | Optional         | server only | Stripe Customer Portal configuration ID                                                    |
 | `CRON_SECRET`                             | Yes              | server only | Bearer token protecting `/api/cron/daily-maintenance` (Vercel Cron attaches it)            |
 | `DATABASE_URL`                            | Yes              | server only | Primary (pooled) PostgreSQL connection string for the Drizzle runtime                      |
