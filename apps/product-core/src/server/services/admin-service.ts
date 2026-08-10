@@ -920,6 +920,10 @@ export async function adminUpdateBusiness(
       ...(input.websiteUrl !== undefined && { website_url: input.websiteUrl }),
       ...(input.socialUrl !== undefined && { social_url: input.socialUrl }),
       ...(input.briefDescription !== undefined && { brief_description: input.briefDescription }),
+      ...(input.seoTitle !== undefined && { seo_title: input.seoTitle }),
+      ...(input.seoDescription !== undefined && { seo_description: input.seoDescription }),
+      ...(input.seoKeywords !== undefined && { seo_keywords: input.seoKeywords }),
+      ...(input.ogImageUrl !== undefined && { og_image_url: input.ogImageUrl }),
       updated_at: new Date(),
     })
     .where(eq(schema.businessProfiles.id, businessId))
@@ -2520,6 +2524,16 @@ type AdminBusinessRecord = {
   representative_phone: string;
   rejection_reason: string | null;
   internal_notes: string | null;
+  public_phone: string | null;
+  public_email: string | null;
+  address: string | null;
+  working_hours: string | null;
+  founded_year: number | null;
+  team_size: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_keywords: string | null;
+  og_image_url: string | null;
   approved_at: Date | null;
   hidden_at: Date | null;
   created_at: Date;
@@ -2810,6 +2824,16 @@ function toAdminBusinessDetail(
 ): AdminBusinessDetailDto {
   return {
     ...toAdminBusinessListItem(business),
+    publicPhone: business.public_phone ?? null,
+    publicEmail: business.public_email ?? null,
+    address: business.address ?? null,
+    workingHours: business.working_hours ?? null,
+    foundedYear: business.founded_year ?? null,
+    teamSize: business.team_size ?? null,
+    seoTitle: business.seo_title ?? null,
+    seoDescription: business.seo_description ?? null,
+    seoKeywords: business.seo_keywords ?? null,
+    ogImageUrl: business.og_image_url ?? null,
     auditEntries: (auditEntries ?? []).map((log: AdminAuditLogRecord) => ({
       id: log.id,
       actorStaffId: log.actor_staff_id ?? null,

@@ -16,11 +16,8 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={`kclub-toggle-button ${className}`}
     >
-      {isDark ? (
-        <Sun aria-hidden="true" size={18} strokeWidth={1.5} />
-      ) : (
-        <Moon aria-hidden="true" size={18} strokeWidth={1.5} />
-      )}
+      <Sun aria-hidden="true" className="hidden dark:block" size={18} strokeWidth={1.5} />
+      <Moon aria-hidden="true" className="block dark:hidden" size={18} strokeWidth={1.5} />
     </button>
   );
 }

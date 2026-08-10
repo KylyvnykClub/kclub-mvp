@@ -71,6 +71,20 @@
       "when": 1785920400000,
       "tag": "0009_business_review_submission_hold",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786406400000,
+      "tag": "0010_business_profile_details",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1786492800000,
+      "tag": "0011_business_seo_metadata",
+      "breakpoints": true
     }
   ]
 }

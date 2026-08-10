@@ -70,6 +70,16 @@ type BusinessProfileRecord = {
   representative_phone?: string | null;
   rejection_reason?: string | null;
   internal_notes?: string | null;
+  public_phone?: string | null;
+  public_email?: string | null;
+  address?: string | null;
+  working_hours?: string | null;
+  founded_year?: number | null;
+  team_size?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string | null;
+  og_image_url?: string | null;
   created_at?: Date;
   updated_at?: Date;
 };
@@ -704,6 +714,16 @@ export function toPublicBusinessDetailDto(
     description: business.description ?? null,
     representativeName: business.representative_name ?? '',
     publishedAt: business.published_at?.toISOString() ?? null,
+    publicPhone: business.public_phone ?? null,
+    publicEmail: business.public_email ?? null,
+    address: business.address ?? null,
+    workingHours: business.working_hours ?? null,
+    foundedYear: business.founded_year ?? null,
+    teamSize: business.team_size ?? null,
+    seoTitle: business.seo_title ?? null,
+    seoDescription: business.seo_description ?? null,
+    seoKeywords: business.seo_keywords ?? null,
+    ogImageUrl: business.og_image_url ?? null,
   };
 }
 

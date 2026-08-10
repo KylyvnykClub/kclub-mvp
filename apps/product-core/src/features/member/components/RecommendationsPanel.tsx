@@ -6,7 +6,7 @@ import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 import { getOwnBusinesses } from '@/server/services/business-service';
 import { getIncomingIntroductions } from '@/server/services/introduction-service';
-import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
+import Link from 'next/link';
 import { Badge } from '@/components/reui/badge';
 
 const INTRO_STATUS_LABEL_KEYS: Record<string, string> = {
@@ -43,7 +43,7 @@ export async function RecommendationsPanel({
           {incomingIntroductions.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t('empty')}</p>
           ) : (
-            <IncomingIntroductionsList introductions={incomingIntroductions} t={t} />
+            <IncomingIntroductionsList introductions={incomingIntroductions} t={t} locale={locale} />
           )}
         </div>
       </div>
@@ -58,71 +58,58 @@ type RecommendationsTranslator = Awaited<
 function IncomingIntroductionsList({
   introductions,
   t,
+  locale,
 }: {
   introductions: BusinessIncomingIntroductionDto[];
   t: RecommendationsTranslator;
+  locale: Locale;
 }) {
   return (
     <div className="divide-y divide-border">
-      {introductions.map((intro) => (
-        <div key={intro.id} className="py-5 first:pt-0 last:pb-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 space-y-1">
-              <p className="text-sm font-semibold text-foreground">{intro.clientName}</p>
-              <p className="text-xs text-muted-foreground">{intro.clientContact}</p>
-              {intro.message && (
-                <p className="text-sm leading-relaxed text-muted-foreground">{intro.message}</p>
-              )}
-              {intro.requesterDisplayName && (
-                <p className="text-xs text-muted">
-                  {t('fromLabel', { name: intro.requesterDisplayName })}
-                </p>
-              )}
+      {introductions.map((intro) => {
+        const theme = t('inboxSubject', { client: intro.clientName });
+        const sender = intro.requesterDisplayName || t('unknownSender');
+        const time = new Date(intro.createdAt).toLocaleDateString(locale, {
+          month: 'short',
+          day: 'numeric',
+        });
+        const isUnread = intro.status === 'APPROVED';
+
+        return (
+          <Link
+            key={intro.id}
+            href={`/${locale}/m/recommendations/${intro.id}`}
+            className="group block py-4 transition-colors hover:bg-surface-muted sm:px-4"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-4">
+                {/* Status dot for unread/actionable */}
+                <div className="flex w-2 shrink-0 justify-center">
+                  {isUnread && <span className="size-2 rounded-full bg-accent" />}
+                </div>
+
+                <div className="min-w-0">
+                  <p
+                    className={`truncate text-sm ${isUnread ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}
+                  >
+                    {sender}
+                  </p>
+                  <p className="truncate text-sm text-muted-foreground">{theme}</p>
+                </div>
+              </div>
+              
+              <div className="shrink-0 text-right">
+                <span className="text-xs text-muted-foreground">{time}</span>
+                <div className="mt-1">
+                  <Badge variant="outline" className="text-[10px]">
+                    {t(INTRO_STATUS_LABEL_KEYS[intro.status] ?? intro.status)}
+                  </Badge>
+                </div>
+              </div>
             </div>
-            <Badge variant="outline" className="shrink-0">
-              {t(INTRO_STATUS_LABEL_KEYS[intro.status] ?? intro.status)}
-            </Badge>
-          </div>
-          <IncomingIntroductionActions intro={intro} t={t} />
-        </div>
-      ))}
+          </Link>
+        );
+      })}
     </div>
   );
-}
-
-function IncomingIntroductionActions({
-  intro,
-  t,
-}: {
-  intro: BusinessIncomingIntroductionDto;
-  t: RecommendationsTranslator;
-}) {
-  if (intro.status === 'APPROVED') {
-    return (
-      <div className="mt-3 flex gap-3">
-        <form action={`/api/v1/me/business/introductions/${intro.id}/complete`} method="POST">
-          <CabinetButton
-            type="submit"
-            tone="link"
-            density="compact"
-            className="h-auto px-0 py-0 text-xs text-success underline hover:bg-transparent"
-          >
-            {t('actionComplete')}
-          </CabinetButton>
-        </form>
-        <form action={`/api/v1/me/business/introductions/${intro.id}/reject`} method="POST">
-          <CabinetButton
-            type="submit"
-            tone="link"
-            density="compact"
-            className="h-auto px-0 py-0 text-xs text-destructive underline hover:bg-transparent"
-          >
-            {t('actionReject')}
-          </CabinetButton>
-        </form>
-      </div>
-    );
-  }
-
-  return null;
 }

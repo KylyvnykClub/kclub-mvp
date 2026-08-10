@@ -181,6 +181,16 @@ describe('public business detail PII safety', () => {
       description: null,
       representativeName: 'Rep',
       publishedAt: null,
+      publicPhone: null,
+      publicEmail: null,
+      address: null,
+      workingHours: null,
+      foundedYear: null,
+      teamSize: null,
+      seoTitle: null,
+      seoDescription: null,
+      seoKeywords: null,
+      ogImageUrl: null,
     };
 
     expect(isPublicBusinessDetailPiiSafe(detail as unknown as Record<string, unknown>)).toBe(true);
@@ -212,6 +222,16 @@ describe('public business detail PII safety', () => {
       description: null,
       representativeName: 'Rep',
       publishedAt: null,
+      publicPhone: null,
+      publicEmail: null,
+      address: null,
+      workingHours: null,
+      foundedYear: null,
+      teamSize: null,
+      seoTitle: null,
+      seoDescription: null,
+      seoKeywords: null,
+      ogImageUrl: null,
       ownerUserId: 'u1',
     } as PublicBusinessDetailDto;
 

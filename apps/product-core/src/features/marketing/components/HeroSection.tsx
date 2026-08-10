@@ -4,18 +4,29 @@ import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { getButtonClasses } from '@kclub/ui';
-import { CanvasText } from '@/components/ui/canvas-text';
 import { useTheme } from 'next-themes';
+import { useSyncExternalStore } from 'react';
+
+import { getButtonClasses } from '@kclub/ui';
 
 import mapImage from '@/assets/content/map.png';
+import { CanvasText } from '@/components/ui/canvas-text';
 import { Locale } from '@/i18n/routing';
+
+const subscribeToMountState = (): (() => void) => () => undefined;
+const getClientMountState = (): boolean => true;
+const getServerMountState = (): boolean => false;
 
 export function HeroSection({ locale }: { locale: Locale }) {
   const t = useTranslations('home');
   const { resolvedTheme } = useTheme();
+  const isMounted = useSyncExternalStore(
+    subscribeToMountState,
+    getClientMountState,
+    getServerMountState,
+  );
   const accentColor = '#d4af37';
-  const isDark = resolvedTheme === 'dark';
+  const isDark = isMounted && resolvedTheme === 'dark';
 
   return (
     <section className="kclub-premium-hero relative isolate flex min-h-[calc(100vh-112px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">

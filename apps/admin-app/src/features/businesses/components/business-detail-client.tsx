@@ -710,6 +710,10 @@ function EditProfileTab({ business, onSaved }: EditProfileTabProps) {
     briefDescription: business.briefDescription ?? '',
     websiteUrl: business.websiteUrl ?? '',
     socialUrl: business.socialUrl ?? '',
+    seoTitle: business.seoTitle ?? '',
+    seoDescription: business.seoDescription ?? '',
+    seoKeywords: business.seoKeywords ?? '',
+    ogImageUrl: business.ogImageUrl ?? '',
   });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void {
@@ -734,6 +738,13 @@ function EditProfileTab({ business, onSaved }: EditProfileTabProps) {
       payload.websiteUrl = fields.websiteUrl || null;
     if (fields.socialUrl !== (business.socialUrl ?? ''))
       payload.socialUrl = fields.socialUrl || null;
+    if (fields.seoTitle !== (business.seoTitle ?? '')) payload.seoTitle = fields.seoTitle || null;
+    if (fields.seoDescription !== (business.seoDescription ?? ''))
+      payload.seoDescription = fields.seoDescription || null;
+    if (fields.seoKeywords !== (business.seoKeywords ?? ''))
+      payload.seoKeywords = fields.seoKeywords || null;
+    if (fields.ogImageUrl !== (business.ogImageUrl ?? ''))
+      payload.ogImageUrl = fields.ogImageUrl || null;
 
     if (Object.keys(payload).length === 0) {
       toast.info('No changes to save');
@@ -845,6 +856,65 @@ function EditProfileTab({ business, onSaved }: EditProfileTabProps) {
           />
         </div>
 
+        <Separator />
+
+        <div>
+          <h4 className="text-sm font-medium">SEO & Meta</h4>
+          <p className="text-sm text-muted-foreground">
+            Custom metadata for search engines. Leave empty to use defaults.
+          </p>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="edit-seoTitle">SEO Title</Label>
+            <Input
+              id="edit-seoTitle"
+              name="seoTitle"
+              value={fields.seoTitle}
+              onChange={handleChange}
+              placeholder="Custom page title (max 200 chars)"
+              maxLength={200}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-ogImageUrl">OG Image URL</Label>
+            <Input
+              id="edit-ogImageUrl"
+              name="ogImageUrl"
+              type="url"
+              value={fields.ogImageUrl}
+              onChange={handleChange}
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-seoDescription">SEO Description</Label>
+          <Input
+            id="edit-seoDescription"
+            name="seoDescription"
+            value={fields.seoDescription}
+            onChange={handleChange}
+            placeholder="Custom meta description (max 500 chars)"
+            maxLength={500}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-seoKeywords">SEO Keywords</Label>
+          <Input
+            id="edit-seoKeywords"
+            name="seoKeywords"
+            value={fields.seoKeywords}
+            onChange={handleChange}
+            placeholder="keyword1, keyword2, keyword3"
+            maxLength={500}
+          />
+        </div>
+
         <div className="flex justify-end pt-2">
           <Button type="submit" disabled={loading} size="sm">
             {loading ? 'Saving...' : 'Save changes'}
@@ -877,12 +947,33 @@ function SettingsTab({ business, onSaved }: SettingsTabProps) {
 
     const memberDiscountPercent = discountInput === '' ? null : parseInt(discountInput, 10);
 
-    const result = await updateBusinessSettings(business.id, {
-      featuredTop,
-      featuredRecommended,
-      memberDiscountPercent,
-      discountMuted,
-    });
+    const payload: {
+      featuredTop?: boolean;
+      featuredRecommended?: boolean;
+      memberDiscountPercent?: number | null;
+      discountMuted?: boolean;
+    } = {};
+
+    if (featuredTop !== (business.featuredTop ?? false)) {
+      payload.featuredTop = featuredTop;
+    }
+    if (featuredRecommended !== (business.featuredRecommended ?? false)) {
+      payload.featuredRecommended = featuredRecommended;
+    }
+    if (memberDiscountPercent !== (business.memberDiscountPercent ?? null)) {
+      payload.memberDiscountPercent = memberDiscountPercent;
+    }
+    if (discountMuted !== (business.discountMuted ?? false)) {
+      payload.discountMuted = discountMuted;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      toast.info('No changes to save');
+      setLoading(false);
+      return;
+    }
+
+    const result = await updateBusinessSettings(business.id, payload);
 
     setLoading(false);
 

@@ -3,11 +3,16 @@ import {
   ArrowUpRight,
   BadgeCheck,
   Building2,
-  CalendarDays,
+  Calendar,
+  Clock,
   ExternalLink,
   Globe,
+  Mail,
   MapPin,
+  Phone,
+  Tag,
   UserRound,
+  Users,
 } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -45,19 +50,24 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     };
   }
 
-  const title = t('title', { name: business.name });
-  const description = business.briefDescription ?? t('description', { name: business.name });
-  const url = `${siteUrl}/${locale}/directory/${slug}`;
+  const title = business.seoTitle || t('title', { name: business.name });
+  const description =
+    business.seoDescription ||
+    business.briefDescription ||
+    t('description', { name: business.name });
+  const url = `${siteUrl}/${locale}/directory/${encodeURIComponent(slug)}`;
+  const ogImage = business.ogImageUrl || business.coverImageUrl;
 
   return {
     title,
     description,
+    ...(business.seoKeywords ? { keywords: business.seoKeywords } : {}),
     alternates: {
       canonical: url,
       languages: {
-        en: `${siteUrl}/en/directory/${slug}`,
-        ru: `${siteUrl}/ru/directory/${slug}`,
-        uk: `${siteUrl}/uk/directory/${slug}`,
+        en: `${siteUrl}/en/directory/${encodeURIComponent(slug)}`,
+        ru: `${siteUrl}/ru/directory/${encodeURIComponent(slug)}`,
+        uk: `${siteUrl}/uk/directory/${encodeURIComponent(slug)}`,
       },
     },
     openGraph: {
@@ -66,12 +76,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       url,
       siteName: 'KCLUB',
       type: 'article',
-      ...(business.coverImageUrl
-        ? { images: [{ url: business.coverImageUrl, alt: business.name }] }
-        : {}),
+      ...(ogImage ? { images: [{ url: ogImage, alt: business.name }] } : {}),
     },
     twitter: {
-      card: business.coverImageUrl ? 'summary_large_image' : 'summary',
+      card: ogImage ? 'summary_large_image' : 'summary',
       title,
       description,
     },
@@ -84,12 +92,16 @@ function buildBusinessJsonLd(business: PublicBusinessDetailDto, locale: Locale) 
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     name: business.name,
-    url: `${siteUrl}/${locale}/directory/${business.slug}`,
+    url: `${siteUrl}/${locale}/directory/${encodeURIComponent(business.slug)}`,
     ...(business.briefDescription ? { description: business.briefDescription } : {}),
     ...(business.logoUrl ? { image: business.logoUrl } : {}),
     ...(business.websiteUrl ? { sameAs: business.websiteUrl } : {}),
+    ...(business.foundedYear ? { foundingDate: String(business.foundedYear) } : {}),
+    ...(business.publicPhone ? { telephone: business.publicPhone } : {}),
+    ...(business.publicEmail ? { email: business.publicEmail } : {}),
     address: {
       '@type': 'PostalAddress',
+      ...(business.address ? { streetAddress: business.address } : {}),
       addressLocality: business.cityName,
       addressCountry: business.countryName,
     },
@@ -113,11 +125,23 @@ export default async function BusinessDetailPage({ params }: Params) {
 
   const externalUrl = getPrimaryBusinessUrl(business);
   const jsonLd = buildBusinessJsonLd(business, locale);
+  const location = getBusinessLocation(business);
   const publishedLabel = business.publishedAt
     ? new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(
         new Date(business.publishedAt),
       )
     : null;
+
+  const categoryBreadcrumb = [business.blockName, business.categoryName, business.subcategoryName]
+    .filter(Boolean)
+    .join(' / ');
+
+  const hasContact =
+    business.publicPhone ||
+    business.publicEmail ||
+    business.websiteUrl ||
+    business.socialUrl ||
+    business.representativeName;
 
   return (
     <article className="min-h-screen bg-background">
@@ -126,260 +150,340 @@ export default async function BusinessDetailPage({ params }: Params) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="border-b border-border">
-        <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-          <Link
-            href={`/${locale}/directory`}
-            className="group inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <ArrowLeft
-              aria-hidden="true"
-              className="size-4 transition-transform group-hover:-translate-x-1"
-            />
-            {t('backToDirectory')}
-          </Link>
+      {/* Back navigation */}
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <Link
+          href={`/${locale}/directory`}
+          className="group inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ArrowLeft
+            aria-hidden="true"
+            className="size-4 transition-transform group-hover:-translate-x-1"
+          />
+          {t('backToDirectory')}
+        </Link>
+      </div>
 
-          <div className="mt-8 grid gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-12">
-            <div className="flex flex-col justify-between lg:col-span-7 lg:py-6">
-              <div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-3 text-xs font-medium uppercase tracking-widest">
-                  <span className="inline-flex items-center gap-2 text-accent">
-                    <BadgeCheck aria-hidden="true" className="size-4" />
-                    {t('verifiedPartner')}
+      {/* Hero */}
+      <header className="mx-auto w-full max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8 lg:pb-14">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
+          {/* Cover / Logo area */}
+          <div className="relative flex min-h-64 overflow-hidden border border-border bg-surface lg:col-span-5 lg:min-h-80">
+            {business.coverImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={business.coverImageUrl}
+                alt={business.name}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex w-full items-center justify-center p-8">
+                {business.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={business.logoUrl} alt="" className="max-h-32 max-w-64 object-contain" />
+                ) : (
+                  <div className="flex size-24 items-center justify-center border border-border text-muted-foreground">
+                    <Building2 aria-hidden="true" className="size-10" strokeWidth={1} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Discount badge */}
+            {business.memberDiscountPercent ? (
+              <div className="bg-background/90 absolute right-4 top-4 border border-accent px-3 py-1.5 text-sm font-semibold text-accent backdrop-blur-sm">
+                {business.discountMuted ? (
+                  <span className="select-none opacity-80 blur-[4px]" aria-hidden="true">
+                    %%
                   </span>
-                  <span className="h-px w-8 bg-border" aria-hidden="true" />
-                  <span className="text-muted-foreground">{business.categoryName}</span>
-                </div>
-
-                <h1 className="mt-8 max-w-4xl text-3xl font-light leading-tight tracking-tight text-foreground sm:text-4xl">
-                  {business.name}
-                </h1>
-
-                {business.briefDescription ? (
-                  <p className="mt-6 max-w-3xl text-base leading-7 text-muted-foreground">
-                    {business.briefDescription}
-                  </p>
-                ) : null}
+                ) : (
+                  t('discountBadge', { percent: business.memberDiscountPercent })
+                )}
               </div>
+            ) : null}
+          </div>
 
-              <div className="mt-10 flex flex-wrap items-center gap-4">
-                {externalUrl ? (
-                  <a
-                    href={externalUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={getButtonClasses({ color: 'brand', size: 'lg' })}
-                  >
-                    {t('website')}
-                    <ArrowUpRight aria-hidden="true" className="size-4" />
-                  </a>
-                ) : null}
-                <span className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin aria-hidden="true" className="size-4 text-accent" />
-                  {getBusinessLocation(business)}
-                </span>
-              </div>
+          {/* Info */}
+          <div className="flex flex-col justify-center lg:col-span-7">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-accent">
+                <BadgeCheck aria-hidden="true" className="size-3.5" />
+                {t('verifiedPartner')}
+              </span>
+
+              {business.featuredTop ? (
+                <>
+                  <span className="h-px w-4 bg-border" aria-hidden="true" />
+                  <span className="text-xs font-medium uppercase tracking-widest text-accent">
+                    {t('featuredTop')}
+                  </span>
+                </>
+              ) : business.featuredRecommended ? (
+                <>
+                  <span className="h-px w-4 bg-border" aria-hidden="true" />
+                  <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                    {t('recommended')}
+                  </span>
+                </>
+              ) : null}
             </div>
 
-            <div className="relative flex min-h-80 overflow-hidden border border-border bg-surface lg:col-span-5">
-              {business.coverImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={business.coverImageUrl}
-                  alt={business.name}
-                  className="absolute inset-0 h-full w-full object-cover grayscale"
-                />
-              ) : (
-                <div className="flex w-full flex-col justify-between p-8 sm:p-10">
-                  <div className="flex items-center justify-between border-b border-border pb-5 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                    <span>KCLUB</span>
-                    <span>{business.categoryName}</span>
-                  </div>
-                  <div className="flex flex-1 items-center justify-center py-12">
-                    {business.logoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={business.logoUrl}
-                        alt=""
-                        className="max-h-32 max-w-64 object-contain"
-                      />
-                    ) : (
-                      <div className="flex size-24 items-center justify-center border border-accent text-accent">
-                        <Building2 aria-hidden="true" className="size-10" strokeWidth={1.25} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between border-t border-border pt-5 text-xs font-medium uppercase tracking-widest">
-                    <span className="text-accent">{t('verifiedPartner')}</span>
-                    <span className="text-muted-foreground">{getBusinessLocation(business)}</span>
-                  </div>
-                </div>
-              )}
+            <p className="mt-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+              {categoryBreadcrumb}
+            </p>
+
+            <h1 className="mt-4 max-w-xl text-3xl font-light leading-tight tracking-tight text-foreground sm:text-4xl">
+              {business.name}
+            </h1>
+
+            {business.briefDescription ? (
+              <p className="mt-4 text-base leading-7 text-muted-foreground">
+                {business.briefDescription}
+              </p>
+            ) : null}
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              {externalUrl ? (
+                <a
+                  href={externalUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={getButtonClasses({ color: 'brand', size: 'lg' })}
+                >
+                  {t('website')}
+                  <ArrowUpRight aria-hidden="true" className="size-4" />
+                </a>
+              ) : null}
+              <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin aria-hidden="true" className="size-4 text-accent" />
+                {location}
+              </span>
             </div>
           </div>
         </div>
       </header>
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-          <div className="min-w-0 space-y-14 lg:col-span-8">
-            {business.description || business.briefDescription ? (
-              <section aria-labelledby="partner-profile-title">
-                <div className="flex items-center gap-4 border-b border-border pb-5">
-                  <span className="h-px w-10 bg-accent" aria-hidden="true" />
-                  <h2
-                    id="partner-profile-title"
-                    className="text-sm font-medium uppercase tracking-widest text-foreground"
-                  >
-                    {t('profileTitle')}
-                  </h2>
-                </div>
-                <p className="mt-8 whitespace-pre-wrap text-base leading-7 text-muted-foreground">
-                  {business.description || business.briefDescription}
-                </p>
-              </section>
-            ) : null}
+      {/* Main Content */}
+      <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+        <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
+          {/* About */}
+          <div className="min-w-0 lg:col-span-8">
+            <SectionHeading title={t('profileTitle')} />
+            <div className="mt-6 whitespace-pre-wrap text-base leading-7 text-muted-foreground">
+              {business.description || business.briefDescription || t('noDescription')}
+            </div>
 
-            <section aria-labelledby="partner-details-title">
-              <div className="flex items-center gap-4 border-b border-border pb-5">
-                <span className="h-px w-10 bg-accent" aria-hidden="true" />
-                <h2
-                  id="partner-details-title"
-                  className="text-sm font-medium uppercase tracking-widest text-foreground"
-                >
-                  {t('partnerDetails')}
-                </h2>
-              </div>
-
-              <dl className="grid divide-y divide-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-                <div className="flex gap-4 py-7 sm:pr-8">
-                  <MapPin aria-hidden="true" className="mt-1 size-5 shrink-0 text-accent" />
-                  <div>
-                    <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                      {t('location')}
-                    </dt>
-                    <dd className="mt-2 text-sm text-foreground">
-                      {getBusinessLocation(business)}
-                    </dd>
-                  </div>
-                </div>
-
-                {business.representativeName ? (
-                  <div className="flex gap-4 py-7 sm:pl-8">
-                    <UserRound aria-hidden="true" className="mt-1 size-5 shrink-0 text-accent" />
-                    <div>
-                      <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                        {t('representative')}
-                      </dt>
-                      <dd className="mt-2 text-sm text-foreground">
-                        {business.representativeName}
-                      </dd>
-                    </div>
-                  </div>
-                ) : publishedLabel ? (
-                  <div className="flex gap-4 py-7 sm:pl-8">
-                    <CalendarDays aria-hidden="true" className="mt-1 size-5 shrink-0 text-accent" />
-                    <div>
-                      <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                        {t('published')}
-                      </dt>
-                      <dd className="mt-2 text-sm capitalize text-foreground">{publishedLabel}</dd>
-                    </div>
-                  </div>
-                ) : null}
-              </dl>
-            </section>
-          </div>
-
-          <aside className="min-w-0 space-y-6 lg:col-span-4">
+            {/* Member Benefit (inline, not buried in sidebar) */}
             {business.memberDiscountPercent ? (
-              <section className="border border-accent bg-surface p-7 sm:p-8">
+              <div className="border-accent/30 mt-10 border bg-surface p-6 sm:p-8">
                 <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-accent">
                   <BadgeCheck aria-hidden="true" className="size-4" />
                   {t('memberBenefit')}
                 </div>
-                <p className="mt-8 text-5xl font-light tracking-tight text-foreground">
-                  {business.memberDiscountPercent}%
-                </p>
-                <h2 className="mt-4 text-lg font-semibold leading-7 text-foreground">
-                  {t('discount')}
-                </h2>
-                <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                <div className="mt-4 flex items-baseline gap-3">
+                  {business.discountMuted ? (
+                    <span
+                      className="select-none text-4xl font-light tracking-tight text-foreground opacity-50 blur-md"
+                      aria-hidden="true"
+                    >
+                      %%
+                    </span>
+                  ) : (
+                    <span className="text-4xl font-light tracking-tight text-foreground">
+                      {business.memberDiscountPercent}%
+                    </span>
+                  )}
+                  <span className="text-lg font-semibold text-foreground">{t('discount')}</span>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
                   {t('discountDescription')}
                 </p>
-              </section>
+              </div>
             ) : null}
+          </div>
 
-            <section className="border border-border bg-surface p-7 sm:p-8">
-              <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                {t('contactInfo')}
-              </p>
-              <h2 className="mt-3 text-xl font-semibold text-foreground">{t('onlinePresence')}</h2>
+          {/* Sidebar — single card with all details */}
+          <aside className="min-w-0 lg:col-span-4">
+            <div className="border border-border bg-surface p-6">
+              <SectionHeading title={t('contactInfo')} small />
 
-              <ul className="mt-6 divide-y divide-border border-y border-border">
+              <dl className="mt-5 space-y-4">
+                {business.representativeName ? (
+                  <ContactRow
+                    icon={UserRound}
+                    label={t('representative')}
+                    value={business.representativeName}
+                  />
+                ) : null}
+
+                {business.publicPhone ? (
+                  <ContactRow icon={Phone} label={t('phone')}>
+                    <a
+                      href={`tel:${business.publicPhone}`}
+                      className="text-sm text-foreground transition-colors hover:text-accent"
+                    >
+                      {business.publicPhone}
+                    </a>
+                  </ContactRow>
+                ) : null}
+
+                {business.publicEmail ? (
+                  <ContactRow icon={Mail} label={t('email')}>
+                    <a
+                      href={`mailto:${business.publicEmail}`}
+                      className="text-sm text-foreground transition-colors hover:text-accent"
+                    >
+                      {business.publicEmail}
+                    </a>
+                  </ContactRow>
+                ) : null}
+
                 {business.websiteUrl ? (
-                  <li>
+                  <ContactRow icon={Globe} label={t('website')}>
                     <a
                       href={business.websiteUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="group flex min-h-14 items-center gap-3 py-3 text-sm text-foreground outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-ring"
+                      className="group inline-flex max-w-full items-center gap-1.5 text-sm text-foreground transition-colors hover:text-accent"
                     >
-                      <Globe aria-hidden="true" className="size-5 shrink-0 text-accent" />
-                      <span className="min-w-0 flex-1 truncate">
+                      <span className="truncate">
                         {business.websiteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                       </span>
                       <ArrowUpRight
                         aria-hidden="true"
-                        className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:-translate-y-1 group-hover:translate-x-1"
+                        className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                       />
                     </a>
-                  </li>
+                  </ContactRow>
                 ) : null}
 
                 {business.socialUrl ? (
-                  <li>
+                  <ContactRow icon={ExternalLink} label={t('socialLink')}>
                     <a
                       href={business.socialUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="group flex min-h-14 items-center gap-3 py-3 text-sm text-foreground outline-none transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-ring"
+                      className="group inline-flex max-w-full items-center gap-1.5 text-sm text-foreground transition-colors hover:text-accent"
                     >
-                      <ExternalLink aria-hidden="true" className="size-5 shrink-0 text-accent" />
-                      <span className="min-w-0 flex-1 truncate">
+                      <span className="truncate">
                         {business.socialUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                       </span>
                       <ArrowUpRight
                         aria-hidden="true"
-                        className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:-translate-y-1 group-hover:translate-x-1"
+                        className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                       />
                     </a>
-                  </li>
+                  </ContactRow>
                 ) : null}
 
-                {!business.websiteUrl && !business.socialUrl ? (
-                  <li className="py-5 text-sm leading-6 text-muted-foreground">
-                    {t('contactViaConcierge')}
-                  </li>
+                {!hasContact ? (
+                  <p className="text-sm text-muted-foreground">{t('contactViaConcierge')}</p>
                 ) : null}
-              </ul>
+              </dl>
 
-              <div className="mt-7 flex items-start gap-3">
-                <MapPin aria-hidden="true" className="mt-1 size-5 shrink-0 text-accent" />
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                    {t('headquarters')}
-                  </p>
-                  <p className="mt-2 text-sm text-foreground">{getBusinessLocation(business)}</p>
-                </div>
+              {/* Location */}
+              <div className="mt-6 border-t border-border pt-6">
+                <ContactRow icon={MapPin} label={t('location')}>
+                  <p className="text-sm font-medium text-foreground">{location}</p>
+                  {business.address ? (
+                    <p className="mt-1 text-sm text-muted-foreground">{business.address}</p>
+                  ) : null}
+                </ContactRow>
               </div>
-            </section>
+
+              {/* Schedule */}
+              {business.workingHours ? (
+                <div className="mt-6 border-t border-border pt-6">
+                  <ContactRow icon={Clock} label={t('workingHours')}>
+                    <p className="whitespace-pre-wrap text-sm text-foreground">
+                      {business.workingHours}
+                    </p>
+                  </ContactRow>
+                </div>
+              ) : null}
+
+              {/* Member since */}
+              {publishedLabel ? (
+                <div className="mt-6 border-t border-border pt-6">
+                  <ContactRow icon={Calendar} label={t('published')} value={publishedLabel} />
+                </div>
+              ) : null}
+
+              {/* Category details */}
+              <div className="mt-6 border-t border-border pt-6">
+                <ContactRow icon={Tag} label={t('partnerDetails')} value={business.categoryName} />
+              </div>
+
+              {/* Founded year */}
+              {business.foundedYear ? (
+                <div className="mt-6 border-t border-border pt-6">
+                  <ContactRow
+                    icon={Calendar}
+                    label={t('foundedYear')}
+                    value={String(business.foundedYear)}
+                  />
+                </div>
+              ) : null}
+
+              {/* Team size */}
+              {business.teamSize ? (
+                <div className="mt-6 border-t border-border pt-6">
+                  <ContactRow icon={Users} label={t('teamSize')} value={business.teamSize} />
+                </div>
+              ) : null}
+            </div>
           </aside>
         </div>
       </section>
     </article>
   );
 }
+
+/* ─── Sub-components ─── */
+
+function SectionHeading({ title, small }: { title: string; small?: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="h-px w-8 bg-accent" aria-hidden="true" />
+      <h2
+        className={
+          small
+            ? 'text-xs font-medium uppercase tracking-widest text-foreground'
+            : 'text-sm font-medium uppercase tracking-widest text-foreground'
+        }
+      >
+        {title}
+      </h2>
+    </div>
+  );
+}
+
+function ContactRow({
+  icon: Icon,
+  label,
+  value,
+  children,
+}: {
+  icon: typeof UserRound;
+  label: string;
+  value?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-accent" />
+      <div className="min-w-0">
+        <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          {label}
+        </dt>
+        {value ? <dd className="mt-1 text-sm text-foreground">{value}</dd> : null}
+        {children ? <dd className="mt-1">{children}</dd> : null}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Helpers ─── */
 
 async function getPublishedBusinessOrNull(slug: string) {
   try {

@@ -85,7 +85,7 @@ export function DashboardTabsClient({
         </div>
       )}
       {visibleTabs.map((tab) => (
-        <div key={tab} className={activeTab === tab ? undefined : 'hidden'}>
+        <div key={tab} className={activeTab === tab ? 'flex flex-1 flex-col' : 'hidden'}>
           {panels[tab]}
         </div>
       ))}

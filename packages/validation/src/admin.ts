@@ -209,6 +209,10 @@ export const adminBusinessUpdateSchema = z.object({
   websiteUrl: urlSchema.optional().nullable(),
   socialUrl: urlSchema.optional().nullable(),
   briefDescription: businessBriefDescriptionSchema,
+  seoTitle: z.string().max(200).optional().nullable(),
+  seoDescription: z.string().max(500).optional().nullable(),
+  seoKeywords: z.string().max(500).optional().nullable(),
+  ogImageUrl: urlSchema.optional().nullable(),
 });
 
 export type AdminBusinessUpdateInput = z.infer<typeof adminBusinessUpdateSchema>;

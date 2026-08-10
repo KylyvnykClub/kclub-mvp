@@ -1,239 +1,308 @@
 'use client';
 
-import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useState, type ReactElement } from 'react';
 
-import { MEMBER_API_ROUTES } from '@kclub/contracts';
-import { Spinner } from '@kclub/ui';
+import { MEMBER_API_ROUTES, type MemberIntroductionDto } from '@kclub/contracts';
+
+import { Alert, AlertDescription } from '@/components/reui/alert';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { parseAuthResponse } from '@/features/auth/utils/api';
+import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 
 type BusinessOption = {
   id: string;
   name: string;
 };
 
-export type IntroductionSubmitFormProps = {
-  businessOptions: BusinessOption[];
+type IntroductionFormData = {
+  businessId: string;
+  clientEmail: string;
+  clientName: string;
+  clientPhone: string;
+  clientTelegram: string;
+  clientViber: string;
+  clientWhatsapp: string;
+  message: string;
 };
 
-export function IntroductionSubmitForm({ businessOptions }: IntroductionSubmitFormProps) {
-  useTranslations('member.dashboard.introductions');
+export type IntroductionSubmitFormProps = {
+  businessOptions: BusinessOption[];
+  onSubmitted?: (introduction: MemberIntroductionDto) => void;
+};
+
+const EMPTY_FORM_DATA: IntroductionFormData = {
+  businessId: '',
+  clientEmail: '',
+  clientName: '',
+  clientPhone: '',
+  clientTelegram: '',
+  clientViber: '',
+  clientWhatsapp: '',
+  message: '',
+};
+
+const FORM_CONTROL_CLASSES =
+  'w-full rounded-none border-border bg-background text-foreground focus-visible:border-accent focus-visible:ring-accent';
+
+export function IntroductionSubmitForm({
+  businessOptions,
+  onSubmitted,
+}: IntroductionSubmitFormProps): ReactElement {
+  const t = useTranslations('member.dashboard.introductions');
+  const tCommon = useTranslations('member.common');
+  const [data, setData] = useState<IntroductionFormData>(EMPTY_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const [data, setData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    businessId: '',
-    context: '',
-  });
-
-  const set = (key: keyof typeof data, value: string) => {
-    setData((prev) => ({ ...prev, [key]: value }));
+  const setField = (key: keyof IntroductionFormData, value: string): void => {
+    setData((current) => ({ ...current, [key]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!data.fullName || (!data.phone && !data.email) || !data.businessId) return;
-
+  const handleSubmit = async (event: React.FormEvent): Promise<void> => {
+    event.preventDefault();
     setIsSubmitting(true);
-    setError(null);
-
-    const clientContactParts = [];
-    if (data.phone) clientContactParts.push(data.phone);
-    if (data.email) clientContactParts.push(data.email);
+    setSubmitError(null);
+    setSubmitSuccess(false);
 
     try {
-      const res = await fetch(MEMBER_API_ROUTES.INTRODUCTIONS, {
+      const response = await fetch(MEMBER_API_ROUTES.INTRODUCTIONS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targetBusinessId: data.businessId,
-          clientName: data.fullName,
-          clientContact: clientContactParts.join(' / '),
-          message: data.context || undefined,
+          clientName: data.clientName,
+          clientContact: [
+            `${t('clientPhoneLabel')}: ${data.clientPhone.trim()}`,
+            data.clientViber.trim() ? `Viber: ${data.clientViber.trim()}` : null,
+            data.clientTelegram.trim() ? `Telegram: ${data.clientTelegram.trim()}` : null,
+            data.clientWhatsapp.trim() ? `WhatsApp: ${data.clientWhatsapp.trim()}` : null,
+            data.clientEmail.trim() ? `Email: ${data.clientEmail.trim()}` : null,
+          ]
+            .filter((contact): contact is string => contact !== null)
+            .join('\n'),
+          message: data.message || null,
         }),
       });
+      const result = await parseAuthResponse<MemberIntroductionDto>(response);
 
-      if (!res.ok) {
-        throw new Error('Failed to submit');
+      if (!result.success || !result.data) {
+        const message = result.errorCode
+          ? t(`errors.${result.errorCode}`, { defaultValue: tCommon('genericError') })
+          : tCommon('genericError');
+        setSubmitError(message);
+        return;
       }
 
-      setDone(true);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Something went wrong';
-      setError(message);
+      setData(EMPTY_FORM_DATA);
+      setSubmitSuccess(true);
+      onSubmitted?.(result.data);
+    } catch {
+      setSubmitError(tCommon('genericError'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (done) {
-    return (
-      <div
-        className="flex flex-col items-center justify-center border border-border bg-background p-12 text-center shadow-lg"
-        data-testid="intro-submit-success"
-      >
-        <h2 className="mb-4 text-2xl font-semibold text-accent">Recommendation Submitted</h2>
-        <p className="text-muted-foreground">
-          Thank you. The partner will review your client recommendation shortly.
-        </p>
-      </div>
-    );
-  }
-
-  const inputClasses =
-    'w-full border border-border bg-background py-3 px-4 text-[15px] text-foreground transition-colors placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent';
-  const textareaClasses =
-    'w-full border border-border bg-background py-3 px-4 text-[15px] text-foreground transition-colors placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent resize-none';
-  const selectClasses =
-    'w-full appearance-none border border-border bg-background py-3 px-4 text-[15px] text-foreground transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
-
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl space-y-12">
-      {error && <div className="mb-4 text-sm text-red-500">{error}</div>}
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {submitError && (
+        <Alert variant="destructive" className="rounded-none">
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      )}
 
-      <div className="border border-border bg-background p-10 shadow-lg">
+      {submitSuccess && (
+        <Alert variant="success" className="rounded-none" data-testid="intro-submit-success">
+          <AlertDescription>{t('submitSuccess')}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="border border-border bg-background p-6 shadow-lg sm:p-8 lg:p-10">
         <h2 className="mb-8 border-b border-border pb-4 text-lg font-semibold uppercase tracking-widest text-accent">
-          Client Information
+          {t('clientSectionTitle')}
         </h2>
+
         <div className="space-y-6">
           <div>
             <label
               className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
-              htmlFor="fullName"
+              htmlFor="introduction-client-name"
             >
-              Full Name
+              {t('clientNameLabel')}
             </label>
-            <input
+            <Input
+              id="introduction-client-name"
               data-testid="intro-client-name"
-              id="fullName"
               type="text"
-              placeholder="e.g. Alexander Sterling"
-              className={inputClasses}
-              value={data.fullName}
-              onChange={(e) => set('fullName', e.target.value)}
+              value={data.clientName}
+              onChange={(event) => setField('clientName', event.target.value)}
               required
+              maxLength={200}
+              className={FORM_CONTROL_CLASSES}
             />
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
-              <label
-                className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
-                htmlFor="phoneNumber"
-              >
-                Phone Number
-              </label>
-              <input
-                data-testid="intro-client-phone"
-                id="phoneNumber"
-                type="tel"
-                placeholder="+1 (555) 000-0000"
-                className={inputClasses}
-                value={data.phone}
-                onChange={(e) => set('phone', e.target.value)}
-              />
-            </div>
-            <div>
-              <label
-                className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
-                htmlFor="emailAddress"
-              >
-                Email Address
-              </label>
-              <input
-                id="emailAddress"
-                type="email"
-                placeholder="alexander@domain.com"
-                className={inputClasses}
-                value={data.email}
-                onChange={(e) => set('email', e.target.value)}
-              />
-            </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <IntroductionContactField
+              id="introduction-client-phone"
+              label={t('clientPhoneLabel')}
+              type="tel"
+              value={data.clientPhone}
+              onChange={(value) => setField('clientPhone', value)}
+              required
+              testId="intro-client-phone"
+              placeholder={t('clientContactPlaceholder')}
+            />
+            <IntroductionContactField
+              id="introduction-client-email"
+              label={t('clientEmailLabel')}
+              type="email"
+              value={data.clientEmail}
+              onChange={(value) => setField('clientEmail', value)}
+            />
+            <IntroductionContactField
+              id="introduction-client-viber"
+              label={t('clientViberLabel')}
+              value={data.clientViber}
+              onChange={(value) => setField('clientViber', value)}
+            />
+            <IntroductionContactField
+              id="introduction-client-telegram"
+              label={t('clientTelegramLabel')}
+              value={data.clientTelegram}
+              onChange={(value) => setField('clientTelegram', value)}
+            />
+            <IntroductionContactField
+              id="introduction-client-whatsapp"
+              label={t('clientWhatsappLabel')}
+              value={data.clientWhatsapp}
+              onChange={(value) => setField('clientWhatsapp', value)}
+            />
           </div>
         </div>
       </div>
 
-      <div className="border border-border bg-background p-10 shadow-lg">
+      <div className="border border-border bg-background p-6 shadow-lg sm:p-8 lg:p-10">
         <h2 className="mb-8 border-b border-border pb-4 text-lg font-semibold uppercase tracking-widest text-accent">
-          Service Requisition
+          {t('requestSectionTitle')}
         </h2>
+
         <div className="space-y-6">
           <div>
             <label
               className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
-              htmlFor="targetCategory"
+              htmlFor="introduction-target-business"
             >
-              Target Partner
+              {t('targetBusinessLabel')}
             </label>
-            <div className="relative">
-              <select
-                data-testid="intro-target-business"
-                id="targetCategory"
-                className={selectClasses}
-                value={data.businessId}
-                onChange={(e) => set('businessId', e.target.value)}
-                required
-              >
-                <option value="" disabled className="text-muted">
-                  Select a partner...
-                </option>
-                {businessOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.name}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-accent">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            {businessOptions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t('noBusinessesAvailable')}</p>
+            ) : (
+              <div className="relative">
+                <select
+                  id="introduction-target-business"
+                  data-testid="intro-target-business"
+                  className={`${FORM_CONTROL_CLASSES} h-12 appearance-none px-4 pr-12 text-[15px]`}
+                  value={data.businessId}
+                  onChange={(event) => setField('businessId', event.target.value)}
+                  required
                 >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
+                  <option value="" disabled>
+                    {t('selectPlaceholder')}
+                  </option>
+                  {businessOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-accent"
+                  size={20}
+                  strokeWidth={1.5}
+                />
               </div>
-            </div>
+            )}
           </div>
+
           <div>
             <label
               className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
-              htmlFor="context"
+              htmlFor="introduction-message"
             >
-              Recommendation Context
+              {t('messageLabel')}
             </label>
-            <textarea
+            <Textarea
+              id="introduction-message"
               data-testid="intro-message"
-              id="context"
+              value={data.message}
+              onChange={(event) => setField('message', event.target.value)}
+              maxLength={500}
               rows={5}
-              placeholder="Provide brief context regarding the client's needs and your relationship..."
-              className={textareaClasses}
-              value={data.context}
-              onChange={(e) => set('context', e.target.value)}
+              placeholder={t('messagePlaceholder')}
+              className={FORM_CONTROL_CLASSES}
             />
           </div>
         </div>
       </div>
 
       <div className="flex justify-end pt-2">
-        <button
-          data-testid="intro-submit"
+        <CabinetButton
           type="submit"
-          disabled={
-            isSubmitting || !data.fullName || (!data.phone && !data.email) || !data.businessId
-          }
-          className="hover:bg-accent/90 flex items-center gap-2 bg-accent px-10 py-4 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-950 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          data-testid="intro-submit"
+          disabled={isSubmitting || businessOptions.length === 0}
+          className="rounded-none px-10 uppercase tracking-[0.2em]"
         >
-          {isSubmitting ? <Spinner size={18} /> : null}
-          Submit Recommendation
-        </button>
+          {isSubmitting ? tCommon('saving') : t('submitCta')}
+        </CabinetButton>
       </div>
     </form>
+  );
+}
+
+function IntroductionContactField({
+  id,
+  label,
+  onChange,
+  placeholder,
+  required = false,
+  testId,
+  type = 'text',
+  value,
+}: {
+  id: string;
+  label: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  required?: boolean;
+  testId?: string;
+  type?: 'email' | 'tel' | 'text';
+  value: string;
+}): ReactElement {
+  return (
+    <div>
+      <label
+        className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
+        htmlFor={id}
+      >
+        {label}
+      </label>
+      <Input
+        id={id}
+        data-testid={testId}
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required={required}
+        maxLength={type === 'email' ? 70 : 32}
+        placeholder={placeholder}
+        className={FORM_CONTROL_CLASSES}
+      />
+    </div>
   );
 }

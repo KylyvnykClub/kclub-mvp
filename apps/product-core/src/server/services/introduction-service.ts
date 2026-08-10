@@ -20,12 +20,15 @@ import type { RequestContext } from '@/server/context';
 const auditService = createDbAuditService();
 
 type IntroductionTargetBusiness = { name: string; slug: string };
+type IntroductionRequesterBusiness = { slug: string };
 type IntroductionRequesterUser = { display_name: string | null };
 type IntroductionRecord = typeof schema.businessIntroductions.$inferSelect & {
   targetBusiness?: IntroductionTargetBusiness | null;
   target_business?: IntroductionTargetBusiness | null;
   requesterUser?: IntroductionRequesterUser | null;
   requester_user?: IntroductionRequesterUser | null;
+  requesterBusiness?: IntroductionRequesterBusiness | null;
+  requester_business?: IntroductionRequesterBusiness | null;
 };
 
 async function assertCanRecommend(userId: string): Promise<void> {
@@ -276,6 +279,7 @@ export async function getIncomingIntroductions(
     ),
     with: {
       requesterUser: { columns: { display_name: true } },
+      requesterBusiness: { columns: { slug: true } },
       targetBusiness: { columns: { name: true, slug: true } },
     },
     orderBy: [desc(schema.businessIntroductions.created_at)],
@@ -333,6 +337,7 @@ export async function completeIntroduction(
     where: eq(schema.businessIntroductions.id, introductionId),
     with: {
       requesterUser: { columns: { display_name: true } },
+      requesterBusiness: { columns: { slug: true } },
       targetBusiness: { columns: { name: true, slug: true } },
     },
   })) as IntroductionRecord | null;
@@ -390,6 +395,7 @@ export async function rejectIntroduction(
     where: eq(schema.businessIntroductions.id, introductionId),
     with: {
       requesterUser: { columns: { display_name: true } },
+      requesterBusiness: { columns: { slug: true } },
       targetBusiness: { columns: { name: true, slug: true } },
     },
   })) as IntroductionRecord | null;
@@ -459,11 +465,13 @@ export function toBusinessIncomingIntroductionDto(
 ): BusinessIncomingIntroductionDto {
   const ru = intro.requesterUser || intro.requester_user;
   const tb = intro.targetBusiness || intro.target_business;
+  const rb = intro.requesterBusiness || intro.requester_business;
   return {
     id: intro.id,
     requesterUserId: intro.requester_user_id,
     requesterBusinessId: intro.requester_business_id ?? null,
     requesterDisplayName: ru?.display_name ?? null,
+    requesterBusinessSlug: rb?.slug ?? null,
     targetBusinessId: intro.target_business_id,
     status: intro.status,
     clientName: intro.client_name ?? '',

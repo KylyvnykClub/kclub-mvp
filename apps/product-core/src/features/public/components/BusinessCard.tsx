@@ -61,7 +61,13 @@ export function BusinessCard({
         {/* Discount Ribbon (if any) */}
         {business.memberDiscountPercent ? (
           <div className="absolute right-4 top-4 bg-accent px-4 py-1 text-lg font-semibold text-accent-foreground shadow-sm">
-            {business.memberDiscountPercent}%
+            {business.discountMuted ? (
+              <span className="blur-[4px] select-none opacity-80" aria-hidden="true">
+                %%
+              </span>
+            ) : (
+              `${business.memberDiscountPercent}%`
+            )}
           </div>
         ) : null}
 

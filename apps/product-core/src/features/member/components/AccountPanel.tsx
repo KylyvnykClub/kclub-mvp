@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Gem, Briefcase, ChevronRight } from 'lucide-react';
+import { Gem, Briefcase, ChevronRight, CalendarDays, MapPin, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import { MEMBER_API_ROUTES } from '@kclub/contracts';
 import { Spinner, cn } from '@kclub/ui';
@@ -12,12 +12,7 @@ import type { CurrentMemberProfileDto } from '@kclub/contracts';
 import type { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
 import { KylyvnykClubCard } from '@/features/member/components/KylyvnykClubCard';
-import {
-  cabinetContentClasses,
-  cabinetFieldLabelClasses,
-} from '@/features/member/components/cabinet/styles';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/reui/badge';
+import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 
 type AccountPanelProps = {
   locale: Locale;
@@ -25,45 +20,8 @@ type AccountPanelProps = {
   cardNumber?: string | null;
 };
 
-type ProfileInfoFieldProps = {
-  label: string;
-  value: string;
-  isMultiline?: boolean;
-};
-
-function getInitials(name: string | null, phone: string): string {
-  if (!name) {
-    return phone.charAt(phone.length - 1).toUpperCase();
-  }
-
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part.charAt(0))
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-}
-
 function getPlanLabel(tier: CurrentMemberProfileDto['membershipTier']): string {
   return tier === 'VIP' ? 'VIP' : 'MEMBER';
-}
-
-function ProfileInfoField({ label, value, isMultiline }: ProfileInfoFieldProps) {
-  return (
-    <div>
-      <p className={cabinetFieldLabelClasses}>{label}</p>
-      <div
-        className={
-          isMultiline
-            ? 'min-h-20 border-b border-border py-3 text-sm leading-relaxed text-foreground'
-            : 'min-h-11 border-b border-border py-2.5 text-sm text-foreground'
-        }
-      >
-        {value}
-      </div>
-    </div>
-  );
 }
 
 const GOLD_BG = [
@@ -91,6 +49,7 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
     year: 'numeric',
   });
   const localePreference = profile.localePreference ?? locale;
+  const location = [profile.city, profile.country].filter(Boolean).join(', ');
 
   const handleVipCheckout = async () => {
     if (isVip) {
@@ -117,29 +76,8 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
   };
 
   return (
-    <div className={cabinetContentClasses}>
-      <div className="mb-10 flex flex-col gap-8 border-b border-border pb-10 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-start gap-5">
-          <Avatar className="border-accent/25 size-20 border bg-surface-muted">
-            {profile.avatarUrl ? <AvatarImage src={profile.avatarUrl} alt={memberName} /> : null}
-            <AvatarFallback className="bg-transparent text-2xl font-semibold text-accent">
-              {getInitials(profile.displayName, profile.phone)}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className="min-w-0 pt-1">
-            <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
-              <span className="break-words text-2xl font-semibold text-foreground">
-                {memberName}
-              </span>
-              <Badge variant="outline" size="sm" data-testid="subscription-status">
-                {planLabel}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">{t('memberSince', { date: regDate })}</p>
-          </div>
-        </div>
-
+    <div className={cn(cabinetContentClasses, 'flex flex-col items-center justify-center')}>
+      <div className="flex w-full justify-center">
         <KylyvnykClubCard
           name={memberName}
           status={cardNumber ?? `${planLabel} MEMBER`}
@@ -148,19 +86,35 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
         />
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <ProfileInfoField label={t('displayName')} value={memberName} />
-        <ProfileInfoField label={t('phone')} value={profile.phone} />
-        <ProfileInfoField label={t('country')} value={profile.country || t('notSet')} />
-        <ProfileInfoField label={t('city')} value={profile.city || t('notSet')} />
-        <ProfileInfoField label={t('locale')} value={tCommon(`locales.${localePreference}`)} />
-        <ProfileInfoField label={t('joined')} value={regDate} />
-        <div className="sm:col-span-2">
-          <ProfileInfoField label={t('about')} value={profile.about || t('notSet')} isMultiline />
+      <div className="mt-4 flex flex-col items-center space-y-2">
+        <div
+          className="flex w-full max-w-md items-center justify-between gap-3 rounded-lg px-4 py-2.5"
+          style={{
+            background: GOLD_BG,
+            boxShadow: '0 1px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,245,200,0.4)',
+            border: '1px solid #b89230',
+          }}
+        >
+          <span className="flex items-center gap-2" style={GOLD_TEXT}>
+            <CalendarDays size={14} strokeWidth={2.2} aria-hidden />
+            <span className="text-xs font-bold uppercase tracking-wide">{regDate}</span>
+          </span>
+          <span className="hidden h-4 w-px sm:block" style={{ background: 'rgba(42,30,8,0.2)' }} />
+          <span className="flex items-center gap-2" style={GOLD_TEXT}>
+            <MapPin size={14} strokeWidth={2.2} aria-hidden />
+            <span className="text-xs font-bold uppercase tracking-wide">
+              {location || t('notSet')}
+            </span>
+          </span>
+          <span className="hidden h-4 w-px sm:block" style={{ background: 'rgba(42,30,8,0.2)' }} />
+          <span className="flex items-center gap-2" style={GOLD_TEXT}>
+            <Globe size={14} strokeWidth={2.2} aria-hidden />
+            <span className="text-xs font-bold uppercase tracking-wide">
+              {tCommon(`locales.${localePreference}`)}
+            </span>
+          </span>
         </div>
-      </div>
 
-      <div className="mt-10 flex flex-col items-center space-y-2">
         <button
           type="button"
           data-testid="vip-upgrade-btn"
@@ -169,7 +123,7 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
           aria-disabled={isVip || vipLoading}
           aria-pressed={isVip}
           className={cn(
-            'flex w-full max-w-sm items-center gap-3 rounded-lg px-4 py-2.5 transition-opacity',
+            'flex w-full max-w-md items-center gap-3 rounded-lg px-4 py-2.5 transition-opacity',
             isVip
               ? 'ring-2 ring-white/30'
               : 'cursor-pointer hover:opacity-90 active:opacity-80 disabled:cursor-wait disabled:opacity-70',
@@ -232,7 +186,7 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
 
         <a
           href={`/${locale}/m/business/onboarding`}
-          className="flex w-full max-w-sm items-center gap-3 rounded-lg px-4 py-2.5 transition-opacity hover:opacity-90 active:opacity-80"
+          className="flex w-full max-w-md items-center gap-3 rounded-lg px-4 py-2.5 transition-opacity hover:opacity-90 active:opacity-80"
           style={{
             background: GOLD_BG,
             boxShadow: '0 1px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,245,200,0.4)',

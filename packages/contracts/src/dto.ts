@@ -314,6 +314,16 @@ export type PublicBusinessDetailDto = PublicBusinessListItemDto & {
   description: string | null;
   representativeName: string | null;
   publishedAt: IsoDateTime | null;
+  publicPhone: string | null;
+  publicEmail: string | null;
+  address: string | null;
+  workingHours: string | null;
+  foundedYear: number | null;
+  teamSize: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoKeywords: string | null;
+  ogImageUrl: string | null;
 };
 
 export type AdminBusinessDetailDto = PublicBusinessDetailDto & {
@@ -377,6 +387,7 @@ export type MemberIntroductionDto = IntroductionDto & {
 
 export type BusinessIncomingIntroductionDto = IntroductionDto & {
   requesterDisplayName: string | null;
+  requesterBusinessSlug: string | null;
   targetBusinessName: string;
   targetBusinessSlug: string;
 };
