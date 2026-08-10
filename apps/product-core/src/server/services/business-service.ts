@@ -1,5 +1,6 @@
 import {
   ERROR_CODES,
+  type BusinessVerificationDocumentDto,
   type BusinessReviewReserveCheckoutDto,
   type BusinessStatus,
   type Locale,
@@ -82,6 +83,21 @@ type BusinessProfileRecord = {
   og_image_url?: string | null;
   created_at?: Date;
   updated_at?: Date;
+  verificationDocuments?: BusinessVerificationDocumentRecord[] | null;
+};
+
+type BusinessVerificationDocumentRecord = {
+  id: string;
+  business_profile_id: string;
+  file_name: string;
+  mime_type: string;
+  file_size_bytes: number;
+  public_url: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  rejection_reason: string | null;
+  approved_at: Date | null;
+  rejected_at: Date | null;
+  created_at: Date;
 };
 
 function generateSlug(name: string): string {
@@ -554,6 +570,8 @@ export async function updateBusiness(
     ...(input.briefDescription !== undefined ? { brief_description: input.briefDescription } : {}),
     ...(input.websiteUrl !== undefined ? { website_url: input.websiteUrl } : {}),
     ...(input.socialUrl !== undefined ? { social_url: input.socialUrl } : {}),
+    ...(input.coverImageUrl !== undefined ? { cover_image_url: input.coverImageUrl } : {}),
+    ...(input.logoUrl !== undefined ? { logo_url: input.logoUrl } : {}),
     ...(input.memberDiscountPercent !== undefined
       ? { member_discount_percent: input.memberDiscountPercent }
       : {}),
@@ -597,6 +615,75 @@ export async function updateBusiness(
   return toMemberBusinessProfileDto(updatedBusiness!);
 }
 
+export async function createBusinessVerificationDocument(
+  businessId: string,
+  input: {
+    fileName: string;
+    mimeType: string;
+    fileSizeBytes: number;
+    storagePath: string;
+    publicUrl: string;
+  },
+  context: RequestContext,
+): Promise<BusinessVerificationDocumentDto> {
+  const db = getDbClient();
+  const userId = context.actor?.kind === 'member' ? context.actor.userId : null;
+
+  if (!userId) {
+    throw new AppError({
+      code: ERROR_CODES.PERMISSION_DENIED,
+      message: 'Authentication required',
+      status: 401,
+    });
+  }
+
+  const business = await db.query.businessProfiles.findFirst({
+    where: eq(schema.businessProfiles.id, businessId),
+  });
+
+  if (!business) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business not found',
+      status: 404,
+    });
+  }
+
+  if (business.user_id !== userId) {
+    throw new AppError({
+      code: ERROR_CODES.PERMISSION_DENIED,
+      message: 'You do not have permission to edit this business',
+      status: 403,
+    });
+  }
+
+  const [document] = await db
+    .insert(schema.businessVerificationDocuments)
+    .values({
+      business_profile_id: businessId,
+      uploaded_by_user_id: userId,
+      file_name: input.fileName,
+      mime_type: input.mimeType,
+      file_size_bytes: input.fileSizeBytes,
+      storage_path: input.storagePath,
+      public_url: input.publicUrl,
+      status: 'PENDING',
+    })
+    .returning();
+
+  await auditService.log(
+    {
+      action: 'BUSINESS_DOCUMENT_UPLOADED',
+      entityType: 'BusinessVerificationDocument',
+      entityId: document!.id,
+      after: { businessId, fileName: input.fileName, status: 'PENDING' },
+    },
+    context,
+  );
+
+  return toBusinessVerificationDocumentDto(document!);
+}
+
 export async function getOwnBusinesses(userId: string): Promise<MemberBusinessProfileDto[]> {
   const db = getDbClient();
   const businesses = await db.query.businessProfiles.findMany({
@@ -604,8 +691,13 @@ export async function getOwnBusinesses(userId: string): Promise<MemberBusinessPr
     with: { category: CATEGORY_WITH_PARENTS, country: true, city: true },
     orderBy: [desc(schema.businessProfiles.created_at)],
   });
+  const documentsByBusinessId = await getBusinessVerificationDocumentsMap(
+    businesses.map((business) => business.id),
+  );
 
-  return businesses.map(toMemberBusinessProfileDto);
+  return businesses.map((business) =>
+    toMemberBusinessProfileDto(business, documentsByBusinessId.get(business.id) ?? []),
+  );
 }
 
 export async function getBusinessDetail(
@@ -629,7 +721,8 @@ export async function getBusinessDetail(
   const isOwner = userId === business.user_id;
 
   if (isOwner) {
-    return toMemberBusinessProfileDto(business);
+    const documentsByBusinessId = await getBusinessVerificationDocumentsMap([business.id]);
+    return toMemberBusinessProfileDto(business, documentsByBusinessId.get(business.id) ?? []);
   }
 
   if (business.status !== 'PUBLISHED') {
@@ -729,6 +822,7 @@ export function toPublicBusinessDetailDto(
 
 export function toMemberBusinessProfileDto(
   business: BusinessProfileRecord,
+  verificationDocuments: BusinessVerificationDocumentDto[] = [],
 ): MemberBusinessProfileDto {
   return {
     ...toPublicBusinessDetailDto(business),
@@ -738,8 +832,65 @@ export function toMemberBusinessProfileDto(
     representativeEmail: business.representative_email ?? '',
     representativePhone: business.representative_phone ?? '',
     rejectionReason: business.rejection_reason ?? null,
+    verificationDocuments,
     createdAt: business.created_at?.toISOString() ?? new Date().toISOString(),
     updatedAt: business.updated_at?.toISOString() ?? new Date().toISOString(),
+  };
+}
+
+async function getBusinessVerificationDocumentsMap(
+  businessIds: string[],
+): Promise<Map<string, BusinessVerificationDocumentDto[]>> {
+  const documentsByBusinessId = new Map<string, BusinessVerificationDocumentDto[]>();
+
+  if (businessIds.length === 0) {
+    return documentsByBusinessId;
+  }
+
+  const db = getDbClient();
+  let documents: BusinessVerificationDocumentRecord[] = [];
+
+  try {
+    documents = (await db.query.businessVerificationDocuments.findMany({
+      where: (document, operators) => operators.inArray(document.business_profile_id, businessIds),
+      orderBy: [desc(schema.businessVerificationDocuments.created_at)],
+    })) as BusinessVerificationDocumentRecord[];
+  } catch (error) {
+    if (isMissingBusinessVerificationDocumentsTableError(error)) {
+      return documentsByBusinessId;
+    }
+
+    throw error;
+  }
+
+  for (const document of documents) {
+    const current = documentsByBusinessId.get(document.business_profile_id) ?? [];
+    current.push(toBusinessVerificationDocumentDto(document));
+    documentsByBusinessId.set(document.business_profile_id, current);
+  }
+
+  return documentsByBusinessId;
+}
+
+function isMissingBusinessVerificationDocumentsTableError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === '42P01';
+}
+
+export function toBusinessVerificationDocumentDto(
+  document: BusinessVerificationDocumentRecord,
+): BusinessVerificationDocumentDto {
+  return {
+    id: document.id,
+    businessProfileId: document.business_profile_id,
+    fileName: document.file_name,
+    mimeType: document.mime_type,
+    fileSizeBytes: document.file_size_bytes,
+    publicUrl: document.public_url,
+    status: document.status,
+    rejectionReason: document.rejection_reason,
+    approvedAt: document.approved_at?.toISOString() ?? null,
+    rejectedAt: document.rejected_at?.toISOString() ?? null,
+    createdAt: document.created_at.toISOString(),
   };
 }
 

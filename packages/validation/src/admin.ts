@@ -45,6 +45,10 @@ export const businessHideSchema = z.object({
   reason: z.string().min(1).max(500).optional(),
 });
 
+export const businessDocumentRejectSchema = z.object({
+  reason: z.string().min(1).max(500),
+});
+
 export const businessFeaturedSchema = z.object({
   featuredTop: z.boolean().optional(),
   featuredRecommended: z.boolean().optional(),
@@ -181,6 +185,7 @@ export type ReissueCardInput = z.infer<typeof reissueCardSchema>;
 export type BusinessApproveInput = z.infer<typeof businessApproveSchema>;
 export type BusinessRejectInput = z.infer<typeof businessRejectSchema>;
 export type BusinessHideInput = z.infer<typeof businessHideSchema>;
+export type BusinessDocumentRejectInput = z.infer<typeof businessDocumentRejectSchema>;
 export type BusinessFeaturedInput = z.infer<typeof businessFeaturedSchema>;
 export type IntroductionApproveInput = z.infer<typeof introductionApproveSchema>;
 export type IntroductionRejectInput = z.infer<typeof introductionRejectSchema>;

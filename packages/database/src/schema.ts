@@ -37,6 +37,10 @@ export const businessStatusEnum = pgEnum('business_status', [
   'REJECTED',
   'HIDDEN',
 ]);
+export const businessVerificationDocumentStatusEnum = pgEnum(
+  'business_verification_document_status',
+  ['PENDING', 'APPROVED', 'REJECTED'],
+);
 export const businessReviewSubmissionStatusEnum = pgEnum('business_review_submission_status', [
   'PENDING_PAYMENT',
   'SUBMITTED',
@@ -254,6 +258,41 @@ export const businessProfiles = pgTable(
       table.category_id,
       table.published_at,
     ),
+  ],
+);
+
+export const businessVerificationDocuments = pgTable(
+  'business_verification_documents',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    business_profile_id: uuid('business_profile_id')
+      .notNull()
+      .references(() => businessProfiles.id, { onDelete: 'cascade' }),
+    uploaded_by_user_id: uuid('uploaded_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    reviewed_by_staff_id: uuid('reviewed_by_staff_id').references(() => adminUsers.id, {
+      onDelete: 'set null',
+    }),
+    file_name: varchar('file_name', { length: 255 }).notNull(),
+    mime_type: varchar('mime_type', { length: 120 }).notNull(),
+    file_size_bytes: integer('file_size_bytes').notNull(),
+    storage_path: text('storage_path').notNull(),
+    public_url: text('public_url').notNull(),
+    status: businessVerificationDocumentStatusEnum('status').default('PENDING').notNull(),
+    rejection_reason: text('rejection_reason'),
+    approved_at: timestamp('approved_at'),
+    rejected_at: timestamp('rejected_at'),
+    created_at: timestamp('created_at').defaultNow().notNull(),
+    updated_at: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('bvd_business_status_created_idx').on(
+      table.business_profile_id,
+      table.status,
+      table.created_at,
+    ),
+    index('bvd_uploaded_by_created_idx').on(table.uploaded_by_user_id, table.created_at),
   ],
 );
 

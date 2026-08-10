@@ -63,6 +63,8 @@ export const businessProfileEditableFieldsSchema = z
     customCategoryName: customCategoryNameSchema.optional(),
     websiteUrl: urlSchema.optional().nullable(),
     socialUrl: urlSchema.optional().nullable(),
+    coverImageUrl: urlSchema.optional().nullable(),
+    logoUrl: urlSchema.optional().nullable(),
     briefDescription: businessBriefDescriptionSchema,
     memberDiscountPercent: z.number().int().min(1).max(100).optional().nullable(),
   })
