@@ -1,16 +1,26 @@
 'use client';
 
-import { ChevronDown } from 'lucide-react';
+import {
+  ChevronDown,
+  CircleAlert,
+  CircleCheck,
+  Mail,
+  MessageCircle,
+  Phone,
+  Send,
+  UserRound,
+  type LucideIcon,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState, type ReactElement } from 'react';
 
 import { MEMBER_API_ROUTES, type MemberIntroductionDto } from '@kclub/contracts';
+import { Button } from '@kclub/ui';
 
 import { Alert, AlertDescription } from '@/components/reui/alert';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { parseAuthResponse } from '@/features/auth/utils/api';
-import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 
 type BusinessOption = {
   id: string;
@@ -46,6 +56,9 @@ const EMPTY_FORM_DATA: IntroductionFormData = {
 
 const FORM_CONTROL_CLASSES =
   'w-full rounded-none border-border bg-background text-foreground focus-visible:border-accent focus-visible:ring-accent';
+
+const INTRODUCTION_SELECT_CLASSES =
+  'h-12 w-full appearance-none border-0 border-b border-border bg-transparent px-0 pr-12 text-[15px] text-foreground focus-visible:border-accent focus-visible:outline-none focus-visible:ring-0';
 
 export function IntroductionSubmitForm({
   businessOptions,
@@ -111,12 +124,14 @@ export function IntroductionSubmitForm({
     <form onSubmit={handleSubmit} className="space-y-8">
       {submitError && (
         <Alert variant="destructive" className="rounded-none">
+          <CircleAlert aria-hidden="true" />
           <AlertDescription>{submitError}</AlertDescription>
         </Alert>
       )}
 
       {submitSuccess && (
         <Alert variant="success" className="rounded-none" data-testid="intro-submit-success">
+          <CircleCheck aria-hidden="true" />
           <AlertDescription>{t('submitSuccess')}</AlertDescription>
         </Alert>
       )}
@@ -129,9 +144,10 @@ export function IntroductionSubmitForm({
         <div className="space-y-6">
           <div>
             <label
-              className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
+              className="mb-2 flex items-center gap-2 text-[13px] font-medium uppercase text-muted-foreground"
               htmlFor="introduction-client-name"
             >
+              <UserRound aria-hidden="true" className="size-3.5" />
               {t('clientNameLabel')}
             </label>
             <Input
@@ -156,6 +172,7 @@ export function IntroductionSubmitForm({
               required
               testId="intro-client-phone"
               placeholder={t('clientContactPlaceholder')}
+              icon={Phone}
             />
             <IntroductionContactField
               id="introduction-client-email"
@@ -163,24 +180,28 @@ export function IntroductionSubmitForm({
               type="email"
               value={data.clientEmail}
               onChange={(value) => setField('clientEmail', value)}
+              icon={Mail}
             />
             <IntroductionContactField
               id="introduction-client-viber"
               label={t('clientViberLabel')}
               value={data.clientViber}
               onChange={(value) => setField('clientViber', value)}
+              icon={MessageCircle}
             />
             <IntroductionContactField
               id="introduction-client-telegram"
               label={t('clientTelegramLabel')}
               value={data.clientTelegram}
               onChange={(value) => setField('clientTelegram', value)}
+              icon={Send}
             />
             <IntroductionContactField
               id="introduction-client-whatsapp"
               label={t('clientWhatsappLabel')}
               value={data.clientWhatsapp}
               onChange={(value) => setField('clientWhatsapp', value)}
+              icon={MessageCircle}
             />
           </div>
         </div>
@@ -206,7 +227,7 @@ export function IntroductionSubmitForm({
                 <select
                   id="introduction-target-business"
                   data-testid="intro-target-business"
-                  className={`${FORM_CONTROL_CLASSES} h-12 appearance-none px-4 pr-12 text-[15px]`}
+                  className={INTRODUCTION_SELECT_CLASSES}
                   value={data.businessId}
                   onChange={(event) => setField('businessId', event.target.value)}
                   required
@@ -252,14 +273,16 @@ export function IntroductionSubmitForm({
       </div>
 
       <div className="flex justify-end pt-2">
-        <CabinetButton
+        <Button
+          color="brand"
+          size="md"
           type="submit"
           data-testid="intro-submit"
           disabled={isSubmitting || businessOptions.length === 0}
-          className="rounded-none px-10 uppercase tracking-[0.2em]"
+          className="px-10"
         >
           {isSubmitting ? tCommon('saving') : t('submitCta')}
-        </CabinetButton>
+        </Button>
       </div>
     </form>
   );
@@ -267,6 +290,7 @@ export function IntroductionSubmitForm({
 
 function IntroductionContactField({
   id,
+  icon: Icon,
   label,
   onChange,
   placeholder,
@@ -276,6 +300,7 @@ function IntroductionContactField({
   value,
 }: {
   id: string;
+  icon: LucideIcon;
   label: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -287,9 +312,10 @@ function IntroductionContactField({
   return (
     <div>
       <label
-        className="mb-2 block text-[13px] font-medium uppercase text-muted-foreground"
+        className="mb-2 flex items-center gap-2 text-[13px] font-medium uppercase text-muted-foreground"
         htmlFor={id}
       >
+        <Icon aria-hidden="true" className="size-3.5" />
         {label}
       </label>
       <Input

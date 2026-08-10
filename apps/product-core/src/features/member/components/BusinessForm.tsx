@@ -2,10 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import {
+  CircleAlert,
+  CircleCheck,
+  FileBadge2,
+  ImagePlus,
+  LoaderCircle,
+  Upload,
+} from 'lucide-react';
 
-import { MEMBER_API_ROUTES, type MemberBusinessProfileDto } from '@kclub/contracts';
+import {
+  MEMBER_API_ROUTES,
+  type BusinessVerificationDocumentDto,
+  type MemberBusinessProfileDto,
+} from '@kclub/contracts';
 
-import { PhoneInput } from '@kclub/ui';
+import { Button, PhoneInput } from '@kclub/ui';
 
 import type { Locale } from '@/i18n/routing';
 import { parseAuthResponse } from '@/features/auth/utils/api';
@@ -16,7 +28,6 @@ import {
   shadcnPhonePanelClassName,
   shadcnPhoneTriggerClassName,
 } from '@/components/ui/country-flag';
-import { CabinetButton } from '@/features/member/components/cabinet/CabinetButton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -28,13 +39,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/reui/alert';
-import type { CityTaxonomyOption, TaxonomyOption } from './BusinessPanel';
+import type { CategoryTaxonomyOption, CityTaxonomyOption, TaxonomyOption } from './BusinessPanel';
 
 type BusinessFormProps = {
   locale: Locale;
   business: MemberBusinessProfileDto | null;
   countryOptions: TaxonomyOption[];
-  categoryOptions: TaxonomyOption[];
+  categoryOptions: CategoryTaxonomyOption[];
 };
 
 function FormRow({
@@ -80,6 +91,18 @@ export function BusinessForm({
   );
   const [countryId, setCountryId] = useState(business?.countryId ?? '');
   const [cityId, setCityId] = useState(business?.cityId ?? '');
+  const initialCategory = categoryOptions.find((category) => category.id === business?.categoryId);
+  const initialParentCategory = initialCategory?.parentId
+    ? categoryOptions.find((category) => category.id === initialCategory.parentId)
+    : undefined;
+  const [blockId, setBlockId] = useState(
+    initialParentCategory?.parentId ??
+      (initialCategory?.level === 'CATEGORY' ? initialCategory.parentId : '') ??
+      '',
+  );
+  const [parentCategoryId, setParentCategoryId] = useState(
+    initialCategory?.level === 'SUBCATEGORY' ? (initialCategory.parentId ?? '') : '',
+  );
   const [categoryId, setCategoryId] = useState(business?.categoryId ?? '');
   const [customCategoryName, setCustomCategoryName] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState(business?.websiteUrl ?? '');
@@ -92,6 +115,15 @@ export function BusinessForm({
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [cityLoadError, setCityLoadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const [coverImageUrl, setCoverImageUrl] = useState(business?.coverImageUrl ?? '');
+  const [logoUrl, setLogoUrl] = useState(business?.logoUrl ?? '');
+  const [verificationDocuments, setVerificationDocuments] = useState<
+    BusinessVerificationDocumentDto[]
+  >(business?.verificationDocuments ?? []);
+  const [mediaError, setMediaError] = useState<string | null>(null);
+  const [documentError, setDocumentError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -100,6 +132,81 @@ export function BusinessForm({
   const visibleIsLoadingCities = countryId ? isLoadingCities : false;
 
   const isEdit = business !== null;
+  const blockOptions = categoryOptions.filter((category) => category.level === 'BLOCK');
+  const parentCategoryOptions = categoryOptions.filter(
+    (category) => category.level === 'CATEGORY' && category.parentId === blockId,
+  );
+  const subcategoryOptions = categoryOptions.filter(
+    (category) => category.level === 'SUBCATEGORY' && category.parentId === parentCategoryId,
+  );
+
+  async function handleMediaUpload(kind: 'cover' | 'logo', file: File | null): Promise<void> {
+    if (!file || !business) {
+      return;
+    }
+
+    setIsUploadingMedia(true);
+    setMediaError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('kind', kind);
+      formData.append('file', file);
+      const response = await fetch(MEMBER_API_ROUTES.BUSINESS_MEDIA.replace(':id', business.id), {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await parseAuthResponse<MemberBusinessProfileDto>(response);
+
+      if (!result.success || !result.data) {
+        setMediaError(tCommon('genericError'));
+        return;
+      }
+
+      if (kind === 'cover') {
+        setCoverImageUrl(result.data.coverImageUrl ?? '');
+      } else {
+        setLogoUrl(result.data.logoUrl ?? '');
+      }
+    } catch {
+      setMediaError(tCommon('genericError'));
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  }
+
+  async function handleDocumentUpload(file: File | null): Promise<void> {
+    if (!file || !business) {
+      return;
+    }
+
+    setIsUploadingDocument(true);
+    setDocumentError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch(
+        MEMBER_API_ROUTES.BUSINESS_DOCUMENTS.replace(':id', business.id),
+        {
+          method: 'POST',
+          body: formData,
+        },
+      );
+      const result = await parseAuthResponse<BusinessVerificationDocumentDto>(response);
+
+      if (!result.success || !result.data) {
+        setDocumentError(tCommon('genericError'));
+        return;
+      }
+
+      setVerificationDocuments((current) => [result.data!, ...current]);
+    } catch {
+      setDocumentError(tCommon('genericError'));
+    } finally {
+      setIsUploadingDocument(false);
+    }
+  }
 
   useEffect(() => {
     if (!countryId) {
@@ -215,13 +322,29 @@ export function BusinessForm({
     <form onSubmit={handleSubmit}>
       {error && (
         <Alert variant="destructive" className="mb-6 rounded-none">
+          <CircleAlert aria-hidden="true" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
         <Alert variant="success" className="mb-6 rounded-none">
+          <CircleCheck aria-hidden="true" />
           <AlertDescription>{isEdit ? t('editSuccess') : t('submitSuccess')}</AlertDescription>
+        </Alert>
+      )}
+
+      {mediaError && (
+        <Alert variant="destructive" className="mb-6 rounded-none">
+          <CircleAlert aria-hidden="true" />
+          <AlertDescription>{mediaError}</AlertDescription>
+        </Alert>
+      )}
+
+      {documentError && (
+        <Alert variant="destructive" className="mb-6 rounded-none">
+          <CircleAlert aria-hidden="true" />
+          <AlertDescription>{documentError}</AlertDescription>
         </Alert>
       )}
 
@@ -240,38 +363,83 @@ export function BusinessForm({
         </FormRow>
 
         <FormRow label={t('categoryLabel')} htmlFor="biz-category">
-          <Select
-            value={categoryId}
-            onValueChange={(value) => {
-              setCategoryId(value ?? '');
-              if (value !== '__other__') setCustomCategoryName('');
-            }}
-            required
-          >
-            <SelectTrigger id="biz-category" className="w-full rounded-none">
-              <SelectValue placeholder={t('selectPlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryOptions.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-              <SelectItem value="__other__">{t('categoryOther')}</SelectItem>
-            </SelectContent>
-          </Select>
-          {categoryId === '__other__' && (
-            <Input
-              type="text"
+          <div className="space-y-3">
+            <Select
+              value={blockId}
+              onValueChange={(value) => {
+                setBlockId(value ?? '');
+                setParentCategoryId('');
+                setCategoryId('');
+                setCustomCategoryName('');
+              }}
               required
-              minLength={2}
-              maxLength={120}
-              placeholder={t('customCategoryNamePlaceholder')}
-              value={customCategoryName}
-              onChange={(e) => setCustomCategoryName(e.target.value)}
-              className="mt-3 w-full rounded-none"
-            />
-          )}
+            >
+              <SelectTrigger id="biz-category" className="w-full rounded-none">
+                <SelectValue placeholder={t('categoryBlockPlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {blockOptions.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={parentCategoryId}
+              onValueChange={(value) => {
+                setParentCategoryId(value ?? '');
+                setCategoryId('');
+                setCustomCategoryName('');
+              }}
+              disabled={!blockId}
+              required
+            >
+              <SelectTrigger className="w-full rounded-none">
+                <SelectValue placeholder={t('categoryParentPlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {parentCategoryOptions.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={categoryId}
+              onValueChange={(value) => {
+                setCategoryId(value ?? '');
+                setCustomCategoryName('');
+              }}
+              disabled={!parentCategoryId}
+              required
+            >
+              <SelectTrigger className="w-full rounded-none">
+                <SelectValue placeholder={t('categorySubcategoryPlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {subcategoryOptions.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value="__other__">{t('categoryOther')}</SelectItem>
+              </SelectContent>
+            </Select>
+            {categoryId === '__other__' && (
+              <Input
+                type="text"
+                required
+                minLength={2}
+                maxLength={120}
+                placeholder={t('customCategoryNamePlaceholder')}
+                value={customCategoryName}
+                onChange={(e) => setCustomCategoryName(e.target.value)}
+                className="mt-3 w-full rounded-none"
+              />
+            )}
+          </div>
         </FormRow>
 
         <FormRow label={t('representativeNameLabel')} htmlFor="biz-rep-name">
@@ -378,6 +546,106 @@ export function BusinessForm({
           />
         </FormRow>
 
+        {isEdit && (
+          <FormRow label={t('publicPhotosLabel')}>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">{t('publicPhotosHint')}</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <BusinessMediaField
+                  id="biz-cover-image"
+                  label={t('coverImageLabel')}
+                  requirementsLabel={t('imageRequirements')}
+                  uploadingLabel={t('imageUploading')}
+                  imageUrl={coverImageUrl}
+                  isUploading={isUploadingMedia}
+                  onFileChange={(file) => handleMediaUpload('cover', file)}
+                />
+                <BusinessMediaField
+                  id="biz-logo-image"
+                  label={t('logoImageLabel')}
+                  requirementsLabel={t('imageRequirements')}
+                  uploadingLabel={t('imageUploading')}
+                  imageUrl={logoUrl}
+                  isUploading={isUploadingMedia}
+                  onFileChange={(file) => handleMediaUpload('logo', file)}
+                />
+              </div>
+            </div>
+          </FormRow>
+        )}
+
+        {isEdit && (
+          <FormRow label={t('verificationDocumentsLabel')}>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">{t('verificationDocumentsHint')}</p>
+              <div className="border border-border p-4">
+                <Label
+                  htmlFor="biz-verification-documents"
+                  className="flex items-center gap-2 text-sm font-medium text-foreground"
+                >
+                  <Upload aria-hidden="true" className="size-4 text-accent" />
+                  {t('verificationDocumentsUploadLabel')}
+                </Label>
+                <Input
+                  id="biz-verification-documents"
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                  disabled={isUploadingDocument}
+                  onChange={(event) => {
+                    void handleDocumentUpload(event.target.files?.item(0) ?? null);
+                    event.currentTarget.value = '';
+                  }}
+                  className="mt-3 w-full rounded-none"
+                />
+                <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  {isUploadingDocument && (
+                    <LoaderCircle aria-hidden="true" className="size-3 animate-spin" />
+                  )}
+                  {isUploadingDocument
+                    ? t('verificationDocumentsUploading')
+                    : t('verificationDocumentsRequirements')}
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {verificationDocuments.length === 0 ? (
+                  <div className="border border-dashed border-border p-4 text-sm text-muted-foreground">
+                    {t('verificationDocumentsEmpty')}
+                  </div>
+                ) : (
+                  verificationDocuments.map((document) => (
+                    <div
+                      key={document.id}
+                      className="flex flex-col gap-3 border border-border p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <FileBadge2 aria-hidden="true" className="size-4 text-accent" />
+                          <p className="truncate text-sm font-medium text-foreground">
+                            {document.fileName}
+                          </p>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {formatFileSize(document.fileSizeBytes)} ·{' '}
+                          {new Date(document.createdAt).toLocaleDateString(locale)}
+                        </p>
+                        {document.rejectionReason && (
+                          <p className="mt-2 text-xs text-destructive">
+                            {t('verificationDocumentsRejectedReason', {
+                              reason: document.rejectionReason,
+                            })}
+                          </p>
+                        )}
+                      </div>
+                      <DocumentStatusChip document={document} t={t} />
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </FormRow>
+        )}
+
         <FormRow label={t('briefDescriptionLabel')} htmlFor="biz-desc" optional>
           <Textarea
             id="biz-desc"
@@ -403,10 +671,92 @@ export function BusinessForm({
       </div>
 
       <div className="flex justify-end pt-6">
-        <CabinetButton type="submit" disabled={isSubmitting}>
+        <Button color="brand" size="md" type="submit" disabled={isSubmitting}>
           {isSubmitting ? tCommon('saving') : isEdit ? t('editSubmit') : t('submitCta')}
-        </CabinetButton>
+        </Button>
       </div>
     </form>
+  );
+}
+
+function DocumentStatusChip({
+  document,
+  t,
+}: {
+  document: BusinessVerificationDocumentDto;
+  t: ReturnType<typeof useTranslations>;
+}): React.ReactElement {
+  const statusClassName =
+    document.status === 'APPROVED'
+      ? 'border border-green-500/30 bg-green-500/10 text-green-500'
+      : document.status === 'REJECTED'
+        ? 'border border-red-500/30 bg-red-500/10 text-red-500'
+        : 'border border-yellow-500/30 bg-yellow-500/10 text-yellow-500';
+
+  const statusLabel =
+    document.status === 'APPROVED'
+      ? t('verificationDocumentsStatusApproved')
+      : document.status === 'REJECTED'
+        ? t('verificationDocumentsStatusRejected')
+        : t('verificationDocumentsStatusPending');
+
+  return (
+    <span
+      className={`${statusClassName} inline-flex w-fit items-center rounded-none px-3 py-1 text-xs font-medium`}
+    >
+      {statusLabel}
+    </span>
+  );
+}
+
+function formatFileSize(sizeInBytes: number): string {
+  if (sizeInBytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(sizeInBytes / 1024))} KB`;
+  }
+
+  return `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function BusinessMediaField({
+  id,
+  imageUrl,
+  isUploading,
+  label,
+  onFileChange,
+  requirementsLabel,
+  uploadingLabel,
+}: {
+  id: string;
+  imageUrl: string;
+  isUploading: boolean;
+  label: string;
+  onFileChange: (file: File | null) => void;
+  requirementsLabel: string;
+  uploadingLabel: string;
+}): React.ReactElement {
+  return (
+    <div className="space-y-3 border border-border p-4">
+      <Label htmlFor={id} className="flex items-center gap-2 text-sm font-medium text-foreground">
+        <ImagePlus aria-hidden="true" className="size-4 text-accent" />
+        {label}
+      </Label>
+      {imageUrl && (
+        // Supabase storage hosts are deployment-configured, so they cannot be safely whitelisted here.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt="" className="h-28 w-full object-cover" />
+      )}
+      <Input
+        id={id}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        disabled={isUploading}
+        onChange={(event) => onFileChange(event.target.files?.item(0) ?? null)}
+        className="w-full rounded-none"
+      />
+      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+        {isUploading && <LoaderCircle aria-hidden="true" className="size-3 animate-spin" />}
+        {isUploading ? uploadingLabel : requirementsLabel}
+      </p>
+    </div>
   );
 }

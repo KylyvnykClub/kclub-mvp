@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { BadgeCheck, CircleAlert, CircleCheck, Info } from 'lucide-react';
 
 import type {
   CategoryLevel,
@@ -10,12 +11,11 @@ import type { Locale } from '@/i18n/routing';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 import { getOwnBusinesses } from '@/server/services/business-service';
 import { getDbClient, schema } from '@/server/db';
-import { and, asc, eq, inArray, or } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import { Badge } from '@/components/reui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert';
 import { BusinessForm } from './BusinessForm';
 import { PlacementCheckoutButton } from './PlacementCheckoutButton';
-import { IntroductionSubmitForm } from './IntroductionSubmitForm';
 
 export type TaxonomyOption = {
   id: string;
@@ -71,11 +71,7 @@ export async function BusinessPanel({
       orderBy: [asc(schema.countries.name)],
     }),
     db.query.categories.findMany({
-      where: and(
-        eq(schema.categories.is_active, true),
-        eq(schema.categories.is_high_risk, false),
-        or(eq(schema.categories.level, 'SUBCATEGORY'), eq(schema.categories.is_custom, true)),
-      ),
+      where: and(eq(schema.categories.is_active, true), eq(schema.categories.is_high_risk, false)),
       orderBy: [asc(schema.categories.name)],
     }),
   ]);
@@ -95,14 +91,12 @@ export async function BusinessPanel({
   const paidBusinessIds = new Set(paidPlacements.map((s) => s.business_profile_id));
 
   const countryOptions: TaxonomyOption[] = countries.map((c) => ({ id: c.id, name: c.name }));
-  const categoryOptions: TaxonomyOption[] = categories.map((c) => ({ id: c.id, name: c.name }));
-
-  const allPublishedBusinesses = await db.query.businessProfiles.findMany({
-    where: eq(schema.businessProfiles.status, 'PUBLISHED'),
-    columns: { id: true, name: true },
-    orderBy: [asc(schema.businessProfiles.name)],
-  });
-  const businessOptions = allPublishedBusinesses.map((b) => ({ id: b.id, name: b.name }));
+  const categoryOptions: CategoryTaxonomyOption[] = categories.map((category) => ({
+    id: category.id,
+    name: category.name,
+    parentId: category.parent_id,
+    level: category.level as CategoryLevel,
+  }));
 
   const rejectedBusiness = ownBusinesses.find((b) => b.status === 'REJECTED');
   const canSubmit = !activeBusiness;
@@ -152,6 +146,7 @@ export async function BusinessPanel({
             <div className="p-6 sm:p-8">
               {editNeedsReapproval && (
                 <Alert variant="warning" className="mb-6 rounded-none">
+                  <CircleAlert aria-hidden="true" />
                   <AlertDescription>{t('editReapprovalWarning')}</AlertDescription>
                 </Alert>
               )}
@@ -169,21 +164,6 @@ export async function BusinessPanel({
           <FrontCard>
             <div className="p-6 text-sm text-muted-foreground sm:p-8">{t('noEditAvailable')}</div>
           </FrontCard>
-        )}
-
-        {ownBusinesses.length > 0 && (
-          <div className="pt-8">
-            <div className="mb-8">
-              <h2 className="mb-4 text-[24px] font-semibold uppercase tracking-[0.2em] text-accent">
-                Recommend a Client
-              </h2>
-              <p className="max-w-xl text-[15px] text-muted-foreground">
-                Discreetly introduce a prospective client to our exclusive network. Submissions are
-                reviewed with the utmost confidentiality.
-              </p>
-            </div>
-            <IntroductionSubmitForm businessOptions={businessOptions} />
-          </div>
         )}
       </div>
     </div>
@@ -216,6 +196,7 @@ function BusinessStatusBanner({
   if (business.status === 'UNDER_REVIEW') {
     return (
       <Alert variant="warning" className="rounded-none">
+        <CircleAlert aria-hidden="true" />
         <AlertTitle>{t('statusBannerUnderReview')}</AlertTitle>
         <AlertDescription>{t('statusBannerUnderReviewSub')}</AlertDescription>
       </Alert>
@@ -226,6 +207,7 @@ function BusinessStatusBanner({
     if (placementPaid) {
       return (
         <Alert variant="info" className="rounded-none">
+          <Info aria-hidden="true" />
           <AlertTitle>{t('statusBannerPaid')}</AlertTitle>
           <AlertDescription>{t('statusBannerPaidSub')}</AlertDescription>
         </Alert>
@@ -235,9 +217,14 @@ function BusinessStatusBanner({
     return (
       <div className="border-success/30 bg-success/5 border p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h4 className="text-base font-semibold text-foreground">{t('statusBannerApproved')}</h4>
-            <p className="text-sm text-muted-foreground">{t('statusBannerApprovedSub')}</p>
+          <div className="flex gap-3">
+            <CircleCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-success" />
+            <div className="space-y-1">
+              <h4 className="text-base font-semibold text-foreground">
+                {t('statusBannerApproved')}
+              </h4>
+              <p className="text-sm text-muted-foreground">{t('statusBannerApprovedSub')}</p>
+            </div>
           </div>
           <div className="shrink-0">
             <PlacementCheckoutButton businessId={business.id} />
@@ -248,17 +235,13 @@ function BusinessStatusBanner({
   }
 
   if (business.status === 'PUBLISHED') {
-    return (
-      <Alert variant="info" className="rounded-none">
-        <AlertTitle>{t('statusBannerPublished')}</AlertTitle>
-        <AlertDescription>{t('statusBannerPublishedSub')}</AlertDescription>
-      </Alert>
-    );
+    return null;
   }
 
   if (business.status === 'REJECTED') {
     return (
       <Alert variant="destructive" className="rounded-none">
+        <CircleAlert aria-hidden="true" />
         <AlertTitle>{t('statusBannerRejected')}</AlertTitle>
         {business.rejectionReason && (
           <AlertDescription>{business.rejectionReason}</AlertDescription>
@@ -270,6 +253,7 @@ function BusinessStatusBanner({
   if (business.status === 'HIDDEN') {
     return (
       <Alert variant="default" className="rounded-none">
+        <Info aria-hidden="true" />
         <AlertTitle>{t('statusBannerHidden')}</AlertTitle>
       </Alert>
     );
@@ -295,9 +279,41 @@ async function BusinessStatusCard({
           {business.categoryName} &middot; {business.cityName}, {business.countryName}
         </p>
       </div>
-      <Badge variant={getStatusBadgeVariant(business.status)} size="xs" className="shrink-0">
-        {t(STATUS_LABEL_KEYS[business.status] ?? business.status)}
-      </Badge>
+      <div className="flex shrink-0 flex-wrap justify-end gap-2">
+        <FeaturedPlacementBadges business={business} t={t} />
+        <Badge variant={getStatusBadgeVariant(business.status)} size="xs">
+          {t(STATUS_LABEL_KEYS[business.status] ?? business.status)}
+        </Badge>
+      </div>
     </div>
+  );
+}
+
+function FeaturedPlacementBadges({
+  business,
+  t,
+}: {
+  business: MemberBusinessProfileDto;
+  t: Awaited<ReturnType<typeof getTranslations<'member.dashboard.business'>>>;
+}): React.ReactElement | null {
+  if (!business.featuredTop && !business.featuredRecommended) {
+    return null;
+  }
+
+  return (
+    <span className="flex flex-wrap gap-2">
+      {business.featuredTop && (
+        <Badge variant="destructive" size="xs" className="gap-1">
+          <BadgeCheck aria-hidden="true" className="size-3" />
+          {t('featuredTopLabel')}
+        </Badge>
+      )}
+      {business.featuredRecommended && (
+        <Badge variant="warning-light" size="xs" className="gap-1">
+          <BadgeCheck aria-hidden="true" className="size-3" />
+          {t('featuredRecommendedLabel')}
+        </Badge>
+      )}
+    </span>
   );
 }
