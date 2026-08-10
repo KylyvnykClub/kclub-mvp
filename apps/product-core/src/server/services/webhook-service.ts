@@ -57,7 +57,7 @@ export function mapStripeStatusToLocal(
  * (or vice versa), which would otherwise mutate real subscriptions from test
  * events that happen to carry a valid signature for the configured secret.
  */
-export function isLiveModeConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
+export function isLiveModeConfigured(env: Record<string, string | undefined> = process.env): boolean {
   return env.STRIPE_SECRET_KEY?.startsWith('sk_live_') ?? false;
 }
 
@@ -707,13 +707,9 @@ function toStripeId(value: unknown): string | null {
  */
 export function readInvoiceSubscriptionId(invoice: Record<string, unknown>): string | null {
   const parent = invoice.parent as
-    | { subscription_details?: { subscription?: unknown } | null }
-    | null
-    | undefined;
+    { subscription_details?: { subscription?: unknown } | null } | null | undefined;
 
-  return (
-    toStripeId(parent?.subscription_details?.subscription) ?? toStripeId(invoice.subscription)
-  );
+  return toStripeId(parent?.subscription_details?.subscription) ?? toStripeId(invoice.subscription);
 }
 
 async function resolveSubscriptionKind(

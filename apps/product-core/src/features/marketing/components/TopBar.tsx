@@ -20,7 +20,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
 
-import { IconButton, cn } from '@kclub/ui';
+import { cn } from '@kclub/ui';
 import crownGoldLogo from '@/assets/logo/crown-gold--logo.webp';
 import { Locale } from '@/i18n/routing';
 

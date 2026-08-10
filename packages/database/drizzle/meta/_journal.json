@@ -85,6 +85,13 @@
       "when": 1786492800000,
       "tag": "0011_business_seo_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1786579200000,
+      "tag": "0012_business_verification_documents",
+      "breakpoints": true
     }
   ]
 }
