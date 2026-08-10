@@ -51,9 +51,26 @@ export function mapStripeStatusToLocal(
   }
 }
 
+/**
+ * True when the configured secret key targets Stripe live mode.
+ * Guards against a sandbox endpoint being pointed at a production deployment
+ * (or vice versa), which would otherwise mutate real subscriptions from test
+ * events that happen to carry a valid signature for the configured secret.
+ */
+export function isLiveModeConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.STRIPE_SECRET_KEY?.startsWith('sk_live_') ?? false;
+}
+
 export async function processStripeEvent(event: Stripe.Event): Promise<void> {
   const db = getDbClient();
   const eventId = event.id;
+
+  if ((event.livemode ?? false) !== isLiveModeConfigured()) {
+    // Acknowledge without processing: retrying will never help, and persisting
+    // the event would pollute the ledger of the opposite environment.
+    return;
+  }
+
   const claimResult = await claimStripeEvent(event);
 
   if (claimResult !== 'CLAIMED') {
@@ -515,7 +532,7 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
   if (!localSub) return;
 
   const stripeStatus = subscription.status as string;
-  const currentPeriodEnd = subscription.current_period_end as number | null;
+  const currentPeriodEnd = readSubscriptionPeriod(subscription, 'current_period_end');
   const newStatus = mapStripeStatusToLocal(stripeStatus, currentPeriodEnd);
 
   if (!newStatus) {
@@ -609,7 +626,11 @@ async function handleSubscriptionDeleted(subscription: Record<string, unknown>):
 }
 
 async function handlePaymentFailed(invoice: Record<string, unknown>): Promise<void> {
-  const subscriptionId = invoice.subscription as string;
+  const subscriptionId = readInvoiceSubscriptionId(invoice);
+  if (!subscriptionId) {
+    return;
+  }
+
   const metadata = (
     invoice.lines as { data?: Array<{ metadata?: Record<string, string> }> } | undefined
   )?.data?.[0]?.metadata;
@@ -646,6 +667,53 @@ async function handlePaymentFailed(invoice: Record<string, unknown>): Promise<vo
       systemContext,
     );
   }
+}
+
+/**
+ * Billing period boundaries moved from Subscription to SubscriptionItem in API
+ * 2025-03-31.basil. Read the item first, fall back to the legacy top-level
+ * field so replayed/older events still resolve.
+ */
+export function readSubscriptionPeriod(
+  subscription: Record<string, unknown>,
+  boundary: 'current_period_start' | 'current_period_end',
+): number | null {
+  const items = (subscription.items as { data?: Array<Record<string, unknown>> } | undefined)?.data;
+  const fromItem = items?.[0]?.[boundary];
+  if (typeof fromItem === 'number') {
+    return fromItem;
+  }
+
+  const fromRoot = subscription[boundary];
+  return typeof fromRoot === 'number' ? fromRoot : null;
+}
+
+function toStripeId(value: unknown): string | null {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'object' && value !== null && 'id' in value) {
+    const id = (value as { id?: unknown }).id;
+    return typeof id === 'string' ? id : null;
+  }
+
+  return null;
+}
+
+/**
+ * Invoice.subscription was replaced by parent.subscription_details.subscription
+ * in API 2025-03-31.basil.
+ */
+export function readInvoiceSubscriptionId(invoice: Record<string, unknown>): string | null {
+  const parent = invoice.parent as
+    | { subscription_details?: { subscription?: unknown } | null }
+    | null
+    | undefined;
+
+  return (
+    toStripeId(parent?.subscription_details?.subscription) ?? toStripeId(invoice.subscription)
+  );
 }
 
 async function resolveSubscriptionKind(
@@ -698,8 +766,8 @@ async function handlePlacementSubscriptionChange(
   if (!localSub || localSub.kind !== 'BUSINESS_PLACEMENT') return;
 
   const stripeStatus = subscription.status as string;
-  const currentPeriodEnd = subscription.current_period_end as number | null;
-  const currentPeriodStart = subscription.current_period_start as number | null;
+  const currentPeriodEnd = readSubscriptionPeriod(subscription, 'current_period_end');
+  const currentPeriodStart = readSubscriptionPeriod(subscription, 'current_period_start');
   const newStatus = mapStripeStatusToLocal(stripeStatus, currentPeriodEnd);
   if (!newStatus) return;
 
@@ -748,7 +816,7 @@ async function handlePlacementSubscriptionDeleted(
   const localSub = await getPlacementSubscriptionByStripeId(subscriptionId);
   if (!localSub || localSub.kind !== 'BUSINESS_PLACEMENT') return;
 
-  const currentPeriodEnd = subscription.current_period_end as number | null;
+  const currentPeriodEnd = readSubscriptionPeriod(subscription, 'current_period_end');
   const nextStatus = mapStripeStatusToLocal('canceled', currentPeriodEnd) ?? 'EXPIRED';
   const previousStatus = localSub.status;
 
