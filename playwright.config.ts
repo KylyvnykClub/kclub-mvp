@@ -27,6 +27,25 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3000' },
     },
     {
+      name: 'product-core-mobile',
+      testMatch: /public-visitor\.spec\.ts/,
+      use: { ...devices['Pixel 5'], baseURL: 'http://localhost:3000' },
+    },
+    {
+      name: 'product-core-tablet',
+      testMatch: /public-visitor\.spec\.ts/,
+      use: { ...devices['iPad Pro 11'], baseURL: 'http://localhost:3000' },
+    },
+    {
+      name: 'product-core-large',
+      testMatch: /public-visitor\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 1000 },
+        baseURL: 'http://localhost:3000',
+      },
+    },
+    {
       name: 'admin-app',
       testMatch: /staff-auth\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3001' },
