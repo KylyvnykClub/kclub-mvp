@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Building2,
   CheckCircle,
+  FileText,
   Download,
   EyeOff,
   Globe,
@@ -181,6 +182,29 @@ async function updateBusinessSettings(
   return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
 }
 
+async function approveBusinessDocument(
+  businessId: string,
+  documentId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch(`/api/proxy/businesses/${businessId}/documents/${documentId}/approve`, {
+    method: 'POST',
+  });
+  return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
+}
+
+async function rejectBusinessDocument(
+  businessId: string,
+  documentId: string,
+  reason: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch(`/api/proxy/businesses/${businessId}/documents/${documentId}/reject`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  });
+  return res.ok ? { ok: true } : { ok: false, error: `Request failed (${res.status})` };
+}
+
 function getInitials(name: string): string {
   return name
     .split(' ')
@@ -213,7 +237,7 @@ export function BusinessDetailClient({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex flex-col gap-4">
         <Link
           href="/dashboard/businesses"
@@ -261,6 +285,22 @@ export function BusinessDetailClient({
                     className="border-blue-500/20 bg-blue-500/15 text-blue-500 dark:border-blue-500/30 dark:bg-blue-500/20 dark:text-blue-300"
                   >
                     PAID
+                  </Badge>
+                )}
+                {business.featuredTop && (
+                  <Badge
+                    variant="outline"
+                    className="border-red-500/20 bg-red-500/15 text-red-500 dark:border-red-500/30 dark:bg-red-500/20 dark:text-red-300"
+                  >
+                    TOP
+                  </Badge>
+                )}
+                {business.featuredRecommended && (
+                  <Badge
+                    variant="outline"
+                    className="border-yellow-500/20 bg-yellow-500/15 text-yellow-500 dark:border-yellow-500/30 dark:bg-yellow-500/20 dark:text-yellow-300"
+                  >
+                    REC
                   </Badge>
                 )}
                 <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
@@ -538,48 +578,68 @@ export function BusinessDetailClient({
               <div className="grid gap-4 lg:grid-cols-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Placement & payment</CardTitle>
+                    <CardTitle>Verification documents</CardTitle>
+                    <CardDescription>
+                      Documents provided by the business owner for moderation.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {business.placementSubscription ? (
-                      <DescriptionList
-                        items={[
-                          {
-                            label: 'Status',
-                            value: <StatusBadge status={business.placementSubscription.status} />,
-                          },
-                          {
-                            label: 'Period end',
-                            value: business.placementSubscription.currentPeriodEnd
-                              ? new Date(
-                                  business.placementSubscription.currentPeriodEnd,
-                                ).toLocaleDateString()
-                              : '—',
-                          },
-                        ]}
-                      />
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No placement subscription.</p>
-                    )}
+                    <VerificationDocumentsPanel
+                      businessId={business.id}
+                      documents={business.verificationDocuments}
+                      onAction={() => router.refresh()}
+                    />
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Internal notes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {business.internalNotes ? (
-                      <p className="whitespace-pre-wrap text-sm leading-6">
-                        {business.internalNotes}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No internal notes. Notes can be added during approval.
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                {business.placementSubscription ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Placement & payment</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {business.placementSubscription ? (
+                        <DescriptionList
+                          items={[
+                            {
+                              label: 'Status',
+                              value: <StatusBadge status={business.placementSubscription.status} />,
+                            },
+                            {
+                              label: 'Period end',
+                              value: business.placementSubscription.currentPeriodEnd
+                                ? new Date(
+                                    business.placementSubscription.currentPeriodEnd,
+                                  ).toLocaleDateString()
+                                : '—',
+                            },
+                          ]}
+                        />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No placement subscription.</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ) : null}
+
+                {business.internalNotes ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Internal notes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {business.internalNotes ? (
+                        <p className="whitespace-pre-wrap text-sm leading-6">
+                          {business.internalNotes}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No internal notes. Notes can be added during approval.
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ) : null}
               </div>
             </TabsContent>
 
@@ -1294,6 +1354,175 @@ function LogsTab({ entries, onRefresh }: LogsTabProps) {
       </div>
     </div>
   );
+}
+
+function VerificationDocumentsPanel({
+  businessId,
+  documents,
+  onAction,
+}: {
+  businessId: string;
+  documents: AdminBusinessDetailDto['verificationDocuments'];
+  onAction: () => void;
+}) {
+  if (documents.length === 0) {
+    return <p className="text-sm text-muted-foreground">No verification documents uploaded.</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {documents.map((document) => (
+        <div
+          key={document.id}
+          className="flex flex-col gap-3 border border-border p-4 lg:flex-row lg:items-center lg:justify-between"
+        >
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <FileText aria-hidden className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <a
+                href={document.publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="truncate text-sm font-medium underline underline-offset-4"
+              >
+                {document.fileName}
+              </a>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {formatBytes(document.fileSizeBytes)} ·{' '}
+              {new Date(document.createdAt).toLocaleDateString()}
+            </p>
+            {document.rejectionReason ? (
+              <p className="mt-2 text-xs text-destructive">{document.rejectionReason}</p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <BusinessDocumentStatusBadge status={document.status} />
+            <a
+              href={document.publicUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            >
+              <Download className="mr-1.5 h-4 w-4" />
+              Download
+            </a>
+            {document.status !== 'APPROVED' ? (
+              <Button
+                size="sm"
+                onClick={async () => {
+                  const result = await approveBusinessDocument(businessId, document.id);
+                  if (!result.ok) {
+                    toast.error(result.error ?? 'Failed to approve document');
+                    return;
+                  }
+                  toast.success('Document approved');
+                  onAction();
+                }}
+              >
+                <CheckCircle className="mr-1.5 h-4 w-4" />
+                Approve
+              </Button>
+            ) : null}
+            <RejectBusinessDocumentDialog
+              businessId={businessId}
+              documentId={document.id}
+              onAction={onAction}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BusinessDocumentStatusBadge({ status }: { status: 'PENDING' | 'APPROVED' | 'REJECTED' }) {
+  const className =
+    status === 'APPROVED'
+      ? 'border-green-500/20 bg-green-500/15 text-green-500 dark:border-green-500/30 dark:bg-green-500/20 dark:text-green-300'
+      : status === 'REJECTED'
+        ? 'border-red-500/20 bg-red-500/15 text-red-500 dark:border-red-500/30 dark:bg-red-500/20 dark:text-red-300'
+        : 'border-yellow-500/20 bg-yellow-500/15 text-yellow-500 dark:border-yellow-500/30 dark:bg-yellow-500/20 dark:text-yellow-300';
+
+  return (
+    <Badge variant="outline" className={className}>
+      {status}
+    </Badge>
+  );
+}
+
+function RejectBusinessDocumentDialog({
+  businessId,
+  documentId,
+  onAction,
+}: {
+  businessId: string;
+  documentId: string;
+  onAction: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [reason, setReason] = useState('');
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button variant="destructive" size="sm">
+            <ShieldX className="mr-1.5 h-4 w-4" />
+            Reject doc
+          </Button>
+        }
+      />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reject document</DialogTitle>
+          <DialogDescription>Explain why this document cannot be accepted.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor="reject-document-reason">Reason</Label>
+          <Input
+            id="reject-document-reason"
+            placeholder="What is wrong with this document?"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={loading || !reason.trim()}
+            onClick={async () => {
+              setLoading(true);
+              const result = await rejectBusinessDocument(businessId, documentId, reason.trim());
+              setLoading(false);
+              if (!result.ok) {
+                toast.error(result.error ?? 'Failed to reject document');
+                return;
+              }
+              setOpen(false);
+              toast.success('Document rejected');
+              onAction();
+            }}
+          >
+            {loading ? 'Rejecting...' : 'Reject document'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function formatBytes(sizeInBytes: number): string {
+  if (sizeInBytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(sizeInBytes / 1024))} KB`;
+  }
+
+  return `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 // ─── Dialogs ───────────────────────────────────────────────────────────────

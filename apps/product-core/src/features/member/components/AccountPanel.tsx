@@ -18,6 +18,7 @@ type AccountPanelProps = {
   locale: Locale;
   profile: CurrentMemberProfileDto;
   cardNumber?: string | null;
+  hasActiveBusinessPlacement?: boolean;
 };
 
 function getPlanLabel(tier: CurrentMemberProfileDto['membershipTier']): string {
@@ -34,7 +35,12 @@ const GOLD_TEXT: React.CSSProperties = {
   textShadow: '0 1px 0 rgba(220,190,90,0.6)',
 };
 
-export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps) {
+export function AccountPanel({
+  locale,
+  profile,
+  cardNumber,
+  hasActiveBusinessPlacement = false,
+}: AccountPanelProps) {
   const t = useTranslations('member.dashboard.account');
   const tSub = useTranslations('member.dashboard.subscription');
   const tCommon = useTranslations('member.common');
@@ -97,7 +103,9 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
         >
           <span className="flex items-center gap-2" style={GOLD_TEXT}>
             <CalendarDays size={14} strokeWidth={2.2} aria-hidden />
-            <span className="text-xs font-bold uppercase tracking-wide">{regDate}</span>
+            <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wide">
+              {regDate}
+            </span>
           </span>
           <span className="hidden h-4 w-px sm:block" style={{ background: 'rgba(42,30,8,0.2)' }} />
           <span className="flex items-center gap-2" style={GOLD_TEXT}>
@@ -144,14 +152,6 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
               <span className="block text-xs font-bold uppercase tracking-wide" style={GOLD_TEXT}>
                 {t('vipButtonTitle')}
               </span>
-              {isVip ? (
-                <span
-                  className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em]"
-                  style={{ ...GOLD_TEXT, background: 'rgba(255,248,216,0.35)' }}
-                >
-                  {tSub('currentPlanBadge')}
-                </span>
-              ) : null}
             </span>
             <span
               className="block text-[10px] leading-tight"
@@ -185,8 +185,15 @@ export function AccountPanel({ locale, profile, cardNumber }: AccountPanelProps)
         </button>
 
         <a
-          href={`/${locale}/m/business/onboarding`}
-          className="flex w-full max-w-md items-center gap-3 rounded-lg px-4 py-2.5 transition-opacity hover:opacity-90 active:opacity-80"
+          href={hasActiveBusinessPlacement ? undefined : `/${locale}/m/business/onboarding`}
+          aria-disabled={hasActiveBusinessPlacement}
+          tabIndex={hasActiveBusinessPlacement ? -1 : undefined}
+          className={cn(
+            'flex w-full max-w-md items-center gap-3 rounded-lg px-4 py-2.5 transition-opacity',
+            hasActiveBusinessPlacement
+              ? 'cursor-not-allowed opacity-60'
+              : 'hover:opacity-90 active:opacity-80',
+          )}
           style={{
             background: GOLD_BG,
             boxShadow: '0 1px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,245,200,0.4)',

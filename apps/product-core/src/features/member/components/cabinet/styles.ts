@@ -1,11 +1,11 @@
 export const cabinetRootClasses =
-  'flex min-h-[calc(100vh-5.5rem)] flex-col bg-background text-foreground lg:-mx-10 lg:w-[calc(100%+5rem)]';
+  'flex min-h-[calc(100svh-5.5rem)] min-h-[calc(100dvh-5.5rem)] flex-col bg-background text-foreground lg:-mx-10 lg:w-[calc(100%+5rem)]';
 
 export const cabinetUserBarClasses =
   'flex shrink-0 items-center justify-between gap-4 border-b border-border bg-surface px-6 py-3 sm:px-10';
 
 export const cabinetSidebarClasses =
-  'hidden w-full shrink-0 flex-col border-b border-border bg-surface lg:sticky lg:top-[57px] lg:flex lg:h-[calc(100vh-57px)] lg:w-60 lg:border-b-0 lg:border-r';
+  'hidden w-full shrink-0 flex-col border-b border-border bg-surface lg:sticky lg:top-[73px] lg:flex lg:h-[calc(100dvh-73px)] lg:w-60 lg:border-b-0 lg:border-r';
 
 export const cabinetMobileNavClasses =
   'flex gap-0 overflow-x-auto border-b border-border bg-surface lg:hidden';

@@ -3,27 +3,28 @@
 import {
   ArrowUpRight,
   ChevronDown,
-  Globe,
   LayoutDashboard,
   LogIn,
   LogOut,
   Menu,
+  Moon,
+  Sun,
   UserRound,
   X,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useTheme } from 'next-themes';
 import { usePathname, useRouter } from 'next/navigation';
 import type { ReactElement, ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
-import { IconButton, cn } from '@kclub/ui';
+import { cn } from '@kclub/ui';
 import crownGoldLogo from '@/assets/logo/crown-gold--logo.webp';
 import { Locale } from '@/i18n/routing';
 
 import { LocaleSwitcherLinks } from './LocaleSwitcherLinks';
-import { ThemeToggle } from './ThemeToggle';
 
 type NavItem = {
   key: 'about' | 'how_it_works' | 'partners' | 'faq' | 'contact';
@@ -41,13 +42,14 @@ export function TopBar({
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [localeOpen, setLocaleOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [fetchedAuthState, setFetchedAuthState] = useState<boolean | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const accountRef = useRef<HTMLDivElement>(null);
-  const localeRef = useRef<HTMLDivElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileNavigationId = useId();
   const navItems: NavItem[] = [
     { key: 'about', href: `/${locale}/#about` },
     { key: 'how_it_works', href: `/${locale}/#how-it-works` },
@@ -91,16 +93,11 @@ export function TopBar({
       if (!accountRef.current?.contains(target)) {
         setAccountOpen(false);
       }
-
-      if (!localeRef.current?.contains(target)) {
-        setLocaleOpen(false);
-      }
     };
 
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         setAccountOpen(false);
-        setLocaleOpen(false);
         setOpen(false);
       }
     };
@@ -113,6 +110,48 @@ export function TopBar({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const menuButton = menuButtonRef.current;
+    document.body.style.overflow = 'hidden';
+    mobileNavRef.current?.querySelector<HTMLElement>('a, button')?.focus();
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      menuButton?.focus();
+    };
+  }, [open]);
+
+  const handleMobileNavKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
+    if (event.key !== 'Tab') {
+      return;
+    }
+
+    const focusableElements = Array.from(
+      mobileNavRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements.at(-1);
+
+    if (!firstElement || !lastElement) {
+      return;
+    }
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  };
 
   const handleSignOut = async (): Promise<void> => {
     setIsSigningOut(true);
@@ -168,38 +207,6 @@ export function TopBar({
             </Link>
           ))}
 
-          <div ref={localeRef} className="relative flex h-full items-center pl-2 lg:pl-4">
-            <IconButton
-              aria-label={t('footer.locales')}
-              aria-expanded={localeOpen}
-              aria-controls="locale-switcher"
-              onClick={() => {
-                setLocaleOpen((value) => !value);
-                setAccountOpen(false);
-              }}
-              className="kclub-topbar-control h-10 w-10 focus-visible:ring-accent"
-            >
-              <Globe aria-hidden="true" size={16} strokeWidth={1.5} />
-            </IconButton>
-
-            {localeOpen && (
-              <div
-                id="locale-switcher"
-                className="kclub-topbar-menu absolute right-0 top-full z-50 mt-3 w-40 rounded-md border p-1"
-              >
-                <LocaleSwitcherLinks
-                  locale={locale}
-                  variant="topbar-menu"
-                  onSelect={() => setLocaleOpen(false)}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="flex h-full items-center pl-1">
-            <ThemeToggle className="h-10 w-10" />
-          </div>
-
           <div ref={accountRef} className="relative flex h-full items-center pl-1">
             <button
               type="button"
@@ -208,7 +215,6 @@ export function TopBar({
               aria-controls="account-menu"
               onClick={() => {
                 setAccountOpen((value) => !value);
-                setLocaleOpen(false);
               }}
               className="kclub-topbar-control inline-flex h-10 items-center gap-2 px-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
@@ -252,6 +258,19 @@ export function TopBar({
                     </AccountLink>
                   </>
                 )}
+
+                <div className="my-1 border-t border-zinc-200 dark:border-white/10" />
+
+                <AccountThemeToggle />
+
+                <div className="my-1 border-t border-zinc-200 dark:border-white/10" />
+
+                <LocaleSwitcherLinks
+                  locale={locale}
+                  variant="account-menu"
+                  onSelect={() => setAccountOpen(false)}
+                />
+
                 {signOutError ? (
                   <p role="alert" className="px-3 py-2 text-xs text-red-600 dark:text-red-300">
                     {signOutError}
@@ -263,12 +282,12 @@ export function TopBar({
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle className="h-10 w-10" />
           <button
+            ref={menuButtonRef}
             type="button"
             aria-label={open ? t('common.close') : t('common.menu')}
             aria-expanded={open}
-            aria-controls="mobile-navigation"
+            aria-controls={mobileNavigationId}
             onClick={() => setOpen((value) => !value)}
             className="kclub-topbar-control inline-flex h-11 w-11 items-center justify-center border shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
@@ -283,8 +302,13 @@ export function TopBar({
 
       {open ? (
         <div
-          id="mobile-navigation"
-          className="kclub-mobile-nav-panel fixed inset-x-0 top-[72px] z-50 border-b shadow-2xl backdrop-blur-xl md:hidden"
+          ref={mobileNavRef}
+          id={mobileNavigationId}
+          role="dialog"
+          aria-label={t('common.menu')}
+          aria-modal="true"
+          onKeyDown={handleMobileNavKeyDown}
+          className="kclub-mobile-nav-panel kclub-safe-bottom fixed inset-x-0 top-[72px] z-50 max-h-[calc(100dvh-72px)] overflow-y-auto border-b shadow-2xl backdrop-blur-xl md:hidden"
         >
           <nav className="kclub-shell grid gap-2 py-4">
             {navItems.map((item) => (
@@ -335,6 +359,7 @@ export function TopBar({
               {t('footer.locales')}
             </p>
             <div className="grid gap-1">
+              <AccountThemeToggle isMobile />
               <LocaleSwitcherLinks
                 locale={locale}
                 variant="topbar-mobile"
@@ -345,6 +370,32 @@ export function TopBar({
         </div>
       ) : null}
     </header>
+  );
+}
+
+function AccountThemeToggle({ isMobile = false }: { isMobile?: boolean }): ReactElement {
+  const { resolvedTheme, setTheme } = useTheme();
+  const t = useTranslations('home');
+  const isDark = resolvedTheme === 'dark';
+
+  const toggle = () => setTheme(isDark ? 'light' : 'dark');
+
+  if (isMobile) {
+    return (
+      <MobileButton onClick={toggle}>
+        <Sun aria-hidden="true" className="hidden dark:block" size={16} strokeWidth={1.6} />
+        <Moon aria-hidden="true" className="block dark:hidden" size={16} strokeWidth={1.6} />
+        {t('common.toggleTheme')}
+      </MobileButton>
+    );
+  }
+
+  return (
+    <AccountButton onClick={toggle}>
+      <Sun aria-hidden="true" className="hidden dark:block" size={16} strokeWidth={1.6} />
+      <Moon aria-hidden="true" className="block dark:hidden" size={16} strokeWidth={1.6} />
+      {t('common.toggleTheme')}
+    </AccountButton>
   );
 }
 

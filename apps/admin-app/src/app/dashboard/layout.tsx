@@ -4,10 +4,12 @@ import { requireStaffProfile } from '@/server/auth/profile';
 import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { DashboardRouteGuard } from '@/components/dashboard/dashboard-route-guard';
+import { fetchDashboardMetrics } from '@/features/dashboard/api';
 import { RefineProvider } from '@/providers/refine/refine-provider';
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const profile = await requireStaffProfile();
+  const [profile, metrics] = await Promise.all([requireStaffProfile(), fetchDashboardMetrics()]);
+  const notifications = metrics.status === 'success' ? (metrics.data.recentActivity ?? []) : [];
 
   return (
     <RefineProvider>
@@ -18,6 +20,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             staffName={profile.name}
             staffRole={profile.role}
             staffInitials={profile.initials}
+            notifications={notifications}
           />
           <main id="content" className="flex-1 p-4 md:p-6">
             <DashboardRouteGuard staffRole={profile.role}>{children}</DashboardRouteGuard>

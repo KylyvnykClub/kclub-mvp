@@ -206,6 +206,7 @@ describe('toMemberBusinessProfileDto', () => {
       representativeEmail: 'rep@example.com',
       representativePhone: '+15551234567',
       rejectionReason: null,
+      verificationDocuments: [],
       createdAt: '2026-06-15T10:00:00.000Z',
       updatedAt: '2026-06-15T10:00:00.000Z',
     });

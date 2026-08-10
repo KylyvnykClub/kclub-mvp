@@ -28,6 +28,7 @@ import { AdminPagination } from '@/components/admin-pagination';
 import type { AdminBusinessListItemDto, StaffRole } from '@kclub/contracts';
 
 const BUSINESS_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'PUBLISHED', 'REJECTED', 'HIDDEN'] as const;
+const NEW_BUSINESS_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 const businessStatusClassNames = {
   UNDER_REVIEW:
@@ -52,6 +53,24 @@ function BusinessStatusBadge({ status }: { status: AdminBusinessListItemDto['sta
 
 function isAwaitingPublication(b: AdminBusinessListItemDto): boolean {
   return b.status === 'APPROVED' && b.placementSubscription?.status === 'ACTIVE';
+}
+
+function isNewBusiness(createdAt: string): boolean {
+  const createdAtMs = Date.parse(createdAt);
+  const ageMs = Date.now() - createdAtMs;
+
+  return Number.isFinite(createdAtMs) && ageMs >= 0 && ageMs < NEW_BUSINESS_WINDOW_MS;
+}
+
+function NewBusinessBadge() {
+  return (
+    <Badge
+      variant="outline"
+      className="h-4 rounded-sm border-blue-500/20 bg-blue-500/15 px-1.5 py-0 text-[10px] font-medium uppercase tracking-wider text-blue-500 hover:bg-blue-500/15 dark:border-blue-500/30 dark:bg-blue-500/20 dark:text-blue-300 dark:hover:bg-blue-500/20"
+    >
+      New
+    </Badge>
+  );
 }
 
 function PaidBadge() {
@@ -256,11 +275,13 @@ export function BusinessesTable({
                 businesses.map((b) => {
                   const isPublished = b.status === 'PUBLISHED';
                   const isLoading = loadingId === b.id;
+                  const isNew = isNewBusiness(b.createdAt);
                   return (
                     <TableRow key={b.id}>
                       <TableCell className="pl-6">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">{b.name}</span>
+                          {isNew && <NewBusinessBadge />}
                           {b.featuredTop && (
                             <Badge
                               variant="default"
@@ -331,7 +352,7 @@ export function BusinessesTable({
                                 className={[
                                   'relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
                                   b.featuredTop
-                                    ? 'bg-zinc-900 dark:bg-zinc-100'
+                                    ? 'bg-blue-600 dark:bg-blue-500'
                                     : 'bg-zinc-300 dark:bg-zinc-600',
                                 ].join(' ')}
                               >
@@ -358,7 +379,7 @@ export function BusinessesTable({
                                 className={[
                                   'relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
                                   b.featuredRecommended
-                                    ? 'bg-zinc-900 dark:bg-zinc-100'
+                                    ? 'bg-blue-600 dark:bg-blue-500'
                                     : 'bg-zinc-300 dark:bg-zinc-600',
                                 ].join(' ')}
                               >
@@ -394,11 +415,13 @@ export function BusinessesTable({
             businesses.map((b) => {
               const isPublished = b.status === 'PUBLISHED';
               const isLoading = loadingId === b.id;
+              const isNew = isNewBusiness(b.createdAt);
               return (
                 <div key={b.id} className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex min-w-0 flex-wrap items-center gap-2">
                       <p className="truncate text-sm font-medium">{b.name}</p>
+                      {isNew && <NewBusinessBadge />}
                       {b.featuredTop && (
                         <Badge
                           variant="default"
@@ -464,7 +487,7 @@ export function BusinessesTable({
                               className={[
                                 'relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
                                 b.featuredTop
-                                  ? 'bg-zinc-900 dark:bg-zinc-100'
+                                  ? 'bg-blue-600 dark:bg-blue-500'
                                   : 'bg-zinc-300 dark:bg-zinc-600',
                               ].join(' ')}
                             >
@@ -491,7 +514,7 @@ export function BusinessesTable({
                               className={[
                                 'relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
                                 b.featuredRecommended
-                                  ? 'bg-zinc-900 dark:bg-zinc-100'
+                                  ? 'bg-blue-600 dark:bg-blue-500'
                                   : 'bg-zinc-300 dark:bg-zinc-600',
                               ].join(' ')}
                             >

@@ -29,7 +29,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
   const isDark = isMounted && resolvedTheme === 'dark';
 
   return (
-    <section className="kclub-premium-hero relative isolate flex min-h-[calc(100vh-112px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">
+    <section className="kclub-premium-hero relative isolate flex min-h-[calc(100dvh-72px)] min-h-[calc(100svh-72px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">
       <div className="kclub-premium-hero-tint absolute inset-0" aria-hidden="true" />
       <div
         className="kclub-premium-hero-fade absolute bottom-0 left-0 right-0 h-24"
@@ -50,7 +50,7 @@ export function HeroSection({ locale }: { locale: Locale }) {
           isDark ? 'opacity-60 mix-blend-screen' : 'opacity-55 mix-blend-normal'
         }`}
       >
-        <Image src={mapImage} alt="" fill className="object-cover" priority />
+        <Image src={mapImage} alt="" fill sizes="100vw" className="object-cover" priority />
 
         {/* Vignette overlays */}
         <div className="pointer-events-none absolute inset-0 z-40 select-none bg-[radial-gradient(ellipse_at_center,transparent_10%,var(--background)_100%)]" />

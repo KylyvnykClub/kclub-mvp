@@ -57,7 +57,7 @@ describe('AccountPanel', () => {
 
     expect(vipButton.getAttribute('aria-disabled')).toBe('true');
     expect(vipButton.getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getAllByText('member.dashboard.subscription.currentPlanBadge')).toHaveLength(2);
+    expect(screen.getAllByText('member.dashboard.subscription.currentPlanBadge')).toHaveLength(1);
   });
 
   test('keeps the VIP upgrade card actionable for regular members', () => {
@@ -70,5 +70,22 @@ describe('AccountPanel', () => {
     expect(vipButton.getAttribute('aria-disabled')).toBe('false');
     expect(vipButton.getAttribute('aria-pressed')).toBe('false');
     expect(screen.getByText('member.dashboard.account.vipButtonPrice')).toBeTruthy();
+  });
+
+  test('disables business placement after it is active', () => {
+    render(
+      <AccountPanel
+        locale="en"
+        profile={baseProfile}
+        cardNumber="MEM-001"
+        hasActiveBusinessPlacement
+      />,
+    );
+
+    const placement = screen.getByText('member.dashboard.account.bizButtonTitle').closest('a');
+
+    expect(placement?.getAttribute('href')).toBeNull();
+    expect(placement?.getAttribute('aria-disabled')).toBe('true');
+    expect(placement?.getAttribute('tabindex')).toBe('-1');
   });
 });

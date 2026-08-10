@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'vitest';
 
 import {
+  isLiveModeConfigured,
   mapStripeStatusToLocal,
+  readInvoiceSubscriptionId,
+  readSubscriptionPeriod,
   validatePlacementCheckout,
 } from '../../src/server/services/webhook-service';
 import { validateBusinessReviewReservePaymentIntent } from '../../src/server/services/business-service';
@@ -193,6 +196,70 @@ describe('validateBusinessReviewReservePaymentIntent', () => {
     expect(() => validateBusinessReviewReservePaymentIntent(metadata, 1998)).toThrow(
       'below the required authorization',
     );
+  });
+});
+
+describe('isLiveModeConfigured', () => {
+  test('true only for a live secret key', () => {
+    expect(isLiveModeConfigured({ STRIPE_SECRET_KEY: 'sk_live_abc' })).toBe(true);
+    expect(isLiveModeConfigured({ STRIPE_SECRET_KEY: 'sk_test_abc' })).toBe(false);
+    expect(isLiveModeConfigured({})).toBe(false);
+  });
+});
+
+describe('readSubscriptionPeriod', () => {
+  test('reads the boundary from the first subscription item', () => {
+    const subscription = {
+      items: { data: [{ current_period_start: 100, current_period_end: 200 }] },
+    };
+    expect(readSubscriptionPeriod(subscription, 'current_period_start')).toBe(100);
+    expect(readSubscriptionPeriod(subscription, 'current_period_end')).toBe(200);
+  });
+
+  test('falls back to the legacy top-level field', () => {
+    expect(readSubscriptionPeriod({ current_period_end: 300 }, 'current_period_end')).toBe(300);
+  });
+
+  test('prefers the item over the legacy field', () => {
+    const subscription = {
+      current_period_end: 300,
+      items: { data: [{ current_period_end: 200 }] },
+    };
+    expect(readSubscriptionPeriod(subscription, 'current_period_end')).toBe(200);
+  });
+
+  test('returns null when the boundary is absent or not numeric', () => {
+    expect(readSubscriptionPeriod({}, 'current_period_end')).toBeNull();
+    expect(readSubscriptionPeriod({ current_period_end: null }, 'current_period_end')).toBeNull();
+    expect(readSubscriptionPeriod({ items: { data: [] } }, 'current_period_end')).toBeNull();
+  });
+});
+
+describe('readInvoiceSubscriptionId', () => {
+  test('reads the id from parent.subscription_details', () => {
+    expect(
+      readInvoiceSubscriptionId({
+        parent: { subscription_details: { subscription: 'sub_1' } },
+      }),
+    ).toBe('sub_1');
+  });
+
+  test('unwraps an expanded subscription object', () => {
+    expect(
+      readInvoiceSubscriptionId({
+        parent: { subscription_details: { subscription: { id: 'sub_2' } } },
+      }),
+    ).toBe('sub_2');
+  });
+
+  test('falls back to the legacy top-level field', () => {
+    expect(readInvoiceSubscriptionId({ subscription: 'sub_3' })).toBe('sub_3');
+    expect(readInvoiceSubscriptionId({ parent: null, subscription: 'sub_3' })).toBe('sub_3');
+  });
+
+  test('returns null for a one-off invoice', () => {
+    expect(readInvoiceSubscriptionId({})).toBeNull();
+    expect(readInvoiceSubscriptionId({ parent: { subscription_details: null } })).toBeNull();
   });
 });
 

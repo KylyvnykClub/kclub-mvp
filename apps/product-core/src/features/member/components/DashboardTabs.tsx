@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { and, eq } from 'drizzle-orm';
 import { getTranslations } from 'next-intl/server';
 
 import type {
@@ -15,6 +16,7 @@ import { isDashboardTabLocked } from '@/features/member/dashboard-tabs';
 import { CabinetLockedPanel } from '@/features/member/components/cabinet/CabinetLockedPanel';
 import { cabinetContentClasses } from '@/features/member/components/cabinet/styles';
 import { getCachedCountries } from '@/server/cache/taxonomy-cache';
+import { getDbClient, schema } from '@/server/db';
 
 import { AccountPanel } from './AccountPanel';
 import { BusinessPanel } from './BusinessPanel';
@@ -46,6 +48,15 @@ export async function DashboardTabs({
 }: DashboardTabsProps) {
   const t = await getTranslations({ locale, namespace: 'member.dashboard' });
   const countries = await getCachedCountries();
+  const db = getDbClient();
+  const activePlacement = await db.query.subscriptions.findFirst({
+    where: and(
+      eq(schema.subscriptions.user_id, profile.id),
+      eq(schema.subscriptions.kind, 'BUSINESS_PLACEMENT'),
+      eq(schema.subscriptions.status, 'ACTIVE'),
+    ),
+    columns: { id: true },
+  });
   const countryOptions: Pick<CountryDto, 'id' | 'name'>[] = countries
     .filter((country) => country.isActive)
     .map((country) => ({ id: country.id, name: country.name }));
@@ -67,7 +78,14 @@ export async function DashboardTabs({
 
   for (const tab of visibleTabs) {
     if (tab === 'details') {
-      panels.details = <AccountPanel locale={locale} profile={profile} cardNumber={cardNumber} />;
+      panels.details = (
+        <AccountPanel
+          locale={locale}
+          profile={profile}
+          cardNumber={cardNumber}
+          hasActiveBusinessPlacement={Boolean(activePlacement)}
+        />
+      );
     } else if (tab === 'introductions') {
       panels.introductions = isDashboardTabLocked(userContext, 'introductions') ? (
         <div className={cabinetContentClasses}>
@@ -101,7 +119,13 @@ export async function DashboardTabs({
         <BusinessPanel locale={locale} profile={profile} />
       );
     } else if (tab === 'recommendations') {
-      panels.recommendations = <RecommendationsPanel locale={locale} profile={profile} />;
+      panels.recommendations = (
+        <RecommendationsPanel
+          locale={locale}
+          profile={profile}
+          serverPublicBusinesses={serverPublicBusinesses}
+        />
+      );
     } else if (tab === 'settings') {
       panels.settings = (
         <SettingsPanel countryOptions={countryOptions} locale={locale} profile={profile} />

@@ -19,6 +19,10 @@ export const BUSINESS_STATUSES = [
 ] as const;
 export type BusinessStatus = (typeof BUSINESS_STATUSES)[number];
 
+export const BUSINESS_VERIFICATION_DOCUMENT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'] as const;
+export type BusinessVerificationDocumentStatus =
+  (typeof BUSINESS_VERIFICATION_DOCUMENT_STATUSES)[number];
+
 export const SUBSCRIPTION_STATUSES = ['NONE', 'ACTIVE', 'PAST_DUE', 'CANCELED', 'EXPIRED'] as const;
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 
@@ -51,6 +55,9 @@ export const AUDIT_ACTIONS = [
   'BUSINESS_PLACEMENT_PAID',
   'BUSINESS_SUBMITTED',
   'BUSINESS_UPDATED',
+  'BUSINESS_DOCUMENT_UPLOADED',
+  'BUSINESS_DOCUMENT_APPROVED',
+  'BUSINESS_DOCUMENT_REJECTED',
   'INTRODUCTION_APPROVED',
   'INTRODUCTION_REJECTED',
   'INTRODUCTION_COMPLETED',
@@ -326,6 +333,20 @@ export type PublicBusinessDetailDto = PublicBusinessListItemDto & {
   ogImageUrl: string | null;
 };
 
+export type BusinessVerificationDocumentDto = {
+  id: EntityId;
+  businessProfileId: EntityId;
+  fileName: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  publicUrl: string;
+  status: BusinessVerificationDocumentStatus;
+  rejectionReason: string | null;
+  approvedAt: IsoDateTime | null;
+  rejectedAt: IsoDateTime | null;
+  createdAt: IsoDateTime;
+};
+
 export type AdminBusinessDetailDto = PublicBusinessDetailDto & {
   ownerUserId: EntityId;
   status: BusinessStatus;
@@ -339,6 +360,7 @@ export type AdminBusinessDetailDto = PublicBusinessDetailDto & {
   updatedAt: IsoDateTime;
   owner: AdminBusinessOwnerSummaryDto;
   placementSubscription: AdminBusinessSubscriptionIndicatorDto | null;
+  verificationDocuments: BusinessVerificationDocumentDto[];
   auditEntries: AuditLogDto[];
 };
 
@@ -349,6 +371,7 @@ export type MemberBusinessProfileDto = PublicBusinessDetailDto & {
   representativeEmail: string;
   representativePhone: string;
   rejectionReason: string | null;
+  verificationDocuments: BusinessVerificationDocumentDto[];
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 };

@@ -169,6 +169,30 @@ beforeEach(() => {
 });
 
 describe('processStripeEvent placement lifecycle', () => {
+  test('ignores events whose livemode does not match the configured key', async () => {
+    const previousKey = process.env.STRIPE_SECRET_KEY;
+    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
+
+    try {
+      const { processStripeEvent } = await import('../../src/server/services/webhook-service');
+      await processStripeEvent({
+        id: 'evt_live_on_test_1',
+        type: 'customer.subscription.deleted',
+        livemode: true,
+        data: { object: { id: 'sub_placement_1', status: 'canceled' } },
+      } as never);
+    } finally {
+      if (previousKey === undefined) {
+        delete process.env.STRIPE_SECRET_KEY;
+      } else {
+        process.env.STRIPE_SECRET_KEY = previousKey;
+      }
+    }
+
+    expect(mockDb.insertCalls).toHaveLength(0);
+    expect(mockDb.updateCalls).toHaveLength(0);
+  });
+
   test('records first delivery as processing and finishes as processed', async () => {
     mockDb.selectQueue.push(
       [{ id: 'bus-1', user_id: 'user-1', status: 'APPROVED' }],

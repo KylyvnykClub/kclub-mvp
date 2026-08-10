@@ -12,7 +12,7 @@ type BusinessDetailsPageProps = {
 
 function BusinessDetailFallback() {
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
+    <div className="w-full space-y-6">
       <Skeleton className="h-8 w-40" />
       <Skeleton className="h-10 w-72" />
       <Skeleton className="h-48 w-full" />

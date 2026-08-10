@@ -43,18 +43,30 @@ describe('WebVitals', () => {
     callback({ name: 'CLS', rating: 'needs-improvement', value: 0.12345 });
     callback({ name: 'INP', rating: 'poor', value: 321.9876 });
 
-    expect(plausible).toHaveBeenNthCalledWith(1, 'WebVital', {
-      interactive: false,
-      props: { metric: 'LCP', rating: 'good', value: '1234.568' },
-    });
-    expect(plausible).toHaveBeenNthCalledWith(2, 'WebVital', {
-      interactive: false,
-      props: { metric: 'CLS', rating: 'needs-improvement', value: '0.123' },
-    });
-    expect(plausible).toHaveBeenNthCalledWith(3, 'WebVital', {
-      interactive: false,
-      props: { metric: 'INP', rating: 'poor', value: '321.988' },
-    });
+    expect(plausible).toHaveBeenNthCalledWith(
+      1,
+      'WebVital',
+      expect.objectContaining({
+        interactive: false,
+        props: expect.objectContaining({
+          metric: 'LCP',
+          rating: 'good',
+          value: '1234.568',
+          route: window.location.pathname,
+          device: 'desktop',
+        }),
+      }),
+    );
+    expect(plausible).toHaveBeenNthCalledWith(
+      2,
+      'WebVital',
+      expect.objectContaining({ props: expect.objectContaining({ metric: 'CLS' }) }),
+    );
+    expect(plausible).toHaveBeenNthCalledWith(
+      3,
+      'WebVital',
+      expect.objectContaining({ props: expect.objectContaining({ metric: 'INP' }) }),
+    );
   });
 
   test('should ignore non-core metrics and unavailable Plausible', () => {

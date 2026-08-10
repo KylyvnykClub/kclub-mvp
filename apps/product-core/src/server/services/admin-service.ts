@@ -21,6 +21,7 @@ import {
   type AdminBusinessListItemDto,
   type AdminBusinessOwnerSummaryDto,
   type AdminBusinessSubscriptionIndicatorDto,
+  type BusinessVerificationDocumentDto,
   type AdminCardListItemDto,
   type AdminConfigEntryDto,
   type AdminIntroductionListItemDto,
@@ -64,6 +65,7 @@ import type {
   AdminUserListInput,
   AuditLogListInput,
   BusinessApproveInput,
+  BusinessDocumentRejectInput,
   BusinessFeaturedInput,
   BusinessHideInput,
   BusinessRejectInput,
@@ -877,10 +879,12 @@ export async function getBusinessDetail(businessId: string): Promise<AdminBusine
     orderBy: [desc(schema.auditLogs.created_at)],
     limit: 50,
   });
+  const verificationDocuments = await listBusinessVerificationDocuments(businessId);
 
   return toAdminBusinessDetail(
     business as AdminBusinessRecord,
     auditEntries as AdminAuditLogRecord[],
+    verificationDocuments,
   );
 }
 
@@ -949,6 +953,107 @@ export async function adminUpdateBusiness(
   );
 
   return toAdminBusinessDetail(updatedWithRelations! as AdminBusinessRecord);
+}
+
+export async function approveBusinessVerificationDocument(
+  businessId: string,
+  documentId: string,
+  context: RequestContext,
+): Promise<BusinessVerificationDocumentDto> {
+  const db = getDbClient();
+  const document = await db.query.businessVerificationDocuments.findFirst({
+    where: and(
+      eq(schema.businessVerificationDocuments.id, documentId),
+      eq(schema.businessVerificationDocuments.business_profile_id, businessId),
+    ),
+  });
+
+  if (!document) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business verification document not found',
+      status: 404,
+    });
+  }
+
+  if (document.status === 'APPROVED') {
+    return toBusinessVerificationDocumentDto(document);
+  }
+
+  const [updated] = await db
+    .update(schema.businessVerificationDocuments)
+    .set({
+      status: 'APPROVED',
+      rejection_reason: null,
+      approved_at: new Date(),
+      rejected_at: null,
+      reviewed_by_staff_id: context.actor?.kind === 'staff' ? context.actor.staffId : null,
+      updated_at: new Date(),
+    })
+    .where(eq(schema.businessVerificationDocuments.id, documentId))
+    .returning();
+
+  await auditService.log(
+    {
+      action: 'BUSINESS_DOCUMENT_APPROVED',
+      entityType: 'BusinessVerificationDocument',
+      entityId: documentId,
+      before: { status: document.status },
+      after: { status: 'APPROVED', businessId },
+    },
+    context,
+  );
+
+  return toBusinessVerificationDocumentDto(updated!);
+}
+
+export async function rejectBusinessVerificationDocument(
+  businessId: string,
+  documentId: string,
+  input: BusinessDocumentRejectInput,
+  context: RequestContext,
+): Promise<BusinessVerificationDocumentDto> {
+  const db = getDbClient();
+  const document = await db.query.businessVerificationDocuments.findFirst({
+    where: and(
+      eq(schema.businessVerificationDocuments.id, documentId),
+      eq(schema.businessVerificationDocuments.business_profile_id, businessId),
+    ),
+  });
+
+  if (!document) {
+    throw new AppError({
+      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: 'Business verification document not found',
+      status: 404,
+    });
+  }
+
+  const [updated] = await db
+    .update(schema.businessVerificationDocuments)
+    .set({
+      status: 'REJECTED',
+      rejection_reason: input.reason,
+      approved_at: null,
+      rejected_at: new Date(),
+      reviewed_by_staff_id: context.actor?.kind === 'staff' ? context.actor.staffId : null,
+      updated_at: new Date(),
+    })
+    .where(eq(schema.businessVerificationDocuments.id, documentId))
+    .returning();
+
+  await auditService.log(
+    {
+      action: 'BUSINESS_DOCUMENT_REJECTED',
+      entityType: 'BusinessVerificationDocument',
+      entityId: documentId,
+      before: { status: document.status },
+      after: { status: 'REJECTED', businessId, reason: input.reason },
+    },
+    context,
+  );
+
+  return toBusinessVerificationDocumentDto(updated!);
 }
 
 export async function approveBusiness(
@@ -2491,6 +2596,20 @@ type AdminBusinessSubscriptionRecord = {
   current_period_end: Date | null;
 };
 
+type AdminBusinessVerificationDocumentRecord = {
+  id: string;
+  business_profile_id: string;
+  file_name: string;
+  mime_type: string;
+  file_size_bytes: number;
+  public_url: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  rejection_reason: string | null;
+  approved_at: Date | null;
+  rejected_at: Date | null;
+  created_at: Date;
+};
+
 type AdminCategoryRecord = {
   name: string;
   slug: string;
@@ -2821,6 +2940,7 @@ function toAdminBusinessListItem(business: AdminBusinessRecord): AdminBusinessLi
 function toAdminBusinessDetail(
   business: AdminBusinessRecord,
   auditEntries?: AdminAuditLogRecord[],
+  verificationDocuments: BusinessVerificationDocumentDto[] = [],
 ): AdminBusinessDetailDto {
   return {
     ...toAdminBusinessListItem(business),
@@ -2834,6 +2954,7 @@ function toAdminBusinessDetail(
     seoDescription: business.seo_description ?? null,
     seoKeywords: business.seo_keywords ?? null,
     ogImageUrl: business.og_image_url ?? null,
+    verificationDocuments,
     auditEntries: (auditEntries ?? []).map((log: AdminAuditLogRecord) => ({
       id: log.id,
       actorStaffId: log.actor_staff_id ?? null,
@@ -2846,6 +2967,52 @@ function toAdminBusinessDetail(
       ipAddress: log.ip_address ?? null,
       createdAt: log.created_at?.toISOString() ?? new Date().toISOString(),
     })),
+  };
+}
+
+async function listBusinessVerificationDocuments(
+  businessId: string,
+): Promise<BusinessVerificationDocumentDto[]> {
+  const db = getDbClient();
+  let documents: AdminBusinessVerificationDocumentRecord[] = [];
+
+  try {
+    documents = (await db.query.businessVerificationDocuments.findMany({
+      where: eq(schema.businessVerificationDocuments.business_profile_id, businessId),
+      orderBy: [desc(schema.businessVerificationDocuments.created_at)],
+    })) as AdminBusinessVerificationDocumentRecord[];
+  } catch (error) {
+    if (isMissingBusinessVerificationDocumentsTableError(error)) {
+      return [];
+    }
+
+    throw error;
+  }
+
+  return documents.map((document) =>
+    toBusinessVerificationDocumentDto(document as AdminBusinessVerificationDocumentRecord),
+  );
+}
+
+function isMissingBusinessVerificationDocumentsTableError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === '42P01';
+}
+
+function toBusinessVerificationDocumentDto(
+  document: AdminBusinessVerificationDocumentRecord,
+): BusinessVerificationDocumentDto {
+  return {
+    id: document.id,
+    businessProfileId: document.business_profile_id,
+    fileName: document.file_name,
+    mimeType: document.mime_type,
+    fileSizeBytes: document.file_size_bytes,
+    publicUrl: document.public_url,
+    status: document.status,
+    rejectionReason: document.rejection_reason,
+    approvedAt: document.approved_at?.toISOString() ?? null,
+    rejectedAt: document.rejected_at?.toISOString() ?? null,
+    createdAt: document.created_at.toISOString(),
   };
 }
 
