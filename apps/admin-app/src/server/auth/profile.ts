@@ -1,4 +1,5 @@
 import { readStaffSession } from '@/server/auth/session';
+import { createLogger } from '@/server/logger';
 import type {
   ApiResponse,
   StaffPermissionOverrides,
@@ -24,28 +25,51 @@ function getProductCoreBaseUrl() {
 }
 
 async function fetchVerifiedStaffProfile(token: string): Promise<StaffProfileDto | null> {
+  const log = createLogger();
+  const url = `${getProductCoreBaseUrl()}/api/admin/v1/staff-auth/session`;
+
   let response: Response;
   try {
-    response = await fetch(`${getProductCoreBaseUrl()}/api/admin/v1/staff-auth/session`, {
+    response = await fetch(url, {
       method: 'GET',
       cache: 'no-store',
       headers: {
         authorization: `Bearer ${token}`,
       },
-      // Fail fast instead of hanging for undici's default 300s headers timeout;
-      // an unreachable product-core must not crash the dashboard layout.
       signal: AbortSignal.timeout(15_000),
     });
-  } catch {
+  } catch (err) {
+    log.auth('fetchVerifiedStaffProfile network error', {
+      url,
+      error: String(err),
+    });
     return null;
   }
 
-  if (!response.ok) return null;
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    log.auth('fetchVerifiedStaffProfile non-ok response', {
+      url,
+      status: response.status,
+      body: body.slice(0, 500),
+    });
+    return null;
+  }
 
   try {
     const payload = (await response.json()) as ApiResponse<StaffProfileDto>;
+    if (!payload.data) {
+      log.auth('fetchVerifiedStaffProfile empty payload.data', {
+        url,
+        payload: JSON.stringify(payload).slice(0, 500),
+      });
+    }
     return payload.data;
-  } catch {
+  } catch (err) {
+    log.auth('fetchVerifiedStaffProfile JSON parse error', {
+      url,
+      error: String(err),
+    });
     return null;
   }
 }
