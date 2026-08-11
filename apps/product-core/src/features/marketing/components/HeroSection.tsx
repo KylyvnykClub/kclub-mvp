@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
-import { useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 
 import { getButtonClasses } from '@kclub/ui';
 
@@ -13,20 +13,13 @@ import mapImage from '@/assets/content/map.png';
 import { CanvasText } from '@/components/ui/canvas-text';
 import { Locale } from '@/i18n/routing';
 
-const subscribeToMountState = (): (() => void) => () => undefined;
-const getClientMountState = (): boolean => true;
-const getServerMountState = (): boolean => false;
-
 export function HeroSection({ locale }: { locale: Locale }) {
   const t = useTranslations('home');
   const { resolvedTheme } = useTheme();
-  const isMounted = useSyncExternalStore(
-    subscribeToMountState,
-    getClientMountState,
-    getServerMountState,
-  );
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const accentColor = '#d4af37';
-  const isDark = isMounted && resolvedTheme === 'dark';
+  const isDark = mounted && resolvedTheme === 'dark';
 
   return (
     <section className="kclub-premium-hero relative isolate flex min-h-[calc(100dvh-72px)] min-h-[calc(100svh-72px)] flex-col overflow-hidden border-b border-zinc-200 dark:border-border">
