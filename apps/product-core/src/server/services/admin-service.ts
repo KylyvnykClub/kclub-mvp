@@ -6,7 +6,6 @@ import {
   desc,
   eq,
   exists,
-  gte,
   ilike,
   inArray,
   isNull,
@@ -138,26 +137,65 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
   const db = getDbClient();
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const numberOrZero = (result: PromiseSettledResult<number>): number =>
-    result.status === 'fulfilled' ? result.value : 0;
-
   const arrayOrEmpty = <T>(result: PromiseSettledResult<T[]>): T[] =>
     result.status === 'fulfilled' ? result.value : [];
 
-  const countResults = await Promise.allSettled([
-    db.$count(schema.users),
-    db.$count(schema.users, eq(schema.users.status, 'BLOCKED')),
-    db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'ACTIVE')),
-    db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'PAST_DUE')),
-    db.$count(schema.vipSubscriptions, eq(schema.vipSubscriptions.status, 'EXPIRED')),
-    db.$count(schema.businessProfiles, eq(schema.businessProfiles.status, 'UNDER_REVIEW')),
-    db.$count(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'SUBMITTED')),
-    db.$count(schema.businessIntroductions, eq(schema.businessIntroductions.status, 'IN_REVIEW')),
-    db.$count(schema.businessProfiles),
-    db.$count(schema.businessProfiles, eq(schema.businessProfiles.status, 'PUBLISHED')),
-    db.$count(schema.users, gte(schema.users.created_at, sevenDaysAgo)),
-    db.$count(schema.businessProfiles, gte(schema.businessProfiles.created_at, sevenDaysAgo)),
-  ]);
+  const toNum = (value: unknown): number => Number(value ?? 0) || 0;
+
+  // Collapse what used to be 12 concurrent $count queries into a single
+  // round-trip. postgres.js pipelines concurrent queries, which hangs on the
+  // Supabase connection pooler (dashboard-metrics was timing out at 504); one
+  // query with scalar sub-selects sidesteps that and is faster regardless.
+  let counts = {
+    total_users: 0,
+    blocked_users: 0,
+    active_subs: 0,
+    past_due_subs: 0,
+    expired_subs: 0,
+    businesses_review: 0,
+    intros_submitted: 0,
+    intros_in_review: 0,
+    total_businesses: 0,
+    published_businesses: 0,
+    new_users_7d: 0,
+    new_businesses_7d: 0,
+  };
+  try {
+    const rows = (await db.execute(sql`
+      SELECT
+        (SELECT count(*) FROM ${schema.users}) AS total_users,
+        (SELECT count(*) FROM ${schema.users} WHERE ${schema.users.status} = 'BLOCKED') AS blocked_users,
+        (SELECT count(*) FROM ${schema.vipSubscriptions} WHERE ${schema.vipSubscriptions.status} = 'ACTIVE') AS active_subs,
+        (SELECT count(*) FROM ${schema.vipSubscriptions} WHERE ${schema.vipSubscriptions.status} = 'PAST_DUE') AS past_due_subs,
+        (SELECT count(*) FROM ${schema.vipSubscriptions} WHERE ${schema.vipSubscriptions.status} = 'EXPIRED') AS expired_subs,
+        (SELECT count(*) FROM ${schema.businessProfiles} WHERE ${schema.businessProfiles.status} = 'UNDER_REVIEW') AS businesses_review,
+        (SELECT count(*) FROM ${schema.businessIntroductions} WHERE ${schema.businessIntroductions.status} = 'SUBMITTED') AS intros_submitted,
+        (SELECT count(*) FROM ${schema.businessIntroductions} WHERE ${schema.businessIntroductions.status} = 'IN_REVIEW') AS intros_in_review,
+        (SELECT count(*) FROM ${schema.businessProfiles}) AS total_businesses,
+        (SELECT count(*) FROM ${schema.businessProfiles} WHERE ${schema.businessProfiles.status} = 'PUBLISHED') AS published_businesses,
+        (SELECT count(*) FROM ${schema.users} WHERE ${schema.users.created_at} >= ${sevenDaysAgo}) AS new_users_7d,
+        (SELECT count(*) FROM ${schema.businessProfiles} WHERE ${schema.businessProfiles.created_at} >= ${sevenDaysAgo}) AS new_businesses_7d
+    `)) as unknown as Array<Record<string, unknown>>;
+    const row = rows[0];
+    if (row) {
+      counts = {
+        total_users: toNum(row.total_users),
+        blocked_users: toNum(row.blocked_users),
+        active_subs: toNum(row.active_subs),
+        past_due_subs: toNum(row.past_due_subs),
+        expired_subs: toNum(row.expired_subs),
+        businesses_review: toNum(row.businesses_review),
+        intros_submitted: toNum(row.intros_submitted),
+        intros_in_review: toNum(row.intros_in_review),
+        total_businesses: toNum(row.total_businesses),
+        published_businesses: toNum(row.published_businesses),
+        new_users_7d: toNum(row.new_users_7d),
+        new_businesses_7d: toNum(row.new_businesses_7d),
+      };
+    }
+  } catch {
+    // Leave zeros; a metrics blip must not blank the dashboard.
+  }
 
   const [recentUsersResult, recentBusinessesResult, recentIntroductionsResult] =
     await Promise.allSettled([
@@ -193,18 +231,18 @@ export async function getDashboardMetrics(): Promise<DashboardMetricsDto> {
         .limit(10),
     ]);
 
-  const totalUsers = numberOrZero(countResults[0]);
-  const blockedUsers = numberOrZero(countResults[1]);
-  const activeSubs = numberOrZero(countResults[2]);
-  const pastDueSubs = numberOrZero(countResults[3]);
-  const expiredSubs = numberOrZero(countResults[4]);
-  const businessesReview = numberOrZero(countResults[5]);
-  const introductionsSubmitted = numberOrZero(countResults[6]);
-  const introductionsInReview = numberOrZero(countResults[7]);
-  const totalBusinesses = numberOrZero(countResults[8]);
-  const publishedBusinesses = numberOrZero(countResults[9]);
-  const newUsers7d = numberOrZero(countResults[10]);
-  const newBusinesses7d = numberOrZero(countResults[11]);
+  const totalUsers = counts.total_users;
+  const blockedUsers = counts.blocked_users;
+  const activeSubs = counts.active_subs;
+  const pastDueSubs = counts.past_due_subs;
+  const expiredSubs = counts.expired_subs;
+  const businessesReview = counts.businesses_review;
+  const introductionsSubmitted = counts.intros_submitted;
+  const introductionsInReview = counts.intros_in_review;
+  const totalBusinesses = counts.total_businesses;
+  const publishedBusinesses = counts.published_businesses;
+  const newUsers7d = counts.new_users_7d;
+  const newBusinesses7d = counts.new_businesses_7d;
   const recentUsers = arrayOrEmpty(recentUsersResult);
   const recentBusinesses = arrayOrEmpty(recentBusinessesResult);
   const recentIntroductions = arrayOrEmpty(recentIntroductionsResult);
