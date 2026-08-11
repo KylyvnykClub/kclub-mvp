@@ -48,7 +48,7 @@ function getStatusBadgeVariant(status: string): 'default' | 'outline' | 'success
 }
 
 export function IntroductionsPanel({
-  locale: _locale,
+  locale,
   profile: _profile,
   serverPublicBusinesses,
 }: {
@@ -223,7 +223,9 @@ export function IntroductionsPanel({
                     </p>
                   )}
                   <p className="text-xs text-muted">
-                    {new Date(introduction.createdAt).toLocaleDateString()}
+                    {new Date(introduction.createdAt).toLocaleDateString(locale, {
+                      timeZone: 'Europe/Kyiv',
+                    })}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">

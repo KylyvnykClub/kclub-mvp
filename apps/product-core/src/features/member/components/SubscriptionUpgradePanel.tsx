@@ -146,10 +146,16 @@ export async function SubscriptionUpgradePanel({ locale, profile }: Subscription
                   <p className="text-sm font-medium text-foreground">{inv.number ?? inv.id}</p>
                   <p className="text-xs text-muted-foreground">
                     {inv.periodStart
-                      ? new Date(inv.periodStart).toLocaleDateString(locale)
-                      : new Date(inv.createdAt).toLocaleDateString(locale)}
+                      ? new Date(inv.periodStart).toLocaleDateString(locale, {
+                          timeZone: 'Europe/Kyiv',
+                        })
+                      : new Date(inv.createdAt).toLocaleDateString(locale, {
+                          timeZone: 'Europe/Kyiv',
+                        })}
                     {inv.periodEnd
-                      ? ` — ${new Date(inv.periodEnd).toLocaleDateString(locale)}`
+                      ? ` — ${new Date(inv.periodEnd).toLocaleDateString(locale, {
+                          timeZone: 'Europe/Kyiv',
+                        })}`
                       : null}
                   </p>
                 </div>

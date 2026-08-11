@@ -89,6 +89,7 @@ export function AuditPanel({ locale }: AuditPanelProps) {
                   day: 'numeric',
                   month: 'short',
                   year: 'numeric',
+                  timeZone: 'Europe/Kyiv',
                 })}
               </time>
             </div>

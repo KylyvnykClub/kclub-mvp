@@ -561,10 +561,24 @@ async function handleSubscriptionChange(subscription: Record<string, unknown>): 
 
   const previousStatus = localSub.status;
 
-  await db
-    .update(schema.vipSubscriptions)
-    .set(updateData)
-    .where(eq(schema.vipSubscriptions.id, localSub.id));
+  // Keep the denormalized membership_tier in lockstep with the subscription
+  // status. Only handleCheckoutCompleted used to set the tier, so a subscription
+  // whose status arrived via customer.subscription.* (e.g. a checkout webhook
+  // that failed during an outage) could leave the user ACTIVE-but-MEMBER — the
+  // member UI then offered a VIP purchase that the checkout guard rejected (409).
+  const nextTier = hasActiveVipAccess(newStatus) ? 'VIP' : 'MEMBER';
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(schema.vipSubscriptions)
+      .set(updateData)
+      .where(eq(schema.vipSubscriptions.id, localSub.id));
+
+    await tx
+      .update(schema.users)
+      .set({ membership_tier: nextTier })
+      .where(eq(schema.users.id, localSub.user_id));
+  });
 
   if (previousStatus !== newStatus) {
     await auditService.log(

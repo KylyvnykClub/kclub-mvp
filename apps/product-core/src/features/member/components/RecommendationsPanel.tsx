@@ -99,6 +99,7 @@ function IncomingIntroductionsList({
         const time = new Date(intro.createdAt).toLocaleDateString(locale, {
           month: 'short',
           day: 'numeric',
+          timeZone: 'Europe/Kyiv',
         });
         const isUnread = intro.status === 'APPROVED';
 

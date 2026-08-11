@@ -53,6 +53,9 @@ export function AccountPanel({
     month: 'long',
     day: 'numeric',
     year: 'numeric',
+    // Pin the zone so server (UTC) and client (local) render the same day —
+    // an unpinned toLocaleDateString mismatches near midnight and trips React #418.
+    timeZone: 'Europe/Kyiv',
   });
   const localePreference = profile.localePreference ?? locale;
   const location = [profile.city, profile.country].filter(Boolean).join(', ');

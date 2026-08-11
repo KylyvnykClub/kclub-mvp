@@ -627,7 +627,9 @@ export function BusinessForm({
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
                           {formatFileSize(document.fileSizeBytes)} ·{' '}
-                          {new Date(document.createdAt).toLocaleDateString(locale)}
+                          {new Date(document.createdAt).toLocaleDateString(locale, {
+                            timeZone: 'Europe/Kyiv',
+                          })}
                         </p>
                         {document.rejectionReason && (
                           <p className="mt-2 text-xs text-destructive">
